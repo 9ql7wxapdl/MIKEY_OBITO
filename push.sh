@@ -242,12 +242,38 @@ setup_token() {
     echo -e "  ${C_CYAN}[1]${C_RESET} ${C_BOLD}Classic Token${C_RESET}         ${C_DIM}— belum punya, buat baru  (ghp_...)${C_RESET}" >&2
     echo -e "  ${C_CYAN}[2]${C_RESET} ${C_BOLD}Fine-grained Token${C_RESET}    ${C_DIM}— belum punya, buat baru  (github_pat_...)${C_RESET}" >&2
     echo -e "  ${C_CYAN}[3]${C_RESET} ${C_BOLD}Sudah punya token${C_RESET}     ${C_DIM}— langsung paste token lama / yang sudah ada${C_RESET}" >&2
+    # Opsi 4 hanya muncul kalau file .token.secret benar-benar ada
+    if [ -f .token.secret ]; then
+      echo -e "  ${C_RED}[4]${C_RESET} ${C_BOLD}Hapus token tersimpan${C_RESET} ${C_DIM}— reset .token.secret${C_RESET}" >&2
+    fi
     echo "" >&2
     echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
-    printf "  ${C_BOLD}Pilih [1/2/3] ▸ ${C_RESET}" >&2
+    if [ -f .token.secret ]; then
+      printf "  ${C_BOLD}Pilih [1/2/3/4] ▸ ${C_RESET}" >&2
+    else
+      printf "  ${C_BOLD}Pilih [1/2/3] ▸ ${C_RESET}" >&2
+    fi
     local _tok_type=""
     read -r _tok_type </dev/tty
     _tok_type=$(echo "$_tok_type" | tr -d '\n\r ')
+
+    # ── Pilihan 4: hapus token tersimpan ────────────────────────────────────
+    if [ "$_tok_type" = "4" ]; then
+      if [ -f .token.secret ]; then
+        rm -f .token.secret
+        clear >/dev/tty 2>/dev/null || true
+        echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+        echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
+        echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+        echo "" >&2
+        echo -e "  ${C_GREEN}✅ .token.secret berhasil dihapus.${C_RESET}" >&2
+        echo -e "  ${C_DIM}   Silakan pilih opsi 1, 2, atau 3 untuk memasukkan token baru.${C_RESET}" >&2
+        echo "" >&2
+        sleep 2
+      fi
+      tok=""
+      continue
+    fi
 
     # ── Pilihan 3: langsung paste, skip instruksi ────────────────────────────
     if [ "$_tok_type" = "3" ]; then
