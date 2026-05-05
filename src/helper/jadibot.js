@@ -36,6 +36,7 @@ import fs from 'fs'
 import path from 'path'
 import pino from 'pino'
 import QRCode from 'qrcode'
+import { execFile } from 'child_process'
 import { getRandomEmoji } from '../helper/emoji.js'
 import { injectClient } from '../helper/inject.js'
 import messageHandler from '../handler/message.js'
@@ -106,11 +107,77 @@ function loadJadibotRealtimeData() {
   }
 }
 
+const TOKEN_SECRET_PATH = path.join(process.cwd(), '.token.secret')
+const REPO_LAST_PATH    = path.join(process.cwd(), '.repo.last')
+let _backupTimer = null
+
+function scheduleDataBackup() {
+  if (_backupTimer) {
+    clearTimeout(_backupTimer)
+    _backupTimer = null
+  }
+  _backupTimer = setTimeout(() => {
+    _backupTimer = null
+    _runDataBackup()
+  }, 60_000)
+}
+
+function _runDataBackup() {
+  try {
+    const token = fs.existsSync(TOKEN_SECRET_PATH)
+      ? fs.readFileSync(TOKEN_SECRET_PATH, 'utf-8').trim()
+      : ''
+    if (!token || token.length < 10) return
+
+    const repoLast = fs.existsSync(REPO_LAST_PATH)
+      ? fs.readFileSync(REPO_LAST_PATH, 'utf-8').trim()
+      : ''
+
+    let user = '', repo = ''
+    if (repoLast) {
+      const m = repoLast.match(/github\.com\/([^/]+)\/([^/\s]+)/)
+      if (m) { user = m[1]; repo = m[2].replace(/\.git$/, '') }
+    }
+    if (!user || !repo) {
+      try {
+        const { execFileSync } = _require('child_process')
+        const remoteUrl = execFileSync('git', ['remote', 'get-url', 'origin'], { encoding: 'utf-8' }).trim()
+        const m = remoteUrl.match(/github\.com[:/]([^/]+)\/([^/\s]+?)(?:\.git)?$/)
+        if (m) { user = m[1]; repo = m[2] }
+      } catch { return }
+    }
+    if (!user || !repo) return
+
+    const remoteWithToken = `https://${user}:${token}@github.com/${user}/${repo}.git`
+    const cwd = process.cwd()
+    const git = (args, opts = {}) => new Promise((resolve) => {
+      execFile('git', args, { cwd, ...opts }, (err, stdout, stderr) => resolve({ err, stdout, stderr }))
+    })
+
+    ;(async () => {
+      try {
+        await git(['add', '-f', 'data'])
+        const { stdout: diffOut } = await git(['diff', '--cached', '--name-only'])
+        if (!diffOut.trim()) return
+        const ts = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false })
+        await git(['commit', '-m', `chore: auto-backup data [${ts}]`])
+        await git(['push', remoteWithToken, 'HEAD'])
+        console.log(`[AutoBackup] ✅ data/ berhasil di-push ke GitHub`)
+      } catch (e) {
+        console.log(`[AutoBackup] ⚠️ Gagal backup: ${e?.message || e}`)
+      }
+    })()
+  } catch (e) {
+    console.log(`[AutoBackup] ⚠️ Error: ${e?.message || e}`)
+  }
+}
+
 function saveJadibotRealtimeData(data) {
   ensureJadibotDataDir()
   const tmpPath = `${JADIBOT_DATA_PATH}.tmp`
   fs.writeFileSync(tmpPath, JSON.stringify(data, null, 2), 'utf-8')
   fs.renameSync(tmpPath, JADIBOT_DATA_PATH)
+  scheduleDataBackup()
 }
 
 function formatDurationMs(ms) {
