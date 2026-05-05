@@ -12761,7 +12761,8 @@
     "id": "60172160495@s.whatsapp.net",
     "name": "pushkontak wa 26",
     "lid": "67066115670033@lid",
-    "jid": "60172160495@s.whatsapp.net"
+    "jid": "60172160495@s.whatsapp.net",
+    "notify": "aldysensei🍃"
   },
   "628896692651@s.whatsapp.net": {
     "isContact": true,
@@ -31603,5 +31604,10 @@
     "id": "37169167126611@lid",
     "lid": "37169167126611@lid",
     "imgUrl": "removed"
+  },
+  "127461811601572@lid": {
+    "id": "127461811601572@lid",
+    "lid": "127461811601572@lid",
+    "notify": "Sgt"
   }
 }

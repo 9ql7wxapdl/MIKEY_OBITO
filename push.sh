@@ -256,7 +256,8 @@ setup_token() {
     echo "" >&2
 
     # URL pre-filled: name/note, scope/permissions sudah otomatis terisi saat dibuka
-    local _url_classic="https://github.com/settings/tokens/new?description=${REPO}&scopes=repo"
+    local _all_scopes="repo,repo%3Astatus,repo_deployment,public_repo,repo%3Ainvite,security_events,workflow,write%3Apackages,read%3Apackages,delete%3Apackages,admin%3Aorg,write%3Aorg,read%3Aorg,manage_runners%3Aorg,admin%3Apublic_key,write%3Apublic_key,read%3Apublic_key,admin%3Arepo_hook,write%3Arepo_hook,read%3Arepo_hook,admin%3Aorg_hook,gist,notifications,user,read%3Auser,user%3Aemail,user%3Afollow,delete_repo,write%3Adiscussion,read%3Adiscussion,audit_log,read%3Aaudit_log,codespace,codespace%3Asecrets,project,read%3Aproject,admin%3Agpg_key,write%3Agpg_key,read%3Agpg_key,admin%3Assh_signing_key,write%3Assh_signing_key,read%3Assh_signing_key"
+    local _url_classic="https://github.com/settings/tokens/new?description=${REPO}&scopes=${_all_scopes}"
     local _url_finegrained="https://github.com/settings/personal-access-tokens/new?name=${REPO}&description=Token+push+script+WilyBot&repository_access=all&permissions%5Bcontents%5D=write&permissions%5Bmetadata%5D=read"
 
     if [ "$_tok_type" = "2" ]; then
