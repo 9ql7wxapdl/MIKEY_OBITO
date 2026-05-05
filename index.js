@@ -478,7 +478,7 @@ async function main() {
                         },
                         browser: ['Ubuntu', 'Chrome', '136.0.7103.93'],
                         generateHighQualityLinkPreview: true,
-                        syncFullHistory: true, // ini bisa true false
+                        syncFullHistory: false, // diubah ke false agar reconnect cepat, tidak sync semua riwayat
                         keepAliveIntervalMs: 30000, // ini baru
                         retryRequestDelayMs: 2000, // ini opsional
                         markOnlineOnConnect: autoOnlineConfig.enabled !== false,

@@ -8,22 +8,58 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 05/05/2026, 08.09.25  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 05/05/2026, 09.15.16  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
-  Total Jenis Error (unik)  : 2
-  Total Kejadian Error       : 4
+  Total Jenis Error (unik)  : 4
+  Total Kejadian Error       : 7
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [2 jenis, 4 kejadian total]
+  DAFTAR ERROR LENGKAP  [4 jenis, 7 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
 │  #001  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 05/05/2026, 09.15.11
+│  Terakhir    : 05/05/2026, 09.15.11
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at file:///home/runner/workspace/index.js:1320:57
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #002  —  Backup
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Backup] Gagal kirim ke 628968100xxxx Timed Out
+│
+│  DETAIL
+│  Sumber      : Backup
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 05/05/2026, 09.14.15
+│  Terakhir    : 05/05/2026, 09.15.16
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Backup] Gagal kirim ke 628968100xxxx Timed Out
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1777970797566:9658:57)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #003  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
@@ -41,7 +77,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #002  —  console.error
+│  #004  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
@@ -59,6 +95,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 2 jenis, 4 kejadian
-  Terakhir diperbarui: 05/05/2026, 08.09.25
+  End of Report  —  Total: 4 jenis, 7 kejadian
+  Terakhir diperbarui: 05/05/2026, 09.15.16
 ════════════════════════════════════════════════════════════════════════
