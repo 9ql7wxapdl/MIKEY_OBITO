@@ -5517,7 +5517,8 @@
     "id": "6283159163918@s.whatsapp.net",
     "name": "M jefri",
     "lid": "249769729478801@lid",
-    "jid": "6283159163918@s.whatsapp.net"
+    "jid": "6283159163918@s.whatsapp.net",
+    "notify": "jefri"
   },
   "6289527530571@s.whatsapp.net": {
     "isContact": true,
@@ -16109,7 +16110,8 @@
     "id": "6282258833301@s.whatsapp.net",
     "name": "!!!Nova",
     "lid": "244452643868853@lid",
-    "jid": "6282258833301@s.whatsapp.net"
+    "jid": "6282258833301@s.whatsapp.net",
+    "notify": "i'm tired"
   },
   "6289698212832@s.whatsapp.net": {
     "isContact": true,
@@ -31581,5 +31583,20 @@
     "id": "173074884341802@lid",
     "lid": "173074884341802@lid",
     "imgUrl": "changed"
+  },
+  "184529243340864@lid": {
+    "id": "184529243340864@lid",
+    "lid": "184529243340864@lid",
+    "imgUrl": "removed"
+  },
+  "140698850476252@lid": {
+    "id": "140698850476252@lid",
+    "lid": "140698850476252@lid",
+    "imgUrl": "changed"
+  },
+  "36627514683547@lid": {
+    "id": "36627514683547@lid",
+    "lid": "36627514683547@lid",
+    "imgUrl": "removed"
   }
 }

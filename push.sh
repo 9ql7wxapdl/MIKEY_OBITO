@@ -212,7 +212,7 @@ screen_manual_token() {
 # ===== Baca token =====
 # Urutan prioritas:
 #   1. .token.secret  → file token asli (GITIGNORED, aman)
-#   2. Belum ada → tampilkan menu pilihan
+#   2. Belum ada / tidak valid → langsung minta paste token
 setup_token() {
   local tok=""
 
@@ -221,44 +221,42 @@ setup_token() {
     tok=$(tr -d '\n\r ' < .token.secret)
   fi
 
-  # Kalau masih kosong atau placeholder, tampilkan menu
+  # Kalau masih kosong atau placeholder, langsung minta input token
   while [ -z "$tok" ] || echo "$tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; do
     clear 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
-    echo -e "${C_BOLD}║        🔐  SETUP TOKEN GITHUB — BANG WILY        ║${C_RESET}" >&2
+    echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
     echo "" >&2
-    echo -e "${C_YELLOW}⚠️  Token GitHub belum ada / tidak valid.${C_RESET}" >&2
-    echo -e "${C_DIM}   Token dibutuhkan agar script bisa push ke GitHub.${C_RESET}" >&2
+    if [ ! -f .token.secret ]; then
+      echo -e "${C_YELLOW}⚠️  File .token.secret belum ada.${C_RESET}" >&2
+    else
+      echo -e "${C_YELLOW}⚠️  Token tidak valid / placeholder.${C_RESET}" >&2
+    fi
+    echo -e "${C_DIM}   Masukkan GitHub Personal Access Token (scope: repo).${C_RESET}" >&2
+    echo -e "${C_DIM}   Buat token: github.com/settings/tokens${C_RESET}" >&2
     echo "" >&2
     echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
-    echo -e "  ${C_GREEN}1${C_RESET} Generate token otomatis ${C_DIM}(buka GitHub, scope repo sudah terisi)${C_RESET}" >&2
-    echo -e "  ${C_CYAN}2${C_RESET} Input token manual ${C_DIM}(sudah punya token)${C_RESET}" >&2
-    echo -e "  ${C_RED}0${C_RESET} Batal / keluar" >&2
+    printf "${C_BOLD}  Paste token ▸ ${C_RESET}" >&2
+
+    local input_tok=""
+    read -rs input_tok </dev/tty
     echo "" >&2
-    printf "${C_BOLD}  Pilih [1/2/0] ▸ ${C_RESET}" >&2
+    input_tok=$(echo "$input_tok" | tr -d '\n\r ')
 
-    local pick=""
-    read -r pick </dev/tty
-    pick="${pick:-1}"
+    if [ -z "$input_tok" ] || echo "$input_tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; then
+      echo -e "  ${C_RED}❌ Token kosong atau tidak valid. Coba lagi.${C_RESET}" >&2
+      sleep 1
+      tok=""
+      continue
+    fi
 
-    case "$pick" in
-      1)
-        tok=$(screen_generate_token)
-        ;;
-      2)
-        tok=$(screen_manual_token)
-        ;;
-      0|q|Q|exit)
-        echo -e "\n${C_YELLOW}Dibatalkan.${C_RESET}" >&2
-        exit 0
-        ;;
-      *)
-        echo -e "  ${C_RED}Pilihan tidak valid.${C_RESET}" >&2
-        sleep 1
-        tok=""
-        ;;
-    esac
+    printf '%s' "$input_tok" > .token.secret
+    echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
+    echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
+    echo "" >&2
+    sleep 1
+    tok="$input_tok"
   done
 
   echo "$tok"
