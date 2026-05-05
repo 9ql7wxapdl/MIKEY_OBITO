@@ -50,7 +50,7 @@
     "whitelist": []
   },
   "antiTagSW": {
-    "enabled": false,
+    "enabled": true,
     "maxWarnings": 3
   },
   "autoCleaner": {
