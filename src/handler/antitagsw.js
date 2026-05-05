@@ -332,7 +332,21 @@ export default async function handleAntiTagSW(message, hisoka) {
         if (groupMeta?.participants) {
             const senderParticipant = findParticipant(groupMeta.participants, senderNumberClean);
             if (senderParticipant?.admin) {
-                // Admin bebas tag status — bot diam saja
+                // Admin bebas tag status — bot konfirmasi ke grup
+                try {
+                    const adminMsg =
+                        `👑 *Admin* @${senderNumber} melakukan tag grup via status.\n` +
+                        `✅ Admin *diizinkan* — tidak ada peringatan.`;
+
+                    await hisoka.sendMessage(remoteJid, {
+                        text: adminMsg,
+                        contextInfo: { mentionedJid: [senderJid] }
+                    }, { quoted: message });
+
+                    await hisoka.sendMessage(remoteJid, {
+                        react: { text: '👑', key: message.key }
+                    });
+                } catch (_) {}
                 return;
             }
         }
