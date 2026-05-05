@@ -1482,7 +1482,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 // ── WILY AUTO REPLY (tanpa autoSimi) ──
                                 // Kalau autoSimi mati tapi wilyAI.autoReply aktif,
                                 // bot tetap reply otomatis saat seseorang reply pesan bot
-                                if (!autoSimi.enabled) {
+                                // Khusus bot utama — jadibot tidak ikut
+                                if (!autoSimi.enabled && isMainBot(hisoka)) {
                                         const wilyAICfg = config.wilyAI || {};
                                         const isWilyOn = wilyAICfg.enabled !== false;
                                         const isAutoReplyOn = wilyAICfg.autoReply !== false;

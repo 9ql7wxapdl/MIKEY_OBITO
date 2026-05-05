@@ -1,5 +1,12 @@
 {
   "name": "sunshine.jpeg",
   "updatedAt": "2026-05-05T08:21:23.542Z",
-  "firstSeen": "2026-05-05T08:21:23.542Z"
+  "firstSeen": "2026-05-05T08:21:23.542Z",
+  "aiMemory": {
+    "style": null,
+    "nickname": null,
+    "lang": null,
+    "lastUpdated": "2026-05-05T14:02:45.202Z",
+    "msgCount": 1
+  }
 }

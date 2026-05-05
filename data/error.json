@@ -1,6 +1,15 @@
 {
   "errors": [
     {
+      "fingerprint": "console.error::\u001b[Nm[WilyAutoReply] Error:\u001b[Nm Auth error: Signup rate-limited, tunggu beberapa menit lagi",
+      "source": "console.error",
+      "message": "\u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup rate-limited, tunggu beberapa menit lagi",
+      "stack": "Error: \u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup rate-limited, tunggu beberapa menit lagi\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at wilyError (file:///home/runner/workspace/src/handler/message.js?t=1777989721278:60:40)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1777989721278:1843:57)",
+      "count": 1,
+      "firstSeen": "2026-05-05T14:02:45.206Z",
+      "lastSeen": "2026-05-05T14:02:45.206Z"
+    },
+    {
       "fingerprint": "console.error::\u001b[Nm[WilyAutoReply] Error:\u001b[Nm Auth error: Signup failed: {\"error\":{\"code\":N,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"er",
       "source": "console.error",
       "message": "\u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup failed: {\"error\":{\"code\":400,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"errors\":[{\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"domain\":\"global\",\"reason\":\"invalid\"}]}}",

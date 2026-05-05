@@ -14208,7 +14208,8 @@
     "id": "6287852533256@s.whatsapp.net",
     "name": "!!!Raska",
     "lid": "227049553821873@lid",
-    "jid": "6287852533256@s.whatsapp.net"
+    "jid": "6287852533256@s.whatsapp.net",
+    "notify": "‎"
   },
   "6285217549711@s.whatsapp.net": {
     "isContact": true,
@@ -22505,7 +22506,9 @@
     "id": "6285175463174@s.whatsapp.net",
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
-    "jid": "6285175463174@s.whatsapp.net"
+    "jid": "6285175463174@s.whatsapp.net",
+    "notify": "sunshine.jpeg",
+    "verifiedName": "sunshine.jpeg"
   },
   "6283138972115@s.whatsapp.net": {
     "isContact": true,
