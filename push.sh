@@ -96,7 +96,7 @@ screen_generate_token() {
   local _BASE_URL="https://github.com/settings/tokens/new?description=BangWilyPushScript&scopes=${_ALL_SCOPES}"
 
   # ── Pilih Expiration ──
-  clear 2>/dev/null || true
+  clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
   echo -e "${C_BOLD}║     🔑  GENERATE TOKEN OTOMATIS — BANG WILY      ║${C_RESET}" >&2
   echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
@@ -125,7 +125,7 @@ screen_generate_token() {
   local TOKEN_URL="${_BASE_URL}&expiration=${exp_param}"
 
   # ── Buka browser & tampilkan instruksi ──
-  clear 2>/dev/null || true
+  clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
   echo -e "${C_BOLD}║     🔑  GENERATE TOKEN OTOMATIS — BANG WILY      ║${C_RESET}" >&2
   echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
@@ -178,7 +178,7 @@ screen_generate_token() {
 
 # ===== Layar input token manual =====
 screen_manual_token() {
-  clear 2>/dev/null || true
+  clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
   echo -e "${C_BOLD}║        🔐  INPUT TOKEN MANUAL — BANG WILY        ║${C_RESET}" >&2
   echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
@@ -226,7 +226,7 @@ setup_token() {
   while [ -z "$tok" ] || echo "$tok" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; do
 
     # ── Layar 1: Pilih jenis token ──────────────────────────────────────────
-    clear 2>/dev/null || true
+    clear >/dev/tty 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
@@ -249,7 +249,7 @@ setup_token() {
     _tok_type=$(echo "$_tok_type" | tr -d '\n\r ')
 
     # ── Layar 2: Instruksi sesuai pilihan ───────────────────────────────────
-    clear 2>/dev/null || true
+    clear >/dev/tty 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
@@ -307,7 +307,7 @@ setup_token() {
     fi
 
     printf '%s' "$input_tok" > .token.secret
-    clear 2>/dev/null || true
+    clear >/dev/tty 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
@@ -846,7 +846,7 @@ fetch_branches() {
 
 # ===== Header banner =====
 banner() {
-  clear 2>/dev/null || true
+  clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}🚀 PUSH SCRIPT — BANG WILY${C_RESET}"
   echo -e "${C_DIM}Auto Commit • Multi-Branch • Mobile Friendly${C_RESET}"
   echo ""
