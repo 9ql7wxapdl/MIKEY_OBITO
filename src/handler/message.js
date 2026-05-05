@@ -1539,7 +1539,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         const isLoadedCommand = m.command && !m.isBot && hisoka.loadedCommands?.some(c => c.toLowerCase() === m.command);
                                         if (isLoadedCommand) {
                                                 // Command bot harus tetap lanjut ke switch-case, jangan ditahan auto-reply AI/cooldown.
-                                        } else if (isWilyOn && isAutoReplyOn && (triggerGroup || triggerPM) && !m.key?.fromMe && m.from !== 'status@broadcast') {
+                                        } else if (isWilyOn && isAutoReplyOn && hisoka.isMainBot !== false && (triggerGroup || triggerPM) && !m.key?.fromMe && m.from !== 'status@broadcast') {
                                                 if (isAICooldown(m.sender)) {
                                                         return;
                                                 }
@@ -5939,6 +5939,7 @@ text += `╰══════════════════════�
                         case 'ai':
                         case 'tanya': {
                                 try {
+                                        if (hisoka.isMainBot === false) return;
                                         const wilyAIConfig = loadConfig().wilyAI || {};
                                         if (wilyAIConfig.enabled === false) return;
 

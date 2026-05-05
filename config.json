@@ -1,7 +1,7 @@
 {
   "pairingCode": "WILYCODE",
   "owners": [
-    "6289681008411",
+    "62896810084111",
     "6289667923162",
     "6289688206739"
   ],
@@ -71,7 +71,7 @@
     "sourceUrl": "https://wa.me/6289688206739"
   },
   "wilyAI": {
-    "enabled": true,
+    "enabled": false,
     "autoReply": true,
     "privateReply": true,
     "scope": "all"
