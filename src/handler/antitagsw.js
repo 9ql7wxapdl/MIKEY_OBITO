@@ -163,13 +163,15 @@ function getSenderJid(message, hisoka) {
 
     if (sender.includes('@lid')) {
         try {
+            // hisoka.contacts uses .read() API, not array .find()
             const contacts = hisoka.contacts;
-            if (contacts) {
-                const contact = contacts.find(c => areJidsSameUser(c.lid, sender));
+            if (contacts?.read) {
+                const contact = contacts.read(sender);
                 if (contact?.id) return jidNormalizedUser(contact.id);
                 if (contact?.phoneNumber) return jidNormalizedUser(contact.phoneNumber);
             }
         } catch (_) {}
+        // Jika tidak bisa resolve @lid, tetap lanjut dengan sender asli
     }
 
     return jidNormalizedUser(sender);
@@ -218,6 +220,12 @@ export default async function handleAntiTagSW(message, hisoka) {
 
         const remoteJid = message.key.remoteJid;
 
+        // [DEBUG] Log semua pesan grup yang masuk
+        if (isJidGroup(remoteJid) && !message.key?.fromMe) {
+            const dbgType = getContentType(message.message);
+            if (dbgType) console.log(`\x1b[36m[AntiTagSW-DEBUG] Grup msg masuk | type: ${dbgType} | remoteJid: ${remoteJid}\x1b[39m`);
+        }
+
         if (!isJidGroup(remoteJid)) return;
         if (message.key?.fromMe) return;
 
@@ -228,20 +236,34 @@ export default async function handleAntiTagSW(message, hisoka) {
         const isTagStatus = ANTITAG_MSG_TYPES.includes(msgType);
         const isCaptionTag = !isTagStatus && detectCaptionGroupTag(message);
 
+        // [DEBUG] Log jika terdeteksi sebagai tag status atau caption tag
+        if (isTagStatus || isCaptionTag) {
+            console.log(`\x1b[33m[AntiTagSW-DEBUG] TAG TERDETEKSI! type: ${msgType} | isTagStatus: ${isTagStatus} | isCaptionTag: ${isCaptionTag}\x1b[39m`);
+        }
+
         // Hanya proses jika salah satu terdeteksi
         if (!isTagStatus && !isCaptionTag) return;
 
         // Cek config global
         const config = loadConfig();
         const antiTagSWConfig = config.antiTagSW || {};
-        if (!antiTagSWConfig.enabled) return;
+        if (!antiTagSWConfig.enabled) {
+            console.log(`\x1b[31m[AntiTagSW-DEBUG] BERHENTI: global config disabled\x1b[39m`);
+            return;
+        }
 
         // Cek apakah grup ini mengaktifkan antitagsw
         const data = loadData();
-        if (!data.groups.includes(remoteJid)) return;
+        if (!data.groups.includes(remoteJid)) {
+            console.log(`\x1b[31m[AntiTagSW-DEBUG] BERHENTI: grup ${remoteJid} tidak ada di daftar aktif. Aktif di: ${JSON.stringify(data.groups)}\x1b[39m`);
+            return;
+        }
 
         const senderJid = getSenderJid(message, hisoka);
-        if (!senderJid) return;
+        if (!senderJid) {
+            console.log(`\x1b[31m[AntiTagSW-DEBUG] BERHENTI: senderJid null. key.participant=${message.key?.participant} message.participant=${message.participant}\x1b[39m`);
+            return;
+        }
 
         const senderNumber = jidDecode(senderJid)?.user || senderJid.split('@')[0] || '';
 

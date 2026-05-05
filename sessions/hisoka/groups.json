@@ -23236,5 +23236,34 @@
         "admin": null
       }
     ]
+  },
+  "120363426777219297@g.us": {
+    "id": "120363426777219297@g.us",
+    "subject": "Sss",
+    "subjectOwner": "6289667923162@s.whatsapp.net",
+    "subjectTime": 1777990411,
+    "size": 2,
+    "creation": 1777990411,
+    "owner": "6289667923162@s.whatsapp.net",
+    "restrict": false,
+    "announce": false,
+    "isCommunity": false,
+    "isCommunityAnnounce": false,
+    "joinApprovalMode": false,
+    "memberAddMode": true,
+    "participants": [
+      {
+        "id": "274255723921630@lid",
+        "jid": "6289681008411@s.whatsapp.net",
+        "admin": null
+      },
+      {
+        "id": "97968623505429@lid",
+        "jid": "6289667923162@s.whatsapp.net",
+        "admin": "superadmin"
+      }
+    ],
+    "ephemeralDuration": 86400,
+    "author": "97968623505429@lid"
   }
 }

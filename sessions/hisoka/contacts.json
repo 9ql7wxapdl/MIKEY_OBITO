@@ -865,7 +865,9 @@
     "id": "6285956660403@s.whatsapp.net",
     "name": "! Fadli",
     "lid": "176549462564879@lid",
-    "jid": "6285956660403@s.whatsapp.net"
+    "jid": "6285956660403@s.whatsapp.net",
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6285641568690@s.whatsapp.net": {
     "isContact": true,
@@ -6102,7 +6104,8 @@
     "id": "6289688206739@s.whatsapp.net",
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
-    "jid": "6289688206739@s.whatsapp.net"
+    "jid": "6289688206739@s.whatsapp.net",
+    "notify": "Wily"
   },
   "6282116333703@s.whatsapp.net": {
     "isContact": true,
@@ -7754,7 +7757,8 @@
     "id": "6289681008411@s.whatsapp.net",
     "name": "Hen V1",
     "lid": "274255723921630@lid",
-    "jid": "6289681008411@s.whatsapp.net"
+    "jid": "6289681008411@s.whatsapp.net",
+    "notify": "Hen V1"
   },
   "6285764251098@s.whatsapp.net": {
     "isContact": true,
@@ -9014,7 +9018,8 @@
     "id": "6282272288038@s.whatsapp.net",
     "name": "!akbar 001",
     "lid": "95666571350028@lid",
-    "jid": "6282272288038@s.whatsapp.net"
+    "jid": "6282272288038@s.whatsapp.net",
+    "notify": "Akbar"
   },
   "6283842149583@s.whatsapp.net": {
     "isContact": true,
@@ -16861,7 +16866,8 @@
     "id": "6285150762138@s.whatsapp.net",
     "name": "Arga",
     "lid": "12442939724000@lid",
-    "jid": "6285150762138@s.whatsapp.net"
+    "jid": "6285150762138@s.whatsapp.net",
+    "notify": "anti kompres"
   },
   "6285269808733@s.whatsapp.net": {
     "isContact": true,
@@ -25355,7 +25361,8 @@
     "id": "62882007407746@s.whatsapp.net",
     "name": "√Afass",
     "lid": "69849254518919@lid",
-    "jid": "62882007407746@s.whatsapp.net"
+    "jid": "62882007407746@s.whatsapp.net",
+    "notify": "𝘼𝙛𝙖𝙨𝙨"
   },
   "6283896168985@s.whatsapp.net": {
     "isContact": true,
@@ -31435,5 +31442,25 @@
     "id": "237499041456266@lid",
     "lid": "237499041456266@lid",
     "imgUrl": "removed"
+  },
+  "274255723921630@lid": {
+    "id": "274255723921630@lid",
+    "lid": "274255723921630@lid",
+    "notify": "Hen V1"
+  },
+  "9461813014709@lid": {
+    "id": "9461813014709@lid",
+    "lid": "9461813014709@lid",
+    "imgUrl": "changed"
+  },
+  "12442939724000@lid": {
+    "id": "12442939724000@lid",
+    "lid": "12442939724000@lid",
+    "notify": "anti kompres"
+  },
+  "240831718015103@lid": {
+    "id": "240831718015103@lid",
+    "lid": "240831718015103@lid",
+    "imgUrl": "changed"
   }
 }

@@ -74,7 +74,7 @@
     "enabled": false,
     "autoReply": true,
     "privateReply": true,
-    "scope": "pm"
+    "scope": "all"
   },
   "autoSimi": {
     "enabled": false,
