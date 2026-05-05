@@ -28,11 +28,11 @@
 #
 # ─────────────────────────────────────────────────────────────
 
-USER="hitlabmodv2"
-REPO="ReadswDika-V13"
+USER="ReadswDika-V13"
+REPO="ReadswDika-V15_4"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
-DEFAULT_BRANCH="main"
+DEFAULT_BRANCH="ReadswDika-V15_4"
 
 # Branch yang disembunyikan dari menu (system / internal).
 # Pisahkan dengan spasi. Contoh: "replit-agent gh-pages backup"
@@ -55,17 +55,374 @@ fi
 
 CUSTOM_MSG="${1:-}"
 
+# ===== Helper: buka URL di browser (Termux / Linux / macOS) =====
+open_url() {
+  local url="$1"
+  if command -v termux-open-url >/dev/null 2>&1; then
+    termux-open-url "$url" 2>/dev/null &
+  elif command -v xdg-open >/dev/null 2>&1; then
+    xdg-open "$url" 2>/dev/null &
+  elif command -v open >/dev/null 2>&1; then
+    open "$url" 2>/dev/null &
+  else
+    return 1
+  fi
+  return 0
+}
+
+# ===== Layar generate token otomatis =====
+# Buka halaman GitHub pre-filled → scope repo sudah tercentang otomatis.
+screen_generate_token() {
+  # Semua scope dari GitHub PAT classic — tercentang otomatis saat halaman terbuka
+  local _ALL_SCOPES="repo,repo:status,repo_deployment,public_repo,repo:invite,security_events"
+  _ALL_SCOPES="${_ALL_SCOPES},workflow"
+  _ALL_SCOPES="${_ALL_SCOPES},write:packages,read:packages,delete:packages"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:org,write:org,read:org,manage_runners:org"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:public_key,write:public_key,read:public_key"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:repo_hook,write:repo_hook,read:repo_hook"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:org_hook"
+  _ALL_SCOPES="${_ALL_SCOPES},gist,notifications"
+  _ALL_SCOPES="${_ALL_SCOPES},user,read:user,user:email,user:follow"
+  _ALL_SCOPES="${_ALL_SCOPES},delete_repo"
+  _ALL_SCOPES="${_ALL_SCOPES},write:discussion,read:discussion"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:enterprise,manage_runners:enterprise,manage_billing:enterprise,read:enterprise,scim:enterprise"
+  _ALL_SCOPES="${_ALL_SCOPES},audit_log,read:audit_log"
+  _ALL_SCOPES="${_ALL_SCOPES},codespace,codespace:secrets"
+  _ALL_SCOPES="${_ALL_SCOPES},copilot,manage_billing:copilot"
+  _ALL_SCOPES="${_ALL_SCOPES},write:network_configurations,read:network_configurations"
+  _ALL_SCOPES="${_ALL_SCOPES},project,read:project"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:gpg_key,write:gpg_key,read:gpg_key"
+  _ALL_SCOPES="${_ALL_SCOPES},admin:ssh_signing_key,write:ssh_signing_key,read:ssh_signing_key"
+  local _BASE_URL="https://github.com/settings/tokens/new?description=BangWilyPushScript&scopes=${_ALL_SCOPES}"
+
+  # ── Pilih Expiration ──
+  clear 2>/dev/null || true
+  echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+  echo -e "${C_BOLD}║     🔑  GENERATE TOKEN OTOMATIS — BANG WILY      ║${C_RESET}" >&2
+  echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_BOLD}Pilih masa berlaku token:${C_RESET}" >&2
+  echo "" >&2
+  echo -e "  ${C_GREEN}1${C_RESET} No expiration  ${C_DIM}(tidak ada batas waktu — praktis)${C_RESET}" >&2
+  echo -e "  ${C_CYAN}2${C_RESET} 1 tahun        ${C_DIM}(365 hari)${C_RESET}" >&2
+  echo -e "  ${C_CYAN}3${C_RESET} 90 hari" >&2
+  echo -e "  ${C_CYAN}4${C_RESET} 30 hari" >&2
+  echo "" >&2
+  printf "${C_BOLD}  Pilih [1/2/3/4] ▸ ${C_RESET}" >&2
+
+  local exp_pick="" exp_label="" exp_param=""
+  read -r exp_pick </dev/tty
+  exp_pick="${exp_pick:-1}"
+
+  # URL dibangun SETELAH pilihan expiration agar parameter &expiration= ikut terkirim ke GitHub
+  case "$exp_pick" in
+    2) exp_label="1 tahun (365 hari)"; exp_param="365" ;;
+    3) exp_label="90 hari";            exp_param="90"  ;;
+    4) exp_label="30 hari";            exp_param="30"  ;;
+    *) exp_pick="1"; exp_label="No expiration"; exp_param="no_expiry" ;;
+  esac
+
+  local TOKEN_URL="${_BASE_URL}&expiration=${exp_param}"
+
+  # ── Buka browser & tampilkan instruksi ──
+  clear 2>/dev/null || true
+  echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+  echo -e "${C_BOLD}║     🔑  GENERATE TOKEN OTOMATIS — BANG WILY      ║${C_RESET}" >&2
+  echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_DIM}  Semua scope sudah tercentang • nama token sudah terisi${C_RESET}" >&2
+  echo -e "${C_DIM}  Expiration sudah di-set: ${C_RESET}${C_GREEN}${C_BOLD}${exp_label}${C_RESET}" >&2
+  echo "" >&2
+
+  if open_url "$TOKEN_URL"; then
+    echo -e "  ${C_GREEN}✅ Browser terbuka!${C_RESET}" >&2
+    echo -e "  ${C_DIM}   Kalau tidak terbuka, copy URL di bawah:${C_RESET}" >&2
+  else
+    echo -e "  ${C_YELLOW}⚠️  Tidak bisa buka browser otomatis.${C_RESET}" >&2
+    echo -e "  ${C_DIM}   Copy URL berikut → buka di browser kamu:${C_RESET}" >&2
+  fi
+
+  echo "" >&2
+  echo -e "  ${C_BLUE}${TOKEN_URL}${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
+  echo -e "${C_BOLD}Langkah di GitHub:${C_RESET}" >&2
+  echo -e "  ${C_CYAN}1.${C_RESET} Pastikan kolom ${C_BOLD}Expiration${C_RESET} sudah menampilkan ${C_GREEN}${C_BOLD}${exp_label}${C_RESET}" >&2
+  echo -e "       ${C_YELLOW}(GitHub default 30 hari — cek & ubah kalau perlu!)${C_RESET}" >&2
+  echo -e "  ${C_CYAN}2.${C_RESET} Klik ${C_BOLD}Generate token${C_RESET} (tombol hijau, paling bawah)" >&2
+  echo -e "  ${C_CYAN}3.${C_RESET} Copy token yang muncul → paste di sini" >&2
+  echo "" >&2
+  echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
+  printf "${C_BOLD}  Paste token baru ▸ ${C_RESET}" >&2
+
+  local input_tok=""
+  read -rs input_tok </dev/tty
+  echo "" >&2
+  input_tok=$(echo "$input_tok" | tr -d '\n\r ')
+
+  if [ -z "$input_tok" ] || echo "$input_tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; then
+    echo -e "  ${C_RED}❌ Token kosong atau tidak valid.${C_RESET}" >&2
+    sleep 1
+    echo ""
+    return
+  fi
+
+  printf '%s' "$input_tok" > .token.secret
+  echo "" >&2
+  echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
+  echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
+  echo "" >&2
+  sleep 1
+  echo "$input_tok"
+}
+
+# ===== Layar input token manual =====
+screen_manual_token() {
+  clear 2>/dev/null || true
+  echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+  echo -e "${C_BOLD}║        🔐  INPUT TOKEN MANUAL — BANG WILY        ║${C_RESET}" >&2
+  echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_DIM}  Pastikan token punya scope: ${C_BOLD}repo${C_RESET}${C_DIM} (full control)${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
+  printf "${C_BOLD}  Paste token kamu ▸ ${C_RESET}" >&2
+
+  local input_tok=""
+  read -rs input_tok </dev/tty
+  echo "" >&2
+  input_tok=$(echo "$input_tok" | tr -d '\n\r ')
+
+  if [ -z "$input_tok" ] || echo "$input_tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; then
+    echo -e "  ${C_RED}❌ Token kosong atau tidak valid.${C_RESET}" >&2
+    sleep 1
+    echo ""
+    return
+  fi
+
+  printf '%s' "$input_tok" > .token.secret
+  echo "" >&2
+  echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
+  echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
+  echo "" >&2
+  sleep 1
+  echo "$input_tok"
+}
+
 # ===== Baca token =====
-if [ ! -f .token ]; then
-  echo -e "${C_RED}❌ File .token tidak ada!${C_RESET}"
-  echo "   Bikin dulu : ${C_DIM}echo 'ghp_xxxxxxxx' > .token${C_RESET}"
-  exit 1
-fi
-TOKEN=$(tr -d '\n\r ' < .token)
-if [ -z "$TOKEN" ]; then
-  echo -e "${C_RED}❌ File .token kosong!${C_RESET}"
-  exit 1
-fi
+# Urutan prioritas:
+#   1. .token.secret  → file token asli (GITIGNORED, aman)
+#   2. Belum ada → tampilkan menu pilihan
+setup_token() {
+  local tok=""
+
+  # Coba baca dari .token.secret
+  if [ -f .token.secret ]; then
+    tok=$(tr -d '\n\r ' < .token.secret)
+  fi
+
+  # Kalau masih kosong atau placeholder, tampilkan menu
+  while [ -z "$tok" ] || echo "$tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; do
+    clear 2>/dev/null || true
+    echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+    echo -e "${C_BOLD}║        🔐  SETUP TOKEN GITHUB — BANG WILY        ║${C_RESET}" >&2
+    echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+    echo "" >&2
+    echo -e "${C_YELLOW}⚠️  Token GitHub belum ada / tidak valid.${C_RESET}" >&2
+    echo -e "${C_DIM}   Token dibutuhkan agar script bisa push ke GitHub.${C_RESET}" >&2
+    echo "" >&2
+    echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
+    echo -e "  ${C_GREEN}1${C_RESET} Generate token otomatis ${C_DIM}(buka GitHub, scope repo sudah terisi)${C_RESET}" >&2
+    echo -e "  ${C_CYAN}2${C_RESET} Input token manual ${C_DIM}(sudah punya token)${C_RESET}" >&2
+    echo -e "  ${C_RED}0${C_RESET} Batal / keluar" >&2
+    echo "" >&2
+    printf "${C_BOLD}  Pilih [1/2/0] ▸ ${C_RESET}" >&2
+
+    local pick=""
+    read -r pick </dev/tty
+    pick="${pick:-1}"
+
+    case "$pick" in
+      1)
+        tok=$(screen_generate_token)
+        ;;
+      2)
+        tok=$(screen_manual_token)
+        ;;
+      0|q|Q|exit)
+        echo -e "\n${C_YELLOW}Dibatalkan.${C_RESET}" >&2
+        exit 0
+        ;;
+      *)
+        echo -e "  ${C_RED}Pilihan tidak valid.${C_RESET}" >&2
+        sleep 1
+        tok=""
+        ;;
+    esac
+  done
+
+  echo "$tok"
+}
+
+# ===== Hitung sisa hari dari tanggal expiry token =====
+# $1 = string tanggal dari header GitHub-Authentication-Token-Expiration
+#      contoh format: "2026-05-31 00:00:00 UTC"
+# Output: angka sisa hari (bisa 0 atau negatif jika sudah lewat)
+_token_days_left() {
+  local exp_str="$1"
+  # Ambil bagian tanggal saja (YYYY-MM-DD)
+  local exp_date
+  exp_date=$(echo "$exp_str" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
+  [ -z "$exp_date" ] && echo "?" && return
+
+  local exp_epoch now_epoch
+  exp_epoch=$(date -d "$exp_date" +%s 2>/dev/null || date -j -f "%Y-%m-%d" "$exp_date" +%s 2>/dev/null)
+  now_epoch=$(date +%s)
+
+  [ -z "$exp_epoch" ] && echo "?" && return
+  echo $(( (exp_epoch - now_epoch) / 86400 ))
+}
+
+# ===== Tampilkan status masa berlaku token =====
+# $1 = nilai header GitHub-Authentication-Token-Expiration (kosong = no expiry)
+_print_token_expiry() {
+  local exp_str="$1"
+
+  if [ -z "$exp_str" ]; then
+    echo -e "  ${C_GREEN}♾️  Masa berlaku: ${C_BOLD}No expiration${C_RESET}${C_GREEN} — token tidak akan expired${C_RESET}" >&2
+    return
+  fi
+
+  local days_left
+  days_left=$(_token_days_left "$exp_str")
+
+  if [ "$days_left" = "?" ]; then
+    echo -e "  ${C_DIM}  Masa berlaku: ${exp_str} (gagal parse tanggal)${C_RESET}" >&2
+    return
+  fi
+
+  if [ "$days_left" -lt 0 ]; then
+    echo -e "  ${C_RED}💀 Token SUDAH EXPIRED sejak ${exp_str}!${C_RESET}" >&2
+  elif [ "$days_left" -eq 0 ]; then
+    echo -e "  ${C_RED}🚨 Token EXPIRES HARI INI! Segera generate token baru.${C_RESET}" >&2
+  elif [ "$days_left" -le 3 ]; then
+    echo -e "  ${C_RED}🔴 Token expires dalam ${C_BOLD}${days_left} hari${C_RESET}${C_RED} (${exp_str}) — SEGERA perbarui!${C_RESET}" >&2
+  elif [ "$days_left" -le 7 ]; then
+    echo -e "  ${C_YELLOW}🟡 Token expires dalam ${C_BOLD}${days_left} hari${C_RESET}${C_YELLOW} (${exp_str}) — segera perbarui.${C_RESET}" >&2
+  elif [ "$days_left" -le 30 ]; then
+    echo -e "  ${C_YELLOW}🟠 Token expires dalam ${C_BOLD}${days_left} hari${C_RESET}${C_YELLOW} (${exp_str}).${C_RESET}" >&2
+  else
+    echo -e "  ${C_GREEN}✅ Masa berlaku: ${C_BOLD}${days_left} hari lagi${C_RESET}${C_GREEN} (${exp_str})${C_RESET}" >&2
+  fi
+}
+
+# ===== Validasi token ke GitHub API secara real-time =====
+# Cek apakah token benar-benar valid/aktif sebelum lanjut.
+# Sekaligus cek & tampilkan masa berlaku token dari response header.
+# Return 0 = valid, 1 = invalid/expired, 2 = tidak bisa cek (network error)
+validate_token() {
+  local tok="$1"
+  local http_code login expiry_header
+
+  echo -e "${C_DIM}  🔄 Memvalidasi token ke GitHub...${C_RESET}" >&2
+
+  # Simpan headers ke file terpisah agar bisa baca GitHub-Authentication-Token-Expiration
+  http_code=$(curl -s \
+    -o /tmp/_gh_validate.json \
+    -D /tmp/_gh_validate_headers.txt \
+    -w "%{http_code}" \
+    -H "Authorization: token ${tok}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/user" 2>/dev/null)
+
+  case "$http_code" in
+    200)
+      login=$(grep -o '"login":"[^"]*"' /tmp/_gh_validate.json 2>/dev/null | head -1 | sed 's/"login":"//;s/"//')
+      # Baca header masa berlaku token (kosong = no expiry)
+      expiry_header=$(grep -i '^github-authentication-token-expiration:' /tmp/_gh_validate_headers.txt 2>/dev/null \
+                      | sed 's/^[^:]*: *//;s/\r//' | head -1)
+      echo -e "  ${C_GREEN}✅ Token valid!${C_RESET} Login sebagai: ${C_BOLD}${login}${C_RESET}" >&2
+      _print_token_expiry "$expiry_header"
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt
+      return 0
+      ;;
+    401)
+      echo "" >&2
+      echo -e "  ${C_RED}❌ Token TIDAK valid atau sudah expired!${C_RESET}" >&2
+      echo -e "  ${C_DIM}   HTTP 401 Unauthorized — token ditolak oleh GitHub.${C_RESET}" >&2
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt .token.secret 2>/dev/null
+      return 1
+      ;;
+    403)
+      echo "" >&2
+      echo -e "  ${C_RED}❌ Token ditolak — permission kurang (HTTP 403).${C_RESET}" >&2
+      echo -e "  ${C_DIM}   Pastikan token punya scope: repo (full control).${C_RESET}" >&2
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt .token.secret 2>/dev/null
+      return 1
+      ;;
+    ""|000)
+      echo -e "  ${C_YELLOW}⚠️  Tidak bisa cek token (tidak ada koneksi internet / GitHub down).${C_RESET}" >&2
+      echo -e "  ${C_DIM}   Lanjut tanpa validasi...${C_RESET}" >&2
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt
+      return 2
+      ;;
+    *)
+      echo -e "  ${C_YELLOW}⚠️  Respon GitHub tidak terduga (HTTP ${http_code}), lanjut...${C_RESET}" >&2
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt
+      return 2
+      ;;
+  esac
+}
+
+TOKEN=$(setup_token)
+
+# Validasi token ke GitHub secara real-time
+# Kalau invalid/expired → hapus .token.secret dan minta ulang (max 3x percobaan)
+_token_attempts=0
+while true; do
+  validate_result=0
+  validate_token "$TOKEN" || validate_result=$?
+
+  if [ "$validate_result" -eq 0 ] || [ "$validate_result" -eq 2 ]; then
+    break
+  fi
+
+  # validate_result=1 → token invalid, sudah dihapus oleh validate_token()
+  _token_attempts=$((_token_attempts + 1))
+  if [ "$_token_attempts" -ge 3 ]; then
+    echo -e "\n${C_RED}❌ Sudah 3x percobaan, token tetap tidak valid. Script berhenti.${C_RESET}" >&2
+    exit 1
+  fi
+
+  clear 2>/dev/null || true
+  echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+  echo -e "${C_BOLD}║        🔐  TOKEN TIDAK VALID — COBA LAGI         ║${C_RESET}" >&2
+  echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_DIM}  Percobaan ke-${_token_attempts} dari 3${C_RESET}" >&2
+  echo "" >&2
+  echo -e "${C_BOLD}Cara dapat token baru:${C_RESET}" >&2
+  echo -e "  ${C_CYAN}1.${C_RESET} Buka  → ${C_BLUE}https://github.com/settings/tokens${C_RESET}" >&2
+  echo -e "  ${C_CYAN}2.${C_RESET} Klik  → ${C_BOLD}Generate new token (classic)${C_RESET}" >&2
+  echo -e "  ${C_CYAN}3.${C_RESET} Centang scope ${C_BOLD}repo${C_RESET} → Generate → Copy" >&2
+  echo "" >&2
+  echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
+  printf "${C_BOLD}  Paste token baru ▸ ${C_RESET}" >&2
+  local_new_tok=""
+  read -rs local_new_tok </dev/tty
+  echo "" >&2
+  local_new_tok=$(echo "$local_new_tok" | tr -d '\n\r ')
+
+  if [ -z "$local_new_tok" ] || echo "$local_new_tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; then
+    echo -e "  ${C_RED}Token kosong atau placeholder, coba lagi.${C_RESET}" >&2
+    sleep 1
+    continue
+  fi
+
+  printf '%s' "$local_new_tok" > .token.secret
+  TOKEN="$local_new_tok"
+done
 
 REMOTE_URL="https://${USER}:${TOKEN}@github.com/${USER}/${REPO}.git"
 
@@ -326,11 +683,25 @@ prepare_stage() {
   # Pakai ls-files tanpa pola → list semua tracked, lalu filter.
   git ls-files 2>/dev/null | grep -E '^sessions/hisoka/' | while read -r f; do
     case "$f" in
-      sessions/hisoka/creds.json|sessions/hisoka/contacts.json|sessions/hisoka/groups.json|\
-      sessions/hisoka/auth.db|sessions/hisoka/auth.db-shm|sessions/hisoka/auth.db-wal) ;;
+      sessions/hisoka/creds.json|sessions/hisoka/contacts.json|sessions/hisoka/groups.json) ;;
       *) git rm --cached -q "$f" 2>>"$err_log" || true ;;
     esac
   done
+
+  # Auto-untrack node_modules dari git index (file di disk tetap aman).
+  local nm_tracked
+  nm_tracked=$(git ls-files node_modules 2>/dev/null | wc -l | tr -d ' ')
+  if [ "$nm_tracked" -gt 0 ]; then
+    echo -e "  ${C_YELLOW}🧹 Untrack node_modules dari git (${nm_tracked} file)...${C_RESET}"
+    git rm -r --cached -q node_modules 2>>"$err_log" || true
+    echo -e "  ${C_DIM}   (file di disk tetap ada, cuma dilepas dari tracking git)${C_RESET}"
+  fi
+
+  # ⚠️  KEAMANAN: Auto-untrack .token.secret agar token asli tidak pernah ke-commit.
+  if git ls-files --error-unmatch .token.secret >/dev/null 2>&1; then
+    echo -e "  ${C_YELLOW}🔐 Untrack .token.secret dari git (file tetap aman di disk)...${C_RESET}"
+    git rm --cached -q .token.secret 2>>"$err_log" || true
+  fi
 
   # Stage SEMUA perubahan (baru, modified, deleted, rename).
   if ! git add -A 2>>"$err_log"; then
@@ -340,16 +711,17 @@ prepare_stage() {
     return 1
   fi
 
+  # Pastikan .token.secret TIDAK pernah masuk stage — blokir paksa setelah git add -A.
+  git rm --cached -q .token.secret 2>/dev/null || true
+
   # Force-add file penting yang biasanya di-ignore.
+  # CATATAN: node_modules & .token.secret SENGAJA TIDAK di-force-add.
   for forced in package-lock.json .env \
                 sessions/hisoka/creds.json \
                 sessions/hisoka/contacts.json \
                 sessions/hisoka/groups.json \
-                sessions/hisoka/auth.db \
-                sessions/hisoka/auth.db-shm \
-                sessions/hisoka/auth.db-wal \
                 attached_assets .agents \
-                .replit node_modules; do
+                .replit; do
     [ -e "$forced" ] || continue
     git add -f "$forced" 2>>"$err_log" || true
   done
@@ -409,9 +781,11 @@ show_main_menu() {
   echo -e "  ${C_GREEN}1${C_RESET} upload script ${C_DIM}(pilih branch tujuan)${C_RESET}"
   echo -e "  ${C_CYAN}2${C_RESET} buat branch baru"
   echo -e "  ${C_YELLOW}3${C_RESET} hapus branch ${C_DIM}(default dilindungi)${C_RESET}"
+  echo -e "  ${C_MAGENTA}4${C_RESET} ganti default branch ${C_DIM}(sekarang: ${DEFAULT_BRANCH})${C_RESET}"
+  echo -e "  ${C_BLUE}5${C_RESET} rename repository ${C_DIM}(sekarang: ${REPO})${C_RESET}"
   echo -e "  ${C_RED}0${C_RESET} keluar"
   echo ""
-  printf "${C_BOLD}Pilih [0/1/2/3] ▸ ${C_RESET}"
+  printf "${C_BOLD}Pilih [0/1/2/3/4/5] ▸ ${C_RESET}"
 
   local pick
   read -r pick
@@ -421,12 +795,194 @@ show_main_menu() {
     1) show_menu; run_upload ;;
     2) action_create_branch ;;
     3) action_delete_branch ;;
+    4) action_switch_default ;;
+    5) action_rename_repo ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
       sleep 1
       ;;
   esac
+}
+
+# ===== Action: rename repository =====
+action_rename_repo() {
+  banner
+  echo -e "${C_BOLD}✏️  Rename Repository${C_RESET}"
+  echo -e "${C_DIM}Nama sekarang: ${C_CYAN}${USER}/${REPO}${C_RESET}"
+  echo ""
+  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
+  echo ""
+  printf "${C_BOLD}Nama baru untuk repository ▸ ${C_RESET}"
+
+  local new_name
+  read -r new_name
+  new_name=$(echo "$new_name" | tr -d '[:space:]')
+
+  if [ -z "$new_name" ] || [ "$new_name" = "0" ]; then
+    echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  # Validasi: hanya huruf, angka, - dan _
+  if ! echo "$new_name" | grep -qE '^[a-zA-Z0-9_-]+$'; then
+    echo -e "${C_RED}✖ Nama tidak valid${C_RESET} ${C_DIM}(hanya huruf, angka, - dan _)${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  if [ "$new_name" = "$REPO" ]; then
+    echo -e "${C_YELLOW}ℹ️  Nama sama seperti sekarang, tidak ada yang diubah.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  # Konfirmasi
+  echo ""
+  echo -e "${C_RED}⚠️  Yakin rename repository?${C_RESET}"
+  echo -e "     ${C_DIM}${USER}/${REPO}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${USER}/${new_name}${C_RESET}"
+  echo -e "  ${C_DIM}Remote URL akan otomatis diperbarui di lokal juga.${C_RESET}"
+  echo ""
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}lanjut rename${C_RESET}"
+  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}batal${C_RESET}"
+  printf "${C_BOLD}Konfirmasi ▸ ${C_RESET}"
+  local confirm
+  read -r confirm
+  if [ "$confirm" != "1" ]; then
+    echo -e "${C_YELLOW}↩ Dibatalkan.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  echo ""
+  echo -e "  ${C_CYAN}▸${C_RESET} Menghubungi GitHub API untuk rename repo..."
+
+  local api_http
+  api_http=$(curl -s -o /tmp/_gh_rename.json -w "%{http_code}" \
+    -X PATCH \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}" \
+    -d "{\"name\":\"${new_name}\"}" 2>/dev/null)
+
+  if [ "$api_http" = "200" ]; then
+    local old_repo="$REPO"
+    REPO="$new_name"
+
+    # Update REPO di push.sh secara permanen
+    sed -i "s|^REPO=.*|REPO=\"${new_name}\"|" "$0" 2>/dev/null || true
+
+    # Update remote URL lokal agar tidak putus
+    local new_url="https://${USER}:${TOKEN}@github.com/${USER}/${new_name}.git"
+    git remote set-url origin "$new_url" 2>/dev/null || true
+
+    echo ""
+    echo -e "  ${C_GREEN}✅ Repository berhasil di-rename di GitHub!${C_RESET}"
+    echo -e "     ${C_DIM}${USER}/${old_repo}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${USER}/${new_name}${C_RESET}"
+    echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${new_name}${C_RESET}"
+    echo -e "  ${C_DIM}Remote URL lokal sudah diperbarui otomatis.${C_RESET}"
+    echo -e "  ${C_DIM}Perubahan nama disimpan permanen di push.sh${C_RESET}"
+  else
+    local api_msg
+    api_msg=$(grep -o '"message":"[^"]*"' /tmp/_gh_rename.json 2>/dev/null | head -1 | sed 's/"message":"//;s/"//')
+    echo ""
+    echo -e "  ${C_RED}❌ Gagal rename repository (HTTP ${api_http})${C_RESET}"
+    [ -n "$api_msg" ] && echo -e "  ${C_DIM}   GitHub: ${api_msg}${C_RESET}"
+    echo -e "  ${C_DIM}   Pastikan token punya permission: delete_repo atau repo (full)${C_RESET}"
+  fi
+
+  rm -f /tmp/_gh_rename.json
+  prompt_back_or_exit
+}
+
+# ===== Action: ganti default branch =====
+action_switch_default() {
+  banner
+  echo -e "${C_BOLD}🔀 Ganti Default Branch${C_RESET}"
+  echo -e "${C_DIM}Default sekarang: ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  echo ""
+
+  local branches=()
+  while IFS= read -r b; do
+    [ -n "$b" ] && [ "$b" != "$DEFAULT_BRANCH" ] && branches+=("$b")
+  done < <(fetch_branches)
+
+  local total=${#branches[@]}
+  if [ "$total" -eq 0 ]; then
+    echo -e "${C_YELLOW}ℹ️  Tidak ada branch lain yang tersedia.${C_RESET}"
+    prompt_back_or_exit
+    return
+  fi
+
+  echo -e "${C_DIM}Pilih branch yang akan jadi default baru:${C_RESET}"
+  echo ""
+  local i=1
+  for b in "${branches[@]}"; do
+    printf "  ${C_CYAN}%2d${C_RESET} %s\n" "$i" "$b"
+    i=$((i + 1))
+  done
+  echo ""
+  echo -e "  ${C_RED} 0${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
+  echo ""
+  printf "${C_BOLD}Pilih [1-${total}] ▸ ${C_RESET}"
+
+  local pick
+  read -r pick
+  pick="${pick:-0}"
+
+  if [ "$pick" = "0" ]; then
+    echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  if ! echo "$pick" | grep -qE '^[0-9]+$' || [ "$pick" -lt 1 ] || [ "$pick" -gt "$total" ]; then
+    echo -e "${C_RED}✖ Pilihan tidak valid.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  local new_default="${branches[$((pick - 1))]}"
+  local old_default="$DEFAULT_BRANCH"
+
+  echo ""
+  echo -e "  ${C_CYAN}▸${C_RESET} Menghubungi GitHub API untuk ganti default branch..."
+
+  # Panggil GitHub API untuk benar-benar ganti default branch di remote
+  local api_resp api_http
+  api_resp=$(curl -s -o /tmp/_gh_switch.json -w "%{http_code}" \
+    -X PATCH \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}" \
+    -d "{\"default_branch\":\"${new_default}\"}" 2>/dev/null)
+  api_http="${api_resp}"
+
+  if [ "$api_http" = "200" ]; then
+    # Sukses — update variabel lokal & simpan ke push.sh
+    DEFAULT_BRANCH="$new_default"
+    sed -i "s|^DEFAULT_BRANCH=.*|DEFAULT_BRANCH=\"${new_default}\"|" "$0" 2>/dev/null || true
+
+    echo ""
+    echo -e "  ${C_GREEN}✅ Default branch berhasil diubah di GitHub!${C_RESET}"
+    echo -e "     ${C_DIM}${old_default}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${new_default}${C_RESET}"
+    echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}${C_RESET}"
+    echo -e "  ${C_DIM}Perubahan juga disimpan permanen di push.sh${C_RESET}"
+  else
+    # Gagal — tampilkan error dari API
+    local api_msg
+    api_msg=$(grep -o '"message":"[^"]*"' /tmp/_gh_switch.json 2>/dev/null | head -1 | sed 's/"message":"//;s/"//')
+    echo ""
+    echo -e "  ${C_RED}❌ Gagal ubah default branch di GitHub (HTTP ${api_http})${C_RESET}"
+    [ -n "$api_msg" ] && echo -e "  ${C_DIM}   GitHub: ${api_msg}${C_RESET}"
+    echo -e "  ${C_DIM}   Pastikan token punya permission: repo (write access)${C_RESET}"
+  fi
+
+  rm -f /tmp/_gh_switch.json
+  prompt_back_or_exit
 }
 
 # ===== Action: buat branch baru =====
@@ -492,10 +1048,7 @@ action_create_branch() {
   # Balik ke default
   git checkout -q "$DEFAULT_BRANCH" 2>/dev/null || true
 
-  echo ""
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-  printf "${C_BOLD}▸ ${C_RESET}"
-  read -r
+  prompt_back_or_exit
 }
 
 # ===== Action: hapus branch =====
@@ -513,10 +1066,7 @@ action_delete_branch() {
   if [ "$total" -eq 0 ]; then
     echo -e "${C_YELLOW}ℹ️  Tidak ada branch yang bisa dihapus${C_RESET}"
     echo -e "${C_DIM}   (cuma branch default '${DEFAULT_BRANCH}' yang ada)${C_RESET}"
-    echo ""
-    echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-    printf "${C_BOLD}▸ ${C_RESET}"
-    read -r
+    prompt_back_or_exit
     return
   fi
 
@@ -651,10 +1201,7 @@ action_delete_branch() {
   echo -e "  ${C_GREEN}✅ Sukses : ${ok}${C_RESET}"
   [ "$fail" -gt 0 ] && echo -e "  ${C_RED}❌ Gagal  : ${fail}${C_RESET}"
 
-  echo ""
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-  printf "${C_BOLD}▸ ${C_RESET}"
-  read -r
+  prompt_back_or_exit
 }
 
 # ===== Menu pemilih branch (sub-menu dari opsi 1) =====
@@ -851,9 +1398,28 @@ push_head_to_branch() {
     return 0
   fi
 
-  echo -e "  ${C_RED}❌ Gagal push ke ${branch}${C_RESET}"
-  echo -e "  ${C_DIM}── error log ──${C_RESET}"
-  sed 's/^/    /' "$push_log" | tail -10
+  # Deteksi error khusus: GitHub Secret Scanning
+  if grep -q "secret" "$push_log" 2>/dev/null; then
+    local unblock_url
+    unblock_url=$(grep -o 'https://github.com[^ ]*unblock-secret[^ ]*' "$push_log" 2>/dev/null | head -1)
+    echo ""
+    echo -e "  ${C_RED}🔐 Push ditolak — GitHub menemukan token di history commit lama!${C_RESET}"
+    echo -e "  ${C_DIM}   (.token.secret kamu AMAN — bukan itu masalahnya)${C_RESET}"
+    echo ""
+    echo -e "  ${C_BOLD}✅ Solusi: klik link ini lalu pilih 'Allow secret'${C_RESET}"
+    if [ -n "$unblock_url" ]; then
+      echo -e "  ${C_BLUE}${unblock_url}${C_RESET}"
+    else
+      echo -e "  ${C_DIM}Cek di: https://github.com/${USER}/${REPO}/security/secret-scanning${C_RESET}"
+    fi
+    echo -e "  ${C_DIM}   Setelah allow → jalankan push.sh lagi, langsung bisa.${C_RESET}"
+    echo ""
+  else
+    echo -e "  ${C_RED}❌ Gagal push ke ${branch}${C_RESET}"
+    echo -e "  ${C_DIM}── error log ──${C_RESET}"
+    sed 's/^/    /' "$push_log" | tail -10
+    echo ""
+  fi
   rm -f "$push_log"
   return 1
 }
@@ -892,6 +1458,22 @@ run_upload() {
     echo -e "  ${C_GREEN}✅ Sukses : ${ok}${C_RESET}"
     [ "$fail" -gt 0 ] && echo -e "  ${C_RED}❌ Gagal  : ${fail}${C_RESET}"
   fi
+
+  prompt_back_or_exit
+}
+
+# ===== Helper: prompt tunggal setelah setiap action =====
+prompt_back_or_exit() {
+  echo ""
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
+  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}keluar${C_RESET}"
+  printf "${C_BOLD}▸ ${C_RESET}"
+  local _ans
+  read -r _ans
+  _ans="${_ans:-1}"
+  case "$_ans" in
+    0|q|Q|exit) goodbye_prompt ;;
+  esac
 }
 
 # ===== Loop menu utama =====
@@ -899,18 +1481,6 @@ main_loop() {
   while true; do
     SELECTED_BRANCHES=()
     show_main_menu
-
-    echo ""
-    echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-    echo -e "  ${C_RED}0${C_RESET} ${C_DIM}atau q untuk keluar${C_RESET}"
-    printf "${C_BOLD}▸ ${C_RESET}"
-    read -r next
-    next="${next:-1}"
-    case "$next" in
-      q|Q|exit|0)
-        goodbye_prompt
-        ;;
-    esac
   done
 }
 
