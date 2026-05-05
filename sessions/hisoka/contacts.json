@@ -16878,7 +16878,9 @@
     "id": "6285150762138@s.whatsapp.net",
     "name": "Arga",
     "lid": "12442939724000@lid",
-    "jid": "6285150762138@s.whatsapp.net"
+    "jid": "6285150762138@s.whatsapp.net",
+    "notify": "anti kompres",
+    "verifiedName": "anti kompres"
   },
   "6285269808733@s.whatsapp.net": {
     "isContact": true,
@@ -31554,7 +31556,8 @@
   "81582920577063@lid": {
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
-    "notify": "Wily"
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "221543170892007@lid": {
     "id": "221543170892007@lid",
@@ -31694,6 +31697,37 @@
   "18133737861199@lid": {
     "id": "18133737861199@lid",
     "lid": "18133737861199@lid",
+    "imgUrl": "changed"
+  },
+  "169797337784433@lid": {
+    "id": "169797337784433@lid",
+    "lid": "169797337784433@lid",
+    "notify": "Maury.Denver ƒт『𝐂.𝐈.𝐇』"
+  },
+  "26547712958494@lid": {
+    "id": "26547712958494@lid",
+    "lid": "26547712958494@lid",
+    "notify": "Arthur.remi_kan",
+    "verifiedName": "Arthur.remi_kan"
+  },
+  "193020829909081@lid": {
+    "id": "193020829909081@lid",
+    "lid": "193020829909081@lid",
+    "notify": "Zacky Ariansyah"
+  },
+  "239328697536578@lid": {
+    "id": "239328697536578@lid",
+    "lid": "239328697536578@lid",
+    "notify": "Anda Siapa?"
+  },
+  "156182794784889@lid": {
+    "id": "156182794784889@lid",
+    "lid": "156182794784889@lid",
+    "notify": "sunshine.jpeg"
+  },
+  "156036849754312@lid": {
+    "id": "156036849754312@lid",
+    "lid": "156036849754312@lid",
     "imgUrl": "changed"
   }
 }
