@@ -1122,10 +1122,11 @@ show_main_menu() {
   echo -e "  ${C_CYAN}2${C_RESET} buat branch baru"
   echo -e "  ${C_YELLOW}3${C_RESET} hapus branch ${C_DIM}(default dilindungi)${C_RESET}"
   echo -e "  ${C_MAGENTA}4${C_RESET} ganti default branch ${C_DIM}(sekarang: ${DEFAULT_BRANCH})${C_RESET}"
-  echo -e "  ${C_BLUE}5${C_RESET} rename repository ${C_DIM}(sekarang: ${REPO})${C_RESET}"
+  echo -e "  ${C_BLUE}5${C_RESET} cek status token ${C_DIM}(validasi token tersimpan)${C_RESET}"
+  echo -e "  ${C_BLUE}6${C_RESET} rename repository ${C_DIM}(sekarang: ${REPO})${C_RESET}"
   echo -e "  ${C_RED}0${C_RESET} keluar"
   echo ""
-  printf "${C_BOLD}Pilih [0/1/2/3/4/5] ▸ ${C_RESET}"
+  printf "${C_BOLD}Pilih [0/1/2/3/4/5/6] ▸ ${C_RESET}"
 
   local pick
   read -r pick
@@ -1136,13 +1137,118 @@ show_main_menu() {
     2) action_create_branch ;;
     3) action_delete_branch ;;
     4) action_switch_default ;;
-    5) action_rename_repo ;;
+    5) action_check_token ;;
+    6) action_rename_repo ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
       sleep 1
       ;;
   esac
+}
+
+# ===== Action: cek status token =====
+action_check_token() {
+  banner
+  echo -e "${C_BOLD}🔍 Cek Status Token${C_RESET}"
+  echo ""
+
+  if [ ! -f .token.secret ]; then
+    echo -e "  ${C_RED}❌ File .token.secret tidak ditemukan.${C_RESET}"
+    echo -e "  ${C_DIM}   Jalankan script dulu untuk menyimpan token.${C_RESET}"
+    prompt_back_or_exit
+    return
+  fi
+
+  local tok
+  tok=$(tr -d '\n\r ' < .token.secret)
+
+  if [ -z "$tok" ]; then
+    echo -e "  ${C_RED}❌ File .token.secret kosong.${C_RESET}"
+    prompt_back_or_exit
+    return
+  fi
+
+  local tok_type_label tok_type_color
+  case "$tok" in
+    ghp_*)        tok_type_label="Classic Token (ghp_...)";              tok_type_color="$C_GREEN"  ;;
+    github_pat_*) tok_type_label="Fine-grained Token (github_pat_...)"; tok_type_color="$C_GREEN"  ;;
+    ghs_*)        tok_type_label="Server-to-Server Token (ghs_...)";    tok_type_color="$C_YELLOW" ;;
+    gho_*)        tok_type_label="OAuth App Token (gho_...)";           tok_type_color="$C_YELLOW" ;;
+    ghu_*)        tok_type_label="OAuth User Token (ghu_...)";          tok_type_color="$C_YELLOW" ;;
+    *)            tok_type_label="Format tidak dikenal";                tok_type_color="$C_RED"    ;;
+  esac
+
+  local tok_masked
+  tok_masked="${tok:0:10}****${tok: -4}"
+
+  echo -e "  ${C_DIM}Token   :${C_RESET} ${tok_masked}"
+  echo -e "  ${C_DIM}Jenis   :${C_RESET} ${tok_type_color}${C_BOLD}${tok_type_label}${C_RESET}"
+  echo ""
+  echo -e "  ${C_CYAN}▸${C_RESET} Menghubungi GitHub API untuk validasi token..."
+  echo ""
+
+  local api_out
+  api_out=$(curl -s -i \
+    -H "Authorization: Bearer ${tok}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/user" 2>/dev/null)
+
+  local http_code
+  http_code=$(echo "$api_out" | head -1 | grep -oE '[0-9]{3}' | head -1)
+
+  local headers body
+  headers=$(printf '%s' "$api_out" | awk '/^\r?$/{exit} {print}')
+  body=$(printf '%s' "$api_out" | awk 'BEGIN{f=0} /^\r?$/{f=1;next} f{print}')
+
+  if [ "$http_code" = "200" ]; then
+    local gh_login gh_name gh_type scopes
+    gh_login=$(echo "$body" | grep -o '"login": *"[^"]*"' | head -1 | sed 's/"login": *"//;s/"//')
+    gh_name=$(echo "$body"  | grep -o '"name": *"[^"]*"'  | head -1 | sed 's/"name": *"//;s/"//')
+    gh_type=$(echo "$body"  | grep -o '"type": *"[^"]*"'  | head -1 | sed 's/"type": *"//;s/"//')
+    scopes=$(echo "$headers" | grep -i 'x-oauth-scopes' | sed 's/.*: *//' | tr -d '\r')
+
+    local rate_limit rate_remaining rate_reset rate_reset_fmt
+    rate_limit=$(echo "$headers"     | grep -i 'x-ratelimit-limit:'     | sed 's/.*: *//' | tr -d '\r')
+    rate_remaining=$(echo "$headers" | grep -i 'x-ratelimit-remaining:' | sed 's/.*: *//' | tr -d '\r')
+    rate_reset=$(echo "$headers"     | grep -i 'x-ratelimit-reset:'     | sed 's/.*: *//' | tr -d '\r')
+    rate_reset_fmt=""
+    if [ -n "$rate_reset" ]; then
+      rate_reset_fmt=$(date -d "@${rate_reset}" '+%H:%M:%S' 2>/dev/null \
+        || date -r "$rate_reset" '+%H:%M:%S' 2>/dev/null \
+        || echo "$rate_reset")
+    fi
+
+    echo -e "  ${C_GREEN}✅ Token VALID${C_RESET}"
+    echo ""
+    echo -e "${C_BOLD}  ─── Info Akun GitHub ───${C_RESET}"
+    echo -e "  ${C_DIM}Username :${C_RESET} ${C_BOLD}${gh_login}${C_RESET}"
+    [ -n "$gh_name" ] && echo -e "  ${C_DIM}Nama     :${C_RESET} ${gh_name}"
+    [ -n "$gh_type" ] && echo -e "  ${C_DIM}Tipe     :${C_RESET} ${gh_type}"
+    echo ""
+    echo -e "${C_BOLD}  ─── Info Token ───${C_RESET}"
+    if [ -n "$scopes" ]; then
+      echo -e "  ${C_DIM}Scopes   :${C_RESET} ${C_GREEN}${scopes}${C_RESET}"
+    else
+      echo -e "  ${C_DIM}Scopes   :${C_RESET} ${C_DIM}(fine-grained / tidak tersedia via header)${C_RESET}"
+    fi
+    echo ""
+    echo -e "${C_BOLD}  ─── Rate Limit API ───${C_RESET}"
+    [ -n "$rate_limit" ]     && echo -e "  ${C_DIM}Limit    :${C_RESET} ${rate_limit} req/jam"
+    [ -n "$rate_remaining" ] && echo -e "  ${C_DIM}Sisa     :${C_RESET} ${C_CYAN}${rate_remaining}${C_RESET}"
+    [ -n "$rate_reset_fmt" ] && echo -e "  ${C_DIM}Reset    :${C_RESET} ${rate_reset_fmt}"
+  else
+    local api_msg
+    api_msg=$(echo "$body" | grep -o '"message": *"[^"]*"' | head -1 | sed 's/"message": *"//;s/"//')
+    echo -e "  ${C_RED}❌ Token TIDAK VALID atau kadaluarsa (HTTP ${http_code})${C_RESET}"
+    [ -n "$api_msg" ] && echo -e "  ${C_DIM}   GitHub: ${api_msg}${C_RESET}"
+    echo ""
+    echo -e "  ${C_YELLOW}💡 Pilih opsi 1/2/3 di menu token untuk menyimpan token baru.${C_RESET}"
+  fi
+
+  echo ""
+  prompt_back_or_exit
 }
 
 # ===== Action: rename repository =====
