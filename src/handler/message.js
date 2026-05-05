@@ -2035,7 +2035,9 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 'rvo', 'viewonce', 'vo',
                                 'antidel', 'ad',
                                 'readsw',
-                                'tt', 'ig', 'fb', 'ytmp3', 'ytmp4', 'play'
+                                'tt', 'ig', 'fb', 'ytmp3', 'ytmp4', 'play',
+                                'sticker', 's',
+                                'toimg'
                             ]);
                             if (!jadibotAllowedCommands.has(m.command)) {
                                 return;

@@ -1,8 +1,8 @@
-🤖 Script Wily Bot — *V14*
-📅 Updated: Jumat, 2 Mei 2026
+🤖 Script Wily Bot — *V14.5*
+📅 Updated: Selasa, 5 Mei 2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Total Update: *14*
-🔧 6 Bug Fix  |  ♻️ 4 Pembaruan  |  ✨ 4 Fitur Baru
+📦 Total Update: *19*
+🔧 6 Bug Fix  |  ♻️ 5 Pembaruan  |  ✨ 8 Fitur Baru
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔧 BUG FIX
@@ -29,6 +29,10 @@
 > ✦ Semua sesi (main + jadibot) kembali ke format creds.json
 > ✦ Lebih familiar & mudah dikelola manual
 
+◈ [V14.5] Ekspansi Fitur Jadibot — lebih banyak command tersedia
+> ✦ User jadibot kini bisa akses lebih banyak command
+> ✦ Setting per-user jadibot tersimpan realtime ke JSON
+
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✨ FITUR BARU
@@ -47,4 +51,45 @@
 > ✦ Data store (bukan session) tetap pakai SQLite untuk performa
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━
-🤖 Wily-Bot — Updated *2 Mei 2026*
+
+✨ FITUR BARU — V14.5 (5 Mei 2026)
+
+◈ [JADIBOT] Per-User Settings Realtime
+> ✦ Setiap user jadibot punya setting sendiri di data/jadibot_settings.json
+> ✦ Tidak bertabrakan antar jadibot maupun dengan main bot
+> ✦ Atomic write (tmp → rename) aman dari data corrupt
+
+◈ [JADIBOT] .antidel on/off — Anti-Delete per Jadibot
+> ✦ User jadibot aktifkan/nonaktifkan anti-delete sendiri
+> ✦ Mendukung: private, group, all, sendto self/chat/both
+> ✦ Tersimpan realtime ke jadibot_settings.json (tidak ganggu config.json)
+
+◈ [JADIBOT] .readsw on/off/true/false — Auto Read Story per Jadibot
+> ✦ User jadibot atur mode Read+Reaction atau Read Only
+> ✦ Bisa atur delay kustom: .readsw delay <min> <max>
+> ✦ Tersimpan realtime ke jadibot_settings.json
+
+◈ [JADIBOT] .rvo / .viewonce / .vo — Buka View Once
+> ✦ User jadibot kini bisa buka pesan view once
+> ✦ Mendukung gambar, video, audio, dokumen, sticker
+
+◈ [JADIBOT] Download Media — .tt .ig .fb .ytmp3 .ytmp4 .play
+> ✦ User jadibot kini bisa gunakan semua command download
+> ✦ TikTok, Instagram, Facebook, YouTube MP3/MP4, Search Play
+
+◈ [JADIBOT] .sticker / .s — Buat Sticker
+> ✦ User jadibot kini bisa konversi gambar/video/GIF jadi sticker
+> ✦ Mendukung semua format media yang didukung bot utama
+
+◈ [JADIBOT] .toimg — Konversi Sticker ke Gambar
+> ✦ User jadibot kini bisa ubah sticker balik ke gambar
+> ✦ Reply sticker → .toimg → terima gambar PNG/JPG
+
+◈ [SYSTEM] Arsitektur Jadibot Settings Baru
+> ✦ File baru: src/helper/jadibotSettings.js
+> ✦ Fungsi: loadAllJadibotSettings, saveAllJadibotSettings
+> ✦ Fungsi: getJadibotAntidel, getJadibotReadsw, setJadibotUserSetting, getJadibotNumber
+> ✦ Auto-create data/jadibot_settings.json jika belum ada
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 Wily-Bot — Updated *5 Mei 2026* | Versi *V14.5*
