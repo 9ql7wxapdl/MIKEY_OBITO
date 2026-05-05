@@ -1,6 +1,4 @@
-╔══════════════════════════════════╗
-║   🤖  W I L Y  B O T  —  V 1 4 . 5   ║
-╚══════════════════════════════════╝
+> 🤖  W I L Y  B O T  —  V 1 4 . 5
 📅 Updated  : Selasa, 5 Mei 2026
 📦 Total    : 24 Update
 🔧 Bug Fix  : 9  |  ♻️ Pembaruan : 7  |  ✨ Fitur Baru : 8

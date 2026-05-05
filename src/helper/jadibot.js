@@ -436,6 +436,52 @@ function isJadibotExpired(number) {
   return Number(meta.expiresAt) <= Date.now()
 }
 
+function _getJadibotRawText(msg) {
+  const m = msg?.message || {}
+  return (
+    m.conversation ||
+    m.extendedTextMessage?.text ||
+    m.imageMessage?.caption ||
+    m.videoMessage?.caption ||
+    m.documentMessage?.caption ||
+    ''
+  ).trim()
+}
+
+const CEKBOT_REGEX = /^[.!/]?(cekbot|expiry|cekexpiry|masaaktif|cekaktif)\s*$/i
+
+function msgCekbotExpiry(number, summary) {
+  const now = Date.now()
+  let statusLine, icon
+  if (summary.status === 'permanent') {
+    icon = '♾️'; statusLine = `♾️ *Permanent* — tidak ada batas waktu`
+  } else if (summary.status === 'unknown') {
+    icon = '❓'; statusLine = `❓ *Tidak diketahui* — data expiry tidak ada`
+  } else if (summary.status === 'expired') {
+    icon = '💀'; statusLine = `💀 *Kedaluwarsa* — bot akan segera berhenti`
+  } else {
+    icon = '✅'; statusLine = `✅ *Aktif*`
+  }
+  const lines = [
+    `╔══════════════════════╗`,
+    `║  ⏳  *MASA AKTIF BOT*  ║`,
+    `╚══════════════════════╝`,
+    ``,
+    `📱 *Nomor:* +${maskNumber(number)}`,
+    `🔋 *Status:* ${statusLine}`,
+  ]
+  if (summary.status !== 'permanent' && summary.status !== 'unknown') {
+    lines.push(`⏰ *Sisa Waktu:* ${summary.remaining}`)
+    lines.push(`📅 *Habis:* ${summary.expiresAtText}`)
+    if (summary.durationText && summary.durationText !== 'Permanent') {
+      lines.push(`📊 *Durasi Awal:* ${summary.durationText}`)
+    }
+  }
+  lines.push(``)
+  lines.push(`🕒 *Diperiksa:* ${new Date(now).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', hour12: false })}`)
+  return lines.join('\n')
+}
+
 function msgJadibotExpired(number) {
   return (
     `╔══════════════════════╗\n` +
@@ -1108,6 +1154,15 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
     for (const msg of messages) {
       if (!msg.message) continue
 
+      // Command .cekbot / .expiry — hanya dari pemilik jadibot (fromMe)
+      if (msg.key.fromMe && CEKBOT_REGEX.test(_getJadibotRawText(msg))) {
+        const summary = getJadibotExpirySummary(number)
+        try {
+          await sock.sendMessage(msg.key.remoteJid, { text: msgCekbotExpiry(number, summary) })
+        } catch {}
+        continue
+      }
+
       try {
         await messageHandler(
           { message: msg, type: 'notify' },
@@ -1312,6 +1367,16 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
     if (type !== 'notify') return
     for (const msg of messages) {
       if (!msg.message) continue
+
+      // Command .cekbot / .expiry — hanya dari pemilik jadibot (fromMe)
+      if (msg.key.fromMe && CEKBOT_REGEX.test(_getJadibotRawText(msg))) {
+        const summary = getJadibotExpirySummary(number)
+        try {
+          await sock.sendMessage(msg.key.remoteJid, { text: msgCekbotExpiry(number, summary) })
+        } catch {}
+        continue
+      }
+
       try {
         await messageHandler({ message: msg, type: 'notify' }, sock)
       } catch (err) {

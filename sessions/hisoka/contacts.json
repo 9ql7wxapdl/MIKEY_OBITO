@@ -23324,7 +23324,8 @@
     "id": "6289503411254@s.whatsapp.net",
     "name": "Kyu",
     "lid": "68380191097053@lid",
-    "jid": "6289503411254@s.whatsapp.net"
+    "jid": "6289503411254@s.whatsapp.net",
+    "notify": "Get Up"
   },
   "6289601381820@s.whatsapp.net": {
     "isContact": true,
@@ -31690,5 +31691,15 @@
     "id": "12197723951183@lid",
     "lid": "12197723951183@lid",
     "imgUrl": "changed"
+  },
+  "156182794784889@lid": {
+    "id": "156182794784889@lid",
+    "lid": "156182794784889@lid",
+    "notify": "sunshine.jpeg"
+  },
+  "193020829909081@lid": {
+    "id": "193020829909081@lid",
+    "lid": "193020829909081@lid",
+    "notify": "Zacky Ariansyah"
   }
 }
