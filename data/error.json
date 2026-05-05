@@ -1,33 +1,6 @@
 {
   "errors": [
     {
-      "fingerprint": "console.error::\u001b[Nm[WilyAutoReply] Error:\u001b[Nm Auth error: Signup rate-limited, tunggu beberapa menit lagi",
-      "source": "console.error",
-      "message": "\u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup rate-limited, tunggu beberapa menit lagi",
-      "stack": "Error: \u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup rate-limited, tunggu beberapa menit lagi\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at wilyError (file:///home/runner/workspace/src/handler/message.js?t=1777989721278:60:40)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1777989721278:1843:57)",
-      "count": 1,
-      "firstSeen": "2026-05-05T14:02:45.206Z",
-      "lastSeen": "2026-05-05T14:02:45.206Z"
-    },
-    {
-      "fingerprint": "console.error::\u001b[Nm[WilyAutoReply] Error:\u001b[Nm Auth error: Signup failed: {\"error\":{\"code\":N,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"er",
-      "source": "console.error",
-      "message": "\u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup failed: {\"error\":{\"code\":400,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"errors\":[{\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"domain\":\"global\",\"reason\":\"invalid\"}]}}",
-      "stack": "Error: \u001b[31m[WilyAutoReply] Error:\u001b[39m Auth error: Signup failed: {\"error\":{\"code\":400,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"errors\":[{\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"domain\":\"global\",\"reason\":\"invalid\"}]}}\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at wilyError (file:///home/runner/workspace/src/handler/message.js?t=1777989450485:60:40)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1777989450485:1843:57)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      "count": 2,
-      "firstSeen": "2026-05-05T13:58:16.640Z",
-      "lastSeen": "2026-05-05T13:59:36.577Z"
-    },
-    {
-      "fingerprint": "console.error::\u001b[Nm[Gemini-Signup]\u001b[Nm FAIL: {\"error\":{\"code\":N,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"errors\":[{\"message\":\"TOO_MANY_",
-      "source": "console.error",
-      "message": "\u001b[31m[Gemini-Signup]\u001b[0m FAIL: {\"error\":{\"code\":400,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"errors\":[{\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"domain\":\"global\",\"reason\":\"invalid\"}]}}",
-      "stack": "Error: \u001b[31m[Gemini-Signup]\u001b[0m FAIL: {\"error\":{\"code\":400,\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"errors\":[{\"message\":\"TOO_MANY_ATTEMPTS_TRY_LATER\",\"domain\":\"global\",\"reason\":\"invalid\"}]}}\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at geminiError (file:///home/runner/workspace/src/helper/gemini.js:31:69)\n    at Gemini._signup (file:///home/runner/workspace/src/helper/gemini.js:101:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Gemini._ensurePool (file:///home/runner/workspace/src/helper/gemini.js:113:27)",
-      "count": 9,
-      "firstSeen": "2026-05-05T13:54:05.483Z",
-      "lastSeen": "2026-05-05T14:01:01.017Z"
-    },
-    {
       "fingerprint": "console.error::\u001b[Nm[CrashGuard] Message handler timed out (Ns), skipping.\u001b[Nm",
       "source": "console.error",
       "message": "\u001b[31m[CrashGuard] Message handler timed out (120s), skipping.\u001b[39m",

@@ -8,76 +8,22 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 05/05/2026, 14.02.45  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 05/05/2026, 09.15.16  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
-  Total Jenis Error (unik)  : 7
-  Total Kejadian Error       : 19
+  Total Jenis Error (unik)  : 4
+  Total Kejadian Error       : 7
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [7 jenis, 19 kejadian total]
+  DAFTAR ERROR LENGKAP  [4 jenis, 7 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
 │  #001  —  console.error
-├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-│  PESAN ERROR
-│  [31m[WilyAutoReply] Error:[39m Auth error: Signup rate-limited, tunggu beberapa menit lagi
-│
-│  DETAIL
-│  Sumber      : console.error
-│  Frekuensi   : 1x (baru terjadi)
-│  Pertama     : 05/05/2026, 14.02.45
-│  Terakhir    : 05/05/2026, 14.02.45
-│
-│  STACK TRACE (3 baris pertama)
-│  ▶  Error: [31m[WilyAutoReply] Error:[39m Auth error: Signup rate-limited, tunggu beberapa menit lagi
-│     at console.error (file:///home/runner/workspace/index.js:352:27)
-│     at wilyError (file:///home/runner/workspace/src/handler/message.js?t=1777989721278:60:40)
-└───────────────────────────────────────────────────────────────────────
-
-┌───────────────────────────────────────────────────────────────────────
-│  #002  —  console.error
-├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-│  PESAN ERROR
-│  [31m[WilyAutoReply] Error:[39m Auth error: Signup failed: {"error":{"code":400,"message":"TOO_MANY_ATTEMPTS_TRY_LATER","errors":[{"message":"TOO_MANY_ATTEMPTS_TRY_LATER","domain":"global","reason":"invalid"}]}}
-│
-│  DETAIL
-│  Sumber      : console.error
-│  Frekuensi   : 2x (duplikat digabung)
-│  Pertama     : 05/05/2026, 13.58.16
-│  Terakhir    : 05/05/2026, 13.59.36
-│
-│  STACK TRACE (3 baris pertama)
-│  ▶  Error: [31m[WilyAutoReply] Error:[39m Auth error: Signup failed: {"error":{"code":400,"message":"TOO_MANY_ATTEMPTS_TRY_LATER","errors":[{"message":"TOO_MANY_ATTEMPTS_TRY_LATER","domain":"global","reason":"invalid"}]}}
-│     at console.error (file:///home/runner/workspace/index.js:352:27)
-│     at wilyError (file:///home/runner/workspace/src/handler/message.js?t=1777989450485:60:40)
-└───────────────────────────────────────────────────────────────────────
-
-┌───────────────────────────────────────────────────────────────────────
-│  #003  —  console.error
-├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
-│  PESAN ERROR
-│  [31m[Gemini-Signup][0m FAIL: {"error":{"code":400,"message":"TOO_MANY_ATTEMPTS_TRY_LATER","errors":[{"message":"TOO_MANY_ATTEMPTS_TRY_LATER","domain":"global","reason":"invalid"}]}}
-│
-│  DETAIL
-│  Sumber      : console.error
-│  Frekuensi   : 9x (duplikat digabung)
-│  Pertama     : 05/05/2026, 13.54.05
-│  Terakhir    : 05/05/2026, 14.01.01
-│
-│  STACK TRACE (3 baris pertama)
-│  ▶  Error: [31m[Gemini-Signup][0m FAIL: {"error":{"code":400,"message":"TOO_MANY_ATTEMPTS_TRY_LATER","errors":[{"message":"TOO_MANY_ATTEMPTS_TRY_LATER","domain":"global","reason":"invalid"}]}}
-│     at console.error (file:///home/runner/workspace/index.js:352:27)
-│     at geminiError (file:///home/runner/workspace/src/helper/gemini.js:31:69)
-└───────────────────────────────────────────────────────────────────────
-
-┌───────────────────────────────────────────────────────────────────────
-│  #004  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
@@ -95,7 +41,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #005  —  Backup
+│  #002  —  Backup
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Backup] Gagal kirim ke 628968100xxxx Timed Out
@@ -113,7 +59,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #006  —  console.error
+│  #003  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
@@ -131,7 +77,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #007  —  console.error
+│  #004  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
@@ -149,6 +95,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 7 jenis, 19 kejadian
-  Terakhir diperbarui: 05/05/2026, 14.02.45
+  End of Report  —  Total: 4 jenis, 7 kejadian
+  Terakhir diperbarui: 05/05/2026, 09.15.16
 ════════════════════════════════════════════════════════════════════════

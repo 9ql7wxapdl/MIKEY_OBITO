@@ -108,21 +108,13 @@ class Gemini {
         const before = this.tokenPool.length;
         this.tokenPool = this.tokenPool.filter(t => t && now < t.expiry - 300000);
         if (this.tokenPool.length !== before) this._saveTokenCache();
-        // Jika signup terakhir gagal rate-limit, tunda 5 menit sebelum coba lagi
-        const SIGNUP_COOLDOWN_MS = 5 * 60 * 1000;
-        if (this._signupFailTs && (now - this._signupFailTs) < SIGNUP_COOLDOWN_MS) {
-            if (this.tokenPool.length === 0) throw new Error('Auth error: Signup rate-limited, tunggu beberapa menit lagi');
-            return;
-        }
         while (this.tokenPool.length < POOL_SIZE) {
             try {
                 const t = await this._signup();
                 this.tokenPool.push(t);
                 this._saveTokenCache();
-                this._signupFailTs = null;
                 geminiLog(`\x1b[36m[Gemini]\x1b[0m 🔑 Token pool +1 (size=${this.tokenPool.length})`);
             } catch (e) {
-                this._signupFailTs = Date.now();
                 if (this.tokenPool.length === 0) throw new Error('Auth error: ' + e.message);
                 break;
             }
