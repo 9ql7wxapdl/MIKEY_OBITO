@@ -6102,7 +6102,8 @@
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
     "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily"
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "6282116333703@s.whatsapp.net": {
     "isContact": true,
@@ -31463,5 +31464,10 @@
     "id": "31959019446519@lid",
     "lid": "31959019446519@lid",
     "imgUrl": "changed"
+  },
+  "81582920577063@lid": {
+    "id": "81582920577063@lid",
+    "lid": "81582920577063@lid",
+    "notify": "Wily"
   }
 }
