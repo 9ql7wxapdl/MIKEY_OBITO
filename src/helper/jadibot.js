@@ -64,6 +64,7 @@ const jadibotMap = new Map()
 const startingSocketMap = new Map()
 const pairingRequested = new Set()
 const stoppingJadibot = new Set()
+const expiringJadibot = new Set()
 const reconnectingJadibot = new Set()
 const activeOrStartingJadibot = new Set()
 const pairingTimeout = new Map()
@@ -449,15 +450,39 @@ function msgJadibotExpired(number) {
 
 async function expireJadibot(number, sendReply = null) {
   number = String(number || '').replace(/[^0-9]/g, '')
+
+  // Guard: cegah double-expiry untuk nomor yang sama (race condition)
+  if (expiringJadibot.has(number)) return
+  expiringJadibot.add(number)
+  stoppingJadibot.add(number)
+
   const sessionDir = path.join(process.cwd(), 'jadibot', number)
   const sock = jadibotMap.get(number)
-  stoppingJadibot.add(number)
+  const expiredMsg = msgJadibotExpired(number)
+
+  // Langkah 1: kirim notifikasi ke user jadibot SEBELUM socket ditutup
+  if (sock) {
+    try {
+      await sock.sendMessage(`${number}@s.whatsapp.net`, { text: expiredMsg })
+    } catch {}
+  }
+
+  // Langkah 2: kirim notifikasi ke admin (untuk jadibot yang dimulai manual)
+  if (sendReply) {
+    try {
+      await sendReply(expiredMsg)
+    } catch {}
+  }
+
+  // Langkah 3: tutup socket
   try {
     if (sock) {
       sock.ev.removeAllListeners()
       if (sock.ws) sock.ws.close()
     }
   } catch {}
+
+  // Langkah 4: bersihkan semua Map/Set
   jadibotMap.delete(number)
   pairingRequested.delete(number)
   reconnectingJadibot.delete(number)
@@ -466,20 +491,27 @@ async function expireJadibot(number, sendReply = null) {
     clearTimeout(pairingTimeout.get(number))
     pairingTimeout.delete(number)
   }
-  removeJadibotExpiry(number)
-  try {
-    if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true })
-  } catch {}
-  setTimeout(() => stoppingJadibot.delete(number), 1000)
   if (typeof global.autoStartedJadibot !== 'undefined') {
     global.autoStartedJadibot.delete(number)
   }
-  if (sendReply) {
+
+  // Langkah 5: hapus data expiry dari JSON
+  removeJadibotExpiry(number)
+
+  // Langkah 6: hapus folder sesi (delay 500ms beri waktu socket close)
+  setTimeout(() => {
     try {
-      await sendReply(msgJadibotExpired(number))
+      if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true })
     } catch {}
-  }
-  console.log(`[JADIBOT] ⏰ ${number} expired → sesi dihapus realtime`)
+  }, 500)
+
+  // Langkah 7: lepas guard setelah selesai
+  setTimeout(() => {
+    stoppingJadibot.delete(number)
+    expiringJadibot.delete(number)
+  }, 2000)
+
+  console.log(`[JADIBOT] ⏰ ${number} expired → notif terkirim → sesi dihapus realtime`)
 }
 
 async function cleanupExpiredJadibots(sendReply = null) {
