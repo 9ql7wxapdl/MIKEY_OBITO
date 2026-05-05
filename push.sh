@@ -230,15 +230,27 @@ setup_token() {
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
     echo "" >&2
     if [ ! -f .token.secret ]; then
-      echo -e "${C_YELLOW}⚠️  File .token.secret belum ada.${C_RESET}" >&2
+      echo -e "  ${C_YELLOW}⚠️  File .token.secret belum ada.${C_RESET}" >&2
     else
-      echo -e "${C_YELLOW}⚠️  Token tidak valid / placeholder.${C_RESET}" >&2
+      echo -e "  ${C_YELLOW}⚠️  Token tidak valid / placeholder.${C_RESET}" >&2
     fi
-    echo -e "${C_DIM}   Masukkan GitHub Personal Access Token (scope: repo).${C_RESET}" >&2
-    echo -e "${C_DIM}   Buat token: github.com/settings/tokens${C_RESET}" >&2
     echo "" >&2
-    echo -e "${C_DIM}─────────────────────────────────────────────────${C_RESET}" >&2
-    printf "${C_BOLD}  Paste token ▸ ${C_RESET}" >&2
+    echo -e "  ${C_BOLD}Cara buat token baru:${C_RESET}" >&2
+    echo "" >&2
+    echo -e "  ${C_CYAN}[A] Classic Token${C_RESET} ${C_DIM}(recommended — token berawalan ghp_...)${C_RESET}" >&2
+    echo -e "      ${C_BLUE}https://github.com/settings/tokens/new${C_RESET}" >&2
+    echo -e "      ${C_DIM}→ Centang scope: ${C_RESET}${C_BOLD}repo${C_RESET} ${C_DIM}(baris paling atas, full control)${C_RESET}" >&2
+    echo -e "      ${C_DIM}→ Scope lain TIDAK perlu dicentang${C_RESET}" >&2
+    echo "" >&2
+    echo -e "  ${C_CYAN}[B] Fine-grained Token${C_RESET} ${C_DIM}(token berawalan github_pat_...)${C_RESET}" >&2
+    echo -e "      ${C_BLUE}https://github.com/settings/personal-access-tokens/new${C_RESET}" >&2
+    echo -e "      ${C_DIM}→ Repository access: ${C_RESET}${C_BOLD}All repositories${C_RESET}" >&2
+    echo -e "      ${C_DIM}→ Permissions → Contents: ${C_RESET}${C_BOLD}Read and write${C_RESET}" >&2
+    echo "" >&2
+    echo -e "  ${C_DIM}💡 Expiration: bebas pilih manual — disarankan ${C_RESET}${C_BOLD}No expiration${C_RESET}${C_DIM} biar tidak perlu buat ulang${C_RESET}" >&2
+    echo "" >&2
+    echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
+    printf "  ${C_BOLD}Paste token ▸ ${C_RESET}" >&2
 
     local input_tok=""
     read -rs input_tok </dev/tty
