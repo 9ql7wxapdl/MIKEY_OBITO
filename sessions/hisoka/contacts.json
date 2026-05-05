@@ -30186,7 +30186,8 @@
     "id": "6282189076619@s.whatsapp.net",
     "name": "•√F",
     "lid": "84636709445686@lid",
-    "jid": "6282189076619@s.whatsapp.net"
+    "jid": "6282189076619@s.whatsapp.net",
+    "notify": "F"
   },
   "6285748570255@s.whatsapp.net": {
     "isContact": true,
@@ -31428,6 +31429,11 @@
   "149594096853220@lid": {
     "id": "149594096853220@lid",
     "lid": "149594096853220@lid",
+    "imgUrl": "removed"
+  },
+  "237499041456266@lid": {
+    "id": "237499041456266@lid",
+    "lid": "237499041456266@lid",
     "imgUrl": "removed"
   }
 }

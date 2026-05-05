@@ -10214,10 +10214,53 @@ infoText += `╰═════════════════════�
 
                                 const arg = (query || '').trim().toLowerCase();
 
-                                if (arg === 'on') {
+                                if (arg === 'global on') {
+                                        if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner bot yang bisa mengubah pengaturan global!');
                                         const config = loadConfig();
+                                        if (!config.antiTagSW) config.antiTagSW = {};
+                                        config.antiTagSW.enabled = true;
+                                        saveConfig(config);
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *🌐 ANTITAGSW GLOBAL* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ ✅ *Global AntiTagSW DIAKTIFKAN!*\n` +
+                                                `│\n` +
+                                                `│ ℹ️ Sekarang admin grup bisa\n` +
+                                                `│    mengaktifkan fitur ini di\n` +
+                                                `│    masing-masing grup.\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, 'antitagsw global on');
+                                } else if (arg === 'global off') {
+                                        if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner bot yang bisa mengubah pengaturan global!');
+                                        const config = loadConfig();
+                                        if (!config.antiTagSW) config.antiTagSW = {};
+                                        config.antiTagSW.enabled = false;
+                                        saveConfig(config);
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *🌐 ANTITAGSW GLOBAL* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🔴 *Global AntiTagSW DINONAKTIFKAN!*\n` +
+                                                `│\n` +
+                                                `│ ℹ️ Fitur ini tidak akan aktif\n` +
+                                                `│    di semua grup meskipun sudah\n` +
+                                                `│    di-on per grup.\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, 'antitagsw global off');
+                                } else if (arg === 'on') {
+                                        const config = loadConfig();
+                                        let globalAutoEnabled = false;
                                         if (!config.antiTagSW?.enabled) {
-                                                return tolak(hisoka, m, '❌ Fitur AntiTagSW dinonaktifkan secara global oleh owner bot.\nUbah *antiTagSW.enabled* di config.json menjadi *true* terlebih dahulu.');
+                                                if (!m.isOwner) {
+                                                        return tolak(hisoka, m, '❌ Fitur AntiTagSW dinonaktifkan secara global oleh owner bot.\nMinta owner aktifkan dengan perintah: *.antitagsw global on*');
+                                                }
+                                                if (!config.antiTagSW) config.antiTagSW = {};
+                                                config.antiTagSW.enabled = true;
+                                                saveConfig(config);
+                                                globalAutoEnabled = true;
                                         }
 
                                         toggleAntiTagSW(m.from, true);
@@ -10225,6 +10268,7 @@ infoText += `╰═════════════════════�
                                                 `╭───〔 *✅ ANTI-TAG SEMUA WARGA* 〕───╮\n` +
                                                 `│\n` +
                                                 `│ 🟢 *Fitur AntiTagSW AKTIF!*\n` +
+                                                (globalAutoEnabled ? `│ 🌐 *Global juga diaktifkan otomatis!*\n` : '') +
                                                 `│\n` +
                                                 `│ ⚙️ Konfigurasi:\n` +
                                                 `│ • Maks. warning: *${config.antiTagSW?.maxWarnings ?? 3}x*\n` +
@@ -10275,6 +10319,9 @@ infoText += `╰═════════════════════�
                                                 `│ • *.antitagsw on*  → Aktifkan\n` +
                                                 `│ • *.antitagsw off* → Nonaktifkan\n` +
                                                 `│ • *.antitagsw reset* → Reset warning\n` +
+                                                (m.isOwner ?
+                                                `│ • *.antitagsw global on*  → Aktifkan global\n` +
+                                                `│ • *.antitagsw global off* → Nonaktifkan global\n` : '') +
                                                 `│\n` +
                                                 `╰────────────────────────────────────╯`;
 
