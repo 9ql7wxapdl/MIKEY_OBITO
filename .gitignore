@@ -26,9 +26,8 @@ sessions/**
 !sessions/hisoka/contacts.json
 !sessions/hisoka/groups.json
 
-# Jadibot — folder ada tapi isinya dikosongkan
-jadibot/**
+# Jadibot — upload seluruh isi folder ke GitHub
 !jadibot/
-!jadibot/.gitkeep
+!jadibot/**
 .token
 

@@ -721,6 +721,7 @@ prepare_stage() {
                 sessions/hisoka/contacts.json \
                 sessions/hisoka/groups.json \
                 attached_assets .agents \
+                jadibot \
                 .replit; do
     [ -e "$forced" ] || continue
     git add -f "$forced" 2>>"$err_log" || true
