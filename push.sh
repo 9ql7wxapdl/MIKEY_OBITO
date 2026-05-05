@@ -306,12 +306,70 @@ setup_token() {
       continue
     fi
 
-    printf '%s' "$input_tok" > .token.secret
+    # ── Auto-detect jenis token dari prefix ────────────────────────────────
+    local _detected_type="" _detected_label="" _detected_color=""
+    case "$input_tok" in
+      ghp_*)
+        _detected_type="classic"
+        _detected_label="Classic Token  (ghp_...)"
+        _detected_color="$C_GREEN"
+        ;;
+      github_pat_*)
+        _detected_type="finegrained"
+        _detected_label="Fine-grained Token  (github_pat_...)"
+        _detected_color="$C_GREEN"
+        ;;
+      ghs_*)
+        _detected_type="server"
+        _detected_label="Server-to-Server Token  (ghs_...)"
+        _detected_color="$C_YELLOW"
+        ;;
+      gho_*)
+        _detected_type="oauth"
+        _detected_label="OAuth App Token  (gho_...)"
+        _detected_color="$C_YELLOW"
+        ;;
+      ghu_*)
+        _detected_type="oauth_user"
+        _detected_label="OAuth User Token  (ghu_...)"
+        _detected_color="$C_YELLOW"
+        ;;
+      *)
+        _detected_type="unknown"
+        _detected_label="Token tidak dikenal / format non-standar"
+        _detected_color="$C_RED"
+        ;;
+    esac
+
+    # Cek mismatch: user pilih tipe X tapi paste token tipe Y
+    local _mismatch=0
+    if [ "$_tok_type" = "1" ] && [ "$_detected_type" != "classic" ]; then
+      _mismatch=1
+    elif [ "$_tok_type" = "2" ] && [ "$_detected_type" != "finegrained" ]; then
+      _mismatch=1
+    fi
+
+    # ── Layar 3: Konfirmasi simpan ─────────────────────────────────────────
     clear >/dev/tty 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
     echo "" >&2
+    echo -e "  ${C_DIM}Jenis token terdeteksi:${C_RESET}" >&2
+    echo -e "  ${_detected_color}${C_BOLD}▶ ${_detected_label}${C_RESET}" >&2
+    echo "" >&2
+
+    if [ "$_mismatch" -eq 1 ]; then
+      if [ "$_tok_type" = "1" ]; then
+        echo -e "  ${C_YELLOW}⚠️  Kamu pilih Classic tapi paste token ${_detected_label}.${C_RESET}" >&2
+      else
+        echo -e "  ${C_YELLOW}⚠️  Kamu pilih Fine-grained tapi paste token ${_detected_label}.${C_RESET}" >&2
+      fi
+      echo -e "  ${C_DIM}   Token tetap disimpan — validasi ke GitHub akan menentukan.${C_RESET}" >&2
+      echo "" >&2
+    fi
+
+    printf '%s' "$input_tok" > .token.secret
     echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
     echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
     echo "" >&2
