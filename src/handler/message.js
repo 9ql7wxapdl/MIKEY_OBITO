@@ -1532,8 +1532,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         // WilyAutoReply — respek scope: pm=hanya DM, gc=hanya grup, all=keduanya
                                         const isPrivateDM = !m.isGroup && m.from !== 'status@broadcast';
                                         const isStickerMsg = getMediaTypeFromMessage(m) === 'stickerMessage';
-                                        // Grup: trigger saat bot di-mention (pesan apapun) ATAU saat ada yang reply pesan bot (pesan apapun)
-                                        const triggerGroup = scopeAllowGC && m.isGroup && (isWilyMentioned || isReplyToBotMsg);
+                                        // Grup: semua pesan di grup trigger bot (sama seperti PM trigger semua pesan private)
+                                        const triggerGroup = scopeAllowGC && m.isGroup;
                                         // Private: semua pesan yang masuk ke DM (teks, sticker, gambar, video, dll) langsung trigger bot
                                         const triggerPM    = scopeAllowPM && isPrivateDM;
                                         const isLoadedCommand = m.command && !m.isBot && hisoka.loadedCommands?.some(c => c.toLowerCase() === m.command);
