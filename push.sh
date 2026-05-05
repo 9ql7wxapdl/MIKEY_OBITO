@@ -29,10 +29,10 @@
 # ─────────────────────────────────────────────────────────────
 
 USER="hitlabmodv2"
-REPO="ReadswDika-V13"
+REPO="ReadSwDika_Version"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
-DEFAULT_BRANCH="ReadswDika-V15_4"
+DEFAULT_BRANCH="ReadswDika-V15_5"
 
 # Branch yang disembunyikan dari menu (system / internal).
 # Pisahkan dengan spasi. Contoh: "replit-agent gh-pages backup"
