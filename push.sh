@@ -29,7 +29,7 @@
 # ─────────────────────────────────────────────────────────────
 
 USER="hitlabmodv2"
-REPO="ReadswDika-V15_4"
+REPO="ReadswDika-V13"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
 DEFAULT_BRANCH="ReadswDika-V15_4"
@@ -763,16 +763,17 @@ fetch_branches() {
       "https://api.github.com/repos/${USER}/${REPO}/branches?per_page=${per_page}&page=${page}" \
       2>/dev/null)
 
-    # Cek apakah response valid (array JSON)
+    # Cek apakah response valid (array JSON, ada field "name")
     if echo "$chunk" | grep -q '"name"'; then
       api_ok=1
       local names
-      names=$(echo "$chunk" | grep -o '"name":"[^"]*"' | sed 's/"name":"//;s/"//')
+      # Format GitHub API: "name": "branch-name" (ada spasi setelah titik dua)
+      names=$(echo "$chunk" | grep -o '"name": *"[^"]*"' | sed 's/"name": *"//;s/"$//')
       api_branches="${api_branches}${names}"$'\n'
 
       # Kalau hasil < per_page, berarti halaman terakhir
       local count
-      count=$(echo "$chunk" | grep -o '"name":' | wc -l | tr -d ' ')
+      count=$(echo "$chunk" | grep -c '"name":' 2>/dev/null || echo "0")
       [ "$count" -lt "$per_page" ] && break
       page=$((page + 1))
     else
@@ -785,7 +786,7 @@ fetch_branches() {
       # Pakai hasil API — sudah real-time dari GitHub
       echo "$api_branches"
     else
-      # Fallback: branch lokal + git ls-remote
+      # Fallback: branch lokal + git ls-remote dengan URL bertoken
       git for-each-ref --format='%(refname)' refs/heads/ 2>/dev/null \
         | sed 's|^refs/heads/||'
       git ls-remote --heads "${REMOTE_URL:-origin}" 2>/dev/null \
