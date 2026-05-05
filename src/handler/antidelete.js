@@ -34,6 +34,7 @@ const _require = createRequire(import.meta.url);
 const { jidNormalizedUser, jidDecode, isJidGroup, getContentType, downloadMediaMessage } = _require('socketon');
 import { isPnUser } from '../helper/socketCompat.js';
 import { getTmpPath } from '../helper/cleaner.js';
+import { getJadibotAntidel, getJadibotNumber } from '../helper/jadibotSettings.js';
 
 function loadConfig() {
         try {
@@ -218,8 +219,14 @@ async function sendToTargets(hisoka, targets, type, messageContent, headerText, 
 
 export default async function handleDeletedMessage(update, hisoka) {
         try {
-                const config = loadConfig();
-                const antiDeleteConfig = config.antiDelete || {};
+                let antiDeleteConfig;
+                if (hisoka?.isMainBot === false) {
+                        const jadibotNum = getJadibotNumber(hisoka);
+                        antiDeleteConfig = getJadibotAntidel(jadibotNum);
+                } else {
+                        const config = loadConfig();
+                        antiDeleteConfig = config.antiDelete || {};
+                }
                 
                 if (!antiDeleteConfig.enabled) return;
                 

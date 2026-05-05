@@ -50,6 +50,7 @@ import { getHistory, addToHistory, clearHistory, clearAllHistory, countHistory, 
 import { sendAIReply } from '../helper/aiReact.js';
 import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt } from '../helper/aiPrompt.js';
 import { hashSticker, lookupSticker, saveSticker, incrementStickerSeen, buildStickerContextHint, getStickerMemoryStats } from '../helper/stickerMemory.js';
+import { getJadibotAntidel, getJadibotReadsw, setJadibotUserSetting, getJadibotNumber } from '../helper/jadibotSettings.js';
 
 const WILY_VERBOSE_LOGS = process.env.WILY_VERBOSE_LOGS === 'true' || process.env.BOT_DEBUG_LOG === 'true';
 const wilyLog = (...args) => {
@@ -2028,8 +2029,14 @@ export default async function ({ message, type: messagesType }, hisoka) {
                             if (!m.isOwner) {
                                 return;
                             }
-                            // Jadibot hanya merespon command .p / .ping saja
-                            const jadibotAllowedCommands = new Set(['p', 'ping']);
+                            // Jadibot hanya merespon command yang diizinkan
+                            const jadibotAllowedCommands = new Set([
+                                'p', 'ping',
+                                'rvo', 'viewonce', 'vo',
+                                'antidel', 'ad',
+                                'readsw',
+                                'tt', 'ig', 'fb', 'ytmp3', 'ytmp4', 'play'
+                            ]);
                             if (!jadibotAllowedCommands.has(m.command)) {
                                 return;
                             }
@@ -6567,11 +6574,26 @@ text += `╰══════════════════════�
 
                         case 'antidel':
                         case 'ad': {
-                                if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
                                 try {
-                                        const config = loadConfig();
-                                        const antiDelete = config.antiDelete || { enabled: false, privateChat: false, groupChat: false, sendTo: 'self' };
+                                        const isJadibot = hisoka?.isMainBot === false;
+                                        const jadibotNum = isJadibot ? getJadibotNumber(hisoka) : null;
+
+                                        const getAntiDelete = () => isJadibot
+                                                ? getJadibotAntidel(jadibotNum)
+                                                : (loadConfig().antiDelete || { enabled: false, privateChat: false, groupChat: false, sendTo: 'self' });
+
+                                        const saveAntiDelete = (newVal) => {
+                                                if (isJadibot) {
+                                                        setJadibotUserSetting(jadibotNum, 'antidel', newVal);
+                                                } else {
+                                                        const cfg = loadConfig();
+                                                        cfg.antiDelete = newVal;
+                                                        saveConfig(cfg);
+                                                }
+                                        };
+
+                                        const antiDelete = getAntiDelete();
                                         const args = query ? query.toLowerCase().split(' ') : [];
                                         const sendTo = antiDelete.sendTo || 'self';
 
@@ -6580,6 +6602,8 @@ text += `╰══════════════════════�
                                                 chat: '💬 Chat / Grup Asal',
                                                 both: '📲 Saved Messages + 💬 Chat Asal'
                                         };
+
+                                        const jadibotNote = isJadibot ? `\n_⚙️ Setting khusus jadibot +${jadibotNum}_` : '';
 
                                         if (args.length === 0) {
                                                 const text =
@@ -6598,7 +6622,8 @@ text += `╰══════════════════════�
                                                         `• *.antidel sendto self* — Kirim ke saved messages bot\n` +
                                                         `• *.antidel sendto chat* — Kirim balik ke chat/grup asal\n` +
                                                         `• *.antidel sendto both* — Kirim ke keduanya\n\n` +
-                                                        `📦 *Didukung:* Teks, Gambar, Video, Audio, Sticker, Dokumen`;
+                                                        `📦 *Didukung:* Teks, Gambar, Video, Audio, Sticker, Dokumen` +
+                                                        jadibotNote;
 
                                                 await tolak(hisoka, m, text);
                                                 break;
@@ -6608,13 +6633,13 @@ text += `╰══════════════════════�
                                                 if (antiDelete.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Anti Delete sudah aktif.');
                                                 } else {
-                                                        config.antiDelete = { ...antiDelete, enabled: true };
-                                                        saveConfig(config);
+                                                        saveAntiDelete({ ...antiDelete, enabled: true });
                                                         await tolak(hisoka, m, 
                                                                 `✅ *Anti Delete diaktifkan!*\n\n` +
                                                                 `📤 Pesan dihapus akan dikirim ke:\n` +
                                                                 `*${sendToLabel[sendTo] || sendToLabel.self}*\n\n` +
-                                                                `💡 Atur tujuan dengan: *.antidel sendto self/chat/both*`
+                                                                `💡 Atur tujuan dengan: *.antidel sendto self/chat/both*` +
+                                                                jadibotNote
                                                         );
                                                 }
 
@@ -6622,33 +6647,29 @@ text += `╰══════════════════════�
                                                 if (!antiDelete.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Anti Delete sudah nonaktif.');
                                                 } else {
-                                                        config.antiDelete = { ...antiDelete, enabled: false };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, '✅ *Anti Delete dinonaktifkan.*');
+                                                        saveAntiDelete({ ...antiDelete, enabled: false });
+                                                        await tolak(hisoka, m, '✅ *Anti Delete dinonaktifkan.*' + jadibotNote);
                                                 }
 
                                         } else if (args[0] === 'private' && args[1]) {
                                                 const enabled = args[1] === 'on';
-                                                config.antiDelete = { ...antiDelete, privateChat: enabled };
-                                                saveConfig(config);
+                                                saveAntiDelete({ ...antiDelete, privateChat: enabled });
                                                 await tolak(hisoka, m, 
-                                                        `${enabled ? '✅' : '❌'} Anti Delete *Private Chat* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+                                                        `${enabled ? '✅' : '❌'} Anti Delete *Private Chat* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.` + jadibotNote
                                                 );
 
                                         } else if (args[0] === 'group' && args[1]) {
                                                 const enabled = args[1] === 'on';
-                                                config.antiDelete = { ...antiDelete, groupChat: enabled };
-                                                saveConfig(config);
+                                                saveAntiDelete({ ...antiDelete, groupChat: enabled });
                                                 await tolak(hisoka, m, 
-                                                        `${enabled ? '✅' : '❌'} Anti Delete *Group Chat* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+                                                        `${enabled ? '✅' : '❌'} Anti Delete *Group Chat* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.` + jadibotNote
                                                 );
 
                                         } else if (args[0] === 'all' && args[1]) {
                                                 const enabled = args[1] === 'on';
-                                                config.antiDelete = { ...antiDelete, privateChat: enabled, groupChat: enabled };
-                                                saveConfig(config);
+                                                saveAntiDelete({ ...antiDelete, privateChat: enabled, groupChat: enabled });
                                                 await tolak(hisoka, m, 
-                                                        `${enabled ? '✅' : '❌'} Anti Delete *Private + Group* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+                                                        `${enabled ? '✅' : '❌'} Anti Delete *Private + Group* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.` + jadibotNote
                                                 );
 
                                         } else if (args[0] === 'sendto' && args[1]) {
@@ -6663,13 +6684,13 @@ text += `╰══════════════════════�
                                                                 `• *.antidel sendto both* — Kirim ke keduanya`
                                                         );
                                                 }
-                                                config.antiDelete = { ...antiDelete, sendTo: val };
-                                                saveConfig(config);
+                                                saveAntiDelete({ ...antiDelete, sendTo: val });
                                                 await tolak(hisoka, m, 
                                                         `✅ *Tujuan pengiriman anti delete diubah!*\n\n` +
                                                         `📤 Sekarang dikirim ke:\n` +
                                                         `*${sendToLabel[val]}*\n\n` +
-                                                        `${val === 'chat' ? '⚠️ Semua orang di grup/chat bisa melihat pesan yang dihapus.' : ''}`
+                                                        `${val === 'chat' ? '⚠️ Semua orang di grup/chat bisa melihat pesan yang dihapus.' : ''}` +
+                                                        jadibotNote
                                                 );
 
                                         } else {
@@ -6688,19 +6709,31 @@ text += `╰══════════════════════�
                         }
 
                         case 'readsw': {
-                                if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
                                 try {
-                                        const config = loadConfig();
-                                        const storyConfig = config.autoReadStory || {
-                                                enabled: true,
-                                                autoReaction: true,
-                                                randomDelay: true,
-                                                delayMinMs: 1000,
-                                                delayMaxMs: 20000,
-                                                fixedDelayMs: 3000
+                                        const isJadibot = hisoka?.isMainBot === false;
+                                        const jadibotNum = isJadibot ? getJadibotNumber(hisoka) : null;
+
+                                        const getReadswConfig = () => isJadibot
+                                                ? getJadibotReadsw(jadibotNum)
+                                                : (loadConfig().autoReadStory || {
+                                                        enabled: true, autoReaction: true, randomDelay: true,
+                                                        delayMinMs: 1000, delayMaxMs: 20000, fixedDelayMs: 3000
+                                                });
+
+                                        const saveReadswConfig = (newVal) => {
+                                                if (isJadibot) {
+                                                        setJadibotUserSetting(jadibotNum, 'readsw', newVal);
+                                                } else {
+                                                        const cfg = loadConfig();
+                                                        cfg.autoReadStory = newVal;
+                                                        saveConfig(cfg);
+                                                }
                                         };
+
+                                        const storyConfig = getReadswConfig();
                                         const args = query ? query.toLowerCase().split(' ') : [];
+                                        const jadibotNote = isJadibot ? `\n_⚙️ Setting khusus jadibot +${jadibotNum}_` : '';
                                         
                                         if (args.length === 0) {
                                                 let statusText = '';
@@ -6729,6 +6762,7 @@ text += `│ .readsw delay <min> <max>\n`;
 text += `│   (dalam detik, contoh: delay 1 20)\n`;
 text += `│\n`;
 text += `╰═════════════════════╯`;
+if (isJadibot) text += jadibotNote;
                                                 await tolak(hisoka, m, text);
                                                 break;
                                         }
@@ -6748,6 +6782,7 @@ text += `│ *Mode:* ${modeText}\n`;
 text += `│ *Delay:* ${isRandom ? `${delayMin}-${delayMax}s (random)` : `${fixedDelay}s (fixed)`}\n`;
 text += `│\n`;
 text += `╰═════════════════════╯`;
+if (isJadibot) text += jadibotNote;
                                                 return text;
                                         };
                                         
@@ -6755,25 +6790,25 @@ text += `╰═════════════════════╯`;
                                                 if (storyConfig.enabled && storyConfig.autoReaction !== false) {
                                                         await tolak(hisoka, m, 'ℹ️ Auto Read Story + Reaction sudah aktif sebelumnya');
                                                 } else {
-                                                        config.autoReadStory = { ...storyConfig, enabled: true, autoReaction: true };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, buildStatusReply(config.autoReadStory, '✅ *Diaktifkan!*'));
+                                                        const newCfg = { ...storyConfig, enabled: true, autoReaction: true };
+                                                        saveReadswConfig(newCfg);
+                                                        await tolak(hisoka, m, buildStatusReply(newCfg, '✅ *Diaktifkan!*'));
                                                 }
                                         } else if (args[0] === 'false') {
                                                 if (storyConfig.enabled && storyConfig.autoReaction === false) {
                                                         await tolak(hisoka, m, 'ℹ️ Auto Read Story (tanpa reaction) sudah aktif sebelumnya');
                                                 } else {
-                                                        config.autoReadStory = { ...storyConfig, enabled: true, autoReaction: false };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, buildStatusReply(config.autoReadStory, '✅ *Diaktifkan (Read Only)!*'));
+                                                        const newCfg = { ...storyConfig, enabled: true, autoReaction: false };
+                                                        saveReadswConfig(newCfg);
+                                                        await tolak(hisoka, m, buildStatusReply(newCfg, '✅ *Diaktifkan (Read Only)!*'));
                                                 }
                                         } else if (args[0] === 'off') {
                                                 if (!storyConfig.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Auto Read Story sudah nonaktif sebelumnya');
                                                 } else {
-                                                        config.autoReadStory = { ...storyConfig, enabled: false };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, '❌ Auto Read Story dinonaktifkan');
+                                                        const newCfg = { ...storyConfig, enabled: false };
+                                                        saveReadswConfig(newCfg);
+                                                        await tolak(hisoka, m, '❌ Auto Read Story dinonaktifkan' + jadibotNote);
                                                 }
                                         } else if (args[0] === 'delay' && args[1] && args[2]) {
                                                 const minDelay = parseInt(args[1]);
@@ -6794,14 +6829,14 @@ text += `╰═════════════════════╯`;
                                                         break;
                                                 }
                                                 
-                                                config.autoReadStory = {
+                                                const newCfg = {
                                                         ...storyConfig,
                                                         delayMinMs: minDelay * 1000,
                                                         delayMaxMs: maxDelay * 1000,
                                                         randomDelay: true
                                                 };
-                                                saveConfig(config);
-                                                await tolak(hisoka, m, buildStatusReply(config.autoReadStory, `✅ *Delay diubah!*`));
+                                                saveReadswConfig(newCfg);
+                                                await tolak(hisoka, m, buildStatusReply(newCfg, `✅ *Delay diubah!*`));
                                         } else if (args[0] === 'delay' && args[1] && !args[2]) {
                                                 const fixedDelay = parseInt(args[1]);
                                                 
@@ -6810,13 +6845,13 @@ text += `╰═════════════════════╯`;
                                                         break;
                                                 }
                                                 
-                                                config.autoReadStory = {
+                                                const newCfg = {
                                                         ...storyConfig,
                                                         fixedDelayMs: fixedDelay * 1000,
                                                         randomDelay: false
                                                 };
-                                                saveConfig(config);
-                                                await tolak(hisoka, m, buildStatusReply(config.autoReadStory, `✅ *Fixed delay diubah!*`));
+                                                saveReadswConfig(newCfg);
+                                                await tolak(hisoka, m, buildStatusReply(newCfg, `✅ *Fixed delay diubah!*`));
                                         } else {
                                                 await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .readsw untuk melihat bantuan.');
                                         }
