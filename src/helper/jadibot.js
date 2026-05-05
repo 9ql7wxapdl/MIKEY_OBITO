@@ -131,8 +131,9 @@ function formatRemainingTime(ms) {
   if (days) parts.push(`${days} hari`)
   if (hours) parts.push(`${hours} jam`)
   if (minutes) parts.push(`${minutes} menit`)
+  if (seconds && !days) parts.push(`${seconds} detik`)
   if (!parts.length) parts.push(`${seconds} detik`)
-  return parts.slice(0, 3).join(' ')
+  return parts.slice(0, 4).join(' ')
 }
 
 function formatJadibotExpiryTime(timestamp) {
@@ -1182,6 +1183,15 @@ async function stopJadibot(number, sendReply) {
       clearTimeout(pairingTimeout.get(number))
       pairingTimeout.delete(number)
     }
+    // Tutup socket yang mungkin masih dalam proses pairing di background
+    const stuckSock = startingSocketMap.get(number)
+    if (stuckSock) {
+      try {
+        stuckSock.ev.removeAllListeners()
+        if (stuckSock.ws) stuckSock.ws.close()
+      } catch {}
+      startingSocketMap.delete(number)
+    }
     removeJadibotExpiry(number)
     try {
       if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true })
@@ -1214,6 +1224,13 @@ async function stopJadibot(number, sendReply) {
 
   jadibotMap.delete(number)
   stoppingJadibot.delete(number)
+  activeOrStartingJadibot.delete(number)
+  pairingRequested.delete(number)
+  if (pairingTimeout.has(number)) {
+    clearTimeout(pairingTimeout.get(number))
+    pairingTimeout.delete(number)
+  }
+  startingSocketMap.delete(number)
 
   setTimeout(() => {
     if (fs.existsSync(sessionDir)) {
