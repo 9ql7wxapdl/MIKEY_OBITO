@@ -11121,7 +11121,8 @@
     "id": "6289672284933@s.whatsapp.net",
     "name": "Durandal",
     "lid": "195584422055991@lid",
-    "jid": "6289672284933@s.whatsapp.net"
+    "jid": "6289672284933@s.whatsapp.net",
+    "notify": "Vinn"
   },
   "62882015682665@s.whatsapp.net": {
     "isContact": true,
@@ -21479,7 +21480,8 @@
     "id": "6283171949557@s.whatsapp.net",
     "name": "Melki",
     "lid": "221543170892007@lid",
-    "jid": "6283171949557@s.whatsapp.net"
+    "jid": "6283171949557@s.whatsapp.net",
+    "notify": "Melki"
   },
   "6287769427699@s.whatsapp.net": {
     "isContact": true,
@@ -31544,5 +31546,25 @@
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
     "notify": "Wily"
+  },
+  "221543170892007@lid": {
+    "id": "221543170892007@lid",
+    "lid": "221543170892007@lid",
+    "notify": "Melki"
+  },
+  "195584422055991@lid": {
+    "id": "195584422055991@lid",
+    "lid": "195584422055991@lid",
+    "notify": "Vinn"
+  },
+  "187565785276516@lid": {
+    "id": "187565785276516@lid",
+    "lid": "187565785276516@lid",
+    "imgUrl": "removed"
+  },
+  "7065489662193@lid": {
+    "id": "7065489662193@lid",
+    "lid": "7065489662193@lid",
+    "imgUrl": "removed"
   }
 }
