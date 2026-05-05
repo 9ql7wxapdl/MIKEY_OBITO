@@ -2,8 +2,8 @@
 ║   🤖  W I L Y  B O T  —  V 1 4 . 5   ║
 ╚══════════════════════════════════╝
 📅 Updated  : Selasa, 5 Mei 2026
-📦 Total    : 19 Update
-🔧 Bug Fix  : 6  |  ♻️ Pembaruan : 5  |  ✨ Fitur Baru : 8
+📦 Total    : 24 Update
+🔧 Bug Fix  : 9  |  ♻️ Pembaruan : 7  |  ✨ Fitur Baru : 8
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔧 BUG FIX
@@ -17,6 +17,22 @@
 ◈ Fix AI Tidak Merespons / Respons Error
   ✦ Perbaikan handling error pada Gemini & Groq
   ✦ AI tidak lagi stuck atau kirim pesan kosong
+
+◈ Fix .stopbot — Socket Pairing Tidak Tertutup Saat Bot Di-Stop
+  ✦ Jika bot di-stop saat masih proses pairing (kode sudah terkirim,
+    user belum scan), socket lama kini ikut ditutup dari startingSocketMap
+  ✦ Mencegah bot auto-connect kembali di background padahal sudah di-stop
+
+◈ Fix .stopbot — State activeOrStartingJadibot Tidak Dibersihkan
+  ✦ Setelah .stopbot, jadibot nomor yang sama bisa langsung di-.jadibot
+    lagi tanpa masuk jalur "pairing stuck"
+  ✦ pairingRequested, pairingTimeout, startingSocketMap kini ikut
+    dibersihkan saat stop dari kondisi connected
+
+◈ Fix formatRemainingTime — Detik Tidak Ditampilkan Jika Masih Ada Menit
+  ✦ Sebelumnya: "5 menit" padahal sisa "5 menit 30 detik"
+  ✦ Sekarang: detik ikut tampil selama tidak ada komponen "hari"
+  ✦ Berlaku di: .menu jadibot, .listbot, notif warning expiry
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -33,6 +49,16 @@
 ◈ Ekspansi Fitur Jadibot — lebih banyak command bisa diakses
   ✦ User jadibot kini bisa akses download, sticker, rvo, dll
   ✦ Setting per-user jadibot tersimpan realtime ke JSON sendiri
+
+◈ [JADIBOT] .menu — Tampilkan Masa Aktif (Expiry) Realtime
+  ✦ Baris baru: ⏳ Masa Aktif : X hari Y jam Z menit N detik
+  ✦ Jika permanent: ♾️ Masa Aktif : Permanent
+  ✦ Diambil langsung dari jadibot_realtime.json saat .menu diketik
+
+◈ push.sh + .gitignore — Folder jadibot Kini Ikut Di-Upload ke GitHub
+  ✦ .gitignore diperbarui: seluruh isi folder jadibot/ kini di-track
+  ✦ push.sh: jadibot/ masuk daftar force-add otomatis saat push
+  ✦ Sesi jadibot aktif akan ikut tersimpan di repository
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
