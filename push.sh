@@ -28,7 +28,7 @@
 #
 # ─────────────────────────────────────────────────────────────
 
-USER="ReadswDika-V13"
+USER="hitlabmodv2"
 REPO="ReadswDika-V15_4"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
@@ -737,15 +737,10 @@ prepare_stage() {
   return 0
 }
 
-# ===== Ambil daftar branch (lokal + remote origin) =====
+# ===== Ambil daftar branch via GitHub API (real-time, paginasi otomatis) =====
+# Output: satu nama branch per baris, sudah di-sort & deduplikasi.
+# Fallback ke git ls-remote kalau API gagal.
 fetch_branches() {
-  # Gunakan REMOTE_URL (dengan token) agar autentikasi pasti valid
-  local _remote="${REMOTE_URL:-origin}"
-
-  git fetch "$_remote" --quiet 2>/dev/null \
-    || git fetch origin --quiet 2>/dev/null \
-    || true
-
   # Bangun pola ignore (regex) dari IGNORE_BRANCHES
   local ignore_pattern=""
   for b in $IGNORE_BRANCHES; do
@@ -753,14 +748,49 @@ fetch_branches() {
   done
   [ -z "$ignore_pattern" ] && ignore_pattern="^$"
 
-  {
-    # Branch lokal — full refname biar nggak ke-resolve symbolic ref
-    git for-each-ref --format='%(refname)' refs/heads/ 2>/dev/null \
-      | sed 's|^refs/heads/||'
+  local api_branches=""
+  local page=1
+  local per_page=100
+  local api_ok=0
 
-    # Branch remote — pakai REMOTE_URL dengan token agar tidak gagal auth
-    git ls-remote --heads "$_remote" 2>/dev/null \
-      | awk '{print $2}' | sed 's|^refs/heads/||'
+  # ── GitHub API: ambil semua branch (paginasi) ──
+  while true; do
+    local chunk
+    chunk=$(curl -s \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/branches?per_page=${per_page}&page=${page}" \
+      2>/dev/null)
+
+    # Cek apakah response valid (array JSON)
+    if echo "$chunk" | grep -q '"name"'; then
+      api_ok=1
+      local names
+      names=$(echo "$chunk" | grep -o '"name":"[^"]*"' | sed 's/"name":"//;s/"//')
+      api_branches="${api_branches}${names}"$'\n'
+
+      # Kalau hasil < per_page, berarti halaman terakhir
+      local count
+      count=$(echo "$chunk" | grep -o '"name":' | wc -l | tr -d ' ')
+      [ "$count" -lt "$per_page" ] && break
+      page=$((page + 1))
+    else
+      break
+    fi
+  done
+
+  {
+    if [ "$api_ok" -eq 1 ]; then
+      # Pakai hasil API — sudah real-time dari GitHub
+      echo "$api_branches"
+    else
+      # Fallback: branch lokal + git ls-remote
+      git for-each-ref --format='%(refname)' refs/heads/ 2>/dev/null \
+        | sed 's|^refs/heads/||'
+      git ls-remote --heads "${REMOTE_URL:-origin}" 2>/dev/null \
+        | awk '{print $2}' | sed 's|^refs/heads/||'
+    fi
   } \
     | grep -v '^$' \
     | grep -Ev "$ignore_pattern" \
