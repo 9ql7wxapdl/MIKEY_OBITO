@@ -1046,53 +1046,73 @@ action_create_branch() {
     return
   fi
 
-  # Cek apakah branch sudah ada (lokal atau remote)
-  if git show-ref --verify --quiet "refs/heads/${name}" \
-     || git ls-remote --heads origin "$name" 2>/dev/null | grep -q .; then
-    echo -e "${C_RED}✖ Branch '${name}' sudah ada.${C_RESET}"
+  # Cek apakah branch sudah ada via GitHub API
+  local chk_http
+  chk_http=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/git/ref/heads/${name}" \
+    2>/dev/null)
+  if [ "$chk_http" = "200" ]; then
+    echo -e "${C_RED}✖ Branch '${name}' sudah ada di GitHub.${C_RESET}"
     sleep 2
     return
   fi
 
   echo ""
-  echo -e "  ${C_CYAN}▸${C_RESET} bikin branch ${C_BOLD}${name}${C_RESET} dari ${DEFAULT_BRANCH}..."
-  if ! git checkout -q "$DEFAULT_BRANCH" 2>/dev/null; then
-    # Branch belum ada lokal — coba ambil dari remote
-    git fetch origin "$DEFAULT_BRANCH" --quiet 2>/dev/null || true
-    if git show-ref --verify --quiet "refs/remotes/origin/${DEFAULT_BRANCH}"; then
-      if ! git checkout -q -b "$DEFAULT_BRANCH" "origin/${DEFAULT_BRANCH}" 2>/dev/null; then
-        echo -e "${C_RED}✖ Gagal pindah ke ${DEFAULT_BRANCH}${C_RESET}"
-        sleep 2
-        return
-      fi
-    else
-      echo -e "${C_RED}✖ Gagal pindah ke ${DEFAULT_BRANCH} (tidak ditemukan lokal maupun remote)${C_RESET}"
-      sleep 2
-      return
-    fi
-  fi
-  if ! git checkout -q -b "$name" 2>/dev/null; then
-    echo -e "${C_RED}✖ Gagal bikin branch lokal${C_RESET}"
+  echo -e "  ${C_CYAN}▸${C_RESET} ambil SHA dari ${DEFAULT_BRANCH}..."
+
+  # Ambil SHA tip dari DEFAULT_BRANCH via GitHub API (tidak butuh switch branch lokal)
+  local sha_resp sha_http sha
+  sha_resp=$(curl -s -o /tmp/_gh_sha.json -w "%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/git/ref/heads/${DEFAULT_BRANCH}" \
+    2>/dev/null)
+
+  if [ "$sha_resp" != "200" ]; then
+    echo -e "${C_RED}✖ Gagal ambil SHA branch ${DEFAULT_BRANCH} (HTTP ${sha_resp})${C_RESET}"
+    rm -f /tmp/_gh_sha.json
     sleep 2
     return
   fi
 
-  echo -e "  ${C_CYAN}▸${C_RESET} push ke remote..."
-  local push_log
-  push_log=$(mktemp)
-  if git push -u origin "$name" >"$push_log" 2>&1; then
+  sha=$(grep -o '"sha": *"[^"]*"' /tmp/_gh_sha.json | head -1 | sed 's/"sha": *"//;s/"//')
+  rm -f /tmp/_gh_sha.json
+
+  if [ -z "$sha" ]; then
+    echo -e "${C_RED}✖ SHA tidak ditemukan dari response GitHub${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  echo -e "  ${C_DIM}   SHA: ${sha:0:10}...${C_RESET}"
+  echo -e "  ${C_CYAN}▸${C_RESET} bikin branch ${C_BOLD}${name}${C_RESET} via GitHub API..."
+
+  # Buat branch di GitHub via API — tanpa perlu git checkout lokal
+  local create_http
+  create_http=$(curl -s -o /tmp/_gh_create.json -w "%{http_code}" \
+    -X POST \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/git/refs" \
+    -d "{\"ref\":\"refs/heads/${name}\",\"sha\":\"${sha}\"}" \
+    2>/dev/null)
+
+  if [ "$create_http" = "201" ]; then
     echo ""
-    echo -e "  ${C_GREEN}🎉 Branch '${name}' berhasil dibuat & dipush!${C_RESET}"
+    echo -e "  ${C_GREEN}🎉 Branch '${name}' berhasil dibuat di GitHub!${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${name}${C_RESET}"
   else
-    echo -e "  ${C_RED}❌ Gagal push branch baru${C_RESET}"
-    echo -e "  ${C_DIM}── error log ──${C_RESET}"
-    sed 's/^/    /' "$push_log" | tail -10
+    local api_msg
+    api_msg=$(grep -o '"message": *"[^"]*"' /tmp/_gh_create.json 2>/dev/null | head -1 | sed 's/"message": *"//;s/"//')
+    echo -e "  ${C_RED}❌ Gagal buat branch (HTTP ${create_http})${C_RESET}"
+    [ -n "$api_msg" ] && echo -e "  ${C_DIM}   GitHub: ${api_msg}${C_RESET}"
   fi
-  rm -f "$push_log"
-
-  # Balik ke default
-  git checkout -q "$DEFAULT_BRANCH" 2>/dev/null || true
+  rm -f /tmp/_gh_create.json
 
   prompt_back_or_exit
 }
