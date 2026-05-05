@@ -142,6 +142,39 @@
       }
     ]
   },
+  "120363426777219297@g.us": {
+    "id": "120363426777219297@g.us",
+    "addressingMode": "lid",
+    "subject": "Sss",
+    "subjectOwner": "6289667923162@s.whatsapp.net",
+    "subjectOwnerLid": "97968623505429@lid",
+    "subjectTime": 1777990411,
+    "size": 2,
+    "creation": 1777990411,
+    "owner": "6289667923162@s.whatsapp.net",
+    "ownerLid": "97968623505429@lid",
+    "descOwner": "",
+    "descOwnerLid": "",
+    "restrict": false,
+    "announce": false,
+    "isCommunity": false,
+    "isCommunityAnnounce": false,
+    "joinApprovalMode": false,
+    "memberAddMode": true,
+    "participants": [
+      {
+        "id": "274255723921630@lid",
+        "jid": "6289681008411@s.whatsapp.net",
+        "admin": null
+      },
+      {
+        "id": "97968623505429@lid",
+        "jid": "6289667923162@s.whatsapp.net",
+        "admin": "superadmin"
+      }
+    ],
+    "ephemeralDuration": 86400
+  },
   "120363192554714254@g.us": {
     "id": "120363192554714254@g.us",
     "addressingMode": "lid",
@@ -13322,7 +13355,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1979,
+    "size": 1978,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -15713,11 +15746,6 @@
       {
         "id": "124168058200106@lid",
         "jid": "124168058200106@lid",
-        "admin": null
-      },
-      {
-        "id": "72650042937515@lid",
-        "jid": "72650042937515@lid",
         "admin": null
       },
       {
@@ -23231,38 +23259,5 @@
         "admin": null
       }
     ]
-  },
-  "120363426777219297@g.us": {
-    "id": "120363426777219297@g.us",
-    "addressingMode": "lid",
-    "subject": "Sss",
-    "subjectOwner": "6289667923162@s.whatsapp.net",
-    "subjectOwnerLid": "97968623505429@lid",
-    "subjectTime": 1777990411,
-    "size": 2,
-    "creation": 1777990411,
-    "owner": "6289667923162@s.whatsapp.net",
-    "ownerLid": "97968623505429@lid",
-    "descOwner": "",
-    "descOwnerLid": "",
-    "restrict": false,
-    "announce": false,
-    "isCommunity": false,
-    "isCommunityAnnounce": false,
-    "joinApprovalMode": false,
-    "memberAddMode": true,
-    "participants": [
-      {
-        "id": "274255723921630@lid",
-        "jid": "6289681008411@s.whatsapp.net",
-        "admin": null
-      },
-      {
-        "id": "97968623505429@lid",
-        "jid": "6289667923162@s.whatsapp.net",
-        "admin": "superadmin"
-      }
-    ],
-    "ephemeralDuration": 86400
   }
 }
