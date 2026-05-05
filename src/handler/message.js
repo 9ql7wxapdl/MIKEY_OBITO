@@ -4432,6 +4432,10 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 const juh = Math.floor(jadibotUptime / 3600);
                                                 const jum = Math.floor((jadibotUptime % 3600) / 60);
                                                 const jus = Math.floor(jadibotUptime % 60);
+                                                const expSum = getJadibotExpirySummary(jadibotNum);
+                                                const masaAktifLine = expSum.status === 'permanent'
+                                                        ? `♾️ *Masa Aktif* : Permanent`
+                                                        : `⏳ *Masa Aktif* : ${expSum.remaining}`;
                                                 const menuTeks =
 `╔══════════════════════════╗
 ║   🤖  *MENU JADIBOT*   🤖   ║
@@ -4440,6 +4444,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 👤 *Nama*   : ${m.pushName || 'User'}
 📱 *Nomor*  : +${jadibotNum}
 ⏱️ *Uptime* : ${juh}j ${jum}m ${jus}d
+${masaAktifLine}
 🌐 *Status* : Online 🟢
 
 ━━━━━━━━━━━━━━━━━━━━━━
