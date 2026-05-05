@@ -1,0 +1,50 @@
+🤖 Script Wily Bot — *V14*
+📅 Updated: Jumat, 2 Mei 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+📦 Total Update: *14*
+🔧 6 Bug Fix  |  ♻️ 4 Pembaruan  |  ✨ 4 Fitur Baru
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 BUG FIX
+
+◈ Fix Jadibot Tidak Reconnect Setelah Disconnect
+◈ Fix Jadibot Tidak Auto-Start Saat Bot Restart
+◈ Fix Crash di cachedGroupMetadata
+◈ Fix .dbstats Error Jika Tabel Belum Ada
+◈ Fix Session Jadibot Dianggap Tidak Valid Pasca Migrasi
+◈ Fix AI Tidak Merespons / Respons Error
+> ✦ Perbaikan handling error pada Gemini & Groq
+> ✦ AI tidak lagi stuck atau kirim pesan kosong
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+♻️ PEMBARUAN
+
+◈ .dbstats Lebih Lengkap — tampilkan contacts, groups, settings
+◈ Sistem Reconnect Jadibot Lebih Stabil & guard duplikat diperketat
+◈ Peningkatan Fitur AI — respons lebih akurat & stabil
+> ✦ Optimasi prompt handling & konteks percakapan
+
+◈ Session Kembali Menggunakan creds.json (Rollback dari SQLite)
+> ✦ Semua sesi (main + jadibot) kembali ke format creds.json
+> ✦ Lebih familiar & mudah dikelola manual
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✨ FITUR BARU
+
+◈ .dbstats / .sessiondb / .sessionstat — Statistik Session
+> ✦ Info creds.json, jumlah pre-key, session & sender-key files
+> ✦ Tampil ukuran total semua sesi (main + jadibot)
+
+◈ .kusonime — Download Anime dari Kusonime
+> ✦ Cari & download anime dengan mudah lewat bot
+
+◈ .nhentai — Cari Doujin dari NHentai
+> ✦ Cari berdasarkan kode atau keyword (khusus grup NSFW)
+
+◈ SQLiteDB — Penyimpanan contacts/groups/settings
+> ✦ Data store (bukan session) tetap pakai SQLite untuk performa
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 Wily-Bot — Updated *2 Mei 2026*

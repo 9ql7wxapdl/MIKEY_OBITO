@@ -1,0 +1,11034 @@
+/**
+ * ───────────────────────────────
+ *  Base Script : Bang Dika Ardnt
+ *  Recode By   : Bang Wilykun
+ *  WhatsApp    : 6289688206739
+ *  Telegram    : @Wilykun1994
+ * ───────────────────────────────
+ *  Script ini khusus donasi/VIP
+ *  Support dari kalian bikin saya
+ *  makin semangat update fitur,
+ *  fix bug, dan rawat script ini.
+ *
+ *  Dilarang menjual ulang script ini
+ *  Tanpa izin resmi dari developer.
+ *  Jika ketahuan = NO UPDATE / NO FIX
+ *
+ *  Hargai karya, gunakan dengan bijak.
+ *  Terima kasih sudah support.
+ * ───────────────────────────────
+ */
+'use strict';
+
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import { PassThrough } from 'stream';
+import { createRequire } from 'module';
+const _require = createRequire(import.meta.url);
+const { isJidGroup, downloadMediaMessage, getContentType, generateWAMessageFromContent, generateWAMessageContent, prepareWAMessageMedia, proto } = _require('socketon');
+import crypto from 'crypto';
+import { exec } from 'child_process';
+import util from 'util';
+
+import { msToTime, loadConfig, saveConfig, getCaseName } from '../helper/utils.js';
+import { stopAutoCleaner, restartAutoCleaner, cleanStaleSessionFiles, clearOldFiles, clearTmpFolder } from '../helper/cleaner.js';
+import { getUptimeFormatted, getBotStats } from '../db/botStats.js';
+import { logError, formatErrorReport, clearErrors, generateErrorFileTxt, getInfoErrorTxtPath, getErrorStats } from '../db/errorLog.js';
+import { startJadibot, startJadibotQR, stopJadibot, jadibotMap, pendingJadibotChoices, formatPairingCode, maskNumber, parseJadibotDuration, getJadibotExpiry, formatRemainingTime, getJadibotExpirySummary, cleanupExpiredJadibots, removeJadibotExpiry, ensureJadibotExpiry, extendJadibotExpiry, scheduleJadibotExpiry } from '../helper/jadibot.js';
+import { hasViewOnceCache, getViewOnceCache } from '../helper/voCache.js';
+import { isAntiTagSWEnabled, toggleAntiTagSW, resetWarnings, getWarnings } from './antitagsw.js';
+// yg bawah pindah ke sini
+import { injectMessage } from '../helper/inject.js';
+import listenEvent from './event.js';
+import gemini from '../helper/gemini.js';
+import { updateUserName, getUserName } from '../db/userDb.js';
+import { loadUserMemory, detectAndUpdateMemory, clearUserMemory, memoryToReadable } from '../helper/userMemory.js';
+import { searchAndGetImage, searchAndGetImages, extractImagesFromText } from '../helper/imageSearch.js';
+import { extractVoiceNotesFromText, extractSongsFromText, extractVideosFromText, extractStickersFromText, extractReplyStickersFromText, extractTikTokFromText, extractInstagramFromText, extractYouTubeAudioFromText, hasMediaDownloadMarker, hasSocialDLMarker, hasStickerMarker } from '../helper/aiTools.js';
+import { getHistory, addToHistory, clearHistory, clearAllHistory, countHistory, getSessionKey, buildHistoryMeta, wrapCurrentUserMessage } from '../db/aiHistory.js';
+import { sendAIReply } from '../helper/aiReact.js';
+import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt } from '../helper/aiPrompt.js';
+import { hashSticker, lookupSticker, saveSticker, incrementStickerSeen, buildStickerContextHint, getStickerMemoryStats } from '../helper/stickerMemory.js';
+
+const WILY_VERBOSE_LOGS = process.env.WILY_VERBOSE_LOGS === 'true' || process.env.BOT_DEBUG_LOG === 'true';
+const wilyLog = (...args) => {
+        if (WILY_VERBOSE_LOGS) console.log(...args);
+};
+const wilyError = (...args) => {
+        if (WILY_VERBOSE_LOGS) console.error(...args);
+};
+
+const tolak = async (_hydro, m, teks) => await m.reply(teks);
+
+function startTyping(hisoka, m) {
+        const jid = m?.from;
+        if (!hisoka || !jid) return () => {};
+        let active = true;
+        try { hisoka.sendPresenceUpdate('composing', jid); } catch (_) {}
+        const interval = setInterval(() => {
+                if (active) { try { hisoka.sendPresenceUpdate('composing', jid); } catch (_) {} }
+        }, 5000);
+        const stop = () => {
+                if (!active) return;
+                active = false;
+                clearInterval(interval);
+                try { hisoka.sendPresenceUpdate('paused', jid); } catch (_) {}
+        };
+        setTimeout(stop, 30000);
+        return stop;
+}
+
+async function sendStickerPackCard(hisoka, jid, quoted, pack, zipBuffer) {
+        if (!zipBuffer?.length) throw new Error('ZIP pack kosong.');
+
+        const packMedia = await prepareWAMessageMedia({
+                sticker: zipBuffer,
+                mimetype: 'image/webp'
+        }, { upload: hisoka.waUploadToServer });
+        const stickerMessage = packMedia.stickerMessage;
+        if (!stickerMessage?.directPath) throw new Error('Upload ZIP pack ke WhatsApp gagal.');
+
+        let thumbnailMessage = null;
+        if (pack.thumbnailUrl) {
+                try {
+                        const thumbnailMedia = await prepareWAMessageMedia({
+                                image: { url: pack.thumbnailUrl }
+                        }, { upload: hisoka.waUploadToServer });
+                        thumbnailMessage = thumbnailMedia.imageMessage || null;
+                } catch (thumbErr) {
+                        console.error('[StickerLy] Thumbnail upload failed:', thumbErr.message);
+                }
+        }
+
+        const stickers = pack.files.map(item => ({
+                fileName: item.fileName,
+                isAnimated: !!item.isAnimated,
+                emojis: ['✨'],
+                accessibilityLabel: item.id || item.fileName || '',
+                isLottie: false,
+                mimetype: 'image/webp'
+        }));
+
+        const stickerPackMessage = proto.Message.StickerPackMessage.fromObject({
+                stickerPackId: String(pack.id || crypto.randomBytes(4).toString('hex')),
+                name: String(pack.name || 'StickerLy Pack').slice(0, 128),
+                publisher: String(pack.author?.name || 'StickerLy').slice(0, 128),
+                stickers,
+                fileLength: stickerMessage.fileLength,
+                fileSha256: stickerMessage.fileSha256,
+                fileEncSha256: stickerMessage.fileEncSha256,
+                mediaKey: stickerMessage.mediaKey,
+                directPath: stickerMessage.directPath,
+                caption: pack.url || '',
+                contextInfo: {
+                        quotedMessage: quoted?.message,
+                        stanzaId: quoted?.key?.id,
+                        participant: quoted?.sender || quoted?.key?.participant || quoted?.key?.remoteJid
+                },
+                packDescription: `Stickerly pack: ${pack.url || pack.id}`,
+                mediaKeyTimestamp: stickerMessage.mediaKeyTimestamp,
+                trayIconFileName: pack.trayIconFileName || pack.files[0]?.fileName || '',
+                thumbnailDirectPath: thumbnailMessage?.directPath,
+                thumbnailSha256: thumbnailMessage?.fileSha256,
+                thumbnailEncSha256: thumbnailMessage?.fileEncSha256,
+                thumbnailHeight: thumbnailMessage?.height || 512,
+                thumbnailWidth: thumbnailMessage?.width || 512,
+                imageDataHash: pack.id ? String(pack.id) : undefined,
+                stickerPackSize: stickers.length,
+                stickerPackOrigin: proto.Message.StickerPackMessage.StickerPackOrigin.THIRD_PARTY
+        });
+
+        const msg = generateWAMessageFromContent(jid, { stickerPackMessage }, { quoted });
+        await hisoka.relayMessage(msg.key.remoteJid, msg.message, { messageId: msg.key.id });
+        return msg;
+}
+
+function zipFiles(files) {
+        return new Promise((resolve, reject) => {
+                const archiver = _require('archiver');
+                const archive = archiver('zip', { zlib: { level: 0 } });
+                const output = new PassThrough();
+                const chunks = [];
+
+                output.on('data', chunk => chunks.push(chunk));
+                output.on('end', () => resolve(Buffer.concat(chunks)));
+                output.on('error', reject);
+                archive.on('error', reject);
+                archive.pipe(output);
+
+                for (const file of files) {
+                        archive.append(file.buffer, {
+                                name: file.fileName,
+                                store: true
+                        });
+                }
+
+                archive.finalize();
+        });
+}
+
+function resolveThumbnailMedia(thumbnailUrl) {
+        if (!thumbnailUrl) return null;
+        if (/^https?:\/\//i.test(thumbnailUrl)) return { url: thumbnailUrl };
+
+        const thumbnailPath = path.isAbsolute(thumbnailUrl)
+                ? thumbnailUrl
+                : path.join(process.cwd(), thumbnailUrl);
+
+        if (!fs.existsSync(thumbnailPath)) return null;
+        return fs.readFileSync(thumbnailPath);
+}
+
+const AI_MEDIA_CACHE_TTL = 30 * 60 * 1000;
+const AI_MEDIA_TYPES = ['imageMessage', 'videoMessage', 'stickerMessage', 'documentMessage', 'audioMessage'];
+
+function ensureAIMediaCache(hisoka) {
+        if (!hisoka.aiMediaCache) hisoka.aiMediaCache = new Map();
+        return hisoka.aiMediaCache;
+}
+
+function rememberAIMedia(hisoka, sentMessage, items = []) {
+        const id = sentMessage?.key?.id;
+        if (!id || !items.length) return;
+        const cache = ensureAIMediaCache(hisoka);
+        cache.set(id, {
+                items: items.filter(item => item?.buffer?.length),
+                createdAt: Date.now(),
+        });
+        setTimeout(() => cache.delete(id), AI_MEDIA_CACHE_TTL).unref?.();
+}
+
+function getQuotedStanzaId(m) {
+        return m?.content?.contextInfo?.stanzaId ||
+                m?.message?.extendedTextMessage?.contextInfo?.stanzaId ||
+                m?.message?.imageMessage?.contextInfo?.stanzaId ||
+                m?.message?.videoMessage?.contextInfo?.stanzaId ||
+                m?.message?.documentMessage?.contextInfo?.stanzaId ||
+                m?.quoted?.key?.id ||
+                '';
+}
+
+function getCachedQuotedMedia(hisoka, m) {
+        const id = getQuotedStanzaId(m);
+        const cache = hisoka?.aiMediaCache;
+        const entry = id && cache?.get(id);
+        if (!entry) return null;
+        if (Date.now() - entry.createdAt > AI_MEDIA_CACHE_TTL) {
+                cache.delete(id);
+                return null;
+        }
+        return entry.items?.[0] || null;
+}
+
+function unwrapMessagePayload(message = {}) {
+        let payload = message?.message || message?.raw || message || {};
+        for (let i = 0; i < 5; i++) {
+                const type = getContentType(payload);
+                const content = type ? payload[type] : null;
+                const nested = content?.message;
+                if (nested && ['ephemeralMessage', 'viewOnceMessage', 'viewOnceMessageV2', 'viewOnceMessageV2Extension'].includes(type)) {
+                        payload = nested;
+                        continue;
+                }
+                break;
+        }
+        return payload;
+}
+
+function getMediaTypeFromMessage(message = {}) {
+        const payload = unwrapMessagePayload(message);
+        const type = getContentType(payload) || message?.type || '';
+        if (AI_MEDIA_TYPES.includes(type)) return type;
+        for (const mediaType of AI_MEDIA_TYPES) {
+                if (payload?.[mediaType]) return mediaType;
+        }
+        if (type === 'albumMessage') return 'albumMessage';
+        return type;
+}
+
+async function downloadMediaBuffer(hisoka, message = {}) {
+        if (typeof message?.downloadMedia === 'function') {
+                try {
+                        const buffer = await message.downloadMedia();
+                        if (buffer?.length > 0) return buffer;
+                } catch (_) {}
+        }
+
+        const payloads = [
+                message?.message,
+                message?.raw,
+                unwrapMessagePayload(message),
+        ].filter(Boolean);
+
+        let lastError = null;
+
+        // Coba dulu TANPA reuploadRequest (direct URL) — hindari DNS error ke web.whatsapp.net
+        for (const payload of payloads) {
+                try {
+                        const buffer = await downloadMediaMessage(
+                                { ...message, message: payload },
+                                'buffer',
+                                {},
+                                { logger: hisoka.logger }
+                        );
+                        if (buffer?.length > 0) return buffer;
+                } catch (err) {
+                        lastError = err;
+                }
+        }
+
+        // Fallback: coba dengan reuploadRequest jika direct gagal
+        for (const payload of payloads) {
+                try {
+                        const buffer = await downloadMediaMessage(
+                                { ...message, message: payload },
+                                'buffer',
+                                {},
+                                { logger: hisoka.logger, reuploadRequest: hisoka.updateMediaMessage }
+                        );
+                        if (buffer?.length > 0) return buffer;
+                } catch (err) {
+                        lastError = err;
+                }
+        }
+
+        throw lastError || new Error('Media tidak ditemukan');
+}
+
+async function getQuotedMediaBuffer(hisoka, m) {
+        if (!m?.isQuoted || !m.quoted) return null;
+        try {
+                return await downloadMediaBuffer(hisoka, m.quoted);
+        } catch (err) {
+                const cached = getCachedQuotedMedia(hisoka, m);
+                if (cached?.buffer?.length > 0) return cached.buffer;
+                throw err;
+        }
+}
+
+function getMediaInfo(mediaType, message = {}, cached = null) {
+        if (cached) {
+                return {
+                        mime: cached.mime || 'image/jpeg',
+                        label: cached.label || 'gambar',
+                };
+        }
+        if (mediaType === 'stickerMessage') return { mime: 'image/webp', label: 'sticker' };
+        if (mediaType === 'videoMessage') return { mime: 'video/mp4', label: 'video' };
+        if (mediaType === 'audioMessage') return { mime: 'audio/ogg', label: 'audio' };
+        if (mediaType === 'documentMessage') {
+                const mime = message?.content?.mimetype ||
+                        message?.msg?.mimetype ||
+                        message?.message?.documentMessage?.mimetype ||
+                        'application/octet-stream';
+                return { mime, label: 'file' };
+        }
+        return { mime: 'image/jpeg', label: 'gambar' };
+}
+
+function isMainBot(hisoka) {
+    return hisoka?.isMainBot === true;
+}
+
+function parseJadibotCommandQuery(raw = '') {
+    const text = String(raw || '').trim();
+    if (!text) return { number: '', durationInput: '', rawNumberPart: '' };
+
+    let numberPart = '';
+    let durationRaw = '';
+
+    // Support comma format: "628xxx,1h" atau "+628xxx,p"
+    const commaIdx = text.indexOf(',');
+    if (commaIdx !== -1) {
+        numberPart = text.slice(0, commaIdx).trim();
+        durationRaw = text.slice(commaIdx + 1).trim();
+    } else {
+        // Space-separated: "628xxx 1h" atau "628xxx permanent"
+        const durationMatch = text.match(/\s((?:\d+\s*(?:menit|mnt|min|minute|minutes|m|jam|hour|hours|j|hari|day|days|h|d))|(?:permanent|permanen|perm|perma|selamanya|p))\s*$/i);
+        durationRaw = durationMatch ? durationMatch[1].trim() : '';
+        numberPart = durationMatch ? text.slice(0, durationMatch.index).trim() : text;
+    }
+
+    const rawNumberPart = numberPart;
+    // Karakter valid nomor telepon: angka, +, spasi, -, (), .
+    const hasInvalidPhoneChars = rawNumberPart ? /[^0-9+\-\s().]/.test(rawNumberPart) : false;
+    let number = numberPart.replace(/[^0-9]/g, '');
+    if (number.startsWith('00')) number = number.slice(2);
+    if (number.startsWith('08')) number = '62' + number.slice(1);
+    else if (number.startsWith('8')) number = '62' + number;
+
+    return { number, durationInput: durationRaw, rawNumberPart, hasInvalidPhoneChars };
+}
+
+function normalizeJadibotNumber(raw = '') {
+    let number = String(raw || '').replace(/[^0-9]/g, '');
+    if (number.startsWith('00')) number = number.slice(2);
+    if (number.startsWith('08')) number = '62' + number.slice(1);
+    else if (number.startsWith('8')) number = '62' + number;
+    return number;
+}
+
+// Deteksi negara dari nomor WA (E.164 tanpa +)
+function getPhoneCountryInfo(number = '') {
+    const n = String(number).replace(/[^0-9]/g, '');
+    // Sorted longest-first untuk match paling spesifik
+    const codes = [
+        ['1684','🇦🇸','Samoa Amerika'],['1242','🇧🇸','Bahamas'],['1246','🇧🇧','Barbados'],
+        ['1264','🇦🇮','Anguilla'],['1268','🇦🇬','Antigua & Barbuda'],['1284','🇻🇬','British Virgin Islands'],
+        ['1340','🇻🇮','US Virgin Islands'],['1345','🇰🇾','Cayman Islands'],['1441','🇧🇲','Bermuda'],
+        ['1473','🇬🇩','Grenada'],['1649','🇹🇨','Turks & Caicos'],['1664','🇲🇸','Montserrat'],
+        ['1670','🇲🇵','Northern Mariana Islands'],['1671','🇬🇺','Guam'],['1684','🇦🇸','American Samoa'],
+        ['1721','🇸🇽','Sint Maarten'],['1758','🇱🇨','Saint Lucia'],['1767','🇩🇲','Dominica'],
+        ['1784','🇻🇨','St. Vincent & Grenadines'],['1809','🇩🇴','Dominika Republic'],
+        ['1829','🇩🇴','Dominika Republic'],['1849','🇩🇴','Dominika Republic'],
+        ['1868','🇹🇹','Trinidad & Tobago'],['1869','🇰🇳','Saint Kitts & Nevis'],
+        ['1876','🇯🇲','Jamaika'],['1939','🇵🇷','Puerto Rico'],
+        ['7840','🇬🇪','Abkhazia'],['7940','🇬🇪','Abkhazia'],
+        ['212','🇲🇦','Maroko'],['213','🇩🇿','Aljazair'],['216','🇹🇳','Tunisia'],['218','🇱🇾','Libya'],
+        ['220','🇬🇲','Gambia'],['221','🇸🇳','Senegal'],['222','🇲🇷','Mauritania'],['223','🇲🇱','Mali'],
+        ['224','🇬🇳','Guinea'],['225','🇨🇮','Pantai Gading'],['226','🇧🇫','Burkina Faso'],
+        ['227','🇳🇪','Niger'],['228','🇹🇬','Togo'],['229','🇧🇯','Benin'],['230','🇲🇺','Mauritius'],
+        ['231','🇱🇷','Liberia'],['232','🇸🇱','Sierra Leone'],['233','🇬🇭','Ghana'],
+        ['234','🇳🇬','Nigeria'],['235','🇹🇩','Chad'],['236','🇨🇫','Republik Afrika Tengah'],
+        ['237','🇨🇲','Kamerun'],['238','🇨🇻','Tanjung Verde'],['239','🇸🇹','São Tomé & Príncipe'],
+        ['240','🇬🇶','Guinea Khatulistiwa'],['241','🇬🇦','Gabon'],['242','🇨🇬','Kongo'],
+        ['243','🇨🇩','DR Kongo'],['244','🇦🇴','Angola'],['245','🇬🇼','Guinea-Bissau'],
+        ['248','🇸🇨','Seychelles'],['249','🇸🇩','Sudan'],['250','🇷🇼','Rwanda'],
+        ['251','🇪🇹','Ethiopia'],['252','🇸🇴','Somalia'],['253','🇩🇯','Djibouti'],
+        ['254','🇰🇪','Kenya'],['255','🇹🇿','Tanzania'],['256','🇺🇬','Uganda'],
+        ['257','🇧🇮','Burundi'],['258','🇲🇿','Mozambik'],['260','🇿🇲','Zambia'],
+        ['261','🇲🇬','Madagaskar'],['263','🇿🇼','Zimbabwe'],['264','🇳🇦','Namibia'],
+        ['265','🇲🇼','Malawi'],['266','🇱🇸','Lesotho'],['267','🇧🇼','Botswana'],
+        ['268','🇸🇿','Eswatini'],['269','🇰🇲','Komoro'],
+        ['290','🇸🇭','Saint Helena'],['291','🇪🇷','Eritrea'],
+        ['297','🇦🇼','Aruba'],['298','🇫🇴','Faroe Islands'],['299','🇬🇱','Greenland'],
+        ['350','🇬🇮','Gibraltar'],['351','🇵🇹','Portugal'],['352','🇱🇺','Luksemburg'],
+        ['353','🇮🇪','Irlandia'],['354','🇮🇸','Islandia'],['355','🇦🇱','Albania'],
+        ['356','🇲🇹','Malta'],['357','🇨🇾','Siprus'],['358','🇫🇮','Finlandia'],
+        ['359','🇧🇬','Bulgaria'],['370','🇱🇹','Lithuania'],['371','🇱🇻','Latvia'],
+        ['372','🇪🇪','Estonia'],['373','🇲🇩','Moldova'],['374','🇦🇲','Armenia'],
+        ['375','🇧🇾','Belarus'],['376','🇦🇩','Andorra'],['377','🇲🇨','Monako'],
+        ['378','🇸🇲','San Marino'],['380','🇺🇦','Ukraina'],['381','🇷🇸','Serbia'],
+        ['382','🇲🇪','Montenegro'],['385','🇭🇷','Kroasia'],['386','🇸🇮','Slovenia'],
+        ['387','🇧🇦','Bosnia & Herzegovina'],['389','🇲🇰','Makedonia Utara'],
+        ['420','🇨🇿','Ceko'],['421','🇸🇰','Slovakia'],['423','🇱🇮','Liechtenstein'],
+        ['500','🇫🇰','Kepulauan Falkland'],['501','🇧🇿','Belize'],['502','🇬🇹','Guatemala'],
+        ['503','🇸🇻','El Salvador'],['504','🇭🇳','Honduras'],['505','🇳🇮','Nikaragua'],
+        ['506','🇨🇷','Kosta Rika'],['507','🇵🇦','Panama'],['509','🇭🇹','Haiti'],
+        ['590','🇬🇵','Guadeloupe'],['591','🇧🇴','Bolivia'],['592','🇬🇾','Guyana'],
+        ['593','🇪🇨','Ekuador'],['595','🇵🇾','Paraguay'],['597','🇸🇷','Suriname'],
+        ['598','🇺🇾','Uruguay'],['670','🇹🇱','Timor-Leste'],['673','🇧🇳','Brunei'],
+        ['674','🇳🇷','Nauru'],['675','🇵🇬','Papua Nugini'],['676','🇹🇴','Tonga'],
+        ['677','🇸🇧','Kepulauan Solomon'],['678','🇻🇺','Vanuatu'],['679','🇫🇯','Fiji'],
+        ['680','🇵🇼','Palau'],['682','🇨🇰','Kepulauan Cook'],['685','🇼🇸','Samoa'],
+        ['686','🇰🇮','Kiribati'],['687','🇳🇨','Kaledonia Baru'],['688','🇹🇻','Tuvalu'],
+        ['689','🇵🇫','Polinesia Prancis'],['691','🇫🇲','Mikronesia'],
+        ['692','🇲🇭','Kepulauan Marshall'],['850','🇰🇵','Korea Utara'],
+        ['852','🇭🇰','Hong Kong'],['853','🇲🇴','Makau'],['855','🇰🇭','Kamboja'],
+        ['856','🇱🇦','Laos'],['880','🇧🇩','Bangladesh'],['886','🇹🇼','Taiwan'],
+        ['960','🇲🇻','Maladewa'],['961','🇱🇧','Lebanon'],['962','🇯🇴','Yordania'],
+        ['963','🇸🇾','Suriah'],['964','🇮🇶','Irak'],['965','🇰🇼','Kuwait'],
+        ['966','🇸🇦','Arab Saudi'],['967','🇾🇪','Yaman'],['968','🇴🇲','Oman'],
+        ['970','🇵🇸','Palestina'],['971','🇦🇪','Uni Emirat Arab'],['972','🇮🇱','Israel'],
+        ['973','🇧🇭','Bahrain'],['974','🇶🇦','Qatar'],['975','🇧🇹','Bhutan'],
+        ['976','🇲🇳','Mongolia'],['977','🇳🇵','Nepal'],
+        ['992','🇹🇯','Tajikistan'],['993','🇹🇲','Turkmenistan'],['994','🇦🇿','Azerbaijan'],
+        ['995','🇬🇪','Georgia'],['996','🇰🇬','Kirgizstan'],['998','🇺🇿','Uzbekistan'],
+        ['20','🇪🇬','Mesir'],['27','🇿🇦','Afrika Selatan'],['30','🇬🇷','Yunani'],
+        ['31','🇳🇱','Belanda'],['32','🇧🇪','Belgia'],['33','🇫🇷','Prancis'],
+        ['34','🇪🇸','Spanyol'],['36','🇭🇺','Hungaria'],['39','🇮🇹','Italia'],
+        ['40','🇷🇴','Rumania'],['41','🇨🇭','Swiss'],['43','🇦🇹','Austria'],
+        ['44','🇬🇧','Inggris'],['45','🇩🇰','Denmark'],['46','🇸🇪','Swedia'],
+        ['47','🇳🇴','Norwegia'],['48','🇵🇱','Polandia'],['49','🇩🇪','Jerman'],
+        ['51','🇵🇪','Peru'],['52','🇲🇽','Meksiko'],['53','🇨🇺','Kuba'],
+        ['54','🇦🇷','Argentina'],['55','🇧🇷','Brasil'],['56','🇨🇱','Chile'],
+        ['57','🇨🇴','Kolombia'],['58','🇻🇪','Venezuela'],
+        ['60','🇲🇾','Malaysia'],['61','🇦🇺','Australia'],['62','🇮🇩','Indonesia'],
+        ['63','🇵🇭','Filipina'],['64','🇳🇿','Selandia Baru'],['65','🇸🇬','Singapura'],
+        ['66','🇹🇭','Thailand'],
+        ['81','🇯🇵','Jepang'],['82','🇰🇷','Korea Selatan'],['84','🇻🇳','Vietnam'],
+        ['86','🇨🇳','Tiongkok'],
+        ['90','🇹🇷','Turki'],['91','🇮🇳','India'],['92','🇵🇰','Pakistan'],
+        ['93','🇦🇫','Afghanistan'],['94','🇱🇰','Sri Lanka'],['95','🇲🇲','Myanmar'],
+        ['98','🇮🇷','Iran'],
+        ['7','🇷🇺','Rusia'],['1','🇺🇸','Amerika Serikat / 🇨🇦 Kanada'],
+    ];
+    for (const [code, flag, name] of codes) {
+        if (n.startsWith(code)) return { flag, name };
+    }
+    return { flag: '🌐', name: 'Tidak diketahui' };
+}
+
+function getJadibotChoiceKey(m) {
+    return `${m.from}:${m.sender}`;
+}
+
+function isNoSpaceError(error) {
+    const message = String(error?.message || error || '').toLowerCase();
+    return error?.code === 'ENOSPC' || message.includes('enospc') || message.includes('no space left on device');
+}
+
+function cleanupWritePressure() {
+    try { clearTmpFolder(); } catch {}
+    try { clearOldFiles(0); } catch {}
+    try {
+        const sessionName = process.env.BOT_SESSION_NAME || 'hisoka';
+        cleanStaleSessionFiles(path.join(process.cwd(), 'sessions', sessionName), { skipConfigCheck: true });
+    } catch {}
+}
+
+async function getUserProfilePictureUrl(hisoka, jid) {
+    try {
+        if (!hisoka?.profilePictureUrl || !jid) return '';
+        return await hisoka.profilePictureUrl(jid, 'image');
+    } catch {
+        return '';
+    }
+}
+
+function detectImageSearchQuery(text) {
+    if (!text) return null;
+    const t = text.trim();
+
+    // Jika teks mengandung tanda tanya atau terlihat seperti pertanyaan, jangan cari gambar
+    const questionIndicators = /\?|apakah|kenapa|mengapa|bagaimana|gimana|apa itu|siapa|kapan|berapa|benarkah|iya ga|iya gak|beneran|emang|bisa gak|bisa ga|itu apa|apa yang|gimana cara/i;
+    if (questionIndicators.test(t)) return null;
+
+    // Prefix umum di awal kalimat sebelum kata kunci
+    const prefixPattern = /^(?:boleh\s+|bisa\s+|tolong\s+|dong\s+|coba\s+|mau\s+|aku\s+mau\s+|aku\s+minta\s+|saya\s+minta\s+|please\s+|pls\s+)?/i;
+
+    const patterns = [
+        // "cariin/cari/carikan gambar/foto X"
+        /^(?:boleh\s+|bisa\s+|tolong\s+|dong\s+|coba\s+|mau\s+)?cari(?:kan|in|i)?\s+(?:gambar|foto|image|pic|picture)\s+(?:dari\s+|tentang\s+)?(.+)/i,
+        // "kirimin/kirimkan gambar/foto X"
+        /^(?:boleh\s+|bisa\s+|tolong\s+)?kirim(?:in|kan)?\s+(?:aku\s+|saya\s+)?(?:gambar|foto|image)\s+(?:dari\s+|tentang\s+)?(.+)/i,
+        // "boleh/bisa minta gambar X" / "minta gambar X" / "pengen gambar X" / "request gambar X"
+        /^(?:boleh\s+|bisa\s+)?(?:minta|pengen|pengin|ingin|mau|request|order)\s+(?:\d+\s+)?(?:gambar|foto|image)\s+(?:anime\s+|manga\s+)?(.+)/i,
+        // "minta X gambar/foto" (urutan terbalik)
+        /^(?:boleh\s+|bisa\s+)?(?:minta|pengen|pengin)\s+(.+?)\s+(?:\d+\s+)?(?:gambar|foto|image)(?:\s+dong|\s+ya|\s+yuk)?$/i,
+        // "gambar X dong/ya" / "foto X dong" — di awal kalimat
+        /^(?:gambar|foto)\s+(.{2,50})(?:\s+dong|\s+ya|\s+yuk|\s+aja|\s+saja)?$/i,
+        // "kirim gambar X" — singkat
+        /^kirim\s+(?:gambar|foto)\s+(.+)/i,
+        // "find/search image of X" — bahasa Inggris
+        /^(?:find|search|get|send)\s+(?:\d+\s+)?(?:image|picture|photo)s?\s+(?:of\s+)?(.+)/i,
+        // "show me X picture/image"
+        /^show\s+me\s+(?:\d+\s+)?(?:images?|pictures?|photos?)\s+(?:of\s+)?(.+)/i,
+    ];
+
+    for (const pat of patterns) {
+        const match = t.match(pat);
+        if (match && match[1]) {
+            // Bersihkan trailing: angka + kata seperti "2 saja", "3 aja", "dong", "ya", dll
+            let q = match[1].trim()
+                .replace(/\s+\d+\s+(?:saja|aja|doang|dulu|deh|aja)$/i, '')
+                .replace(/\s+(?:saja|aja|doang|dulu|deh|dong|ya|yuk)$/i, '')
+                .replace(/[?.!,]+$/, '')
+                .trim();
+            // Query harus pendek dan spesifik
+            if (q.length >= 2 && q.length <= 80 && !questionIndicators.test(q)) return q;
+        }
+    }
+    return null;
+}
+
+// Ekstrak jumlah gambar dari teks user (misal: "2 saja", "3 foto", "beberapa")
+function extractImageCount(text) {
+    if (!text) return 1;
+    const t = text.toLowerCase();
+    const numMatch = t.match(/\b(\d+)\s*(?:gambar|foto|image|saja|aja|buah|lembar)?\b/);
+    if (numMatch) {
+        const n = parseInt(numMatch[1]);
+        if (n >= 1 && n <= 5) return n;
+    }
+    if (/\b(beberapa|beberapa|few|some|multiple)\b/.test(t)) return 3;
+    return 1;
+}
+
+function cleanImageTitle(title, fallback) {
+    const raw = String(title || fallback || 'Gambar').replace(/\s+/g, ' ').trim();
+    return raw.length > 70 ? raw.slice(0, 67) + '...' : raw;
+}
+
+async function buildSmartImageWaitText({ userName, userQuestion, query, count }) {
+    const fallback = count > 1
+        ? `Oke ${userName}, aku seleksi ${count} gambar *${query}* yang paling nyambung dulu ya, nanti kukirim jadi satu album.`
+        : `Oke ${userName}, aku pilihkan gambar *${query}* yang paling pas dulu ya.`;
+    try {
+        const prompt = buildSmartImageWaitPrompt({ userName, userQuestion, query, count });
+        const result = await gemini.ask(prompt);
+        const clean = result.trim().replace(/\n+/g, ' ').replace(/^["']|["']$/g, '').trim();
+        if (clean.length >= 10 && clean.length <= 220) return clean;
+    } catch (_) {}
+    return fallback;
+}
+
+async function buildSmartAlbumCaptions({ userQuestion, query, images }) {
+    const total = images.length;
+    const captions = [];
+    for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const fallbackTitle = cleanImageTitle(image.title, query);
+        const fallback = `🖼️ *${i + 1} dari ${total}*\n${fallbackTitle}\nSesuai permintaan: ${query}`;
+        try {
+            const prompt = buildSmartAlbumCaptionPrompt({ userQuestion, query, index: i, total });
+            const result = await gemini.askWithImage(prompt, image.buffer, 'image/jpeg');
+            const clean = result.trim().replace(/\n{3,}/g, '\n\n').slice(0, 700);
+            captions.push(clean.startsWith('🖼️') ? clean : fallback);
+        } catch (_) {
+            captions.push(fallback);
+        }
+    }
+    return captions;
+}
+
+async function sendImageAlbum(hisoka, m, images, captions) {
+    const albumItems = images.map((img, i) => ({
+        image: img.buffer,
+        caption: captions[i] || `🖼️ *${i + 1} dari ${images.length}*`,
+    }));
+    try {
+        const sent = await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: m });
+        rememberAIMedia(hisoka, sent, images.map((img, i) => ({
+            buffer: img.buffer,
+            mime: 'image/jpeg',
+            label: 'gambar',
+            caption: captions[i] || '',
+        })));
+    } catch (_) {
+        for (let i = 0; i < images.length; i++) {
+            const sent = await hisoka.sendMessage(m.from, {
+                image: images[i].buffer,
+                caption: captions[i] || `🖼️ *${i + 1} dari ${images.length}*`,
+            }, { quoted: i === 0 ? m : undefined });
+            rememberAIMedia(hisoka, sent, [{
+                buffer: images[i].buffer,
+                mime: 'image/jpeg',
+                label: 'gambar',
+                caption: captions[i] || '',
+            }]);
+        }
+    }
+}
+
+async function buildSmartImageHistoryReply({ userQuestion, query, images = [], captions = [] }) {
+    const count = images.length || captions.length || 1;
+    const captionContext = captions
+        .filter(Boolean)
+        .map((caption, index) => `${index + 1}. ${caption.replace(/\s+/g, ' ').trim()}`)
+        .join('\n')
+        .slice(0, 1500);
+    try {
+        const prompt = buildSmartImageHistoryPrompt({ userQuestion, query, count, captionContext });
+        const result = await gemini.ask(prompt);
+        const clean = result.trim().replace(/\n+/g, ' ').replace(/^["']|["']$/g, '').trim();
+        if (clean.length >= 8 && clean.length <= 300) return clean;
+    } catch (_) {}
+    return count > 1
+        ? `Sudah aku kirim ${count} pilihan gambar yang paling cocok buat "${query}".`
+        : `Sudah aku kirim gambar yang paling cocok buat "${query}".`;
+}
+
+const pendingPlayChoices = new Map();
+const aiReplyCooldown = new Map(); // sender → last reply timestamp
+const AI_COOLDOWN_MS = 3000; // 3 detik cooldown per user
+
+function isAICooldown(sender) {
+    const last = aiReplyCooldown.get(sender);
+    if (!last) return false;
+    return (Date.now() - last) < AI_COOLDOWN_MS;
+}
+
+function setAICooldown(sender) {
+    aiReplyCooldown.set(sender, Date.now());
+    setTimeout(() => aiReplyCooldown.delete(sender), AI_COOLDOWN_MS + 500);
+}
+
+function parseYtdlpError(stderr, fallback) {
+    if (!stderr) return fallback || 'Unknown error';
+    const errorLine = stderr.split('\n').find(l => l.trim().startsWith('ERROR:'));
+    if (errorLine) {
+        return errorLine.replace(/^ERROR:\s*/, '').replace(/^\[youtube\]\s*[^:]+:\s*/, '').trim();
+    }
+    return fallback || stderr.substring(0, 150);
+}
+
+async function ensureYtdlp(hisoka, m) {
+    const binDir = path.join(process.cwd(), 'bin');
+    const ytdlpBin = path.join(binDir, 'yt-dlp');
+
+    if (!fs.existsSync(binDir)) {
+        fs.mkdirSync(binDir, { recursive: true });
+    }
+
+    if (fs.existsSync(ytdlpBin)) return ytdlpBin;
+
+    console.log('\x1b[33m[YT-DLP] Binary tidak ditemukan, mengunduh otomatis...\x1b[39m');
+
+    if (hisoka && m) {
+        await hisoka.sendMessage(m.from, { react: { text: '⬇️', key: m.key } });
+        await tolak(hisoka, m, '⬇️ *Mohon tunggu sebentar...*\n\nSistem sedang mempersiapkan downloader YouTube. Proses ini hanya terjadi sekali dan tidak akan terulang lagi. Permintaanmu akan otomatis dilanjutkan setelah siap. ⏳');
+    }
+
+    const downloadUrl = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
+
+    await new Promise((resolve, reject) => {
+        exec(`curl -L "${downloadUrl}" -o "${ytdlpBin}"`, { timeout: 120000 }, (err) => {
+            if (err) return reject(new Error('Gagal mengunduh yt-dlp: ' + err.message));
+            resolve();
+        });
+    });
+
+    fs.chmodSync(ytdlpBin, 0o755);
+    console.log('\x1b[32m[YT-DLP] ✓ Binary berhasil diunduh dan siap digunakan.\x1b[39m');
+
+    if (hisoka && m) {
+        await tolak(hisoka, m, '✅ *Downloader siap!* Sedang memproses permintaanmu...');
+    }
+
+    return ytdlpBin;
+}
+
+/**
+ * Unified pipeline buat respons AI:
+ * 1. Extract semua marker media ([GAMBAR:], [VN:], [LAGU:], [VIDEO:])
+ * 2. Kirim media-media tersebut ke chat
+ * 3. Kirim sisa teks (cleanText) lewat sendAIReply
+ *
+ * @returns {Promise<{cleanText: string, sentText: string|null, counts: object}>}
+ */
+async function processAIMediaAndSend(hisoka, m, response, opts = {}) {
+    let working = String(response || '').trim();
+    if (!working) return { cleanText: '', sentText: null, counts: { images: 0, stickers: 0, voiceNotes: 0, songs: 0, videos: 0 } };
+    const _sessionKey = opts.sessionKey || '';
+
+    // ── 1. GAMBAR (cepat, tanpa yt-dlp) ──
+    const imgRes = await extractImagesFromText(working);
+    working = imgRes.cleanText;
+    const images = imgRes.images || [];
+
+    // ── 2. STIKER (search img → webp) + REPLY-STIKER (Honolulu Azur Lane) ──
+    let stickers = [];
+    if (hasStickerMarker(working)) {
+        try {
+            const stickerRes = await extractStickersFromText(working);
+            working = stickerRes.cleanText;
+            stickers = stickerRes.stickers || [];
+        } catch (e) {
+            wilyError(`[AIMedia] ❌ extractStickers gagal: ${e.message}`);
+        }
+        try {
+            const replyStkRes = await extractReplyStickersFromText(working, { sessionKey: _sessionKey, contextText: String(response || '').substring(0, 300) });
+            working = replyStkRes.cleanText;
+            if (replyStkRes.stickers?.length) {
+                stickers.push(...replyStkRes.stickers);
+            }
+        } catch (e) {
+            wilyError(`[AIMedia] ❌ extractReplyStickers gagal: ${e.message}`);
+        }
+    }
+
+    // ── 3. VN / TTS (cepat, tanpa yt-dlp) ──
+    const vnRes = await extractVoiceNotesFromText(working);
+    working = vnRes.cleanText;
+    const voiceNotes = vnRes.voiceNotes || [];
+
+    // ── 4. LAGU + VIDEO + YTMP3 (butuh yt-dlp, ensure dulu sekali) ──
+    let songs = [];
+    let videos = [];
+    let ytAudios = [];
+    if (hasMediaDownloadMarker(working)) {
+        try {
+            const ytdlpBin = await ensureYtdlp(hisoka, m);
+            const songRes = await extractSongsFromText(working, { ytdlpBin });
+            working = songRes.cleanText;
+            songs = songRes.songs || [];
+            const videoRes = await extractVideosFromText(working, { ytdlpBin });
+            working = videoRes.cleanText;
+            videos = videoRes.videos || [];
+            const ytAudioRes = await extractYouTubeAudioFromText(working, { ytdlpBin });
+            working = ytAudioRes.cleanText;
+            ytAudios = ytAudioRes.ytAudios || [];
+        } catch (e) {
+            wilyError(`[AIMedia] ❌ ensureYtdlp gagal: ${e.message}`);
+        }
+    }
+
+    // ── 4b. TT + IG (sosmed, tanpa yt-dlp) ──
+    let tikToks = [];
+    let instagrams = [];
+    if (hasSocialDLMarker(working)) {
+        try {
+            const ttRes = await extractTikTokFromText(working);
+            working = ttRes.cleanText;
+            tikToks = ttRes.tikToks || [];
+        } catch (e) {
+            wilyError(`[AIMedia] ❌ extractTikTok gagal: ${e.message}`);
+        }
+        try {
+            const igRes = await extractInstagramFromText(working);
+            working = igRes.cleanText;
+            instagrams = igRes.instagrams || [];
+        } catch (e) {
+            wilyError(`[AIMedia] ❌ extractInstagram gagal: ${e.message}`);
+        }
+    }
+
+    // ── 5. KIRIM SEMUA MEDIA ──
+    for (const img of images) {
+        try {
+            await hisoka.sendMessage(m.from, { image: img.buffer, caption: '🖼️' }, { quoted: m });
+        } catch (e) { wilyError(`[AIMedia] kirim gambar gagal: ${e.message}`); }
+    }
+    for (const stk of stickers) {
+        try {
+            await hisoka.sendMessage(m.from, { sticker: stk.buffer }, { quoted: m });
+        } catch (e) { wilyError(`[AIMedia] kirim sticker gagal: ${e.message}`); }
+    }
+    for (const vn of voiceNotes) {
+        try {
+            await hisoka.sendMessage(m.from, {
+                audio: vn.buffer,
+                mimetype: 'audio/mp4',
+                ptt: true,
+            }, { quoted: m });
+        } catch (e) { wilyError(`[AIMedia] kirim VN gagal: ${e.message}`); }
+    }
+    for (const song of songs) {
+        try {
+            const safeName = (song.title || 'lagu').replace(/[^\w\s-]/g, '').slice(0, 80) || 'lagu';
+            await hisoka.sendMessage(m.from, {
+                audio: song.buffer,
+                mimetype: 'audio/mpeg',
+                fileName: `${safeName}.mp3`,
+                ptt: false,
+            }, { quoted: m });
+        } catch (e) { wilyError(`[AIMedia] kirim lagu gagal: ${e.message}`); }
+    }
+    for (const video of videos) {
+        try {
+            const cap = `🎬 *${video.title}*\n👤 ${video.channel}`;
+            await hisoka.sendMessage(m.from, {
+                video: video.buffer,
+                caption: cap,
+                mimetype: 'video/mp4',
+            }, { quoted: m });
+        } catch (e) { wilyError(`[AIMedia] kirim video gagal: ${e.message}`); }
+    }
+    for (const yta of ytAudios) {
+        try {
+            const safeName = (yta.title || 'audio').replace(/[^\w\s-]/g, '').slice(0, 80) || 'audio';
+            await hisoka.sendMessage(m.from, {
+                audio: yta.buffer,
+                mimetype: 'audio/mpeg',
+                fileName: `${safeName}.mp3`,
+                ptt: false,
+            }, { quoted: m });
+        } catch (e) { wilyError(`[AIMedia] kirim ytmp3 gagal: ${e.message}`); }
+    }
+    for (const tt of tikToks) {
+        try {
+            const shortDesc = (tt.desc || '').length > 200 ? tt.desc.slice(0, 200) + '...' : (tt.desc || '');
+            const cap = `╭═══ *TIKTOK* ═══╮\n│ 👤 @${tt.author}\n${shortDesc ? '│\n│ 📝 ' + shortDesc + '\n' : ''}╰════════════════╯`;
+            if (tt.videoUrl) {
+                await hisoka.sendMessage(m.from, { video: { url: tt.videoUrl }, caption: cap }, { quoted: m });
+            } else if (tt.images?.length > 0) {
+                await hisoka.sendMessage(m.from, { text: cap }, { quoted: m });
+                for (let i = 0; i < Math.min(tt.images.length, 10); i++) {
+                    await hisoka.sendMessage(m.from, {
+                        image: { url: tt.images[i] },
+                        caption: `📷 ${i + 1}/${tt.images.length}`,
+                    }, { quoted: m });
+                }
+            }
+        } catch (e) { wilyError(`[AIMedia] kirim tiktok gagal: ${e.message}`); }
+    }
+    for (const ig of instagrams) {
+        try {
+            const shortCap = (ig.caption || '').length > 200 ? ig.caption.slice(0, 200) + '...' : (ig.caption || '');
+            const infoText = `╭═══ *INSTAGRAM* ═══╮\n│ 👤 @${ig.username}\n${shortCap ? '│\n│ 📝 ' + shortCap + '\n' : ''}╰═════════════════╯`;
+            for (let i = 0; i < ig.mediaItems.length; i++) {
+                const item = ig.mediaItems[i];
+                const isFirst = i === 0;
+                try {
+                    if (item.isVideo) {
+                        await hisoka.sendMessage(m.from, { video: { url: item.url }, caption: isFirst ? infoText : '' }, { quoted: m });
+                    } else {
+                        await hisoka.sendMessage(m.from, { image: { url: item.url }, caption: isFirst ? infoText : '' }, { quoted: m });
+                    }
+                } catch (sendErr) { wilyError(`[AIMedia] kirim ig item ${i + 1} gagal: ${sendErr.message}`); }
+            }
+        } catch (e) { wilyError(`[AIMedia] kirim instagram gagal: ${e.message}`); }
+    }
+
+    // ── 5. KIRIM TEKS SISA ──
+    const finalText = working.replace(/\n{3,}/g, '\n\n').trim();
+    let sentText = null;
+    if (finalText) {
+        sentText = await sendAIReply(hisoka, m, finalText);
+    }
+
+    const totalMedia = images.length + stickers.length + voiceNotes.length + songs.length + videos.length + ytAudios.length + tikToks.length + instagrams.length;
+    if (totalMedia > 0) {
+        wilyLog(`\x1b[36m[AIMedia]\x1b[39m sent → ${images.length} img + ${stickers.length} stk + ${voiceNotes.length} vn + ${songs.length} lagu + ${videos.length} video + ${ytAudios.length} ytmp3 + ${tikToks.length} tt + ${instagrams.length} ig`);
+    }
+
+    return {
+        cleanText: finalText,
+        sentText,
+        counts: { images: images.length, stickers: stickers.length, voiceNotes: voiceNotes.length, songs: songs.length, videos: videos.length, ytAudios: ytAudios.length, tikToks: tikToks.length, instagrams: instagrams.length },
+    };
+}
+
+function getSenderNumber(m) {
+    if (m.key?.participant) return m.key.participant.split('@')[0];
+    if (m.key?.remoteJid) return m.key.remoteJid.split('@')[0];
+    return null;
+}
+
+
+class Button {
+    constructor() {
+        this._title = '';
+        this._subtitle = '';
+        this._body = '';
+        this._footer = '';
+        this._beton = [];
+        this._data = undefined;
+        this._contextInfo = {};
+        this._currentSelectionIndex = -1;
+        this._currentSectionIndex = -1;
+        this._type = 0;
+        this._betonOld = [];
+        this._params = {};
+    }
+    setVideo(path, options = {}) {
+        Buffer.isBuffer(path) ? this._data = { video: path, ...options } : this._data = { video: { url: path }, ...options };
+        return this;
+    }
+    setImage(path, options = {}) {
+        Buffer.isBuffer(path) ? this._data = { image: path, ...options } : this._data = { image: { url: path }, ...options };
+        return this;
+    }
+    setDocument(path, options = {}) {
+        Buffer.isBuffer(path) ? this._data = { document: path, ...options } : this._data = { document: { url: path }, ...options };
+        return this;
+    }
+    setMedia(obj) {
+        if (typeof obj === 'object' && !Array.isArray(obj)) { this._data = obj; } else { return 'Type of media must be an Object'; }
+        return this;
+    }
+    setTitle(title) { this._title = title; return this; }
+    setSubtitle(subtitle) { this._subtitle = subtitle; return this; }
+    setBody(body) { this._body = body; return this; }
+    setFooter(footer) { this._footer = footer; return this; }
+    setContextInfo(obj) {
+        if (typeof obj === 'object' && !Array.isArray(obj)) { this._contextInfo = obj; } else { return 'Type of contextInfo must be an Object'; }
+        return this;
+    }
+    setParams(obj) {
+        if (typeof obj === 'object' && !Array.isArray(obj)) { this._params = obj; } else { return 'Type of params must be an Object'; }
+        return this;
+    }
+    setButton(name, params) { this._beton.push({ name, buttonParamsJson: JSON.stringify(params) }); return this; }
+    setButtonV2(params) { this._betonOld.push(params); return this; }
+    makeRow(header = '', title = '', description = '', id = '') {
+        if (this._currentSelectionIndex === -1 || this._currentSectionIndex === -1) throw new Error('You need to create a selection and a section first');
+        const buttonParams = JSON.parse(this._beton[this._currentSelectionIndex].buttonParamsJson);
+        buttonParams.sections[this._currentSectionIndex].rows.push({ header, title, description, id });
+        this._beton[this._currentSelectionIndex].buttonParamsJson = JSON.stringify(buttonParams);
+        return this;
+    }
+    makeSections(title = '', highlight_label = '') {
+        if (this._currentSelectionIndex === -1) throw new Error('You need to create a selection first');
+        const buttonParams = JSON.parse(this._beton[this._currentSelectionIndex].buttonParamsJson);
+        buttonParams.sections.push({ title, highlight_label, rows: [] });
+        this._currentSectionIndex = buttonParams.sections.length - 1;
+        this._beton[this._currentSelectionIndex].buttonParamsJson = JSON.stringify(buttonParams);
+        return this;
+    }
+    addSelection(title) {
+        this._beton.push({ name: 'single_select', buttonParamsJson: JSON.stringify({ title, sections: [] }) });
+        this._currentSelectionIndex = this._beton.length - 1;
+        this._currentSectionIndex = -1;
+        return this;
+    }
+    addReply(display_text = '', id = '') { this._beton.push({ name: 'quick_reply', buttonParamsJson: JSON.stringify({ display_text, id }) }); return this; }
+    addReplyV2(displayText = 'Nixel', buttonId = 'Nixel') { this._betonOld.push({ buttonId, buttonText: { displayText }, type: 1 }); this._type = 1; return this; }
+    addCall(display_text = '', id = '') { this._beton.push({ name: 'cta_call', buttonParamsJson: JSON.stringify({ display_text, id }) }); return this; }
+    addUrl(display_text = '', url = '', merchant_url = '') { this._beton.push({ name: 'cta_url', buttonParamsJson: JSON.stringify({ display_text, url, merchant_url }) }); return this; }
+    addCopy(display_text = '', copy_code = '', id = '') { this._beton.push({ name: 'cta_copy', buttonParamsJson: JSON.stringify({ display_text, copy_code, id }) }); return this; }
+    async run(jid, conn, quoted = '') {
+        if (this._type === 0) {
+            const message = {
+                body: { text: this._body },
+                footer: { text: this._footer },
+                header: {
+                    title: this._title,
+                    subtitle: this._subtitle,
+                    hasMediaAttachment: !!this._data,
+                    ...(this._data ? await prepareWAMessageMedia(this._data, { upload: conn.waUploadToServer }) : {})
+                }
+            };
+            const msg = generateWAMessageFromContent(jid, {
+                interactiveMessage: {
+                    ...message,
+                    contextInfo: this._contextInfo,
+                    nativeFlowMessage: {
+                        messageParamsJson: JSON.stringify(this._params),
+                        buttons: this._beton
+                    }
+                }
+            }, { quoted });
+            await conn.relayMessage(msg.key.remoteJid, msg.message, {
+                messageId: msg.key.id,
+                additionalNodes: [{
+                    tag: 'biz',
+                    attrs: {},
+                    content: [{
+                        tag: 'interactive',
+                        attrs: { type: 'native_flow', v: '1' },
+                        content: [{ tag: 'native_flow', attrs: { v: '9', name: 'mixed' } }]
+                    }]
+                }]
+            });
+            return msg;
+        } else {
+            return await conn.sendMessage(jid, {
+                ...(this._data ? this._data : {}),
+                [this._data ? 'caption' : 'text']: this._body,
+                title: (!!this._data ? null : this._title),
+                footer: this._footer,
+                viewOnce: true,
+                contextInfo: this._contextInfo,
+                buttons: [
+                    ...this._betonOld,
+                    ...this._beton.map(b => ({
+                        buttonId: 'id',
+                        buttonText: { displayText: 'btn' },
+                        type: 1,
+                        nativeFlowInfo: { name: b.name, paramsJson: b.buttonParamsJson }
+                    }))
+                ]
+            }, { quoted });
+        }
+    }
+}
+
+async function listbut2(jid, teks, listnye, m, hisoka) {
+    const cfg = loadConfig();
+    const botReply      = cfg.botReply || {};
+    const thumbnailUrl  = botReply.thumbnailUrl  || '';
+    const botName       = botReply.botName       || 'Wily Bot';
+    const newsletterJid = botReply.newsletterJid || '';
+    const newsletterName= botReply.newsletterName|| '';
+
+    const thumbnailMedia = resolveThumbnailMedia(thumbnailUrl);
+    const headerMedia = thumbnailMedia
+        ? await prepareWAMessageMedia({ image: thumbnailMedia }, { upload: hisoka.waUploadToServer })
+        : {};
+
+    const msg = generateWAMessageFromContent(jid, {
+        viewOnceMessage: {
+            message: {
+                messageContextInfo: {
+                    deviceListMetadata: {},
+                    deviceListMetadataVersion: 2
+                },
+                interactiveMessage: proto.Message.InteractiveMessage.create({
+                    contextInfo: {
+                        mentionedJid: [m.sender],
+                        forwardingScore: 999,
+                        isForwarded: true,
+                        forwardedNewsletterMessageInfo: {
+                            newsletterJid,
+                            newsletterName,
+                            serverMessageId: Math.floor(Math.random() * 9999) + 1
+                        }
+                    },
+                    body: proto.Message.InteractiveMessage.Body.create({
+                        text: teks
+                    }),
+                    footer: proto.Message.InteractiveMessage.Footer.create({
+                        text: `✨ Powered By ${botName}`
+                    }),
+                    header: proto.Message.InteractiveMessage.Header.create({
+                        title: ``,
+                        subtitle: ``,
+                        gifPlayback: true,
+                        hasMediaAttachment: !!thumbnailMedia,
+                        ...headerMedia
+                    }),
+                    nativeFlowMessage: proto.Message.InteractiveMessage.NativeFlowMessage.create({
+                        buttons: [
+                            {
+                                name: 'single_select',
+                                buttonParamsJson: JSON.stringify(listnye)
+                            }
+                        ]
+                    })
+                })
+            }
+        }
+    }, { quoted: m });
+
+    await hisoka.relayMessage(msg.key.remoteJid, msg.message, {
+        messageId: msg.key.id
+    });
+}
+
+function logCommand(m, hisoka, command) {
+        const location = m.isGroup ? `"${hisoka.getName(m.from)}"` : 'Private Chat';
+        console.log(`\x1b[32m[CMD]\x1b[39m \x1b[36m.${command}\x1b[39m - ${m.pushName} @ ${location}`);
+}
+
+// ── ZIP FILE PARSER (pure Node.js, no external lib) ──
+function parseZipBuffer(buffer) {
+    const result = { files: [], isPasswordProtected: false, error: null };
+    try {
+        const LOCAL_FILE_HEADER_SIG = 0x04034b50;
+        const CENTRAL_DIR_SIG = 0x02014b50;
+        const EOCD_SIG = 0x06054b50;
+
+        let eocdOffset = -1;
+        for (let i = buffer.length - 22; i >= 0; i--) {
+            if (buffer.readUInt32LE(i) === EOCD_SIG) {
+                eocdOffset = i;
+                break;
+            }
+        }
+        if (eocdOffset === -1) {
+            result.error = 'Bukan file ZIP yang valid';
+            return result;
+        }
+
+        const centralDirSize = buffer.readUInt32LE(eocdOffset + 12);
+        const centralDirOffset = buffer.readUInt32LE(eocdOffset + 16);
+
+        let pos = centralDirOffset;
+        while (pos < centralDirOffset + centralDirSize && pos + 46 <= buffer.length) {
+            if (buffer.readUInt32LE(pos) !== CENTRAL_DIR_SIG) break;
+            const generalFlag = buffer.readUInt16LE(pos + 8);
+            const isEncrypted = (generalFlag & 0x01) !== 0;
+            if (isEncrypted) result.isPasswordProtected = true;
+            const compressedSize = buffer.readUInt32LE(pos + 20);
+            const uncompressedSize = buffer.readUInt32LE(pos + 24);
+            const fileNameLen = buffer.readUInt16LE(pos + 28);
+            const extraFieldLen = buffer.readUInt16LE(pos + 30);
+            const commentLen = buffer.readUInt16LE(pos + 32);
+            const fileName = buffer.slice(pos + 46, pos + 46 + fileNameLen).toString('utf8');
+            const isDir = fileName.endsWith('/');
+            if (!isDir) {
+                const sizeKb = uncompressedSize > 0 ? (uncompressedSize / 1024).toFixed(1) : (compressedSize / 1024).toFixed(1);
+                result.files.push({ name: fileName, size: parseFloat(sizeKb), encrypted: isEncrypted });
+            }
+            pos += 46 + fileNameLen + extraFieldLen + commentLen;
+        }
+    } catch (e) {
+        result.error = 'Gagal parse ZIP: ' + e.message;
+    }
+    return result;
+}
+
+// ── PDF TEXT EXTRACTOR via pdftotext ──
+async function extractPdfText(pdfBuffer) {
+    const execAsync = util.promisify(exec);
+    const tmpFile = `/tmp/wily_pdf_${Date.now()}.pdf`;
+    try {
+        fs.writeFileSync(tmpFile, pdfBuffer);
+        const { stdout } = await execAsync(`pdftotext "${tmpFile}" -`, { timeout: 15000 });
+        return stdout.trim().substring(0, 4000);
+    } catch (e) {
+        throw new Error('Gagal baca PDF: ' + e.message);
+    } finally {
+        try { fs.unlinkSync(tmpFile); } catch (_) {}
+    }
+}
+
+function extractMediaFromMessage(quotedMsg) {
+        let targetMessage = quotedMsg;
+        let foundViewOnce = false;
+
+        if (quotedMsg.ephemeralMessage?.message) {
+                targetMessage = quotedMsg.ephemeralMessage.message;
+        }
+
+        if (targetMessage.viewOnceMessage?.message) {
+                targetMessage = targetMessage.viewOnceMessage.message;
+                foundViewOnce = true;
+        }
+
+        if (targetMessage.viewOnceMessageV2?.message) {
+                targetMessage = targetMessage.viewOnceMessageV2.message;
+                foundViewOnce = true;
+        }
+
+        if (targetMessage.viewOnceMessageV2Extension?.message) {
+                targetMessage = targetMessage.viewOnceMessageV2Extension.message;
+                foundViewOnce = true;
+        }
+
+        const mediaTypes = [
+                'imageMessage',
+                'videoMessage',
+                'audioMessage',
+                'documentMessage',
+                'stickerMessage'
+        ];
+
+        for (const mediaType of mediaTypes) {
+                if (targetMessage[mediaType]) {
+                        return {
+                                mediaMessage: targetMessage[mediaType],
+                                mediaType: mediaType,
+                                isViewOnce: foundViewOnce || 
+                                        targetMessage[mediaType].viewOnce === true ||
+                                        quotedMsg.viewOnceMessage ||
+                                        quotedMsg.viewOnceMessageV2 ||
+                                        quotedMsg.viewOnceMessageV2Extension
+                        };
+                }
+        }
+
+        return null;
+}
+
+function isViewOnceMessage(quotedMsg) {
+        if (quotedMsg.viewOnceMessage) return true;
+        if (quotedMsg.viewOnceMessageV2) return true;
+        if (quotedMsg.viewOnceMessageV2Extension) return true;
+
+        if (quotedMsg.ephemeralMessage?.message) {
+                const ephemeralContent = quotedMsg.ephemeralMessage.message;
+                if (ephemeralContent.viewOnceMessage) return true;
+                if (ephemeralContent.viewOnceMessageV2) return true;
+                if (ephemeralContent.viewOnceMessageV2Extension) return true;
+
+                const mediaTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'documentMessage', 'stickerMessage'];
+                for (const type of mediaTypes) {
+                        if (ephemeralContent[type]?.viewOnce) return true;
+                }
+        }
+
+        const mediaTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'documentMessage', 'stickerMessage'];
+        for (const type of mediaTypes) {
+                if (quotedMsg[type]?.viewOnce) return true;
+        }
+
+        return false;
+}
+
+export default async function ({ message, type: messagesType }, hisoka) {
+        let m;
+        try {
+                m = await injectMessage(hisoka, message);
+
+                if (!m || !m.message) return;
+
+                // Blokir semua pesan dari channel/saluran WhatsApp — bot tidak merespons di saluran
+                if (m.from?.endsWith('@newsletter')) return;
+
+                await listenEvent(m, hisoka);
+
+                const quoted = m.isMedia ? m : m.isQuoted ? m.quoted : m;
+                const text = m.text;
+                const query = m.query || quoted.query;
+
+                if (!m.key) return;
+
+                // Simpan nama user ke DB per-user
+                if (m.sender && m.pushName) {
+                        updateUserName(m.sender, m.pushName);
+                }
+                // Blokir pesan auto-bot kecuali ada command (prefix maupun tanpa prefix)
+                if (m.isBot && !m.command) return;
+                // Blokir pesan dari device lain (sinkronisasi) kecuali ada command
+                if (messagesType === 'append' && !m.command) return;
+
+                // AutoSimi (Gemini AI - tanpa API key, vision support)
+                if (!m.text?.startsWith('.')) {
+                        try {
+                                const config = loadConfig();
+                                const autoSimi = config.autoSimi || {};
+
+                                if (autoSimi.enabled) {
+                                        const botId = hisoka.user?.id || '';
+                                        const botNumber = botId.split(':')[0] || botId.split('@')[0];
+                                        const botJid = botNumber + '@s.whatsapp.net';
+                                        const botLid = hisoka.user?.lid || '';
+
+                                        const mentionedJids = m.mentions ||
+                                                m.message?.extendedTextMessage?.contextInfo?.mentionedJid ||
+                                                m.message?.imageMessage?.contextInfo?.mentionedJid ||
+                                                m.message?.videoMessage?.contextInfo?.mentionedJid ||
+                                                m.message?.stickerMessage?.contextInfo?.mentionedJid ||
+                                                m.content?.contextInfo?.mentionedJid ||
+                                                [];
+
+                                        const isBotMentioned = mentionedJids.some(jid => {
+                                                if (!jid) return false;
+                                                const jidNumber = jid.split(':')[0]?.split('@')[0] || jid.split('@')[0];
+                                                return jid === botJid ||
+                                                        jid === botId ||
+                                                        jid === botLid ||
+                                                        jid?.includes(botNumber) ||
+                                                        jidNumber === botNumber;
+                                        }) || m.text?.includes('@' + botNumber);
+
+                                        const quotedCtxParticipantAutoSimi = (m.content?.contextInfo?.participant || '').split('@')[0].split(':')[0];
+                                        const _quotedStanzaIdAS = m.content?.contextInfo?.stanzaId || '';
+                                        const _cachedQuotedAS = _quotedStanzaIdAS ? hisoka.cacheMsg?.get(_quotedStanzaIdAS) : null;
+                                        const botLidNum = (botLid || '').split('@')[0].split(':')[0];
+                                        const isReplyToBot = m.isQuoted && (
+                                                m.quoted?.key?.fromMe === true ||
+                                                (botNumber && quotedCtxParticipantAutoSimi === botNumber) ||
+                                                (botLidNum && quotedCtxParticipantAutoSimi === botLidNum) ||
+                                                (_cachedQuotedAS?.key?.fromMe === true)
+                                        );
+
+                                        if ((isBotMentioned || isReplyToBot) && !m.key?.fromMe) {
+                                                if (isAICooldown(m.sender)) return;
+
+                                                let userMessage = m.text?.trim() || '';
+                                                if (userMessage) {
+                                                        userMessage = userMessage.replace(/@\d+/g, '').replace(/@bot/gi, '').trim();
+                                                }
+
+                                                // Deteksi media di pesan saat ini atau di pesan yang di-reply
+                                                let imageBuffer = null;
+                                                let imageMime = 'image/jpeg';
+                                                let hasMedia = false;
+                                                let mediaLabel = '';
+
+                                                const currentType = getMediaTypeFromMessage(m);
+                                                const quotedType = m.isQuoted ? getMediaTypeFromMessage(m.quoted) : '';
+
+                                                // Coba ambil gambar/sticker dari pesan saat ini
+                                                if (currentType === 'imageMessage' || currentType === 'stickerMessage') {
+                                                        try {
+                                                                imageBuffer = await m.downloadMedia();
+                                                                imageMime = currentType === 'stickerMessage' ? 'image/webp' : 'image/jpeg';
+                                                                hasMedia = true;
+                                                                mediaLabel = currentType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                        } catch (_) {
+                                                                // Download gagal, tetap tandai media agar AI bisa merespons dengan konteks
+                                                                hasMedia = true;
+                                                                mediaLabel = currentType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                        }
+                                                } else if (currentType === 'videoMessage') {
+                                                        hasMedia = true;
+                                                        mediaLabel = 'video';
+                                                }
+
+                                                // Kalau tidak ada di pesan saat ini, coba dari pesan yang di-reply
+                                                if (!imageBuffer && m.isQuoted) {
+                                                        const qt = quotedType;
+                                                        if (qt === 'imageMessage' || qt === 'stickerMessage' || qt === 'albumMessage') {
+                                                                try {
+                                                                        const cached = getCachedQuotedMedia(hisoka, m);
+                                                                        imageBuffer = await getQuotedMediaBuffer(hisoka, m);
+                                                                        if (imageBuffer?.length > 0) {
+                                                                                const info = getMediaInfo(qt, m.quoted, cached);
+                                                                                imageMime = info.mime;
+                                                                                hasMedia = true;
+                                                                                mediaLabel = info.label;
+                                                                        } else {
+                                                                                hasMedia = true;
+                                                                                mediaLabel = qt === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                                        }
+                                                                } catch (_) {
+                                                                        hasMedia = true;
+                                                                        mediaLabel = qt === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                                }
+                                                        } else if (qt === 'videoMessage') {
+                                                                hasMedia = true;
+                                                                mediaLabel = 'video';
+                                                        }
+                                                }
+
+                                                const hasSticker = mediaLabel === 'sticker';
+                                                const isImageReply = isReplyToBot && hasMedia && mediaLabel !== 'video';
+                                                const isStickerReply = isReplyToBot && hasSticker;
+
+                                                // Kalau tidak ada teks dan tidak ada gambar, kasih pesan default
+                                                if (!userMessage && !hasMedia) {
+                                                        userMessage = buildWilyFallbackUserPrompt(currentType);
+                                                }
+
+                                                if (!userMessage && hasMedia) {
+                                                        userMessage = buildWilyMediaUserPrompt({
+                                                                mediaLabel,
+                                                                hasSticker,
+                                                                isStickerReply,
+                                                                mode: 'short',
+                                                        });
+                                                }
+
+                                                // ── DETEKSI PERMINTAAN CARI GAMBAR di AutoSimi ──
+                                                if (userMessage && !hasMedia) {
+                                                        const autoImgQuery = detectImageSearchQuery(userMessage);
+                                                        if (autoImgQuery) {
+                                                                try {
+                                                                        await tolak(hisoka, m, await buildSmartImageWaitText({
+                                                                                userName: getUserName(m.sender, m.pushName || 'Kak'),
+                                                                                userQuestion: userMessage,
+                                                                                query: autoImgQuery,
+                                                                                count: 1,
+                                                                        }));
+                                                                        const imgResult = await searchAndGetImage(autoImgQuery);
+                                                                        const sentImage = await hisoka.sendMessage(m.from, {
+                                                                                image: imgResult.buffer,
+                                                                                caption: `🖼️ *${imgResult.title || autoImgQuery}*\n🔗 ${imgResult.url}`
+                                                                        }, { quoted: m });
+                                                                        rememberAIMedia(hisoka, sentImage, [{
+                                                                                buffer: imgResult.buffer,
+                                                                                mime: 'image/jpeg',
+                                                                                label: 'gambar',
+                                                                                caption: imgResult.title || autoImgQuery,
+                                                                        }]);
+                                                                        console.log(`\x1b[36m[AutoGemini]\x1b[39m Image search: "${autoImgQuery}" by ${m.pushName}`);
+                                                                } catch (se) {
+                                                                        console.error(`\x1b[31m[AutoGemini]\x1b[39m Image search error: ${se.message}`);
+                                                                        await tolak(hisoka, m, `❌ Maaf, gagal nyariin gambar "${autoImgQuery}". Coba lagi nanti ya!`);
+                                                                }
+                                                                return;
+                                                        }
+                                                }
+
+                                                const now = new Date();
+                                                const hours = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Jakarta' }));
+                                                const timeOfDay = hours < 5 ? 'dini hari' : hours < 11 ? 'pagi' : hours < 15 ? 'siang' : hours < 18 ? 'sore' : 'malam';
+                                                const currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+                                                const currentDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
+                                                const userName = getUserName(m.sender, m.pushName || 'Kak');
+
+                                                const quotedBotText = isReplyToBot ? (m.quoted?.text || m.quoted?.caption || '') : '';
+                                                const stopTyping_p1 = startTyping(hisoka, m);
+                                                const userMemory = detectAndUpdateMemory(m.sender, userMessage);
+                                                const systemPrompt = buildWilyAICommandPrompt({
+                                                        userName, currentTime, currentDate, timeOfDay,
+                                                        hasHistory: false,
+                                                        quotedBotText,
+                                                        isPrivate: !m.isGroup,
+                                                        isOwner: m.isOwner,
+                                                        hasImage: hasMedia,
+                                                        isImageReply,
+                                                        hasSticker,
+                                                        isStickerReply,
+                                                        userMessage,
+                                                        userMemory,
+                                                        sessionKey: getSessionKey(m),
+                                                });
+
+                                                // ── STIKER MEMORY: cek DB sebelum kirim ke AI ──
+                                                let _stickerHash1 = null;
+                                                let _stickerKnown1 = null;
+                                                if (hasSticker && imageBuffer?.length > 0) {
+                                                        _stickerHash1 = hashSticker(imageBuffer);
+                                                        _stickerKnown1 = lookupSticker(_stickerHash1);
+                                                        if (_stickerKnown1) {
+                                                                const hint = buildStickerContextHint(_stickerKnown1);
+                                                                if (hint) userMessage = hint + '\n\n' + (userMessage || '');
+                                                                incrementStickerSeen(_stickerHash1);
+                                                        }
+                                                }
+
+                                                let response;
+                                                const fullPrompt = systemPrompt + '\n\n' + userMessage;
+
+                                                if (imageBuffer && imageBuffer.length > 0) {
+                                                        // Konversi webp (sticker) ke jpeg agar Gemini bisa baca
+                                                        let finalBuffer = imageBuffer;
+                                                        let finalMime = imageMime;
+                                                        if (imageMime === 'image/webp') {
+                                                                try {
+                                                                        const sharp = (await import('sharp')).default;
+                                                                        finalBuffer = await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer();
+                                                                        finalMime = 'image/jpeg';
+                                                                } catch (_) {}
+                                                        }
+                                                        response = await gemini.askWithImage(fullPrompt, finalBuffer, finalMime);
+                                                } else {
+                                                        response = await gemini.ask(fullPrompt);
+                                                }
+
+                                                if (response && response.trim()) {
+                                                        setAICooldown(m.sender);
+                                                        await processAIMediaAndSend(hisoka, m, response.trim(), { sessionKey: getSessionKey(m) });
+                                                        console.log(`\x1b[36m[AutoGemini]\x1b[39m Reply to ${userName} (${m.pushName}) in "${m.isGroup ? hisoka.getName(m.from) : 'DM'}" | Trigger: ${isBotMentioned ? 'mention' : 'reply'} | Media: ${hasMedia ? mediaLabel : 'none'}`);
+
+                                                        // ── STIKER MEMORY: simpan analisis stiker baru ke DB (background) ──
+                                                        if (hasSticker && imageBuffer?.length > 0 && _stickerHash1 && !_stickerKnown1) {
+                                                                (async () => {
+                                                                        try {
+                                                                                let fbuf = imageBuffer;
+                                                                                if (imageMime === 'image/webp') {
+                                                                                        try { const sh = (await import('sharp')).default; fbuf = await sh(imageBuffer).jpeg({ quality: 85 }).toBuffer(); } catch (_) {}
+                                                                                }
+                                                                                const rawJson = await gemini.askWithImage(buildStickerAnalysisExtractionPrompt(), fbuf, 'image/jpeg');
+                                                                                const parsed = JSON.parse(rawJson.trim().replace(/```json|```/g, '').trim());
+                                                                                saveSticker(_stickerHash1, parsed);
+                                                                                console.log(`\x1b[32m[StickerMemory]\x1b[39m Saved: ${_stickerHash1.substring(0, 8)}… → ${parsed.emotion} / ${parsed.category}`);
+                                                                        } catch (_) {}
+                                                                })();
+                                                        }
+                                                }
+                                        }
+                                }
+
+                                // ── WILY AUTO REPLY (tanpa autoSimi) ──
+                                // Kalau autoSimi mati tapi wilyAI.autoReply aktif,
+                                // bot tetap reply otomatis saat seseorang reply pesan bot
+                                if (!autoSimi.enabled) {
+                                        const wilyAICfg = config.wilyAI || {};
+                                        const isWilyOn = wilyAICfg.enabled !== false;
+                                        const isAutoReplyOn = wilyAICfg.autoReply !== false;
+                                        const wilyScope = wilyAICfg.scope || 'all';
+                                        const scopeAllowPM = wilyScope === 'pm' || wilyScope === 'all';
+                                        const scopeAllowGC = wilyScope === 'gc' || wilyScope === 'all';
+                                        const wilyBotNum = (hisoka.user?.id || '').split(':')[0]?.split('@')[0] || '';
+                                        const wilyBotJid = wilyBotNum + '@s.whatsapp.net';
+                                        const wilyBotLidRaw = hisoka.user?.lid || '';
+                                        const wilyBotLidNum = wilyBotLidRaw.split('@')[0].split(':')[0];
+
+                                        // Deteksi mention bot (support caption gambar/video/dll)
+                                        // Kumpulkan dari SEMUA sumber (bukan || karena [] truthy di JS)
+                                        const wilyMentionedJids = Array.from(new Set([
+                                                ...(Array.isArray(m.mentions) ? m.mentions : []),
+                                                ...(m.message?.extendedTextMessage?.contextInfo?.mentionedJid || []),
+                                                ...(m.message?.imageMessage?.contextInfo?.mentionedJid || []),
+                                                ...(m.message?.videoMessage?.contextInfo?.mentionedJid || []),
+                                                ...(m.message?.documentMessage?.contextInfo?.mentionedJid || []),
+                                                ...(m.message?.audioMessage?.contextInfo?.mentionedJid || []),
+                                                ...(m.message?.stickerMessage?.contextInfo?.mentionedJid || []),
+                                                ...(m.content?.contextInfo?.mentionedJid || []),
+                                        ])).filter(Boolean);
+                                        const isWilyMentioned = wilyMentionedJids.some(jid => {
+                                                if (!jid) return false;
+                                                const n = jid.split(':')[0]?.split('@')[0] || jid.split('@')[0];
+                                                return jid === wilyBotJid ||
+                                                        jid === wilyBotLidRaw ||
+                                                        n === wilyBotNum ||
+                                                        jid?.includes(wilyBotNum) ||
+                                                        (wilyBotLidNum && n === wilyBotLidNum); // LID format @lid
+                                        }) || !!(m.text?.includes('@' + wilyBotNum));
+                                        if (m.isGroup && !m.key?.fromMe && (wilyMentionedJids.length > 0)) {
+                                                wilyLog(`\x1b[33m[MentionDebug]\x1b[39m result=${isWilyMentioned} | jids=${JSON.stringify(wilyMentionedJids)} | botNum=${wilyBotNum} | botLidRaw=${wilyBotLidRaw} | botLidNum=${wilyBotLidNum}`);
+                                        }
+
+                                        const wilyQuotedParticipant = (m.content?.contextInfo?.participant || '').split('@')[0].split(':')[0];
+                                        const _wilyQuotedStanzaId = m.content?.contextInfo?.stanzaId || '';
+                                        const _wilyCachedQuoted = _wilyQuotedStanzaId ? hisoka.cacheMsg?.get(_wilyQuotedStanzaId) : null;
+                                        const isReplyToBotMsg = m.isQuoted && (
+                                                m.quoted?.key?.fromMe === true ||
+                                                (wilyBotNum && wilyQuotedParticipant === wilyBotNum) ||
+                                                (wilyBotLidNum && wilyQuotedParticipant === wilyBotLidNum) ||
+                                                (_wilyCachedQuoted?.key?.fromMe === true)
+                                        );
+
+                                        // WilyAutoReply — respek scope: pm=hanya DM, gc=hanya grup, all=keduanya
+                                        const isPrivateDM = !m.isGroup && m.from !== 'status@broadcast';
+                                        const isStickerMsg = getMediaTypeFromMessage(m) === 'stickerMessage';
+                                        // Grup: trigger saat bot di-mention (pesan apapun) ATAU saat ada yang reply pesan bot (pesan apapun)
+                                        const triggerGroup = scopeAllowGC && m.isGroup && (isWilyMentioned || isReplyToBotMsg);
+                                        // Private: semua pesan yang masuk ke DM (teks, sticker, gambar, video, dll) langsung trigger bot
+                                        const triggerPM    = scopeAllowPM && isPrivateDM;
+                                        const isLoadedCommand = m.command && !m.isBot && hisoka.loadedCommands?.some(c => c.toLowerCase() === m.command);
+                                        if (isLoadedCommand) {
+                                                // Command bot harus tetap lanjut ke switch-case, jangan ditahan auto-reply AI/cooldown.
+                                        } else if (isWilyOn && isAutoReplyOn && (triggerGroup || triggerPM) && !m.key?.fromMe && m.from !== 'status@broadcast') {
+                                                if (isAICooldown(m.sender)) {
+                                                        return;
+                                                }
+
+                                                const userName = getUserName(m.sender, m.pushName || 'Kak');
+                                                const now = new Date();
+                                                const hours = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Jakarta' }));
+                                                const timeOfDay = hours < 5 ? 'dini hari' : hours < 11 ? 'pagi' : hours < 15 ? 'siang' : hours < 18 ? 'sore' : 'malam';
+                                                const currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+                                                const currentDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
+                                                let userMessage = m.text?.trim() || '';
+                                                if (userMessage) {
+                                                        userMessage = userMessage.replace(/@\d+/g, '').replace(/@bot/gi, '').trim();
+                                                }
+
+                                                // Deteksi media dari pesan saat ini atau pesan yang di-reply
+                                                let imageBuffer = null;
+                                                let imageMime = 'image/jpeg';
+                                                let hasMedia = false;
+                                                let mediaLabel = '';
+                                                const curType = getMediaTypeFromMessage(m);
+                                                const qtType = m.isQuoted ? getMediaTypeFromMessage(m.quoted) : '';
+
+                                                if (curType === 'imageMessage' || curType === 'stickerMessage') {
+                                                        try {
+                                                                imageBuffer = await m.downloadMedia();
+                                                                imageMime = curType === 'stickerMessage' ? 'image/webp' : 'image/jpeg';
+                                                                hasMedia = true;
+                                                                mediaLabel = curType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                        } catch (_) {
+                                                                // Jika download gagal, tetap tandai hasMedia agar AI tahu ada media
+                                                                hasMedia = true;
+                                                                mediaLabel = curType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                        }
+                                                } else if (curType === 'videoMessage') {
+                                                        // Deteksi pesan video — bot balas dengan konteks video
+                                                        hasMedia = true;
+                                                        mediaLabel = 'video';
+                                                } else if (m.isQuoted && (qtType === 'imageMessage' || qtType === 'stickerMessage' || qtType === 'albumMessage')) {
+                                                        try {
+                                                                const cached = getCachedQuotedMedia(hisoka, m);
+                                                                imageBuffer = await getQuotedMediaBuffer(hisoka, m);
+                                                                if (imageBuffer?.length > 0) {
+                                                                        const info = getMediaInfo(qtType, m.quoted, cached);
+                                                                        imageMime = info.mime;
+                                                                        hasMedia = true;
+                                                                        mediaLabel = info.label;
+                                                                } else {
+                                                                        hasMedia = true;
+                                                                        mediaLabel = qtType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                                }
+                                                        } catch (_) {
+                                                                hasMedia = true;
+                                                                mediaLabel = qtType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                        }
+                                                } else if (m.isQuoted && qtType === 'videoMessage') {
+                                                        hasMedia = true;
+                                                        mediaLabel = 'video';
+                                                }
+
+                                                // Deteksi skenario: user reply pesan bot + kirim gambar sekaligus
+                                                const isImageReply = isReplyToBotMsg && hasMedia && mediaLabel !== 'video';
+                                                const hasSticker = mediaLabel === 'sticker';
+                                                const isStickerReply = isReplyToBotMsg && hasSticker;
+
+                                                if (!userMessage && !hasMedia) {
+                                                        userMessage = buildWilyFallbackUserPrompt(curType);
+                                                }
+
+                                                if (!userMessage && hasMedia) {
+                                                        userMessage = buildWilyMediaUserPrompt({
+                                                                mediaLabel,
+                                                                hasSticker,
+                                                                isStickerReply,
+                                                                isImageReply,
+                                                                mode: 'identify',
+                                                        });
+                                                }
+
+                                                // Smart intent untuk gambar+reply dengan pesan pendek
+                                                if (isImageReply && userMessage) {
+                                                        const shortMsg = userMessage.trim().toLowerCase();
+                                                        const intentMap = {
+                                                                'ini apa': 'Identifikasi dan jelaskan apa yang ada di gambar ini secara detail.',
+                                                                'apa ini': 'Identifikasi dan jelaskan apa yang ada di gambar ini secara detail.',
+                                                                'apaan ini': 'Identifikasi dan jelaskan apa yang ada di gambar ini secara detail.',
+                                                                'translate': 'Terjemahkan semua teks yang ada di gambar ini ke bahasa Indonesia.',
+                                                                'terjemahin': 'Terjemahkan semua teks yang ada di gambar ini ke bahasa Indonesia.',
+                                                                'terjemahkan': 'Terjemahkan semua teks yang ada di gambar ini ke bahasa Indonesia.',
+                                                                'baca ini': 'Baca dan ekstrak semua teks yang ada di gambar ini.',
+                                                                'bacain': 'Baca dan ekstrak semua teks yang ada di gambar ini.',
+                                                                'sama ga': 'Bandingkan gambar ini dengan topik percakapan kita sebelumnya. Samakah? Jelaskan perbedaan/persamaannya.',
+                                                                'sama gak': 'Bandingkan gambar ini dengan topik percakapan kita sebelumnya. Samakah? Jelaskan perbedaan/persamaannya.',
+                                                                'beda ga': 'Bandingkan gambar ini dengan topik percakapan kita sebelumnya dan jelaskan perbedaannya.',
+                                                                'beda gak': 'Bandingkan gambar ini dengan topik percakapan kita sebelumnya dan jelaskan perbedaannya.',
+                                                                'bagus ga': 'Evaluasi dan beri pendapat tentang gambar ini.',
+                                                                'bagus gak': 'Evaluasi dan beri pendapat tentang gambar ini.',
+                                                                'mirip ga': 'Bandingkan gambar ini dengan konteks percakapan sebelumnya. Miripkah?',
+                                                                'mirip gak': 'Bandingkan gambar ini dengan konteks percakapan sebelumnya. Miripkah?',
+                                                                'ini bener': 'Periksa kebenaran atau keakuratan apa yang ada di gambar ini.',
+                                                                'bener ga': 'Periksa kebenaran atau keakuratan apa yang ada di gambar ini.',
+                                                                'jelaskan': 'Jelaskan secara detail apa yang ada di gambar ini.',
+                                                                'explain': 'Explain everything in this image in detail.',
+                                                                'analisis': 'Analisis gambar ini secara menyeluruh dan mendalam.',
+                                                                'analisa': 'Analisis gambar ini secara menyeluruh dan mendalam.',
+                                                        };
+                                                        for (const [key, intent] of Object.entries(intentMap)) {
+                                                                if (shortMsg.includes(key)) {
+                                                                        userMessage = intent;
+                                                                        break;
+                                                                }
+                                                        }
+                                                }
+
+                                                if (!userMessage) userMessage = 'Halo!';
+
+                                                // Cek apakah ini permintaan cari gambar
+                                                const autoImgQuery = !hasMedia ? detectImageSearchQuery(userMessage) : null;
+                                                if (autoImgQuery) {
+                                                        try {
+                                                                const imgCount = Math.min(extractImageCount(userMessage), 5);
+                                                                await tolak(hisoka, m, await buildSmartImageWaitText({
+                                                                        userName,
+                                                                        userQuestion: userMessage,
+                                                                        query: autoImgQuery,
+                                                                        count: imgCount,
+                                                                }));
+                                                                let historyReply = '';
+                                                                if (imgCount > 1) {
+                                                                        const imgResults = await searchAndGetImages(autoImgQuery, imgCount);
+                                                                        const captions = await buildSmartAlbumCaptions({
+                                                                                userQuestion: userMessage,
+                                                                                query: autoImgQuery,
+                                                                                images: imgResults,
+                                                                        });
+                                                                        await sendImageAlbum(hisoka, m, imgResults, captions);
+                                                                        historyReply = await buildSmartImageHistoryReply({
+                                                                                userQuestion: userMessage,
+                                                                                query: autoImgQuery,
+                                                                                images: imgResults,
+                                                                                captions,
+                                                                        });
+                                                                } else {
+                                                                        const imgResult = await searchAndGetImage(autoImgQuery);
+                                                                        const captions = await buildSmartAlbumCaptions({
+                                                                                userQuestion: userMessage,
+                                                                                query: autoImgQuery,
+                                                                                images: [imgResult],
+                                                                        });
+                                                                        const sentImage = await hisoka.sendMessage(m.from, {
+                                                                                image: imgResult.buffer,
+                                                                                caption: captions[0] || `🖼️ *${imgResult.title || autoImgQuery}*`
+                                                                        }, { quoted: m });
+                                                                        rememberAIMedia(hisoka, sentImage, [{
+                                                                                buffer: imgResult.buffer,
+                                                                                mime: 'image/jpeg',
+                                                                                label: 'gambar',
+                                                                                caption: captions[0] || imgResult.title || autoImgQuery,
+                                                                        }]);
+                                                                        historyReply = await buildSmartImageHistoryReply({
+                                                                                userQuestion: userMessage,
+                                                                                query: autoImgQuery,
+                                                                                images: [imgResult],
+                                                                                captions,
+                                                                        });
+                                                                }
+                                                                if (isAutoReplyOn && historyReply) {
+                                                                        addToHistory(getSessionKey(m), userMessage, historyReply, buildHistoryMeta(m, { mediaLabel: 'gambar' }));
+                                                                }
+                                                        } catch (se) {
+                                                                await tolak(hisoka, m, `❌ Maaf gagal cariin gambar "${autoImgQuery}". Coba lagi ya!`);
+                                                        }
+                                                        return;
+                                                }
+
+                                                // Load history untuk konteks
+                                                const sessKey = getSessionKey(m);
+                                                const histMsgs = getHistory(sessKey);
+                                                const quotedBotText = (m.isQuoted && m.quoted?.key?.fromMe)
+                                                        ? (m.quoted?.text || m.quoted?.caption || m.quoted?.body || '')
+                                                        : '';
+                                                const stopTyping_p2 = startTyping(hisoka, m);
+                                                const userMemory = detectAndUpdateMemory(m.sender, userMessage);
+                                                const systemPrompt = buildWilyAICommandPrompt({
+                                                        userName, currentTime, currentDate, timeOfDay,
+                                                        hasHistory: histMsgs.length > 0,
+                                                        quotedBotText,
+                                                        isPrivate: !m.isGroup,
+                                                        isOwner: m.isOwner,
+                                                        hasImage: hasMedia,
+                                                        isImageReply,
+                                                        hasSticker,
+                                                        isStickerReply,
+                                                        userMessage,
+                                                        history: histMsgs,
+                                                        userMemory,
+                                                        sessionKey: sessKey,
+                                                });
+                                                const currentMsgMeta = buildHistoryMeta(m, { mediaLabel: hasMedia ? mediaLabel : null });
+                                                let contents;
+                                                if (histMsgs.length > 0) {
+                                                        contents = [
+                                                                { role: 'user', parts: [{ text: systemPrompt }] },
+                                                                { role: 'model', parts: [{ text: `Halo ${userName}! Aku Wily Bot, siap membantu 🤖` }] },
+                                                                ...histMsgs,
+                                                                { role: 'user', parts: [{ text: wrapCurrentUserMessage(userMessage, currentMsgMeta) }] },
+                                                        ];
+                                                } else {
+                                                        contents = [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userMessage }] }];
+                                                }
+
+                                                // Bangun teks tambahan konteks untuk vision model pada skenario image-reply
+                                                const visionContextText = buildWilyVisionContextPrompt({
+                                                        isImageReply,
+                                                        isStickerReply,
+                                                        quotedBotText,
+                                                        hasSticker,
+                                                        mediaLabel,
+                                                        userMessage,
+                                                });
+
+                                                // ── STIKER MEMORY: cek DB sebelum kirim ke AI ──
+                                                let _stickerHash2 = null;
+                                                let _stickerKnown2 = null;
+                                                if (hasSticker && imageBuffer?.length > 0) {
+                                                        _stickerHash2 = hashSticker(imageBuffer);
+                                                        _stickerKnown2 = lookupSticker(_stickerHash2);
+                                                        if (_stickerKnown2) {
+                                                                const hint2 = buildStickerContextHint(_stickerKnown2);
+                                                                if (hint2) userMessage = hint2 + '\n\n' + (userMessage || '');
+                                                                incrementStickerSeen(_stickerHash2);
+                                                        }
+                                                }
+
+                                                let response;
+                                                try {
+                                                        if (imageBuffer && imageBuffer.length > 0) {
+                                                                let finalBuffer = imageBuffer;
+                                                                let finalMime = imageMime;
+                                                                if (imageMime === 'image/webp') {
+                                                                        try {
+                                                                                const sharp = (await import('sharp')).default;
+                                                                                finalBuffer = await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer();
+                                                                                finalMime = 'image/jpeg';
+                                                                        } catch (_) {}
+                                                                }
+                                                                if (histMsgs.length > 0) {
+                                                                        const vContents = [
+                                                                                { role: 'user', parts: [{ text: systemPrompt }] },
+                                                                                { role: 'model', parts: [{ text: `Halo ${userName}! Aku Wily Bot 🤖` }] },
+                                                                                ...histMsgs,
+                                                                                { role: 'user', parts: [
+                                                                                        { inlineData: { mimeType: finalMime, data: finalBuffer.toString('base64') } },
+                                                                                        { text: wrapCurrentUserMessage(visionContextText, currentMsgMeta) },
+                                                                                ]},
+                                                                        ];
+                                                                        const models = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-pro-latest'];
+                                                                        for (const model of models) {
+                                                                                try { response = await gemini.chat({ model, contents: vContents }); break; } catch (_) {}
+                                                                        }
+                                                                } else {
+                                                                        response = await gemini.askWithImage(systemPrompt + '\n\n' + visionContextText, finalBuffer, finalMime);
+                                                                }
+                                                        } else {
+                                                                response = await gemini.chat({ contents });
+                                                        }
+
+                                                        if (response && response.trim()) {
+                                                                setAICooldown(m.sender);
+                                                                let autoFinalResponse = response.trim();
+                                                                if (hasMedia) {
+                                                                        autoFinalResponse = autoFinalResponse.replace(/\[GAMBAR:[^\]]{1,200}\]/gi, '').replace(/\n{3,}/g, '\n\n').trim();
+                                                                }
+                                                                const mediaResult = await processAIMediaAndSend(hisoka, m, autoFinalResponse, { sessionKey: sessKey });
+                                                                const cleanResp = mediaResult.sentText;
+                                                                addToHistory(sessKey, userMessage, cleanResp || response.trim(), buildHistoryMeta(m, { mediaLabel: hasMedia ? mediaLabel : null }));
+                                                                const triggerType = isWilyMentioned ? 'Mention' : isReplyToBotMsg ? 'Reply' : 'DM';
+                                                                wilyLog(`\x1b[36m[WilyAutoReply]\x1b[39m ${userName} | ${m.isGroup ? 'Grup' : 'Private'} | Trigger: ${triggerType} | Media: ${hasMedia ? mediaLabel : 'tidak ada'}`);
+
+                                                                // ── STIKER MEMORY: simpan analisis stiker baru ke DB (background) ──
+                                                                if (hasSticker && imageBuffer?.length > 0 && _stickerHash2 && !_stickerKnown2) {
+                                                                        (async () => {
+                                                                                try {
+                                                                                        let fbuf2 = imageBuffer;
+                                                                                        if (imageMime === 'image/webp') {
+                                                                                                try { const sh = (await import('sharp')).default; fbuf2 = await sh(imageBuffer).jpeg({ quality: 85 }).toBuffer(); } catch (_) {}
+                                                                                        }
+                                                                                        const rawJson2 = await gemini.askWithImage(buildStickerAnalysisExtractionPrompt(), fbuf2, 'image/jpeg');
+                                                                                        const parsed2 = JSON.parse(rawJson2.trim().replace(/```json|```/g, '').trim());
+                                                                                        saveSticker(_stickerHash2, parsed2);
+                                                                                        console.log(`\x1b[32m[StickerMemory]\x1b[39m Saved: ${_stickerHash2.substring(0, 8)}… → ${parsed2.emotion} / ${parsed2.category}`);
+                                                                                } catch (_) {}
+                                                                        })();
+                                                                }
+                                                        }
+                                                } catch (arErr) {
+                                                        wilyError('\x1b[31m[WilyAutoReply] Error:\x1b[39m', arErr.message);
+                                                }
+                                        }
+
+                                        // ── WILY PRIVATE CHAT AUTO REPLY ──
+                                        // Dinonaktifkan — private reply pesan bot sudah dihandle oleh WilyAutoReply di atas
+                                        // Bot hanya merespons di private jika user REPLY pesan bot (bukan semua pesan DM)
+                                        const isPrivateReplyToBot = m.isQuoted && m.quoted?.key?.fromMe;
+                                        if (false) {
+                                                const pvUserName = getUserName(m.sender, m.pushName || 'Kak');
+                                                const pvNow = new Date();
+                                                const pvHours = parseInt(pvNow.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Jakarta' }));
+                                                const pvTimeOfDay = pvHours < 5 ? 'dini hari' : pvHours < 11 ? 'pagi' : pvHours < 15 ? 'siang' : pvHours < 18 ? 'sore' : 'malam';
+                                                const pvCurrentTime = pvNow.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+                                                const pvCurrentDate = pvNow.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
+                                                let pvUserMsg = m.text?.trim() || '';
+
+                                                // Deteksi media
+                                                let pvImageBuffer = null;
+                                                let pvImageMime = 'image/jpeg';
+                                                let pvHasMedia = false;
+                                                let pvMediaLabel = '';
+                                                const pvCurType = m.type || '';
+                                                const pvQtType = m.isQuoted ? (m.quoted?.type || '') : '';
+
+                                                if (pvCurType === 'imageMessage' || pvCurType === 'stickerMessage') {
+                                                        try {
+                                                                pvImageBuffer = await m.downloadMedia();
+                                                                pvImageMime = pvCurType === 'stickerMessage' ? 'image/webp' : 'image/jpeg';
+                                                                pvHasMedia = true;
+                                                                pvMediaLabel = pvCurType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                        } catch (_) {}
+                                                } else if (m.isQuoted && (pvQtType === 'imageMessage' || pvQtType === 'stickerMessage')) {
+                                                        try {
+                                                                pvImageBuffer = await downloadMediaMessage(
+                                                                        { ...m.quoted, message: m.quoted.raw },
+                                                                        'buffer', {},
+                                                                        { logger: hisoka.logger, reuploadRequest: hisoka.updateMediaMessage }
+                                                                );
+                                                                if (pvImageBuffer?.length > 0) {
+                                                                        pvImageMime = pvQtType === 'stickerMessage' ? 'image/webp' : 'image/jpeg';
+                                                                        pvHasMedia = true;
+                                                                        pvMediaLabel = pvQtType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                                }
+                                                        } catch (_) {}
+                                                }
+
+                                                const pvHasSticker = pvHasMedia && pvMediaLabel === 'sticker';
+                                                const pvIsStickerReply = !!(m.isQuoted && m.quoted?.key?.fromMe && pvHasSticker);
+                                                if (!pvUserMsg && pvHasMedia) {
+                                                        pvUserMsg = buildWilyMediaUserPrompt({
+                                                                mediaLabel: pvMediaLabel,
+                                                                hasSticker: pvHasSticker,
+                                                                isStickerReply: pvIsStickerReply,
+                                                                mode: 'private',
+                                                        });
+                                                }
+                                                if (!pvUserMsg) {
+                                                        pvUserMsg = buildWilyFallbackUserPrompt(pvCurType);
+                                                }
+
+                                                // Cek permintaan cari gambar
+                                                if (!pvHasMedia) {
+                                                        const pvImgQ = detectImageSearchQuery(pvUserMsg);
+                                                        if (pvImgQ) {
+                                                                try {
+                                                                        await tolak(hisoka, m, await buildSmartImageWaitText({
+                                                                                userName: pvUserName,
+                                                                                userQuestion: pvUserMsg,
+                                                                                query: pvImgQ,
+                                                                                count: 1,
+                                                                        }));
+                                                                        const pvImgResult = await searchAndGetImage(pvImgQ);
+                                                                        await hisoka.sendMessage(m.from, {
+                                                                                image: pvImgResult.buffer,
+                                                                                caption: `🖼️ *${pvImgResult.title || pvImgQ}*\n🔗 ${pvImgResult.url}`
+                                                                        }, { quoted: m });
+                                                                } catch (_) {
+                                                                        await tolak(hisoka, m, `❌ Maaf gagal cariin gambar "${pvImgQ}". Coba lagi ya!`);
+                                                                }
+                                                                return;
+                                                        }
+                                                }
+
+                                                const pvSessKey = getSessionKey(m);
+                                                const pvHistMsgs = getHistory(pvSessKey);
+                                                // Kalau user reply pesan bot, kirim konteks pesan yang di-reply ke AI
+                                                const pvQuotedBotText = (m.isQuoted && m.quoted?.key?.fromMe)
+                                                        ? (m.quoted?.text || m.quoted?.caption || '')
+                                                        : '';
+                                                const stopTyping_pv = startTyping(hisoka, m);
+                                                const pvUserMemory = detectAndUpdateMemory(m.sender, pvUserMsg);
+                                                const pvSystemPrompt = buildWilyAICommandPrompt({
+                                                        userName: pvUserName, currentTime: pvCurrentTime, currentDate: pvCurrentDate, timeOfDay: pvTimeOfDay,
+                                                        hasHistory: pvHistMsgs.length > 0,
+                                                        quotedBotText: pvQuotedBotText,
+                                                        isPrivate: true,
+                                                        isOwner: m.isOwner,
+                                                        hasImage: pvHasMedia,
+                                                        isImageReply: false,
+                                                        hasSticker: pvHasSticker,
+                                                        isStickerReply: pvIsStickerReply,
+                                                        userMessage: pvUserMsg,
+                                                        history: pvHistMsgs,
+                                                        userMemory: pvUserMemory,
+                                                        sessionKey: pvSessKey,
+                                                });
+
+                                                let pvContents;
+                                                if (pvHistMsgs.length > 0) {
+                                                        pvContents = [
+                                                                { role: 'user', parts: [{ text: pvSystemPrompt }] },
+                                                                { role: 'model', parts: [{ text: `Halo ${pvUserName}! Aku Wily Bot 🤖` }] },
+                                                                ...pvHistMsgs,
+                                                                { role: 'user', parts: [{ text: pvUserMsg }] },
+                                                        ];
+                                                } else {
+                                                        pvContents = [{ role: 'user', parts: [{ text: pvSystemPrompt + '\n\n' + pvUserMsg }] }];
+                                                }
+
+                                                try {
+                                                        let pvResponse;
+                                                        if (pvImageBuffer && pvImageBuffer.length > 0) {
+                                                                let pvFinalBuf = pvImageBuffer;
+                                                                let pvFinalMime = pvImageMime;
+                                                                if (pvImageMime === 'image/webp') {
+                                                                        try {
+                                                                                const sharp = (await import('sharp')).default;
+                                                                                pvFinalBuf = await sharp(pvImageBuffer).jpeg({ quality: 90 }).toBuffer();
+                                                                                pvFinalMime = 'image/jpeg';
+                                                                        } catch (_) {}
+                                                                }
+                                                                pvResponse = await gemini.askWithImage(pvSystemPrompt + '\n\n' + pvUserMsg, pvFinalBuf, pvFinalMime);
+                                                        } else {
+                                                                pvResponse = await gemini.chat({ contents: pvContents });
+                                                        }
+
+                                                        if (pvResponse && pvResponse.trim()) {
+                                                                const pvMediaResult = await processAIMediaAndSend(hisoka, m, pvResponse.trim(), { sessionKey: pvSessKey });
+                                                                const pvClean = pvMediaResult.sentText;
+                                                                addToHistory(pvSessKey, pvUserMsg, pvClean || pvResponse.trim(), buildHistoryMeta(m, { mediaLabel: pvHasMedia ? pvMediaLabel : null }));
+                                                                console.log(`\x1b[36m[WilyPrivate]\x1b[39m ${pvUserName} | DM | Media: ${pvHasMedia ? pvMediaLabel : 'tidak ada'}`);
+                                                        }
+                                                } catch (pvErr) {
+                                                        console.error('\x1b[31m[WilyPrivate] Error:\x1b[39m', pvErr.message);
+                                                }
+                                        }
+                                }
+
+                        } catch (autoSimiError) {
+                                console.error('\x1b[31m[AutoGemini] Error:\x1b[39m', autoSimiError.message);
+                        }
+                }
+                
+                if (m.command && !m.isBot && hisoka.loadedCommands?.some(c => c.toLowerCase() === m.command)) {
+                        const _loc = m.isGroup ? `"${hisoka.getName(m.from)}"` : 'Private';
+                        const _tag = hisoka?.isMainBot === false ? '\x1b[35m[JADIBOT]\x1b[39m ' : '';
+                        console.log(`\x1b[32m[CMD]\x1b[39m ${_tag}\x1b[36m${m.prefix || '.'}${m.command}\x1b[39m - ${m.pushName} @ ${_loc}`);
+                }
+
+                // Handle pending play choice DULUAN sebelum guard apapun
+                // supaya ketuk tombol 1/2 selalu diproses meski sender ada di jadibotMap
+                if (hisoka?.isMainBot === true && pendingPlayChoices.has(m.sender)) {
+                        const _choice = (m.text || '').trim();
+                        if (_choice === '1' || _choice === '2') {
+                                // lanjut ke handler di bawah — jangan return di sini
+                                // cukup skip semua guard dengan goto-style: langsung ke handler
+                                // (handler asli tetap di bawah, hanya guard yang dilewati)
+                        } else {
+                                // bukan pilihan valid, tetap lanjut normal
+                                if (hisoka?.isMainBot === true) {
+                                    const allowedJadibotManagerCommands = new Set(['jadibot', 'stopbot', 'listbot', 'jadibotmenu', 'upbot']);
+                                    const isJadibotManagerCommand = allowedJadibotManagerCommands.has(m.command);
+                                    if (!m.isOwner) return;
+                                    if (jadibotMap.has(m.sender.split('@')[0]) && !isJadibotManagerCommand) return;
+                                }
+                        }
+                } else {
+                        if (hisoka?.isMainBot === true) {
+                            const allowedJadibotManagerCommands = new Set(['jadibot', 'stopbot', 'listbot', 'jadibotmenu', 'upbot']);
+                            const isJadibotManagerCommand = allowedJadibotManagerCommands.has(m.command);
+                            if (!m.isOwner) {
+                                return;
+                            }
+                            if (jadibotMap.has(m.sender.split('@')[0]) && !isJadibotManagerCommand) return;
+                        }
+
+                        if (hisoka?.isMainBot === false) {
+                            if (!m.isOwner) {
+                                return;
+                            }
+                            // Jadibot hanya merespon command .p / .ping saja
+                            const jadibotAllowedCommands = new Set(['p', 'ping']);
+                            if (!jadibotAllowedCommands.has(m.command)) {
+                                return;
+                            }
+                        }
+                }
+
+                if (hisoka?.isMainBot === true && m.isOwner) {
+                        const jadibotChoiceKey = getJadibotChoiceKey(m);
+                        const pendingJadibot = pendingJadibotChoices.get(jadibotChoiceKey);
+                        if (pendingJadibot) {
+                                const now = Date.now();
+                                const rawChoice = String(m.text || '').trim();
+                                const lowerChoice = rawChoice.toLowerCase();
+
+                                // Harus reply ke pesan listbot, bukan sembarang pesan
+                                const quotedId = getQuotedStanzaId(m);
+                                // Jika botMsgId tidak tertangkap (kosong), izinkan reply apapun ke chat ini
+                                const isReplyToList = m.isQuoted && (
+                                        !pendingJadibot.botMsgId || quotedId === pendingJadibot.botMsgId
+                                );
+
+                                if (!rawChoice || ['jadibot', 'stopbot', 'listbot', 'jadibotmenu'].includes(m.command)) {
+                                        // pesan command, abaikan
+                                } else if (!isReplyToList) {
+                                        // bukan reply ke pesan listbot, biarkan lanjut normal
+                                } else if (pendingJadibot.expiresAt && pendingJadibot.expiresAt <= now) {
+                                        pendingJadibotChoices.delete(jadibotChoiceKey);
+                                        await tolak(hisoka, m, '⏳ Waktu pemilihan sudah habis. Ketik *.listbot* lagi.');
+                                        return;
+                                } else if (lowerChoice === 'batal' || lowerChoice === 'cancel') {
+                                        if (pendingJadibot.timeout) clearTimeout(pendingJadibot.timeout);
+                                        pendingJadibotChoices.delete(jadibotChoiceKey);
+                                        await tolak(hisoka, m, '✅ Dibatalkan. Bot tidak dihentikan.');
+                                        return;
+                                } else {
+                                        await cleanupExpiredJadibots(async () => {});
+                                        const activeList = [...jadibotMap.keys()];
+                                        const maxNum = pendingJadibot.numbers.length;
+
+                                        // Cek format perpanjang: "1,3j" atau "2,p" atau "1, 2h"
+                                        const upbotMatch = rawChoice.match(/^(\d{1,3})\s*,\s*(.+)$/);
+                                        if (upbotMatch) {
+                                                const upIdx = Number(upbotMatch[1]);
+                                                const upDurStr = upbotMatch[2].trim();
+                                                const upDurInfo = parseJadibotDuration(upDurStr);
+
+                                                if (upIdx < 1 || upIdx > pendingJadibot.numbers.length) {
+                                                        await tolak(hisoka, m, `❌ Nomor urutan tidak valid.\nMasukkan angka *1* sampai *${maxNum}*.`);
+                                                        return;
+                                                }
+                                                if (!upDurInfo) {
+                                                        await tolak(hisoka, m,
+                                                                `❌ *Format durasi tidak valid!*\n\n` +
+                                                                `⏱️ Singkatan: *m*=menit, *j*=jam, *h*=hari, *p*=permanent\n\n` +
+                                                                `📌 Contoh:\n` +
+                                                                `• *${upIdx},30m* → 30 menit\n` +
+                                                                `• *${upIdx},2j* → 2 jam\n` +
+                                                                `• *${upIdx},3h* → 3 hari\n` +
+                                                                `• *${upIdx},p* → permanent`
+                                                        );
+                                                        return;
+                                                }
+
+                                                const targetNum = pendingJadibot.numbers[upIdx - 1];
+                                                if (!targetNum || !activeList.includes(targetNum)) {
+                                                        await tolak(hisoka, m, `❌ Bot urutan *${upIdx}* tidak ditemukan atau sudah tidak aktif.\nKetik *.listbot* untuk refresh.`);
+                                                        return;
+                                                }
+
+                                                // Update expiry tanpa stop bot
+                                                const upSendReply = async (msg) => tolak(hisoka, m, msg);
+                                                // Ambil info lama sebelum dihapus
+                                                const oldUpInfo = getJadibotExpirySummary(targetNum);
+                                                const oldUpLabel = oldUpInfo?.remaining || 'Tidak ada data';
+                                                const oldUpExpire = oldUpInfo?.expiresAtText || '-';
+                                                if (upDurInfo.ms === 'permanent') {
+                                                        removeJadibotExpiry(targetNum);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '♾️', key: m.key } });
+                                                        await tolak(hisoka, m,
+                                                                `╔══════════════════════╗\n` +
+                                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                                `╚══════════════════════╝\n\n` +
+                                                                `✅ *Durasi diperbarui!*\n` +
+                                                                `📱 +${maskNumber(targetNum)}\n\n` +
+                                                                `📊 *Perubahan masa berlaku:*\n` +
+                                                                `⏮️ Sebelumnya : *${oldUpLabel}*\n` +
+                                                                `✨ Terbaru    : *Permanent* ♾️\n\n` +
+                                                                `Bot tetap aktif tanpa batas waktu.`
+                                                        );
+                                                } else {
+                                                        extendJadibotExpiry(targetNum, upDurInfo.ms, 'active');
+                                                        scheduleJadibotExpiry(targetNum, upSendReply);
+                                                        const upInfo = getJadibotExpirySummary(targetNum);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '⏫', key: m.key } });
+                                                        await tolak(hisoka, m,
+                                                                `╔══════════════════════╗\n` +
+                                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                                `╚══════════════════════╝\n\n` +
+                                                                `✅ *Durasi diperbarui!*\n` +
+                                                                `📱 +${maskNumber(targetNum)}\n\n` +
+                                                                `📊 *Perubahan masa berlaku:*\n` +
+                                                                `⏮️ Sebelumnya : *${oldUpLabel}*\n` +
+                                                                `   Exp lama   : ${oldUpExpire}\n` +
+                                                                `➕ Ditambah   : *${upDurInfo.label}*\n` +
+                                                                `✨ Total baru : *${upInfo.remaining}*\n` +
+                                                                `   Exp baru   : ${upInfo.expiresAtText}\n\n` +
+                                                                `Bot tetap aktif, durasi diperpanjang.`
+                                                        );
+                                                }
+                                                return;
+                                        }
+
+                                        // Format stop: hanya angka atau nomor WA
+                                        let selectedNumber = '';
+                                        const indexChoice = rawChoice.match(/^\d{1,3}$/) ? Number(rawChoice) : 0;
+                                        if (indexChoice >= 1 && indexChoice <= pendingJadibot.numbers.length) {
+                                                selectedNumber = pendingJadibot.numbers[indexChoice - 1];
+                                        } else {
+                                                selectedNumber = normalizeJadibotNumber(rawChoice);
+                                        }
+                                        if (selectedNumber && pendingJadibot.numbers.includes(selectedNumber) && activeList.includes(selectedNumber)) {
+                                                if (pendingJadibot.timeout) clearTimeout(pendingJadibot.timeout);
+                                                pendingJadibotChoices.delete(jadibotChoiceKey);
+                                                await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                                await stopJadibot(selectedNumber, async (text) => {
+                                                        await tolak(hisoka, m, text);
+                                                });
+                                                return;
+                                        }
+                                        // Pilihan tidak dikenali
+                                        await tolak(
+                                                hisoka,
+                                                m,
+                                                `❌ Pilihan tidak valid.\n\n` +
+                                                `📌 *Cara reply listbot:*\n` +
+                                                `• Ketik *1* → stop bot urutan 1\n` +
+                                                `• Ketik *1,3j* → perpanjang bot 1 selama 3 jam\n` +
+                                                `• Ketik *1,p* → ubah bot 1 ke permanent\n` +
+                                                `• Ketik *batal* → batalkan\n\n` +
+                                                `⏱️ Singkatan: m=menit, j=jam, h=hari, p=permanent`
+                                        );
+                                        return;
+                                }
+                        }
+                }
+
+                // Handle pending play choice (user balas 1 atau 2)
+                if (pendingPlayChoices.has(m.sender)) {
+                        const choice = (m.text || '').trim();
+                        if (choice === '1' || choice === '2') {
+                                const pending = pendingPlayChoices.get(m.sender);
+
+                                // Cek kalau pilihan yang SAMA sedang diunduh (biar tidak double)
+                                if (!pending.downloading) pending.downloading = new Set();
+                                if (pending.downloading.has(choice)) {
+                                        await m.reply(`⏳ Sedang mengunduh *${choice === '1' ? 'Audio MP3' : 'Video MP4'}*... harap tunggu.`);
+                                        return;
+                                }
+
+                                // Tandai format ini sedang diunduh, tapi format lain tetap bisa jalan
+                                pending.downloading.add(choice);
+
+                                // Reset timeout — perpanjang selama masih ada yang berjalan
+                                if (pending.timeout) {
+                                        clearTimeout(pending.timeout);
+                                        pending.timeout = null;
+                                }
+
+                                // Jalankan download secara async tanpa await di sini
+                                // supaya pesan handler selesai dan tombol lain bisa langsung diproses
+                                (async () => {
+                                        try {
+                                                await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                                const loadingMsg = await tolak(hisoka, m, `⏳ Mengunduh ${choice === '1' ? 'audio MP3' : 'video MP4'}...`);
+
+                                                const ytdlpBin = await ensureYtdlp(hisoka, m);
+                                                const tmpId = Date.now();
+
+                                                if (choice === '1') {
+                                                        const tmpFile = path.join(process.cwd(), 'tmp', `play_${tmpId}.mp3`);
+                                                        const tmpTemplate = path.join(process.cwd(), 'tmp', `play_${tmpId}.%(ext)s`);
+
+                                                        await new Promise((resolve, reject) => {
+                                                                const cmd = `"${ytdlpBin}" --js-runtimes node --no-playlist -x --audio-format mp3 --audio-quality 5 -o "${tmpTemplate}" "${pending.url}"`;
+                                                                exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
+                                                                        if (err) return reject(new Error(parseYtdlpError(stderr, err.message)));
+                                                                        resolve();
+                                                                });
+                                                        });
+
+                                                        const audioBuffer = fs.readFileSync(tmpFile);
+                                                        await hisoka.sendMessage(m.from, {
+                                                                audio: audioBuffer,
+                                                                mimetype: 'audio/mpeg',
+                                                                fileName: `${pending.title.replace(/[^\w\s]/gi, '')}.mp3`,
+                                                                ptt: false
+                                                        }, { quoted: m });
+
+                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                        await m.reply({ edit: loadingMsg.key, text: `✅ *Audio MP3 berhasil dikirim!*\n📌 ${pending.title}` });
+                                                        try { fs.unlinkSync(tmpFile); } catch (_) {}
+
+                                                } else {
+                                                        if (pending.seconds > 300) {
+                                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                                await m.reply({ edit: loadingMsg.key, text: `❌ Durasi terlalu panjang untuk video! (${pending.duration})\nMaksimal 5 menit untuk MP4.\n\nGunakan pilihan *1* untuk Audio MP3.` });
+                                                                return;
+                                                        }
+
+                                                        const tmpFile = path.join(process.cwd(), 'tmp', `play_${tmpId}.mp4`);
+                                                        const tmpTemplate = path.join(process.cwd(), 'tmp', `play_${tmpId}.%(ext)s`);
+
+                                                        await new Promise((resolve, reject) => {
+                                                                const cmd = `"${ytdlpBin}" --js-runtimes node --no-playlist -f "bestvideo[height<=360]+bestaudio/best[height<=360]" --merge-output-format mp4 --postprocessor-args "ffmpeg:-c:v libx264 -c:a aac -movflags +faststart -preset fast -crf 28" -o "${tmpTemplate}" "${pending.url}"`;
+                                                                exec(cmd, { timeout: 240000 }, (err, stdout, stderr) => {
+                                                                        if (err) return reject(new Error(parseYtdlpError(stderr, err.message)));
+                                                                        resolve();
+                                                                });
+                                                        });
+
+                                                        const videoBuffer = fs.readFileSync(tmpFile);
+                                                        await hisoka.sendMessage(m.from, {
+                                                                video: videoBuffer,
+                                                                mimetype: 'video/mp4',
+                                                                caption: `🎬 *${pending.title}*`
+                                                        }, { quoted: m });
+
+                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                        await m.reply({ edit: loadingMsg.key, text: `✅ *Video MP4 berhasil dikirim!*\n📌 ${pending.title}` });
+                                                        try { fs.unlinkSync(tmpFile); } catch (_) {}
+                                                }
+
+                                                logCommand(m, hisoka, 'play');
+                                        } catch (error) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal mengunduh: ${error.message?.substring(0, 200)}`);
+                                        } finally {
+                                                // Hapus format ini dari set downloading
+                                                if (pendingPlayChoices.has(m.sender)) {
+                                                        const p = pendingPlayChoices.get(m.sender);
+                                                        if (p.downloading) p.downloading.delete(choice);
+                                                        // Kalau sudah tidak ada yang berjalan, set timeout cleanup
+                                                        if (!p.downloading || p.downloading.size === 0) {
+                                                                if (p.timeout) clearTimeout(p.timeout);
+                                                                p.timeout = setTimeout(() => {
+                                                                        pendingPlayChoices.delete(m.sender);
+                                                                }, 2 * 60 * 1000);
+                                                        }
+                                                }
+                                        }
+                                })();
+
+                                return;
+                        }
+
+                        // Pending ada tapi bukan pilihan 1/2 — abaikan (biarkan lanjut ke switch)
+                }
+
+                switch (m.command) {
+
+                        case 'hidetag':
+                        case 'ht':
+                        case 'all': {
+                                if (!m.isOwner) return;
+                                if (!m.isGroup) return;
+
+                                if (!query) return tolak(hisoka, m,
+                                        '❌ *Wajib isi teks/caption!*\n\n' +
+                                        '📌 *Cara pakai:*\n' +
+                                        '• `.hidetag Halo semua!`\n' +
+                                        '• Kirim gambar/video dengan caption `.hidetag Teks kamu`\n' +
+                                        '• Quote gambar/video lalu ketik `.hidetag Teks kamu`'
+                                );
+
+                                const group = hisoka.groups.read(m.from);
+                                if (!group) return tolak(hisoka, m, '❌ Data grup tidak ditemukan.');
+
+                                const participants = (group.participants || [])
+                                        .map(v => v.phoneNumber || v.id)
+                                        .filter(Boolean);
+
+                                if (!participants.length) return tolak(hisoka, m, '❌ Tidak ada member yang ditemukan.');
+
+                                const htMediaTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'documentMessage'];
+
+                                let htBuffer = null;
+                                let htMediaType = null;
+
+                                if (m.isMedia && htMediaTypes.includes(m.type)) {
+                                        try { htBuffer = await m.downloadMedia(); htMediaType = m.type; } catch (_) {}
+                                } else if (m.isQuoted && m.quoted?.isMedia && htMediaTypes.includes(m.quoted?.type)) {
+                                        try { htBuffer = await getQuotedMediaBuffer(hisoka, m); htMediaType = m.quoted.type; } catch (_) {}
+                                }
+
+                                let htPayload;
+                                if (htBuffer && htBuffer.length > 0 && htMediaType) {
+                                        if (htMediaType === 'imageMessage') {
+                                                htPayload = { image: htBuffer, caption: query, mentions: participants };
+                                        } else if (htMediaType === 'videoMessage') {
+                                                htPayload = { video: htBuffer, caption: query, mentions: participants };
+                                        } else if (htMediaType === 'audioMessage') {
+                                                htPayload = { audio: htBuffer, mentions: participants, mimetype: 'audio/mp4' };
+                                        } else {
+                                                htPayload = { document: htBuffer, caption: query, mentions: participants, mimetype: 'application/octet-stream' };
+                                        }
+                                } else {
+                                        htPayload = { text: query, mentions: participants };
+                                }
+
+                                await hisoka.sendMessage(m.from, htPayload, { quoted: m });
+
+                                logCommand(m, hisoka, 'hidetag');
+                                break;
+                        }
+
+                        case 'memori':
+                        case 'memory':
+                        case 'mymemory':
+                        case 'myprofile': {
+                                const mem = loadUserMemory(m.sender);
+                                await m.reply(memoryToReadable(mem));
+                                logCommand(m, hisoka, 'memori');
+                                break;
+                        }
+
+                        case 'lupakanaku':
+                        case 'resetmemori':
+                        case 'resetmemory':
+                        case 'forgetme': {
+                                clearUserMemory(m.sender);
+                                await m.reply('> *🧠 Memori AI tentang kamu sudah dihapus*\n\n_AI bakal mulai pelan-pelan kenal kamu lagi dari awal._');
+                                logCommand(m, hisoka, 'lupakanaku');
+                                break;
+                        }
+
+                        case 'q':
+                        case 'quoted': {
+                                if (!m.isQuoted) {
+                                        await tolak(hisoka, m, 'No quoted message found.');
+                                        return;
+                                }
+
+                                const message = hisoka.cacheMsg.get(m.quoted.key.id);
+                                if (!message) {
+                                        await tolak(hisoka, m, 'Quoted message not found.');
+                                        return;
+                                }
+
+                                const IMessage = await injectMessage(hisoka, message);
+                                if (!IMessage.isQuoted) {
+                                        await tolak(hisoka, m, 'Quoted message not found.');
+                                        return;
+                                }
+
+                                await m.reply({ forward: IMessage.quoted });
+                                logCommand(m, hisoka, 'quoted');
+                                break;
+                        }
+
+                                case 'p':
+                                case 'ping' : {
+                                try {
+                                        const msg = await tolak(hisoka, m, '⏳ _Checking..._');
+                                        const latency = Math.abs(Date.now() - m.messageTimestamp * 1000);
+                                        const stats = getBotStats();
+                                        const sessionUptime = process.uptime();
+                                        
+                                        const memUsage = process.memoryUsage();
+                                        const memUsedMB = (memUsage.heapUsed / 1024 / 1024).toFixed(2);
+                                        const memTotalMB = (memUsage.heapTotal / 1024 / 1024).toFixed(2);
+                                        
+                                        const now = new Date();
+                                        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+                                        const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' });
+                                        
+                                        const jakartaHour = parseInt(now.toLocaleTimeString('id-ID', { hour: '2-digit', hour12: false, timeZone: 'Asia/Jakarta' }));
+                                        let greetingTime, greetingEmoji;
+                                        if (jakartaHour >= 4 && jakartaHour < 11) {
+                                                greetingTime = 'Pagi';
+                                                greetingEmoji = '🌅';
+                                        } else if (jakartaHour >= 11 && jakartaHour < 15) {
+                                                greetingTime = 'Siang';
+                                                greetingEmoji = '☀️';
+                                        } else if (jakartaHour >= 15 && jakartaHour < 18) {
+                                                greetingTime = 'Sore';
+                                                greetingEmoji = '🌇';
+                                        } else {
+                                                greetingTime = 'Malam';
+                                                greetingEmoji = '🌙';
+                                        }
+                                        
+                                        const speedText = latency < 100 ? 'Cepat' : latency < 500 ? 'Normal' : 'Lambat';
+                                        const speedEmoji = latency < 100 ? '🚀' : latency < 500 ? '⚡' : '🐢';
+                                        
+                                        const sessSeconds = Math.floor(sessionUptime);
+                                        const sessMinutes = Math.floor(sessSeconds / 60);
+                                        const sessHours = Math.floor(sessMinutes / 60);
+                                        const sessDays = Math.floor(sessHours / 24);
+                                        const sessFormatted = `${sessDays}d ${sessHours % 24}h ${sessMinutes % 60}m`;
+                                        
+                                        const cpuCores = os.cpus().length;
+                                        const cpuModel = os.cpus()[0]?.model?.split(' ')[0] || 'Unknown';
+                                        const totalMemGB = (os.totalmem() / 1024 / 1024 / 1024).toFixed(1);
+                                        const freeMemGB = (os.freemem() / 1024 / 1024 / 1024).toFixed(1);
+                                        const usedMemGB = (totalMemGB - freeMemGB).toFixed(1);
+                                        const memPercent = ((usedMemGB / totalMemGB) * 100).toFixed(0);
+                                        const nodeVersion = process.version;
+                                        const platform = process.platform;
+                                        
+                                        const pingText = `
+╭═════════════════════╮
+║        🏓 *PONG!* 🏓        
+├═════════════════════┤
+│ 👋 Selamat  » ${greetingTime} ${greetingEmoji}
+│ ${speedEmoji} Speed  » ${speedText}
+│ ⚡ Latency  » ${latency}ms
+│ 🕐 Waktu  » ${timeStr}
+│ 📅 Tanggal  » ${dateStr}
+├═════════════════════┤
+║        📊 *BOT STATUS*        
+├═════════════════════┤
+│ ⏱️ Uptime  » ${stats.uptime.days}d ${stats.uptime.hours}h ${stats.uptime.minutes}m
+│ 🔄 Session  » ${sessFormatted}
+│ 🔁 Restart  » ${stats.totalRestarts}x
+│ 🟢 Status  » Online
+├═════════════════════┤
+║        💻 *SYSTEM INFO*        
+├═════════════════════┤
+│ 🧠 CPU  » ${cpuCores} Core
+│ 📟 RAM  » ${usedMemGB}/${totalMemGB}GB (${memPercent}%)
+│ 💾 Bot Mem  » ${memUsedMB}MB
+│ 🖥️ Platform  » ${platform}
+│ 📦 NodeJS  » ${nodeVersion}
+╰═════════════════════╯`;
+
+                                        let ppUrl;
+                                        try {
+                                                ppUrl = await hisoka.profilePictureUrl(hisoka.user.id, 'image');
+                                        } catch {
+                                                ppUrl = null;
+                                        }
+
+                                        if (ppUrl) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: { url: ppUrl },
+                                                        caption: pingText
+                                                }, { quoted: m });
+                                        } else {
+                                                await m.reply({ edit: msg.key, text: pingText });
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'ping');
+                                } catch (err) {
+                                        console.error('\x1b[31mPing error:\x1b[39m', err.message);
+                                }
+                                break;
+                        }
+
+                        case '>':
+                        case 'eval': {
+                                let result;
+                                try {
+                                        const code = query || text;
+                                        result = /await/i.test(code) ? await eval('(async() => { ' + code + ' })()') : await eval(code);
+                                } catch (error) {
+                                        result = error;
+                                }
+
+                                await tolak(hisoka, m, util.format(result));
+                                logCommand(m, hisoka, 'eval');
+                                break;
+                        }
+
+                        case '$':
+                        case 'bash': {
+                                try {
+                                        exec(query, (error, stdout, stderr) => {
+                                                if (error) {
+                                                        return m.throw(util.format(error));
+                                                }
+                                                if (stderr) {
+                                                        return m.throw(stderr);
+                                                }
+                                                if (stdout) {
+                                                        return tolak(hisoka, m, stdout);
+                                                }
+                                                return m.throw('Command executed successfully, but no output.');
+                                        });
+                                        logCommand(m, hisoka, 'bash');
+                                } catch (error) {
+                                        await tolak(hisoka, m, util.format(error));
+                                        return;
+                                }
+                                break;
+                        }
+
+                        case 'dbstats':
+                        case 'sessiondb':
+                        case 'sessionstat': {
+                                if (!m.isOwner) return;
+                                try {
+                                        const readSessionStats = (sessionDir) => {
+                                                const credsPath = path.join(sessionDir, 'creds.json');
+                                                if (!fs.existsSync(credsPath)) return null;
+                                                const files = fs.readdirSync(sessionDir);
+                                                const preKeys = files.filter(f => f.startsWith('pre-key-') && f.endsWith('.json')).length;
+                                                const sessionFiles = files.filter(f => f.startsWith('session-') && f.endsWith('.json')).length;
+                                                const senderKeys = files.filter(f => f.startsWith('sender-key-') && f.endsWith('.json')).length;
+                                                let totalSize = 0;
+                                                for (const f of files) {
+                                                        try { totalSize += fs.statSync(path.join(sessionDir, f)).size; } catch {}
+                                                }
+                                                return { preKeys, sessionFiles, senderKeys, totalFiles: files.length, totalSize };
+                                        };
+
+                                        const formatSize = (bytes) => {
+                                                if (bytes < 1024) return `${bytes} B`;
+                                                if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+                                                return `${(bytes / 1024 / 1024).toFixed(2)} MB`;
+                                        };
+
+                                        const mainStats = readSessionStats(global.sessionDir);
+
+                                        const now = new Date().toLocaleTimeString('id-ID', {
+                                                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                                                timeZone: 'Asia/Jakarta'
+                                        });
+
+                                        let out = `╭═══════════════════════╮\n`;
+                                        out += `║   🗄️ *SESSION STATS*   \n`;
+                                        out += `╠═══════════════════════╣\n`;
+                                        out += `│ 🕐 _Realtime: ${now} WIB_\n`;
+                                        out += `╠═══════════════════════╣\n`;
+                                        out += `║   📦 *MAIN SESSION*   \n`;
+                                        out += `╠═══════════════════════╣\n`;
+
+                                        if (!mainStats) {
+                                                out += `│ ⚠️ creds.json belum ada\n`;
+                                        } else {
+                                                out += `│ ✅ Creds      » Tersimpan\n`;
+                                                out += `│ 🔑 Pre-Keys   » ${mainStats.preKeys} file\n`;
+                                                out += `│ 📋 Sessions   » ${mainStats.sessionFiles} file\n`;
+                                                out += `│ 🗝️ Sender-Keys » ${mainStats.senderKeys} file\n`;
+                                                out += `│ 📁 Total Files» ${mainStats.totalFiles}\n`;
+                                                out += `│ 💾 Total Size » ${formatSize(mainStats.totalSize)}\n`;
+                                        }
+
+                                        const jadibotDir = path.join(process.cwd(), 'jadibot');
+                                        if (fs.existsSync(jadibotDir)) {
+                                                const jadibotSessions = fs.readdirSync(jadibotDir).filter(n => {
+                                                        return fs.existsSync(path.join(jadibotDir, n, 'creds.json'));
+                                                });
+
+                                                if (jadibotSessions.length > 0) {
+                                                        out += `╠═══════════════════════╣\n`;
+                                                        out += `║   🤖 *JADIBOT SESSIONS*   \n`;
+                                                        out += `╠═══════════════════════╣\n`;
+                                                        out += `│ 📱 Total » ${jadibotSessions.length} sesi\n`;
+                                                        out += `├───────────────────────┤\n`;
+                                                        let totalSize = 0;
+                                                        for (const num of jadibotSessions) {
+                                                                const jStats = readSessionStats(path.join(jadibotDir, num));
+                                                                if (jStats) {
+                                                                        totalSize += jStats.totalSize;
+                                                                        const shortNum = num.replace(/^62/, '0').slice(0, 12) + '..';
+                                                                        out += `│  📞 ${shortNum} » ${jStats.totalFiles} files (${formatSize(jStats.totalSize)})\n`;
+                                                                }
+                                                        }
+                                                        out += `├───────────────────────┤\n`;
+                                                        out += `│ 💾 Total Size » ${formatSize(totalSize)}\n`;
+                                                }
+                                        }
+
+                                        out += `╰═══════════════════════╯`;
+
+                                        await m.reply(out);
+                                        logCommand(m, hisoka, 'dbstats');
+                                } catch (err) {
+                                        await m.reply(`❌ Error baca DB stats:\n${err.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'group':
+                        case 'listgroup': {
+                                const groups = Object.values(await hisoka.groupFetchAllParticipating());
+                                groups.map(g => hisoka.groups.write(g.id, g));
+
+                                let text = `*Total ${groups.length} groups*\n`;
+                                text += `\n*Total Participants in all groups:* ${Array.from(groups).reduce(
+                                        (a, b) => a + b.participants.length,
+                                        0
+                                )}\n\n`;
+                                groups
+                                        .filter(group => isJidGroup(group.id))
+                                        .forEach((group, i) => {
+                                                text += `${i + 1}. *${group.subject}* - ${group.participants.length} participants\n`;
+                                        });
+
+                                await tolak(hisoka, m, text.trim());
+                                logCommand(m, hisoka, 'groups');
+                                break;
+                        }
+
+                        case 'contact':
+                        case 'listcontact': {
+                                const contacts = Array.from(hisoka.contacts.values()).filter(c => c.id);
+                                let text = '*Total:*\n\n';
+                                text += `- All Contacts: ${contacts.length}\n`;
+                                text += `- Saved Contacts: ${contacts.filter(v => v.isContact).length}\n`;
+                                text += `- Not Saved Contacts: ${contacts.filter(v => !v.isContact).length}\n`;
+                                await tolak(hisoka, m, text.trim());
+                                logCommand(m, hisoka, 'contacts');
+                                break;
+                        }
+
+                        case 'cuaca':
+                        case 'weather': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🌦️ *CUACA REALTIME* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cek cuaca daerah secara realtime.\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • ${pfx}cuaca Subang Jawa Barat\n` +
+                                                        `│ • ${pfx}cuaca Bandung Jawa Barat\n` +
+                                                        `│ • ${pfx}cuaca Jakarta Selatan\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { getWeather, formatWeatherReport, getWeatherMapImage } = _require(path.resolve('./src/scrape/cuaca.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔎', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, `🔎 Mengambil data cuaca & peta hujan realtime untuk *${input}*...`);
+                                        const result = await getWeather(input);
+                                        const report = formatWeatherReport(result);
+
+                                        const mapBuffer = await getWeatherMapImage(
+                                                result.location.latitude,
+                                                result.location.longitude,
+                                                result.location.rawName || result.location.name
+                                        ).catch(() => null);
+
+                                        if (loadingMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                        }
+
+                                        if (mapBuffer && mapBuffer.length > 500) {
+                                                await hisoka.sendMessage(m.from, { image: mapBuffer, caption: report }, { quoted: m });
+                                        } else {
+                                                await tolak(hisoka, m, report);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'cuaca');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Cuaca] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:cuaca');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal mengambil cuaca.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Coba tulis daerah lebih lengkap.\n` +
+                                                `Contoh: *.cuaca Subang Jawa Barat*`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'tempmail':
+                        case 'tmail':
+                        case 'tminbox':
+                        case 'tmread':
+                        case 'tmwait':
+                        case 'tmdel': {
+                                try {
+                                        const Tmail = _require(path.resolve('./src/scrape/tmail.cjs'));
+                                        const fs = _require('fs');
+                                        const TMAIL_DB = path.resolve('./data/tmail.json');
+                                        if (!global.__tmailSessions) global.__tmailSessions = new Map();
+                                        const sessions = global.__tmailSessions;
+                                        const userId = m.sender || m.from;
+                                        const pfx = m.prefix || '.';
+                                        const input = (query || '').trim();
+
+                                        // Persistent storage helpers — biar email user gak ganti tiap restart
+                                        const loadDB = () => {
+                                                try {
+                                                        if (!fs.existsSync(path.dirname(TMAIL_DB))) fs.mkdirSync(path.dirname(TMAIL_DB), { recursive: true });
+                                                        if (!fs.existsSync(TMAIL_DB)) return {};
+                                                        return JSON.parse(fs.readFileSync(TMAIL_DB, 'utf8') || '{}');
+                                                } catch (_) { return {}; }
+                                        };
+                                        const saveDB = (db) => {
+                                                try {
+                                                        if (!fs.existsSync(path.dirname(TMAIL_DB))) fs.mkdirSync(path.dirname(TMAIL_DB), { recursive: true });
+                                                        fs.writeFileSync(TMAIL_DB, JSON.stringify(db, null, 2));
+                                                } catch (_) {}
+                                        };
+                                        const persistSess = (s) => {
+                                                if (!s || !s.mailbox || typeof s.serialize !== 'function') return;
+                                                const db = loadDB();
+                                                db[userId] = s.serialize();
+                                                saveDB(db);
+                                        };
+                                        const removeSess = () => {
+                                                const db = loadDB();
+                                                if (db[userId]) { delete db[userId]; saveDB(db); }
+                                                sessions.delete(userId);
+                                        };
+
+                                        // ===== Arsip permanen email yang pernah masuk =====
+                                        // Disimpan terpisah dari sess. Walau user .tmdel, arsip TIDAK terhapus.
+                                        const TMAIL_ARCHIVE = path.resolve('./data/tmail_archive.json');
+                                        const ARCHIVE_MAX_PER_USER = 50;
+                                        const loadArchive = () => {
+                                                try {
+                                                        if (!fs.existsSync(path.dirname(TMAIL_ARCHIVE))) fs.mkdirSync(path.dirname(TMAIL_ARCHIVE), { recursive: true });
+                                                        if (!fs.existsSync(TMAIL_ARCHIVE)) return {};
+                                                        return JSON.parse(fs.readFileSync(TMAIL_ARCHIVE, 'utf8') || '{}');
+                                                } catch (_) { return {}; }
+                                        };
+                                        const saveArchive = (db) => {
+                                                try {
+                                                        if (!fs.existsSync(path.dirname(TMAIL_ARCHIVE))) fs.mkdirSync(path.dirname(TMAIL_ARCHIVE), { recursive: true });
+                                                        fs.writeFileSync(TMAIL_ARCHIVE, JSON.stringify(db, null, 2));
+                                                } catch (_) {}
+                                        };
+                                        const archiveEmail = (mailbox, msg) => {
+                                                if (!msg || (!msg.id && !msg.subject)) return;
+                                                const db = loadArchive();
+                                                if (!Array.isArray(db[userId])) db[userId] = [];
+                                                const arr = db[userId];
+                                                // Dedupe pakai komposit (mailbox + id)
+                                                const key = `${mailbox || ''}::${msg.id || msg.subject}`;
+                                                if (arr.some((e) => `${e.mailbox || ''}::${e.id || e.subject}` === key)) return;
+                                                arr.unshift({
+                                                        id: msg.id || null,
+                                                        mailbox: mailbox || null,
+                                                        from: msg.from || null,
+                                                        to: msg.to || null,
+                                                        subject: msg.subject || null,
+                                                        date: msg.date || null,
+                                                        bodyText: msg.bodyText || null,
+                                                        bodyHtml: msg.bodyHtml || null,
+                                                        links: Array.isArray(msg.links) ? msg.links : [],
+                                                        ai: msg.ai || null,
+                                                        archivedAt: Date.now(),
+                                                });
+                                                if (arr.length > ARCHIVE_MAX_PER_USER) arr.length = ARCHIVE_MAX_PER_USER;
+                                                db[userId] = arr;
+                                                saveArchive(db);
+                                        };
+                                        const getArchive = () => {
+                                                const db = loadArchive();
+                                                return Array.isArray(db[userId]) ? db[userId] : [];
+                                        };
+
+                                        // Load session: dari memory dulu, kalo gak ada / instance lama (gak punya method baru) baru dari disk
+                                        const getSess = () => {
+                                                let s = sessions.get(userId);
+                                                if (!s || typeof s.serialize !== 'function' || typeof s.restore !== 'function') {
+                                                        s = new Tmail();
+                                                        const db = loadDB();
+                                                        if (db[userId]) s.restore(db[userId]);
+                                                        sessions.set(userId, s);
+                                                }
+                                                return s;
+                                        };
+
+                                        // PAKSA server tmail untuk re-bind ke email yang tersimpan.
+                                        // Ini fix bug: tanpa ini, server bisa kasih email random baru karena cookies expire.
+                                        const ensureBound = async (s) => {
+                                                if (!s || !s.mailbox) return null;
+                                                const at = s.mailbox.indexOf('@');
+                                                if (at <= 0) return null;
+                                                const name = s.mailbox.slice(0, at);
+                                                const domain = s.mailbox.slice(at + 1);
+                                                try {
+                                                        const data = await s.change(name, domain);
+                                                        // Kalau server tetap return email lain, paksa balik ke milik user
+                                                        if (data && data.mailbox && data.mailbox !== `${name}@${domain}`) {
+                                                                data.mailbox = `${name}@${domain}`;
+                                                        }
+                                                        s.mailbox = `${name}@${domain}`;
+                                                        return data;
+                                                } catch (_) {
+                                                        return null;
+                                                }
+                                        };
+
+                                        const sub = String(m.command || '').toLowerCase();
+
+                                        // Helper: bangun panel interaktif tempmail (dipakai .tempmail & .tmdel)
+                                        const buildTmailButtons = (mailbox) => ([
+                                                {
+                                                        name: 'cta_copy',
+                                                        buttonParamsJson: JSON.stringify({
+                                                                display_text: '📋 Salin Email',
+                                                                copy_code: mailbox,
+                                                        }),
+                                                },
+                                                {
+                                                        name: 'quick_reply',
+                                                        buttonParamsJson: JSON.stringify({
+                                                                display_text: '⏳ Tunggu Realtime',
+                                                                id: `${pfx}tmwait`,
+                                                        }),
+                                                },
+                                                {
+                                                        name: 'quick_reply',
+                                                        buttonParamsJson: JSON.stringify({
+                                                                display_text: '📥 Cek Inbox',
+                                                                id: `${pfx}tminbox`,
+                                                        }),
+                                                },
+                                                {
+                                                        name: 'quick_reply',
+                                                        buttonParamsJson: JSON.stringify({
+                                                                display_text: '🗑️ Hapus & Ganti',
+                                                                id: `${pfx}tmdel`,
+                                                        }),
+                                                },
+                                        ]);
+
+                                        // Helper: kirim panel interaktif sebagai REPLY/quote ke pesan user
+                                        const sendTmailPanel = async (title, mailbox) => {
+                                                const buttons = buildTmailButtons(mailbox);
+                                                let sent = false;
+                                                try {
+                                                        await m.reply({
+                                                                interactiveMessage: {
+                                                                        contextInfo: {
+                                                                                stanzaId: m.key.id,
+                                                                                participant: m.sender,
+                                                                                quotedMessage: m.message,
+                                                                        },
+                                                                        title,
+                                                                        footer: `📨 Tempmail · ${mailbox}`,
+                                                                        buttons,
+                                                                },
+                                                        });
+                                                        sent = true;
+                                                } catch (_) {}
+                                                if (!sent) await tolak(hisoka, m, title);
+                                        };
+
+                                        // .tmdel — hapus email tersimpan & generate baru
+                                        if (sub === 'tmdel') {
+                                                await hisoka.sendMessage(m.from, { react: { text: '🗑️', key: m.key } });
+                                                const old = (loadDB()[userId] || {}).mailbox || '-';
+                                                removeSess();
+                                                const s = new Tmail();
+                                                sessions.set(userId, s);
+                                                const info = await s.create();
+                                                persistSess(s);
+
+                                                const teks =
+                                                        `╭─「 🗑️ *EMAIL DIGANTI* 」\n` +
+                                                        `│\n` +
+                                                        `│ 📤 *Lama:* ${old}\n` +
+                                                        `│ ✉️ *Baru:* ${info.mailbox}\n` +
+                                                        `│ 📥 *Inbox:* ${(info.messages || []).length} pesan\n` +
+                                                        `│ 💾 *Status:* Tersimpan baru\n` +
+                                                        `│\n` +
+                                                        `│ Email baru udah tersimpan, gak bakal\n` +
+                                                        `│ ganti lagi sampai kamu *${pfx}tmdel*.\n` +
+                                                        `│\n` +
+                                                        `│ Perintah:\n` +
+                                                        `│ • ${pfx}tminbox — cek inbox\n` +
+                                                        `│ • ${pfx}tmread <id> — baca pesan\n` +
+                                                        `│ • ${pfx}tmwait — tunggu email baru (realtime)\n` +
+                                                        `│ • ${pfx}tmdel — hapus & ganti email baru\n` +
+                                                        `╰────────────────────`;
+
+                                                await sendTmailPanel(teks, info.mailbox);
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'tmdel');
+                                                break;
+                                        }
+
+                                        if (sub === 'tempmail' || sub === 'tmail') {
+                                                await hisoka.sendMessage(m.from, { react: { text: '📨', key: m.key } });
+                                                const s = getSess();
+                                                let info;
+                                                let reused = false;
+                                                if (input) {
+                                                        const [rawName, rawDomain] = input.split('@');
+                                                        const name = (rawName || '').trim();
+                                                        const domain = (rawDomain || '').trim() || Tmail.DEFAULT_DOMAINS[0];
+                                                        if (!name) {
+                                                                await tolak(hisoka, m, `❌ Nama email kosong.\nContoh: *${pfx}tempmail wilytest@t.etokom.com*`);
+                                                                break;
+                                                        }
+                                                        if (!Tmail.DEFAULT_DOMAINS.includes(domain)) {
+                                                                await tolak(hisoka, m,
+                                                                        `❌ Domain *${domain}* tidak tersedia.\n\n` +
+                                                                        `Domain yang didukung:\n• ` + Tmail.DEFAULT_DOMAINS.join('\n• ')
+                                                                );
+                                                                break;
+                                                        }
+                                                        info = await s.change(name, domain);
+                                                        persistSess(s);
+                                                } else if (s.mailbox) {
+                                                        // Udah punya email tersimpan — PAKSA server re-bind ke email yang sama
+                                                        const savedMailbox = s.mailbox;
+                                                        info = await ensureBound(s);
+                                                        if (!info) info = { mailbox: savedMailbox, messages: [] };
+                                                        if (!info.mailbox) info.mailbox = savedMailbox;
+                                                        reused = true;
+                                                        persistSess(s);
+                                                } else {
+                                                        info = await s.create();
+                                                        persistSess(s);
+                                                }
+                                                const teks =
+                                                        `╭─「 📨 *TEMPMAIL ETOKOM* 」\n` +
+                                                        `│\n` +
+                                                        `│ ✉️ *Email:* ${info.mailbox}\n` +
+                                                        `│ 📥 *Inbox:* ${(info.messages || []).length} pesan\n` +
+                                                        `│ 💾 *Status:* ${reused ? 'Dipakai ulang (tersimpan)' : 'Tersimpan baru'}\n` +
+                                                        `│\n` +
+                                                        `│ Perintah:\n` +
+                                                        `│ • ${pfx}tminbox — cek inbox\n` +
+                                                        `│ • ${pfx}tmread <id> — baca pesan\n` +
+                                                        `│ • ${pfx}tmwait — tunggu email baru (realtime)\n` +
+                                                        `│ • ${pfx}tmdel — hapus & ganti email baru\n` +
+                                                        `│ • ${pfx}tempmail nama@${Tmail.DEFAULT_DOMAINS[0]} — custom\n` +
+                                                        `│\n` +
+                                                        `│ 🌐 Domain tersedia:\n│ • ` + Tmail.DEFAULT_DOMAINS.join('\n│ • ') + `\n` +
+                                                        `╰────────────────────`;
+
+                                                await sendTmailPanel(teks, info.mailbox);
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'tempmail');
+                                                break;
+                                        }
+
+                                        // Deteksi OTP / kode verifikasi dari body
+                                        const detectCode = (text) => {
+                                                if (!text) return null;
+                                                // prefer pattern dengan kata kunci dulu — wajib ada minimal 1 angka
+                                                // (biar gak salah tangkap kata "code"/"otp" sebagai kodenya sendiri)
+                                                const KEYWORDS = /(?:code|kode|otp|pin|verification|verifikasi|verif|password|sandi|token)/gi;
+                                                let m;
+                                                while ((m = KEYWORDS.exec(text)) !== null) {
+                                                        const after = text.slice(m.index + m[0].length, m.index + m[0].length + 60);
+                                                        const c = after.match(/^[\s:#-]*([A-Z0-9]{4,10})/i);
+                                                        if (c && /\d/.test(c[1])) return c[1].trim();
+                                                }
+                                                // fallback: angka 4-8 digit yang berdiri sendiri
+                                                const digits = text.match(/(?<![A-Za-z0-9])(\d{4,8})(?![A-Za-z0-9])/);
+                                                return digits ? digits[1] : null;
+                                        };
+
+                                        // helper format teks pesan lengkap
+                                        const formatMail = (msg, mailbox, header = '📩 *PESAN*') => {
+                                                const body = (msg.bodyText || '').trim();
+                                                const trimmed = body.length > 3500 ? body.slice(0, 3500) + '\n\n_..(dipotong)_' : body;
+                                                const links = Array.isArray(msg.links) ? msg.links.slice(0, 10) : [];
+                                                const linkBlock = links.length
+                                                        ? `\n\n🔗 *Link di pesan:*\n` + links.map((l, i) =>
+                                                                `${i + 1}. ${l.url}` + (l.text ? `\n   _${l.text}_` : '')
+                                                        ).join('\n')
+                                                        : '';
+                                                return (
+                                                        `${header}\n\n` +
+                                                        `📌 *Subjek:* ${msg.subject || '-'}\n` +
+                                                        `👤 *Dari:* ${msg.from || msg.from_email || '-'}\n` +
+                                                        `📧 *Ke:* ${msg.to || mailbox || '-'}\n` +
+                                                        `🕒 *Tanggal:* ${msg.date || msg.receivedAt || '-'}\n` +
+                                                        `🆔 *ID:* ${msg.id}\n` +
+                                                        `🌐 *URL:* ${msg.url || ''}\n` +
+                                                        `${'─'.repeat(20)}\n\n` +
+                                                        (trimmed || '_(isi pesan kosong)_') +
+                                                        linkBlock
+                                                );
+                                        };
+
+                                        // Kirim pesan email + tombol interaktif (copy code, open verify link)
+                                        // msg.ai sudah diisi otomatis oleh scraper via Gemini AI (akurat verifikasi vs unsubscribe)
+                                        const sendMailWithButtons = async (msg, mailbox, header = '📩 *PESAN*') => {
+                                                const ai = msg.ai || null;
+                                                const code = (ai && ai.code) || detectCode(msg.bodyText || msg.subject || '');
+                                                const links = Array.isArray(msg.links) ? msg.links : [];
+                                                const primaryUrl = ai && ai.primaryUrl;
+                                                const primaryLabel = (ai && ai.primaryLabel) || 'Verifikasi';
+                                                const aiSummary = (ai && ai.summary) || '';
+
+                                                let teks = formatMail(msg, mailbox, header);
+                                                if (aiSummary) teks += `\n\n🤖 *Ringkasan AI:* ${aiSummary}`;
+
+                                                const buttons = [];
+
+                                                // Pilih SATU link verifikasi paling akurat
+                                                // Prioritas: AI primaryUrl → link kata kunci verifikasi → link non-junk pertama
+                                                const isJunk = (u, t) => /unsubscribe|opt-?out|preferences|notification-settings|manage|update.?profile/i.test(u + ' ' + (t || ''));
+                                                const isVerifyLike = (u, t) => /verify|verifikasi|confirm|konfirmasi|activate|aktivasi|action-code|oobcode|reset|password|login|signin|sign-in|magic|auth|token/i.test(u + ' ' + (t || ''));
+
+                                                let verifyUrl = null;
+                                                let verifyLabel = 'Verifikasi';
+                                                if (primaryUrl) {
+                                                        verifyUrl = primaryUrl;
+                                                        verifyLabel = String(primaryLabel || 'Verifikasi').trim() || 'Verifikasi';
+                                                } else {
+                                                        const candidate = links.find((l) => l.url && !isJunk(l.url, l.text) && isVerifyLike(l.url, l.text))
+                                                                || links.find((l) => l.url && !isJunk(l.url, l.text));
+                                                        if (candidate) {
+                                                                verifyUrl = candidate.url;
+                                                                verifyLabel = 'Verifikasi';
+                                                        }
+                                                }
+
+                                                if (verifyUrl) {
+                                                        // 1) Tombol SALIN LINK — copy URL verifikasi ke clipboard
+                                                        buttons.push({
+                                                                name: 'cta_copy',
+                                                                buttonParamsJson: JSON.stringify({
+                                                                        display_text: '📋 Salin Link',
+                                                                        copy_code: verifyUrl,
+                                                                }),
+                                                        });
+                                                        // 2) Tombol BUKA LINK — buka URL verifikasi langsung di browser
+                                                        buttons.push({
+                                                                name: 'cta_url',
+                                                                buttonParamsJson: JSON.stringify({
+                                                                        display_text: `✅ ${verifyLabel.slice(0, 20)}`,
+                                                                        url: verifyUrl,
+                                                                        merchant_url: verifyUrl,
+                                                                }),
+                                                        });
+                                                } else if (code) {
+                                                        // Fallback: gak ada link verifikasi, tapi ada kode OTP
+                                                        buttons.push({
+                                                                name: 'cta_copy',
+                                                                buttonParamsJson: JSON.stringify({
+                                                                        display_text: `🔑 Salin Kode: ${code}`,
+                                                                        copy_code: code,
+                                                                }),
+                                                        });
+                                                }
+
+                                                // Tampilin kode OTP di teks juga kalau ada (biar user bisa baca tanpa nyalin link)
+                                                if (verifyUrl && code) teks += `\n\n🔑 *Kode OTP:* \`${code}\``;
+
+                                                // Arsipkan permanen — bahkan kalau .tmdel, riwayat email gak hilang
+                                                try { archiveEmail(mailbox, msg); } catch (_) {}
+
+                                                if (!buttons.length) {
+                                                        await tolak(hisoka, m, teks);
+                                                        return;
+                                                }
+
+                                                try {
+                                                        await m.reply({
+                                                                interactiveMessage: {
+                                                                        contextInfo: {
+                                                                                stanzaId: m.key.id,
+                                                                                participant: m.sender,
+                                                                                quotedMessage: m.message,
+                                                                        },
+                                                                        title: teks,
+                                                                        footer: `📨 Tempmail · ${mailbox || ''}`,
+                                                                        buttons,
+                                                                },
+                                                        });
+                                                } catch (err) {
+                                                        // fallback teks biasa kalau interactive ditolak
+                                                        await tolak(hisoka, m, teks + (code ? `\n\n🔑 *Kode:* \`${code}\`` : ''));
+                                                }
+                                        };
+
+                                        if (sub === 'tminbox') {
+                                                const s = getSess();
+                                                if (!s.mailbox) {
+                                                        await tolak(hisoka, m, `⚠️ Belum punya email.\nKetik *${pfx}tempmail* dulu untuk bikin email.`);
+                                                        break;
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '📥', key: m.key } });
+                                                // PAKSA server pakai email tersimpan biar gak ganti
+                                                const savedMb = s.mailbox;
+                                                let data = await ensureBound(s);
+                                                if (!data) data = { mailbox: savedMb, messages: [] };
+                                                if (!data.mailbox) data.mailbox = savedMb;
+                                                persistSess(s);
+                                                const list = data.messages || [];
+                                                const archive = getArchive();
+
+                                                if (!list.length) {
+                                                        // Inbox live kosong — tapi cek arsip dulu, mungkin ada riwayat
+                                                        if (archive.length) {
+                                                                await tolak(hisoka, m,
+                                                                        `📭 *Inbox live kosong*, tapi ada *${archive.length}* email arsip.\n` +
+                                                                        `✉️ ${data.mailbox}\n\n` +
+                                                                        `_Menampilkan riwayat dari arsip permanen..._`
+                                                                );
+                                                                for (let i = 0; i < archive.length; i++) {
+                                                                        const it = archive[i];
+                                                                        const header = `🗂️ *ARSIP ${i + 1}/${archive.length}*` +
+                                                                                (it.mailbox && it.mailbox !== data.mailbox ? ` _(dari ${it.mailbox})_` : '');
+                                                                        await sendMailWithButtons(it, it.mailbox || data.mailbox, header);
+                                                                }
+                                                                await hisoka.sendMessage(m.from, { react: { text: '🗂️', key: m.key } });
+                                                                logCommand(m, hisoka, 'tminbox');
+                                                                break;
+                                                        }
+
+                                                        const teks =
+                                                                `╭─「 📭 *INBOX KOSONG* 」\n` +
+                                                                `│\n` +
+                                                                `│ ✉️ Mailbox: ${data.mailbox}\n` +
+                                                                `│ 📥 Total pesan: *0*\n` +
+                                                                `│ 🗂️ Arsip permanen: *0*\n` +
+                                                                `│\n` +
+                                                                `│ Belum ada email masuk. Coba:\n` +
+                                                                `│ • ${pfx}tmwait — tunggu realtime (default 120s)\n` +
+                                                                `│ • ${pfx}tmwait 300 — kasih waktu lebih (max 600s)\n` +
+                                                                `│ • ${pfx}tmdel — ganti email baru\n` +
+                                                                `╰────────────────────`;
+                                                        await sendTmailPanel(teks, data.mailbox);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '📭', key: m.key } });
+                                                        break;
+                                                }
+                                                // Header ringkasan (sebut arsip kalau ada)
+                                                await tolak(hisoka, m,
+                                                        `📥 *INBOX (${list.length} pesan live${archive.length ? `, ${archive.length} di arsip` : ''})*\n` +
+                                                        `✉️ ${data.mailbox}\n\n` +
+                                                        `_Mengambil isi lengkap setiap pesan..._`
+                                                );
+                                                // Ambil isi lengkap tiap email LIVE lalu kirim 1-1 (otomatis terarsipkan via sendMailWithButtons)
+                                                const liveIds = new Set();
+                                                for (let i = 0; i < list.length; i++) {
+                                                        const it = list[i];
+                                                        let detail;
+                                                        try { detail = await s.view(it.id); } catch (_) { detail = {}; }
+                                                        const merged = { ...it, ...detail };
+                                                        if (merged.id) liveIds.add(`${data.mailbox}::${merged.id}`);
+                                                        await sendMailWithButtons(merged, data.mailbox, `📩 *PESAN ${i + 1}/${list.length}*`);
+                                                }
+                                                // Tampilkan arsip yg BUKAN dari mailbox saat ini (riwayat email lama setelah .tmdel)
+                                                const oldArchive = archive.filter((e) => !liveIds.has(`${e.mailbox || ''}::${e.id || ''}`)
+                                                        && e.mailbox !== data.mailbox);
+                                                if (oldArchive.length) {
+                                                        await tolak(hisoka, m,
+                                                                `🗂️ *Arsip riwayat (${oldArchive.length} pesan dari email sebelumnya)*\n` +
+                                                                `_Email ini tetap tersimpan walau kamu sudah .tmdel._`
+                                                        );
+                                                        for (let i = 0; i < oldArchive.length; i++) {
+                                                                const it = oldArchive[i];
+                                                                await sendMailWithButtons(it, it.mailbox || '-',
+                                                                        `🗂️ *ARSIP ${i + 1}/${oldArchive.length}* _(${it.mailbox || '-'})_`);
+                                                        }
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'tminbox');
+                                                break;
+                                        }
+
+                                        if (sub === 'tmread') {
+                                                if (!input) {
+                                                        await tolak(hisoka, m, `❌ Sertakan ID pesan.\nContoh: *${pfx}tmread 12345*`);
+                                                        break;
+                                                }
+                                                const s = getSess();
+                                                if (!s.token) await s.create();
+                                                await hisoka.sendMessage(m.from, { react: { text: '📖', key: m.key } });
+                                                const msg = await s.view(input);
+                                                await sendMailWithButtons(msg, s.mailbox, '📖 *PESAN LENGKAP*');
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'tmread');
+                                                break;
+                                        }
+
+                                        if (sub === 'tmwait') {
+                                                const s = getSess();
+                                                if (!s.mailbox) {
+                                                        await tolak(hisoka, m,
+                                                                `⚠️ Kamu belum punya email.\n\n` +
+                                                                `Ketik *${pfx}tempmail* dulu untuk bikin email kamu sendiri, ` +
+                                                                `baru pakai *${pfx}tmwait*.\n\n` +
+                                                                `_Tiap nomor WA punya email tempmail sendiri-sendiri._`
+                                                        );
+                                                        break;
+                                                }
+                                                // PAKSA pakai email tersimpan
+                                                await ensureBound(s);
+                                                persistSess(s);
+                                                const waitMs = (() => {
+                                                        const n = parseInt(input);
+                                                        if (!isNaN(n) && n >= 10 && n <= 600) return n * 1000;
+                                                        return 2 * 60 * 1000;
+                                                })();
+                                                await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                                await tolak(hisoka, m,
+                                                        `⏳ *Menunggu email masuk (REALTIME)*\n\n` +
+                                                        `✉️ ${s.mailbox}\n` +
+                                                        `⏱️ Durasi: ${Math.round(waitMs / 1000)} detik\n` +
+                                                        `🔄 Polling tiap 5 detik\n\n` +
+                                                        `_Setiap email yang masuk akan dikirim lengkap (subjek, isi, link). Bot terus mendengarkan sampai durasi habis._`
+                                                );
+                                                let received = 0;
+                                                const r = await s.streamMessages({
+                                                        timeout: waitMs,
+                                                        interval: 5000,
+                                                        onMessage: async (msg) => {
+                                                                received++;
+                                                                await sendMailWithButtons(msg, s.mailbox, `🔔 *EMAIL BARU #${received}*`);
+                                                                await hisoka.sendMessage(m.from, { react: { text: '🔔', key: m.key } }).catch(() => {});
+                                                        },
+                                                });
+                                                if (received === 0) {
+                                                        const mb = (loadDB()[userId] || {}).mailbox || '-';
+                                                        const teks =
+                                                                `╭─「 ⌛ *TIDAK ADA EMAIL BARU* 」\n` +
+                                                                `│\n` +
+                                                                `│ ⏱️ Durasi tunggu: *${Math.round(waitMs / 1000)} detik*\n` +
+                                                                `│ ✉️ Mailbox: ${mb}\n` +
+                                                                `│ 📭 Email masuk: *0*\n` +
+                                                                `│\n` +
+                                                                `│ Coba lagi:\n` +
+                                                                `│ • ${pfx}tmwait — tunggu lagi (default 120s)\n` +
+                                                                `│ • ${pfx}tmwait 300 — kasih waktu lebih (max 600s)\n` +
+                                                                `│ • ${pfx}tminbox — cek inbox manual\n` +
+                                                                `╰────────────────────`;
+                                                        await sendTmailPanel(teks, mb);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '⌛', key: m.key } });
+                                                } else {
+                                                        const mb = (loadDB()[userId] || {}).mailbox || '-';
+                                                        const teks =
+                                                                `╭─「 ✅ *SELESAI MENDENGARKAN* 」\n` +
+                                                                `│\n` +
+                                                                `│ 📬 Total email diterima: *${received}*\n` +
+                                                                `│ ✉️ Mailbox: ${mb}\n` +
+                                                                `│\n` +
+                                                                `│ Mau lanjut?\n` +
+                                                                `│ • ${pfx}tmwait — dengerin lagi\n` +
+                                                                `│ • ${pfx}tminbox — cek inbox\n` +
+                                                                `│ • ${pfx}tmdel — ganti email baru\n` +
+                                                                `╰────────────────────`;
+                                                        await sendTmailPanel(teks, mb);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                }
+                                                logCommand(m, hisoka, 'tmwait');
+                                                break;
+                                        }
+                                } catch (error) {
+                                        console.error('\x1b[31m[Tempmail] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:tempmail');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal proses tempmail.\n\n_${error.message}_`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'pixiv': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎨 *PIXIV SEARCH* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cari ilustrasi anime dari Pixiv.\n` +
+                                                        `│\n` +
+                                                        `│ *Format:*\n` +
+                                                        `│ • ${pfx}pixiv <query>\n` +
+                                                        `│ • ${pfx}pixiv <query>,<jumlah>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh 1 gambar:*\n` +
+                                                        `│ • ${pfx}pixiv megumin\n` +
+                                                        `│ • ${pfx}pixiv rem re:zero\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh banyak gambar (max 10):*\n` +
+                                                        `│ • ${pfx}pixiv megumin chan,5\n` +
+                                                        `│ • ${pfx}pixiv naruto,10\n` +
+                                                        `│\n` +
+                                                        `│ ℹ️ Hanya konten aman (safe).\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        // Parse query dan jumlah gambar: .pixiv megumin chan,5
+                                        let realQuery = input;
+                                        let imgCount = 1;
+                                        const lastComma = input.lastIndexOf(',');
+                                        if (lastComma !== -1) {
+                                                const maybeNum = input.slice(lastComma + 1).trim();
+                                                if (/^\d+$/.test(maybeNum)) {
+                                                        imgCount = Math.min(Math.max(1, parseInt(maybeNum)), 10);
+                                                        realQuery = input.slice(0, lastComma).trim();
+                                                }
+                                        }
+                                        if (!realQuery) {
+                                                await tolak(hisoka, m, `❌ Query kosong. Contoh: *.pixiv megumin,5*`);
+                                                break;
+                                        }
+
+                                        const { pixivFetch, pixivFetchMultiple, formatPixivCaption } = _require(path.resolve('./src/scrape/pixiv.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+
+                                        const loadMsg = await tolak(hisoka, m,
+                                                imgCount > 1
+                                                        ? `🔍 Mencari *${imgCount} ilustrasi* "${realQuery}" dari Pixiv...`
+                                                        : `🔍 Mencari ilustrasi *${realQuery}* di Pixiv...`
+                                        );
+
+                                        if (imgCount > 1) {
+                                                const images = await pixivFetchMultiple(realQuery, { safe: true, count: imgCount });
+                                                const albumItems = images.map((img, i) => ({
+                                                        image: img.buffer,
+                                                        caption: formatPixivCaption(img, { index: i, total: images.length }),
+                                                }));
+
+                                                if (loadMsg?.key) {
+                                                        try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                                }
+
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: m });
+                                                } catch (_) {
+                                                        for (let i = 0; i < images.length; i++) {
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        image: images[i].buffer,
+                                                                        caption: formatPixivCaption(images[i], { index: i, total: images.length }),
+                                                                }, { quoted: i === 0 ? m : undefined });
+                                                        }
+                                                }
+                                        } else {
+                                                const randomIndex = Math.floor(Math.random() * 10);
+                                                const data = await pixivFetch(realQuery, { safe: true, index: randomIndex });
+                                                const caption = formatPixivCaption(data);
+
+                                                if (loadMsg?.key) {
+                                                        try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                                }
+
+                                                await hisoka.sendMessage(m.from, { image: data.buffer, caption }, { quoted: m });
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🎨', key: m.key } });
+                                        logCommand(m, hisoka, 'pixiv');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Pixiv] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:pixiv');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ *Gagal mencari di Pixiv.*\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Contoh:\n` +
+                                                `• *.pixiv megumin* — 1 gambar\n` +
+                                                `• *.pixiv megumin,5* — 5 gambar sekaligus`
+                                        );
+                                }
+                                break;
+                        }
+
+
+                        case 'nhentai':
+                        case 'nh': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📖 *NHENTAI* 」\n` +
+                                                        `│\n` +
+                                                        `│ *Search:*\n` +
+                                                        `│ ${pfx}nh <judul/tag>\n` +
+                                                        `│ ${pfx}nh naruto\n` +
+                                                        `│ ${pfx}nh english translated\n` +
+                                                        `│\n` +
+                                                        `│ *Random:*\n` +
+                                                        `│ ${pfx}nh random\n` +
+                                                        `│ ${pfx}nhrand\n` +
+                                                        `│\n` +
+                                                        `│ *Download PDF:*\n` +
+                                                        `│ ${pfx}nhget <id>\n` +
+                                                        `│ ${pfx}nhget <id> <hal>\n` +
+                                                        `│ ${pfx}nhdl random\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { nhentaiSearch, nhentaiRandom, nhentaiCover, formatSearchResults, formatGalleryInfo } = _require(path.resolve('./src/scrape/nhentai.cjs'));
+
+                                        if (input.toLowerCase() === 'random') {
+                                                await hisoka.sendMessage(m.from, { react: { text: '🎲', key: m.key } });
+                                                await tolak(hisoka, m, `🎲 Mengambil doujin random...`);
+                                                const gallery = await nhentaiRandom();
+                                                const infoText = formatGalleryInfo(gallery, pfx);
+                                                const coverBuf = await nhentaiCover(gallery).catch(() => null);
+                                                if (coverBuf) {
+                                                        await hisoka.sendMessage(m.from, { image: coverBuf, caption: infoText }, { quoted: m });
+                                                } else {
+                                                        await tolak(hisoka, m, infoText);
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        } else {
+                                                await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                                await tolak(hisoka, m, `🔍 Mencari *${input}* di nhentai...`);
+                                                const results = await nhentaiSearch(input);
+                                                await tolak(hisoka, m, formatSearchResults(results, input));
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        }
+
+                                } catch (err) {
+                                        console.error('[NH] Search error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'nhentai-search');
+                                        await tolak(hisoka, m, `❌ Gagal nhentai.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'nhrand': {
+                                try {
+                                        const pfx = m.prefix || '.';
+                                        const { nhentaiRandom, nhentaiCover, formatGalleryInfo } = _require(path.resolve('./src/scrape/nhentai.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🎲', key: m.key } });
+                                        await tolak(hisoka, m, `🎲 Mengambil doujin random dari nhentai...`);
+                                        const gallery = await nhentaiRandom();
+                                        const infoText = formatGalleryInfo(gallery, pfx);
+                                        const coverBuf = await nhentaiCover(gallery).catch(() => null);
+                                        if (coverBuf) {
+                                                await hisoka.sendMessage(m.from, { image: coverBuf, caption: infoText }, { quoted: m });
+                                        } else {
+                                                await tolak(hisoka, m, infoText);
+                                        }
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                } catch (err) {
+                                        console.error('[NH] Random error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'nhentai-random');
+                                        await tolak(hisoka, m, `❌ Gagal ambil random.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'nhget':
+                        case 'nhdownload':
+                        case 'nhdl': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📥 *NHENTAI DOWNLOAD* 」\n` +
+                                                        `│\n` +
+                                                        `│ *Format:*\n` +
+                                                        `│ ${pfx}nhget <id>\n` +
+                                                        `│ ${pfx}nhget <id> <jumlah hal>\n` +
+                                                        `│ ${pfx}nhdl random\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ ${pfx}nhget 177013\n` +
+                                                        `│ ${pfx}nhget 489922 10\n` +
+                                                        `│ ${pfx}nhdl random\n` +
+                                                        `│\n` +
+                                                        `│ ℹ️ Default 20 hal, max 50 hal.\n` +
+                                                        `│ ⏳ Proses ~30–60 detik.\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { nhentaiGallery, nhentaiRandom, nhentaiPdf, nhentaiCover, formatGalleryInfo, makeProgressBar } = _require(path.resolve('./src/scrape/nhentai.cjs'));
+
+                                        const isRandom = input.toLowerCase() === 'random';
+                                        let galleryId = input;
+                                        let customPages = 20;
+
+                                        if (!isRandom) {
+                                                const parts = input.split(/\s+/);
+                                                galleryId = parts[0];
+                                                if (!/^\d+$/.test(galleryId)) {
+                                                        await tolak(hisoka, m, `❌ ID tidak valid. Contoh: *${pfx}nhget 177013*`);
+                                                        break;
+                                                }
+                                                if (parts[1] && /^\d+$/.test(parts[1])) {
+                                                        customPages = Math.min(Math.max(1, parseInt(parts[1])), 50);
+                                                }
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '📥', key: m.key } });
+                                        await tolak(hisoka, m, isRandom ? `🎲 Mengambil doujin random...` : `🔍 Mengambil info gallery *#${galleryId}*...`);
+
+                                        const gallery = isRandom ? await nhentaiRandom() : await nhentaiGallery(galleryId);
+                                        const infoText = formatGalleryInfo(gallery, pfx);
+                                        const coverBuf = await nhentaiCover(gallery).catch(() => null);
+                                        if (coverBuf) {
+                                                await hisoka.sendMessage(m.from, { image: coverBuf, caption: infoText }, { quoted: m });
+                                        } else {
+                                                await tolak(hisoka, m, infoText);
+                                        }
+
+                                        const maxPg = Math.min(gallery.numPages, customPages);
+
+                                        const loadingMsg = await m.reply(
+                                                `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 0%\n` +
+                                                `📥 *Downloading ${maxPg} hal...*\n` +
+                                                `📖 _${gallery.title.slice(0, 55)}_`
+                                        );
+
+                                        let lastPct = 0;
+                                        const onProgress = async (done, total) => {
+                                                const { pct, bar } = makeProgressBar(done, total);
+                                                if (pct - lastPct < 10 && pct < 100) return;
+                                                lastPct = pct;
+                                                try {
+                                                        await m.reply({
+                                                                edit: loadingMsg.key,
+                                                                text: `${bar} ${pct}%\n📥 *Downloading ${done}/${total} hal...*\n📖 _${gallery.title.slice(0, 55)}_`,
+                                                        });
+                                                } catch (_) {}
+                                        };
+
+                                        const pdfBuf = await nhentaiPdf(gallery, maxPg, onProgress);
+
+                                        try {
+                                                await m.reply({
+                                                        edit: loadingMsg.key,
+                                                        text: `██████████ 100%\n✅ *Selesai! Mengirim PDF...*\n📖 _${gallery.title.slice(0, 55)}_`,
+                                                });
+                                        } catch (_) {}
+
+                                        const rawName = (gallery.titleEnglish || gallery.titlePretty || gallery.title)
+                                                .replace(/\[[^\]]*\]/g, '')
+                                                .replace(/\([^)]*\)/g, '')
+                                                .replace(/[^\w\s,!'-]/g, '')
+                                                .replace(/\s+/g, ' ')
+                                                .trim()
+                                                .slice(0, 60);
+                                        const safeName = rawName || `nhentai_${gallery.id}`;
+
+                                        await hisoka.sendMessage(m.from, {
+                                                document: pdfBuf,
+                                                mimetype: 'application/pdf',
+                                                fileName: `${safeName}.pdf`,
+                                                caption: `📖 *${gallery.title.slice(0, 80)}*\n🆔 ID: ${gallery.id} | 📄 ${maxPg}/${gallery.numPages} hal.`,
+                                        }, { quoted: m });
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[NH] Download error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'nhentai-download');
+                                        await tolak(hisoka, m, `❌ Gagal download nhentai.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'kusonime':
+                        case 'kuso':
+                        case 'anime': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎌 *KUSONIME* 」\n` +
+                                                        `│\n` +
+                                                        `│ *Cari anime sub indo:*\n` +
+                                                        `│ ${pfx}anime <judul>\n` +
+                                                        `│\n` +
+                                                        `│ *Per musim (kirim .txt + .pdf):*\n` +
+                                                        `│ ${pfx}anime winter 2026\n` +
+                                                        `│ ${pfx}anime spring 2025\n` +
+                                                        `│ ${pfx}anime summer 2024\n` +
+                                                        `│ ${pfx}anime fall 2024\n` +
+                                                        `│\n` +
+                                                        `│ *Cari judul:*\n` +
+                                                        `│ ${pfx}anime one piece\n` +
+                                                        `│ ${pfx}anime attack on titan\n` +
+                                                        `│\n` +
+                                                        `│ 📄 TXT: info + semua link download\n` +
+                                                        `│ 🎨 PDF: desain keren + poster anime\n` +
+                                                        `│ 🌐 Source: kusonime.com\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const _kusoPath = path.resolve('./src/scrape/kusonime.cjs');
+                                        delete _require.cache[_kusoPath];
+                                        const {
+                                                searchKusonime, getDetailKusonime, formatDetailText,
+                                                formatSearchResults, parseSeasonInput, getSeasonAnimeList,
+                                                batchFetchDetails, formatSeasonTxt, SEASON_NAMES,
+                                        } = _require(_kusoPath);
+
+                                        const seasonParsed = parseSeasonInput(input);
+
+                                        if (seasonParsed) {
+                                                const { season, year } = seasonParsed;
+                                                const seasonLabel = SEASON_NAMES[season] || season;
+                                                const baseName = `Kusonime_${seasonLabel}_${year}`;
+
+                                                await hisoka.sendMessage(m.from, { react: { text: '📅', key: m.key } });
+                                                const loadingMsg = await m.reply(
+                                                        `📅 *Mengambil daftar ${seasonLabel} ${year}...*\n` +
+                                                        `⏳ Mohon tunggu, proses ~2–5 menit\n` +
+                                                        `📡 Mengambil daftar anime...`
+                                                );
+
+                                                const animeList = await getSeasonAnimeList(season, year);
+                                                if (!animeList.length) {
+                                                        await m.reply({ edit: loadingMsg.key, text: `❌ Season *${seasonLabel} ${year}* tidak ditemukan di Kusonime.` });
+                                                        break;
+                                                }
+
+                                                await m.reply({
+                                                        edit: loadingMsg.key,
+                                                        text: `📅 *${seasonLabel} ${year}* — ${animeList.length} anime\n` +
+                                                              `⏳ Mengambil detail + link download...\n` +
+                                                              `[░░░░░░░░░░] 0/${animeList.length}`,
+                                                });
+
+                                                let lastUpdate = 0;
+                                                const details = await batchFetchDetails(animeList, async (done, total) => {
+                                                        const now = Date.now();
+                                                        if (now - lastUpdate < 4000 && done < total) return;
+                                                        lastUpdate = now;
+                                                        const pct = Math.round((done / total) * 100);
+                                                        const filled = Math.round(pct / 10);
+                                                        const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
+                                                        try {
+                                                                await m.reply({
+                                                                        edit: loadingMsg.key,
+                                                                        text: `📅 *${seasonLabel} ${year}* — ${animeList.length} anime\n` +
+                                                                              `⏳ Mengambil detail...\n` +
+                                                                              `[${bar}] ${pct}% (${done}/${total})`,
+                                                                });
+                                                        } catch (_) {}
+                                                });
+
+                                                const validCount = details.filter(Boolean).length;
+
+                                                // Generate TXT
+                                                const txtContent = formatSeasonTxt(season, year, details);
+                                                const txtBuf = Buffer.from(txtContent, 'utf8');
+
+                                                // Generate PDF
+                                                try {
+                                                        await m.reply({
+                                                                edit: loadingMsg.key,
+                                                                text: `✅ Detail selesai!\n🖨 Membuat file PDF (${validCount} anime + gambar)...`,
+                                                        });
+                                                } catch (_) {}
+
+                                                const _pdfPath = path.resolve('./src/scrape/kusonime-pdf.cjs');
+                                                delete _require.cache[_pdfPath];
+                                                const { generateSeasonPdf } = _require(_pdfPath);
+                                                const pdfBuf = await generateSeasonPdf(season, year, details);
+
+                                                try {
+                                                        await m.reply({
+                                                                edit: loadingMsg.key,
+                                                                text: `✅ Semua file siap! Mengirim TXT + PDF...`,
+                                                        });
+                                                } catch (_) {}
+
+                                                const caption =
+                                                        `📅 *Kusonime — ${seasonLabel} ${year}*\n` +
+                                                        `━━━━━━━━━━━━━━━━━━━\n` +
+                                                        `🎌 Total anime  : *${validCount}* judul\n` +
+                                                        `📄 File TXT     : info + semua link download\n` +
+                                                        `🎨 File PDF     : desain keren + gambar anime\n` +
+                                                        `                   (GDrive, Mega, HXFile, dll)\n` +
+                                                        `🌐 Sumber       : kusonime.com`;
+
+                                                await hisoka.sendMessage(m.from, {
+                                                        document: txtBuf,
+                                                        mimetype: 'text/plain',
+                                                        fileName: `${baseName}.txt`,
+                                                        caption,
+                                                }, { quoted: m });
+
+                                                await hisoka.sendMessage(m.from, {
+                                                        document: pdfBuf,
+                                                        mimetype: 'application/pdf',
+                                                        fileName: `${baseName}.pdf`,
+                                                        caption: `📄 *PDF ${seasonLabel} ${year}* — ${validCount} anime\n🎨 Termasuk cover, poster, info & link download tiap anime`,
+                                                }, { quoted: m });
+
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                        } else {
+                                                await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                                await tolak(hisoka, m, `🔍 Mencari *${input}* di Kusonime...`);
+
+                                                const results = await searchKusonime(input);
+
+                                                if (!results.length) {
+                                                        await tolak(hisoka, m, `❌ Tidak ada hasil untuk *${input}*.\nCoba kata kunci lain, contoh: _one piece batch_ atau _attack on titan_`);
+                                                        break;
+                                                }
+
+                                                if (results.length === 1) {
+                                                        await tolak(hisoka, m, `📡 Mengambil detail *${results[0].title}*...`);
+                                                        const detail = await getDetailKusonime(results[0].url);
+                                                        const text = formatDetailText(detail, 5);
+                                                        if (detail.thumbnail) {
+                                                                const thumbBuf = await _require('axios').get(detail.thumbnail, { responseType: 'arraybuffer', timeout: 15000 }).then(r => Buffer.from(r.data)).catch(() => null);
+                                                                if (thumbBuf) {
+                                                                        await hisoka.sendMessage(m.from, { image: thumbBuf, caption: text }, { quoted: m });
+                                                                } else {
+                                                                        await tolak(hisoka, m, text);
+                                                                }
+                                                        } else {
+                                                                await tolak(hisoka, m, text);
+                                                        }
+                                                } else {
+                                                        const listText = formatSearchResults(results) +
+                                                                `\n\n💡 _Ketik *${pfx}anime <judul lebih spesifik>* untuk langsung ke detail_`;
+                                                        await tolak(hisoka, m, listText);
+
+                                                        await tolak(hisoka, m, `📡 Mengambil detail hasil pertama...`);
+                                                        const detail = await getDetailKusonime(results[0].url);
+                                                        const text = formatDetailText(detail, 3);
+                                                        if (detail.thumbnail) {
+                                                                const thumbBuf = await _require('axios').get(detail.thumbnail, { responseType: 'arraybuffer', timeout: 15000 }).then(r => Buffer.from(r.data)).catch(() => null);
+                                                                if (thumbBuf) {
+                                                                        await hisoka.sendMessage(m.from, { image: thumbBuf, caption: text }, { quoted: m });
+                                                                } else {
+                                                                        await tolak(hisoka, m, text);
+                                                                }
+                                                        } else {
+                                                                await tolak(hisoka, m, text);
+                                                        }
+                                                }
+
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        }
+
+                                } catch (err) {
+                                        console.error('[KUSO] Error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'kusonime');
+                                        await tolak(hisoka, m, `❌ Gagal ambil data Kusonime.\n💬 ${err?.message?.slice(0, 120) || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'kusoupdate':
+                        case 'kusonimeupdate':
+                        case 'animeupdate': {
+                                try {
+                                        const _kusoPath2 = path.resolve('./src/scrape/kusonime.cjs');
+                                        delete _require.cache[_kusoPath2];
+                                        const { getLatestUpdates, formatLatestUpdates } = _require(_kusoPath2);
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '📺', key: m.key } });
+                                        await tolak(hisoka, m, `📺 Mengambil update terbaru Kusonime...`);
+
+                                        const items = await getLatestUpdates(10);
+                                        await tolak(hisoka, m, formatLatestUpdates(items));
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[KUSOUPDATE] Error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'kusoupdate');
+                                        await tolak(hisoka, m, `❌ Gagal ambil update Kusonime.\n💬 ${err?.message?.slice(0, 100) || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'pixivr18':
+                        case 'pixiv18': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🔞 *PIXIV R18 SEARCH* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cari ilustrasi R18 dari Pixiv.\n` +
+                                                        `│\n` +
+                                                        `│ *Format:*\n` +
+                                                        `│ • ${pfx}pixivr18 <query>\n` +
+                                                        `│ • ${pfx}pixivr18 <query>,<jumlah>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh 1 gambar:*\n` +
+                                                        `│ • ${pfx}pixivr18 megumin\n` +
+                                                        `│ • ${pfx}pixivr18 rem re:zero\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh banyak gambar (max 10):*\n` +
+                                                        `│ • ${pfx}pixivr18 megumin,5\n` +
+                                                        `│ • ${pfx}pixivr18 naruto,10\n` +
+                                                        `│\n` +
+                                                        `│ ⚠️ Konten dewasa (R18). 18+ only.\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        let realQuery = input;
+                                        let imgCount = 1;
+                                        const lastComma = input.lastIndexOf(',');
+                                        if (lastComma !== -1) {
+                                                const maybeNum = input.slice(lastComma + 1).trim();
+                                                if (/^\d+$/.test(maybeNum)) {
+                                                        imgCount = Math.min(Math.max(1, parseInt(maybeNum)), 10);
+                                                        realQuery = input.slice(0, lastComma).trim();
+                                                }
+                                        }
+                                        if (!realQuery) {
+                                                await tolak(hisoka, m, `❌ Query kosong. Contoh: *.pixivr18 megumin,5*`);
+                                                break;
+                                        }
+
+                                        const { pixivR18Fetch, pixivR18FetchMultiple, formatPixivR18Caption } = _require(path.resolve('./src/scrape/pixivr18.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+
+                                        const loadMsg = await tolak(hisoka, m,
+                                                imgCount > 1
+                                                        ? `🔍 Mencari *${imgCount} ilustrasi R18* "${realQuery}" dari Pixiv...`
+                                                        : `🔍 Mencari ilustrasi R18 *${realQuery}* di Pixiv...`
+                                        );
+
+                                        if (imgCount > 1) {
+                                                const images = await pixivR18FetchMultiple(realQuery, { count: imgCount });
+                                                const albumItems = images.map((img, i) => ({
+                                                        image: img.buffer,
+                                                        caption: formatPixivR18Caption(img, { index: i, total: images.length }),
+                                                }));
+
+                                                if (loadMsg?.key) {
+                                                        try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                                }
+
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: m });
+                                                } catch (_) {
+                                                        for (let i = 0; i < images.length; i++) {
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        image: images[i].buffer,
+                                                                        caption: formatPixivR18Caption(images[i], { index: i, total: images.length }),
+                                                                }, { quoted: i === 0 ? m : undefined });
+                                                        }
+                                                }
+                                        } else {
+                                                const randomIndex = Math.floor(Math.random() * 10);
+                                                const data = await pixivR18Fetch(realQuery, { index: randomIndex });
+                                                const caption = formatPixivR18Caption(data);
+
+                                                if (loadMsg?.key) {
+                                                        try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                                }
+
+                                                await hisoka.sendMessage(m.from, { image: data.buffer, caption }, { quoted: m });
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔞', key: m.key } });
+                                        logCommand(m, hisoka, 'pixivr18');
+                                } catch (error) {
+                                        console.error('\x1b[31m[PixivR18] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:pixivr18');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ *Gagal mencari di Pixiv R18.*\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Contoh:\n` +
+                                                `• *.pixivr18 megumin* — 1 gambar\n` +
+                                                `• *.pixivr18 megumin,5* — 5 gambar sekaligus`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'cekhp':
+                        case 'spechp':
+                        case 'infohp': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📱 *CEK HP REALTIME* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cek spesifikasi lengkap HP secara\n` +
+                                                        `│ realtime dari database GSMArena.\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • ${pfx}cekhp Samsung Galaxy S24\n` +
+                                                        `│ • ${pfx}cekhp iPhone 15 Pro Max\n` +
+                                                        `│ • ${pfx}cekhp Xiaomi 14 Ultra\n` +
+                                                        `│ • ${pfx}cekhp Redmi Note 13 Pro\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { cekHP, getHPImage, formatHPSpecs } = _require(path.resolve('./src/scrape/cekhp.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔎', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, `🔎 Mencari data spesifikasi *${input}* + estimasi harga pasar Indonesia...`);
+
+                                        const result = await cekHP(input);
+                                        let report = formatHPSpecs(result);
+
+                                        // Estimasi harga pasaran Indonesia via Gemini AI — inject langsung di blok harga
+                                        let aiPriceBlock = '';
+                                        try {
+                                                const pi = result.priceInfo;
+                                                const aiPrompt =
+                                                        `Kamu adalah asisten info harga HP di Indonesia.\n` +
+                                                        `HP: ${result.name}\n` +
+                                                        `Harga global resmi: ${pi?.raw || 'tidak diketahui'}\n` +
+                                                        `${pi?.idr ? `Konversi kurs: Rp ${Math.round(pi.idr).toLocaleString('id-ID')}` : ''}\n\n` +
+                                                        `Berikan estimasi harga jual di pasaran Indonesia (marketplace/toko). ` +
+                                                        `Pertimbangkan pajak impor, distribusi lokal, kondisi pasar. ` +
+                                                        `Jawab HANYA format ini:\n` +
+                                                        `▸ *🤖 Estimasi Pasaran Indo:* Rp X.XXX.XXX - Rp Y.YYY.YYY\n` +
+                                                        `▸ *Catatan:* (1 kalimat singkat)`;
+
+                                                const aiResp = await gemini.ask(aiPrompt);
+                                                if (aiResp && aiResp.trim()) {
+                                                        aiPriceBlock = aiResp.trim()
+                                                                .split('\n')
+                                                                .filter(l => l.trim())
+                                                                .slice(0, 2)
+                                                                .join('\n');
+                                                }
+                                        } catch (_) {}
+                                        report = report.replace('%%AI_PRICE%%', aiPriceBlock);
+
+                                        const imgBuf = await getHPImage(result.image, result.bigpicUrl).catch(() => null);
+
+                                        if (loadingMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                        }
+
+                                        if (imgBuf && imgBuf.length > 500) {
+                                                await hisoka.sendMessage(m.from, { image: imgBuf, caption: report }, { quoted: m });
+                                        } else {
+                                                await tolak(hisoka, m, report);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'cekhp');
+                                } catch (error) {
+                                        console.error('\x1b[31m[CekHP] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:cekhp');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal mengambil data HP.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Coba tulis nama HP lebih lengkap.\n` +
+                                                `Contoh: *.cekhp Samsung Galaxy A55*`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'bandingkan':
+                        case 'compare':
+                        case 'vsbandingkan': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📱 *BANDINGKAN HP* 」\n` +
+                                                        `│\n` +
+                                                        `│ Bandingkan spesifikasi 2 HP secara\n` +
+                                                        `│ side-by-side dari database GSMArena.\n` +
+                                                        `│\n` +
+                                                        `│ *Format:*\n` +
+                                                        `│ ${pfx}bandingkan <HP1> vs <HP2>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • ${pfx}bandingkan Redmi Note 13 Pro vs Poco X6 Pro\n` +
+                                                        `│ • ${pfx}bandingkan iPhone 15 vs Samsung S24\n` +
+                                                        `│ • ${pfx}bandingkan Xiaomi 14 vs Pixel 8 Pro\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const sepMatch = input.match(/^(.+?)\s+vs\.?\s+(.+)$/i);
+                                        if (!sepMatch) {
+                                                await tolak(hisoka, m,
+                                                        `❌ Format salah.\n\n` +
+                                                        `Gunakan: *${pfx}bandingkan <HP1> vs <HP2>*\n` +
+                                                        `Contoh: *${pfx}bandingkan Redmi Note 13 Pro vs Poco X6 Pro*`
+                                                );
+                                                break;
+                                        }
+
+                                        const queryA = sepMatch[1].trim();
+                                        const queryB = sepMatch[2].trim();
+
+                                        const { bandingkanHP } = _require(path.resolve('./src/scrape/bandingkanhp.cjs'));
+                                        const { buildComparisonPDF } = _require(path.resolve('./src/scrape/bandingkanpdf.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔎', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m,
+                                                `🔎 Mencari data *${queryA}* dan *${queryB}*...\nMohon tunggu sebentar ⏳`
+                                        );
+
+                                        const result = await bandingkanHP(queryA, queryB);
+
+                                        if (loadingMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                        }
+
+                                        // Kirim 1 gambar gabungan side-by-side (foto A + foto B realtime dari GSMArena)
+                                        // dengan caption full spek, sebagai REPLY ke pesan user
+                                        const hasCombined = result.combined && result.combined.length > 500;
+                                        const hasImgA = result.imgA && result.imgA.length > 500;
+                                        const hasImgB = result.imgB && result.imgB.length > 500;
+
+                                        if (hasCombined) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: result.combined,
+                                                        caption: result.text
+                                                }, { quoted: m });
+                                        } else if (hasImgA) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: result.imgA,
+                                                        caption: result.text
+                                                }, { quoted: m });
+                                        } else if (hasImgB) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: result.imgB,
+                                                        caption: result.text
+                                                }, { quoted: m });
+                                        } else {
+                                                // Tidak ada gambar, kirim teks saja
+                                                await hisoka.sendMessage(m.from, { text: result.text }, { quoted: m });
+                                        }
+
+                                        // Pesan kedua: kirim PDF rapih berisi foto + spek lengkap
+                                        try {
+                                                const pdfBuf = await buildComparisonPDF(result);
+                                                if (pdfBuf && pdfBuf.length > 500) {
+                                                        const safeA = (result.a.name || 'A').replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 30);
+                                                        const safeB = (result.b.name || 'B').replace(/[^a-zA-Z0-9]+/g, '_').slice(0, 30);
+                                                        await hisoka.sendMessage(m.from, {
+                                                                document: pdfBuf,
+                                                                mimetype: 'application/pdf',
+                                                                fileName: `Bandingkan_${safeA}_vs_${safeB}.pdf`,
+                                                                caption: `📄 *Versi PDF rapih*\n${result.a.name} vs ${result.b.name}`,
+                                                        }, { quoted: m });
+                                                }
+                                        } catch (pdfErr) {
+                                                console.error('\x1b[31m[BandingkanHP][PDF] Error:\x1b[39m', pdfErr.message);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'bandingkan');
+                                } catch (error) {
+                                        console.error('\x1b[31m[BandingkanHP] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:bandingkan');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal membandingkan HP.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Pastikan nama HP ditulis lengkap dan dipisah dengan *vs*.\n` +
+                                                `Contoh: *.bandingkan Redmi Note 13 Pro vs Poco X6 Pro*`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'bluearchive':
+                        case 'bachar':
+                        case 'ba': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎮 *BLUE ARCHIVE* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cek info lengkap karakter Blue\n` +
+                                                        `│ Archive secara realtime.\n` +
+                                                        `│ Total: *227 karakter* tersedia.\n` +
+                                                        `│\n` +
+                                                        `├─「 📌 *Cara Pakai* 」\n` +
+                                                        `│ ${pfx}ba <nama karakter>\n` +
+                                                        `│\n` +
+                                                        `├─「 🎯 *Contoh Karakter* 」\n` +
+                                                        `│ • ${pfx}ba shiroko\n` +
+                                                        `│ • ${pfx}ba hina\n` +
+                                                        `│ • ${pfx}ba aru\n` +
+                                                        `│ • ${pfx}ba hoshino\n` +
+                                                        `│ • ${pfx}ba iori\n` +
+                                                        `│ • ${pfx}ba yuuka\n` +
+                                                        `│\n` +
+                                                        `├─「 👙 *Versi Alternatif* 」\n` +
+                                                        `│ Tambah kata di belakang nama:\n` +
+                                                        `│ • ${pfx}ba hina swimsuit\n` +
+                                                        `│ • ${pfx}ba neru bunnygirl\n` +
+                                                        `│ • ${pfx}ba aru newyear\n` +
+                                                        `│ • ${pfx}ba serika swimsuit\n` +
+                                                        `│ • ${pfx}ba chinatsu onsen\n` +
+                                                        `│\n` +
+                                                        `├─「 📊 *Info yang Ditampilkan* 」\n` +
+                                                        `│ 💬 Quote suara karakter (random)\n` +
+                                                        `│ 🏫 Sekolah, Role, Tipe, Posisi\n` +
+                                                        `│ 📋 Profil (usia, hobi, CV, dll)\n` +
+                                                        `│ 🔫 Senjata + stats\n` +
+                                                        `│ 🔥 Skills lengkap\n` +
+                                                        `│ 🎯 Skill priority & investasi\n` +
+                                                        `│ 📖 Bio karakter\n` +
+                                                        `│\n` +
+                                                        `├─「 🔰 *Tipe Karakter* 」\n` +
+                                                        `│ Striker (155) • Special (72)\n` +
+                                                        `│\n` +
+                                                        `├─「 ⚔️ *Role* 」\n` +
+                                                        `│ DPS (122) • Supporter (61)\n` +
+                                                        `│ Tank (20) • Healer (18) • T.S.\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { baChar, formatBaChar } = _require(path.resolve('./src/scrape/bluearchive.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🎮', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, `🔎 Mencari data karakter *${input}* di Blue Archive...`);
+
+                                        const result = await baChar(input);
+                                        const report = formatBaChar(result);
+
+                                        if (loadingMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                        }
+
+                                        const imgFile = result.img || result.imgSmall || null;
+                                        const imgUrl = imgFile
+                                                ? `https://cdn.jsdelivr.net/gh/SchaleDB/SchaleDB@main/images/student/${imgFile}`
+                                                : null;
+
+                                        let imgSent = false;
+                                        if (imgUrl) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { image: { url: imgUrl }, caption: report }, { quoted: m });
+                                                        imgSent = true;
+                                                } catch (_) {}
+                                        }
+                                        if (!imgSent) {
+                                                await tolak(hisoka, m, report);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'bluearchive');
+                                } catch (error) {
+                                        console.error('\x1b[31m[BlueArchive] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:ba');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Karakter tidak ditemukan.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Contoh: *.ba shiroko*`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'genius':
+                        case 'geniussearch':
+                        case 'carilagu': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎵 *GENIUS SEARCH* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cari info lagu dari Genius.\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • ${pfx}genius lucid dreams\n` +
+                                                        `│ • ${pfx}genius eminem lose yourself\n` +
+                                                        `│ • ${pfx}geniusdetail 11513410\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { geniusSearch, formatGeniusSearch } = _require(path.resolve('./src/scrape/genius.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔎', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, `🔎 Mencari lagu *${input}* di Genius...`);
+
+                                        const results = await geniusSearch(input);
+                                        const report = formatGeniusSearch(results, input, pfx);
+
+                                        if (loadingMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                        }
+
+                                        await tolak(hisoka, m, report);
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'genius');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Genius] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:genius');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal mencari lagu.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Contoh: *.genius lucid dreams*`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'geniusdetail':
+                        case 'gdetail':
+                        case 'detailgenius': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input || isNaN(Number(input))) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎼 *GENIUS DETAIL* 」\n` +
+                                                        `│\n` +
+                                                        `│ Ambil detail lagu pakai ID Genius.\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • ${pfx}geniusdetail 11513410\n` +
+                                                        `│ • ${pfx}genius lucid dreams\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { geniusDetail, formatGeniusDetail } = _require(path.resolve('./src/scrape/genius.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🎼', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, `🎼 Mengambil detail lagu ID *${input}*...`);
+
+                                        const result = await geniusDetail(input);
+                                        const report = formatGeniusDetail(result);
+
+                                        if (loadingMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                        }
+
+                                        let sent = false;
+                                        if (result.image) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { image: { url: result.image }, caption: report }, { quoted: m });
+                                                        sent = true;
+                                                } catch (_) {}
+                                        }
+                                        if (!sent) await tolak(hisoka, m, report);
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'geniusdetail');
+                                } catch (error) {
+                                        console.error('\x1b[31m[GeniusDetail] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:geniusdetail');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal mengambil detail lagu.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Contoh: *.geniusdetail 11513410*`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'whatsmusik':
+                        case 'whatmusic':
+                        case 'wmusik':
+                        case 'tebaklagu':
+                        case 'shazam':
+                        case 'carijudullagu': {
+                                try {
+                                        const pfx = m.prefix || '.';
+                                        const { identifyWhatsMusic, identifyWhatsMusicFromYoutube, downloadWhatsMusicVoiceNote, formatWhatsMusic, isYoutubeUrl, extractYoutubeUrl } = _require(path.resolve('./src/scrape/whatsmusik.cjs'));
+                                        const currentType = getMediaTypeFromMessage(m);
+                                        const quotedType = m.isQuoted ? getMediaTypeFromMessage(m.quoted) : '';
+                                        const currentMime = m.content?.mimetype || m.msg?.mimetype || m.message?.audioMessage?.mimetype || m.message?.videoMessage?.mimetype || m.message?.documentMessage?.mimetype || '';
+                                        const quotedMime = m.quoted?.content?.mimetype || m.quoted?.msg?.mimetype || m.quoted?.message?.audioMessage?.mimetype || m.quoted?.message?.videoMessage?.mimetype || m.quoted?.message?.documentMessage?.mimetype || '';
+                                        const youtubeInput = extractYoutubeUrl(query || m.quoted?.text || m.quoted?.body || m.quoted?.caption || '');
+                                        const hasYoutubeUrl = youtubeInput && isYoutubeUrl(youtubeInput);
+
+                                        const isCurrentAudio = currentType === 'audioMessage' || currentType === 'videoMessage' || (currentType === 'documentMessage' && /^audio\//i.test(currentMime));
+                                        const isQuotedAudio = quotedType === 'audioMessage' || quotedType === 'videoMessage' || (quotedType === 'documentMessage' && /^audio\//i.test(quotedMime));
+
+                                        if (!isCurrentAudio && !isQuotedAudio && !hasYoutubeUrl) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎧 *WHATSMUSIK* 」\n` +
+                                                        `│\n` +
+                                                        `│ Kenali judul lagu dari audio/voice note/video.\n` +
+                                                        `│\n` +
+                                                        `│ *Cara pakai:*\n` +
+                                                        `│ • Reply audio/voice note dengan ${pfx}whatsmusik\n` +
+                                                        `│ • ${pfx}whatsmusik https://youtu.be/xxxx\n` +
+                                                        `│ • Bisa juga ${pfx}wmusik / ${pfx}tebaklagu\n` +
+                                                        `│\n` +
+                                                        `│ *Tips:* pakai potongan lagu/reff 10-35 detik\n` +
+                                                        `│ yang jelas, jangan terlalu banyak noise.\n` +
+                                                        `╰────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🎧', key: m.key } }).catch(() => {});
+                                        const loadingMsg = await tolak(hisoka, m, hasYoutubeUrl
+                                                ? '🎧 Mengambil audio YouTube, membaca metadata, lalu mencocokkan lagu...'
+                                                : '🎧 Menganalisis beberapa bagian audio dan mencari judul lagu...'
+                                        );
+
+                                        let result;
+                                        if (hasYoutubeUrl) {
+                                                const ytdlpBin = await ensureYtdlp(hisoka, m);
+                                                result = await identifyWhatsMusicFromYoutube(youtubeInput, { ytdlpPath: ytdlpBin });
+                                        } else {
+                                                const targetMessage = isQuotedAudio ? m.quoted : m;
+                                                const targetMime = isQuotedAudio ? quotedMime : currentMime;
+                                                const audioBuffer = await downloadMediaBuffer(hisoka, targetMessage);
+                                                result = await identifyWhatsMusic(audioBuffer, { mimetype: targetMime });
+                                        }
+                                        const report = formatWhatsMusic(result);
+
+                                        if (loadingMsg?.key) {
+                                                try { await m.reply({ edit: loadingMsg.key, text: '✅ Lagu ditemukan! Mengirim detail...' }); } catch (_) {}
+                                        }
+
+                                        let sent = false;
+                                        if (result.coverHigh || result.cover) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image: { url: result.coverHigh || result.cover },
+                                                                caption: report
+                                                        }, { quoted: m });
+                                                        sent = true;
+                                                } catch (_) {}
+                                        }
+                                        if (!sent) await tolak(hisoka, m, report);
+
+                                        if (result.links?.youtube) {
+                                                try {
+                                                        const ytdlpBin = await ensureYtdlp(hisoka, m);
+                                                        if (loadingMsg?.key) {
+                                                                try { await m.reply({ edit: loadingMsg.key, text: '✅ Detail lagu terkirim. Sedang mengambil audio VN realtime...' }); } catch (_) {}
+                                                        }
+                                                        const vnAudio = await downloadWhatsMusicVoiceNote(result.links.youtube, { ytdlpPath: ytdlpBin, maxDuration: 600 });
+                                                        await hisoka.sendMessage(m.from, {
+                                                                audio: vnAudio.buffer,
+                                                                mimetype: vnAudio.mimetype,
+                                                                fileName: vnAudio.fileName,
+                                                                ptt: true
+                                                        }, { quoted: m });
+                                                } catch (vnError) {
+                                                        console.error('\x1b[33m[WhatsMusik VN] Gagal kirim voice note:\x1b[39m', vnError.message);
+                                                        await tolak(hisoka, m, `⚠️ Detail lagu berhasil, tapi audio VN gagal dikirim: ${vnError.message?.substring(0, 160)}`);
+                                                }
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } }).catch(() => {});
+                                        logCommand(m, hisoka, 'whatsmusik');
+                                } catch (error) {
+                                        console.error('\x1b[31m[WhatsMusik] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:whatsmusik');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ Gagal mengenali lagu.\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Tips: reply audio lagu yang jelas durasi 8-25 detik.`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'menu': {
+                                try {
+                                        const cfg      = loadConfig();
+                                        const botReply = cfg.botReply || {};
+                                        const botName  = botReply.botName     || 'Wily Bot';
+                                        const ownerNum = botReply.ownerNumber || '';
+                                        const uptime   = process.uptime();
+                                        const uh = Math.floor(uptime / 3600);
+                                        const um = Math.floor((uptime % 3600) / 60);
+                                        const us = Math.floor(uptime % 60);
+                                        const uptimeStr = `${uh} Jam ${um} Menit ${us} Detik`;
+                                        const allCmds = await getCaseName(path.join(process.cwd(), 'src', 'handler', 'message.js'));
+                                        const totalCmd = allCmds.length || 0;
+
+                                        await hisoka.sendMessage(m.from, { react: { text: `🌊`, key: m.key } }).catch(() => {});
+
+                                        const teks =
+`╭─「 👤 *INFO PENGGUNA* 」
+│
+├➤ *Nama*   : ${m.pushName}
+├➤ *Rank*   : ${m.isOwner ? '👑 Owner' : '🆓 Pengguna'}
+├➤ *Fitur*  : ${totalCmd} fitur tersedia
+╰➤ *Status* : Online 🟢
+
+╭─「 🤖 *INFO BOT* 」
+│
+├➤ *Bot*    : ${botName}
+├➤ *Uptime* : ${uptimeStr}
+╰➤ *Prefix* : Bisa dengan atau tanpa prefix
+
+╭─「 🌐 *KONTAK* 」
+│
+╰➤ *WA*     : wa.me/${ownerNum}
+
+╭─「 ⚙️ *SETTING* 」
+│
+├➤ *.typing*
+├➤ *.recording*
+├➤ *.online*
+├➤ *.readsw*
+├➤ *.antidel on/off*
+├➤ *.anticall*
+├➤ *.anticallvid*
+├➤ *.autocleaner*
+╰➤ *.telegram*
+
+╭─「 👥 *GRUP & PESAN* 」
+│
+├➤ *.hidetag*
+├➤ *.ghosttag*
+├➤ *.quoted*
+├➤ *.rvo*
+├➤ *.s*
+├➤ *.stickerly*
+├➤ *.toimg*
+├➤ *.listgroup*
+├➤ *.group*
+├➤ *.welcome on/off*
+├➤ *.goodbye on/off*
+╰➤ *.welgod on/off*
+
+╭─「 📡 *STATUS* 」
+│
+├➤ *.upswgc*
+╰➤ *.antitagsw*
+
+╭─「 🔍 *INFO & CEK* 」
+│
+├➤ *.cekhp / .spechp / .infohp*
+│   _Cek spesifikasi HP realtime_
+├➤ *.bandingkan <HP1> vs <HP2>*
+│   _Bandingkan 2 HP side-by-side_
+├➤ *.ba / .bachar / .bluearchive*
+│   _Info karakter Blue Archive_
+├➤ *.genius / .carilagu*
+│   _Cari info lagu Genius_
+├➤ *.whatsmusik / .wmusik*
+│   _Kenali judul lagu dari audio_
+├➤ *.cuaca [daerah]*
+│   _Cek cuaca realtime_
+├➤ *.pixiv [karakter/judul]*
+│   _Cari ilustrasi anime dari Pixiv (safe)_
+╰➤ *.pixivr18 [karakter/judul]*
+   _Cari ilustrasi R18 dari Pixiv (18+)_
+
+╭─「 📥 *DOWNLOAD* 」
+│
+├➤ *.tt*
+├➤ *.ig*
+├➤ *.fb*
+├➤ *.ytmp3*
+├➤ *.ytmp4*
+├➤ *.play*
+├➤ *.hd / .remini / .hdr*
+╰➤ *.hdvid / .vidhd / .hdvideo*
+
+╭─「 🤖 *JADIBOT* 」
+│
+├➤ *.jadibot*
+├➤ *.stopbot*
+╰➤ *.listbot*
+
+╭─「 👑 *OWNER* 」
+│
+├➤ *.listowner / .addowner / .delowner*
+├➤ *.backup / .ceksesi / .eval / .bash*
+├➤ *.addemoji / .delemoji / .listemoji*
+├➤ *.wily / .simi / .wilyai*
+╰➤ *.cekerror / .contact*
+
+▸▸▸━━━━━━━━━━━━━━━━━━━━◂◂◂
+
+💬 _"Kami terus berinovasi untuk_
+_memberikan pengalaman terbaik!"_ ✨
+
+`;
+                                        const ppUser = await getUserProfilePictureUrl(hisoka, m.sender);
+                                        const contextInfo = ppUser
+                                                ? {
+                                                        externalAdReply: {
+                                                                showAdAttribution: false,
+                                                                title: `${botName} Menu`,
+                                                                body: `Menu untuk ${m.pushName || 'User'}`,
+                                                                thumbnailUrl: ppUser,
+                                                                sourceUrl: ownerNum ? `https://wa.me/${ownerNum}` : undefined,
+                                                                mediaType: 1,
+                                                                renderLargerThumbnail: true
+                                                        }
+                                                }
+                                                : undefined;
+                                        await hisoka.sendMessage(
+                                                m.from,
+                                                contextInfo ? { text: teks, contextInfo } : { text: teks },
+                                                { quoted: m }
+                                        );
+                                } catch (error) {
+                                        if (!isNoSpaceError(error)) throw error;
+                                        cleanupWritePressure();
+                                        await hisoka.sendMessage(m.from, {
+                                                text:
+                                                        `*MENU BOT*\n\n` +
+                                                        `Menu sedang dikirim mode hemat karena storage/temp sempat penuh.\n\n` +
+                                                        `Fitur utama:\n` +
+                                                        `.typing\n` +
+                                                        `.recording\n` +
+                                                        `.online\n` +
+                                                        `.readsw\n` +
+                                                        `.antidel on/off\n` +
+                                                        `.hidetag\n` +
+                                                        `.ghosttag\n` +
+                                                        `.quoted\n` +
+                                                        `.rvo\n` +
+                                                        `.s\n` +
+                                                        `.toimg\n` +
+                                                        `.stickerly\n` +
+                                                        `.listgroup\n` +
+                                                        `.tt\n` +
+                                                        `.ig\n` +
+                                                        `.fb\n` +
+                                                        `.ytmp3\n` +
+                                                        `.ytmp4\n` +
+                                                        `.play\n` +
+                                                        `.cuaca\n` +
+                                                        `.jadibot\n` +
+                                                        `.stopbot\n` +
+                                                        `.listbot\n\n` +
+                                                        `Ketik .allmenu untuk daftar lebih lengkap.`
+                                        }, { quoted: m });
+                                }
+                                logCommand(m, hisoka, 'menu');
+                                break;
+                        }
+
+                        case 'allmenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `⏱️`, key: m.key } });
+
+                                const allTeks =
+`╭─「 📋 *SEMUA PERINTAH* 」
+│
+├➤ *.menu*
+├➤ *.allmenu*
+├➤ *.ping*
+├➤ *.info*
+├➤ *.memory / .ram*
+│
+├➤ *.typing*
+├➤ *.recording*
+├➤ *.online*
+├➤ *.readsw*
+├➤ *.antidel on/off*
+├➤ *.anticall*
+├➤ *.anticallvid*
+├➤ *.autocleaner*
+├➤ *.sessioncleaner*
+├➤ *.telegram*
+│
+├➤ *.hidetag*
+├➤ *.ghosttag*
+├➤ *.quoted*
+├➤ *.rvo*
+├➤ *.s*
+├➤ *.stickerly*
+├➤ *.toimg*
+├➤ *.listgroup*
+├➤ *.group*
+│
+├➤ *.upswgc*
+├➤ *.antitagsw*
+│
+├➤ *.tt*
+├➤ *.ig*
+├➤ *.fb*
+├➤ *.ytmp3*
+├➤ *.ytmp4*
+├➤ *.play*
+├➤ *.cuaca [daerah]*
+├➤ *.genius [judul/artis]*
+├➤ *.geniusdetail [id]*
+├➤ *.whatsmusik [reply audio]*
+├➤ *.stickerly [query/link]*
+├➤ *.hd / .remini / .hdr*
+├➤ *.hdvid / .vidhd / .hdvideo*
+│
+├➤ *.react*
+├➤ *.cekreact*
+├➤ *.setreactapi*
+│
+├➤ *.jadibot*
+├➤ *.stopbot*
+├➤ *.listbot*
+│
+├➤ *.addemoji*
+├➤ *.delemoji*
+├➤ *.listemoji*
+├➤ *.wily*
+├➤ *.simi*
+├➤ *.wilyai*
+├➤ *.contact*
+│
+├➤ *.listowner*
+├➤ *.addowner*
+├➤ *.delowner*
+├➤ *.backup*
+├➤ *.ceksesi*
+├➤ *.eval*
+├➤ *.bash*
+╰➤ *.cekerror*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: allTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: allTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'allmenu');
+                                break;
+                        }
+
+                        case 'settingmenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `⚙️`, key: m.key } });
+
+                                const settingTeks =
+`╭─「 ⚙️ *SETTING MENU* 」
+│
+├➤ *.typing*
+├➤ *.recording*
+├➤ *.online*
+├➤ *.readsw*
+├➤ *.antidel on/off*
+├➤ *.anticall*
+├➤ *.anticallvid*
+├➤ *.autocleaner on/off*
+├➤ *.sessioncleaner on/off*
+╰➤ *.telegram*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: settingTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: settingTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'settingmenu');
+                                break;
+                        }
+
+                        case 'groupmenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `👥`, key: m.key } });
+
+                                const groupTeks =
+`╭─「 👥 *GROUP & PESAN MENU* 」
+│
+├➤ *.hidetag [teks]*
+├➤ *.ghosttag [teks]*
+├➤ *.quoted*
+├➤ *.rvo*
+├➤ *.s*
+├➤ *.toimg*
+├➤ *.listgroup*
+╰➤ *.group*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: groupTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: groupTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'groupmenu');
+                                break;
+                        }
+
+                        case 'statusmenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `📡`, key: m.key } });
+
+                                const statusTeks =
+`╭─「 📡 *STATUS & ANTI-TAG MENU* 」
+│
+├➤ *.upswgc [caption]*
+├➤ *.antitagsw on*
+├➤ *.antitagsw off*
+├➤ *.antitagsw reset*
+╰➤ *.antitagsw status*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: statusTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: statusTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'statusmenu');
+                                break;
+                        }
+
+                        case 'downloadmenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `📥`, key: m.key } });
+
+                                const dlTeks =
+`╭─「 📥 *DOWNLOAD MENU* 」
+│
+├➤ *.tt [link]*
+├➤ *.ig [link]*
+├➤ *.fb [link]*
+├➤ *.ytmp3 [link]*
+├➤ *.ytmp4 [link]*
+├➤ *.play [judul/link]*
+├➤ *.stickerly [query/link]*
+├➤ *.hd / .remini / .hdr*
+╰➤ *.hdvid / .vidhd / .hdvideo*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: dlTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: dlTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'downloadmenu');
+                                break;
+                        }
+
+                        case 'jadibotmenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `🤖`, key: m.key } });
+
+                                const jadibotTeks =
+`╭─「 🤖 *JADIBOT MENU* 」
+│
+├➤ *.jadibot [nomor]*
+├➤ *.stopbot [nom]*
+╰➤ *.listbot*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: jadibotTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: jadibotTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'jadibotmenu');
+                                break;
+                        }
+
+                        case 'ownermenu': {
+                                const cfg      = loadConfig();
+                                const botReply = cfg.botReply || {};
+                                const botName  = botReply.botName || 'Wily Bot';
+
+                                hisoka.sendMessage(m.from, { react: { text: `👑`, key: m.key } });
+
+                                const ownerTeks =
+`╭─「 👑 *OWNER MENU* 」
+│
+├➤ *.listowner*
+├➤ *.addowner [nomor]*
+├➤ *.delowner [nomor]*
+├➤ *.backup*
+├➤ *.eval [kode]*
+├➤ *.bash [perintah]*
+├➤ *.addemoji*
+├➤ *.delemoji*
+├➤ *.listemoji*
+├➤ *.cekerror*
+├➤ *.cekerror reset*
+├➤ *.wily [teks]*
+├➤ *.simi*
+├➤ *.wilyai*
+│   ├ .wilyai on/off
+│   ├ .wilyai replay on/off
+│   ├ .wilyai pm | gc | all
+│   ╰ .wilyai reset
+╰➤ *.contact*
+
+`;
+
+                                {
+                                    const imgPath = path.join(process.cwd(), 'image', 'menu1.jpg');
+                                    if (fs.existsSync(imgPath)) {
+                                        await hisoka.sendMessage(m.from, { image: fs.readFileSync(imgPath), caption: ownerTeks }, { quoted: m });
+                                    } else {
+                                        await hisoka.sendMessage(m.from, { text: ownerTeks }, { quoted: m });
+                                    }
+                                }
+                                logCommand(m, hisoka, 'ownermenu');
+                                break;
+                        }
+
+                        case 'info': {
+                                try {
+                                        const config = loadConfig();
+                                        
+                                        const autoTyping = config.autoTyping || {};
+                                        const autoRecording = config.autoRecording || {};
+                                        const autoOnline = config.autoOnline || {};
+                                        const autoReadStory = config.autoReadStory || {};
+                                        const antiDelete = config.antiDelete || {};
+                                        const antiCall = config.antiCall || {};
+                                        const antiCallVideo = config.antiCallVideo || {};
+                                        const telegram = config.telegram || {};
+                                        const autoSimi = config.autoSimi || {};
+                                        
+                                        const statusIcon = (enabled) => enabled ? '✅' : '❌';
+                                        
+                                        const features = [
+                                                {
+                                                        name: 'Auto Typing',
+                                                        icon: '📝',
+                                                        enabled: autoTyping.enabled,
+                                                        details: autoTyping.enabled ? [
+                                                                `├ Private: ${statusIcon(autoTyping.privateChat !== false)}`,
+                                                                `├ Group: ${statusIcon(autoTyping.groupChat !== false)}`,
+                                                                `└ Delay: ${autoTyping.delaySeconds || 5}s`
+                                                        ] : []
+                                                },
+                                                {
+                                                        name: 'Auto Recording',
+                                                        icon: '🎤',
+                                                        enabled: autoRecording.enabled,
+                                                        details: autoRecording.enabled ? [
+                                                                `├ Private: ${statusIcon(autoRecording.privateChat !== false)}`,
+                                                                `├ Group: ${statusIcon(autoRecording.groupChat !== false)}`,
+                                                                `└ Delay: ${autoRecording.delaySeconds || 5}s`
+                                                        ] : []
+                                                },
+                                                {
+                                                        name: 'Auto Online',
+                                                        icon: '🟢',
+                                                        enabled: autoOnline.enabled,
+                                                        details: autoOnline.enabled ? [
+                                                                `└ Interval: ${autoOnline.intervalSeconds || 30}s`
+                                                        ] : []
+                                                },
+                                                {
+                                                        name: 'Auto Read Story',
+                                                        icon: '👁️',
+                                                        enabled: autoReadStory.enabled,
+                                                        details: autoReadStory.enabled ? [
+                                                                `├ Reaction: ${statusIcon(autoReadStory.autoReaction !== false)}`,
+                                                                `└ Random Delay: ${statusIcon(autoReadStory.randomDelay !== false)}`
+                                                        ] : []
+                                                },
+                                                {
+                                                        name: 'Auto Simi',
+                                                        icon: '🤖',
+                                                        enabled: autoSimi.enabled,
+                                                        details: autoSimi.enabled ? [
+                                                                `└ Group Only: ✅`
+                                                        ] : []
+                                                },
+                                                {
+                                                        name: 'Anti Delete',
+                                                        icon: '🗑️',
+                                                        enabled: antiDelete.enabled,
+                                                        details: antiDelete.enabled ? [
+                                                                `├ Private: ${statusIcon(antiDelete.privateChat)}`,
+                                                                `└ Group: ${statusIcon(antiDelete.groupChat)}`
+                                                        ] : []
+                                                },
+                                                {
+                                                        name: 'Telegram Notif',
+                                                        icon: '📲',
+                                                        enabled: telegram.enabled,
+                                                        details: telegram.enabled ? [
+                                                                `└ Chat ID: ${telegram.chatId ? '✅ Terset' : '❌ Belum'}`
+                                                        ] : []
+                                                },
+                                                                {
+                                                                        name: 'Anti Call',
+                                                                        icon: '📞',
+                                                                        enabled: antiCall.enabled,
+                                                                        details: antiCall.enabled ? [
+                                                                                `└ Whitelist: ${(antiCall.whitelist || []).length} nomor`
+                                                                        ] : []
+                                                                },
+                                                                {
+                                                                        name: 'Anti Call Video',
+                                                                        icon: '📹',
+                                                                        enabled: antiCallVideo.enabled,
+                                                                        details: antiCallVideo.enabled ? [
+                                                                                `└ Whitelist: ${(antiCallVideo.whitelist || []).length} nomor`
+                                                                        ] : []
+                                                                }
+                                        ];
+                                        
+                                        const activeFeatures = features.filter(f => f.enabled);
+                                        const inactiveFeatures = features.filter(f => !f.enabled);
+                                        const sortedFeatures = [...activeFeatures, ...inactiveFeatures];
+                                        
+                                        const userName = m.pushName || 'Kak';
+                                        
+                                        let text = `Halo ${userName}! Berikut info bot:\n\n`;
+text += `╭═══『 *INFO BOT* 』═══╮\n`;
+text += `│\n`;
+
+for (const feature of sortedFeatures) {
+    text += `│ ${feature.icon} *${feature.name}*\n`;
+    text += `│ ${statusIcon(feature.enabled)} ${feature.enabled ? 'Aktif' : 'Nonaktif'}\n`;
+    for (const detail of feature.details) {
+        text += `│ ${detail}\n`;
+    }
+    text += `│\n`;
+}
+
+text += `╰═════════════════════╯\n`;
+text += `\n_Gunakan command masing-masing fitur untuk mengubah pengaturan, ${userName}_`;
+                                        
+                                        const imagePath = path.join(process.cwd(), 'img', 'menu.png');
+                                        if (fs.existsSync(imagePath)) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: fs.readFileSync(imagePath),
+                                                        caption: text
+                                                }, { quoted: m });
+                                        } else {
+                                                await tolak(hisoka, m, text);
+                                        }
+                                        logCommand(m, hisoka, 'info');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Info] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Mohon maaf, terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'addown':
+                        case 'addowner': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        if (!m.isOwner) {
+                                                await tolak(hisoka, m, 'Mohon maaf, Kak. Fitur ini hanya untuk owner bot.');
+                                                break;
+                                        }
+                                        
+                                        if (!query) {
+                                                await tolak(hisoka, m, 'Mohon masukkan nomor yang ingin ditambahkan.\n\nContoh:\n.addowner 6289667923162\n.addowner +62 896-6792-3162');
+                                                break;
+                                        }
+                                        
+                                        const cleanNumber = query.replace(/[\s\-\+\(\)]/g, '').replace(/^0/, '62');
+                                        
+                                        if (!/^\d{10,15}$/.test(cleanNumber)) {
+                                                await tolak(hisoka, m, 'Format nomor tidak valid, Kak. Pastikan nomor telepon benar.');
+                                                break;
+                                        }
+                                        
+                                        const config = loadConfig();
+                                        const owners = config.owners || [];
+                                        
+                                        if (owners.includes(cleanNumber)) {
+                                                await tolak(hisoka, m, `Nomor ${cleanNumber} sudah terdaftar sebagai owner, Kak.`);
+                                                break;
+                                        }
+                                        
+                                        owners.push(cleanNumber);
+                                        config.owners = owners;
+                                        saveConfig(config);
+                                        
+                                        await tolak(hisoka, m, `✅ Berhasil menambahkan owner baru!\n\n📞 Nomor: ${cleanNumber}\n👥 Total Owner: ${owners.length}`);
+                                        logCommand(m, hisoka, 'addowner');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AddOwner] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Mohon maaf, terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'delown':
+                        case 'delowner': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        if (!m.isOwner) {
+                                                await tolak(hisoka, m, 'Mohon maaf, Kak. Fitur ini hanya untuk owner bot.');
+                                                break;
+                                        }
+                                        
+                                        if (!query) {
+                                                await tolak(hisoka, m, 'Mohon masukkan nomor yang ingin dihapus.\n\nContoh:\n.delowner 6289667923162');
+                                                break;
+                                        }
+                                        
+                                        const cleanNumber = query.replace(/[\s\-\+\(\)]/g, '').replace(/^0/, '62');
+                                        
+                                        const config = loadConfig();
+                                        const owners = config.owners || [];
+                                        
+                                        if (!owners.includes(cleanNumber)) {
+                                                await tolak(hisoka, m, `Nomor ${cleanNumber} tidak terdaftar sebagai owner, Kak.`);
+                                                break;
+                                        }
+                                        
+                                        if (owners.length <= 1) {
+                                                await tolak(hisoka, m, 'Tidak bisa menghapus owner terakhir, Kak. Minimal harus ada 1 owner.');
+                                                break;
+                                        }
+                                        
+                                        const newOwners = owners.filter(o => o !== cleanNumber);
+                                        config.owners = newOwners;
+                                        saveConfig(config);
+                                        
+                                        await tolak(hisoka, m, `✅ Berhasil menghapus owner!\n\n📞 Nomor: ${cleanNumber}\n👥 Sisa Owner: ${newOwners.length}`);
+                                        logCommand(m, hisoka, 'delowner');
+                                } catch (error) {
+                                        console.error('\x1b[31m[DelOwner] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Mohon maaf, terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'owner':
+                        case 'own': {
+                                try {
+                                        const config = loadConfig();
+                                        const owners = config.owners || [];
+                                        
+                                        if (owners.length === 0) {
+                                                await tolak(hisoka, m, 'Belum ada owner yang terdaftar.');
+                                                break;
+                                        }
+                                        
+                                        let text = `╭═══『 *DAFTAR OWNER* 』═══╮\n`;
+text += `│\n`;
+text += `│ 👥 *Total:* ${owners.length} owner\n`;
+text += `│\n`;
+
+owners.forEach((owner, index) => {
+    text += `│ ${index + 1}. 📞 ${owner}\n`;
+});
+
+text += `│\n`;
+text += `╰═════════════════════╯\n`;
+text += `\n*Command:*\n`;
+text += `.addowner <nomor> - Tambah owner\n`;
+text += `.delowner <nomor> - Hapus owner`;
+                                        
+                                        await tolak(hisoka, m, text);
+                                        logCommand(m, hisoka, 'listowner');
+                                } catch (error) {
+                                        console.error('\x1b[31m[ListOwner] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Mohon maaf, terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'memory': {
+                                try {
+                                        const memMonitor = global.memoryMonitor;
+                                        if (!memMonitor) {
+                                                await tolak(hisoka, m, 'Memory monitor tidak tersedia.');
+                                                break;
+                                        }
+
+                                        const status = memMonitor.getStatus();
+                                        const uptime = process.uptime();
+
+                                        let text = `╭═══『 *💾 MEMORY STATUS* 』═══╮\n`;
+text += `│\n`;
+text += `│ *📊 Process Memory*\n`;
+text += `│ • Current: ${status.currentFormatted}\n`;
+text += `│ • Limit: ${status.limitFormatted}\n`;
+text += `│ • Usage: ${status.percentage}%\n`;
+text += `│\n`;
+text += `│ *🔧 Heap Memory*\n`;
+text += `│ • Total: ${status.heap.totalFormatted}\n`;
+text += `│ • Used: ${status.heap.usedFormatted}\n`;
+text += `│\n`;
+text += `│ *🖥️ System Memory (Server)*\n`;
+text += `│ • Total: ${status.system.totalFormatted}\n`;
+text += `│ • Used: ${status.system.usedFormatted}\n`;
+text += `│ • Free: ${status.system.freeFormatted}\n`;
+text += `│\n`;
+text += `│ *⚙️ Monitor Config*\n`;
+text += `│ • Enabled: ${status.enabled ? '✅ Yes' : '❌ No'}\n`;
+text += `│ • Auto Detect: ${status.autoDetect ? '✅ ' + status.autoDetectPercentage + '%' : '❌ Manual'}\n`;
+text += `│ • Check Interval: ${status.checkInterval / 1000}s\n`;
+text += `│ • Log Usage: ${status.logUsage ? '✅ Yes' : '❌ No'}\n`;
+text += `│ • Uptime: ${msToTime(uptime * 1000)}\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+
+                                        if (parseFloat(status.percentage) >= 80) {
+                                                text += `\n\n⚠️ *Warning:* Memory usage tinggi! Auto-restart akan terjadi jika mencapai limit.`;
+                                        }
+
+                                        await tolak(hisoka, m, text);
+                                        logCommand(m, hisoka, 'memory');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Memory] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'rvo':
+                        case 'viewonce':
+                        case 'vo': {
+                                try {
+                                        if (!m.isQuoted) {
+                                                if (query) break;
+                                                await tolak(hisoka, m, `*📱 Cara Penggunaan View Once*
+
+*Command:* .rvo / .viewonce / .vo
+*Action:* Reply pesan view once yang ingin dibuka
+
+*Format yang Didukung:*
+• 🖼️ Gambar View Once
+• 🎥 Video View Once
+• 🎵 Audio View Once
+• 📄 Dokumen View Once
+• 🏷️ Sticker View Once
+
+*Contoh Penggunaan:*
+1. Reply pesan view once
+2. Ketik: .rvo
+3. Media akan dikirim ulang tanpa view once`);
+                                                break;
+                                        }
+
+                                        const quotedMsg = m.content?.contextInfo?.quotedMessage;
+                                        if (!quotedMsg) {
+                                                await tolak(hisoka, m, 'Tidak ada pesan yang di-reply.');
+                                                break;
+                                        }
+
+                                        const mediaInfo = extractMediaFromMessage(quotedMsg);
+
+                                        if (!mediaInfo) {
+                                                await tolak(hisoka, m, 'Media tidak ditemukan dalam pesan yang di-reply.');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+
+                                        const contextInfo = m.content?.contextInfo;
+                                        const quotedParticipant = contextInfo?.participant;
+                                        const quotedStanzaId = contextInfo?.stanzaId;
+
+                                        // Cek disk cache dulu (tetap bisa dipakai walau bot restart)
+                                        let buffer = null;
+                                        let cachedMeta = null;
+
+                                        if (quotedStanzaId && hasViewOnceCache(quotedStanzaId)) {
+                                                const cached = getViewOnceCache(quotedStanzaId);
+                                                if (cached) {
+                                                        buffer = cached.buffer;
+                                                        cachedMeta = cached.meta;
+                                                }
+                                        }
+
+                                        // Kalau tidak ada di cache, download live dari WA
+                                        if (!buffer) {
+                                                let downloadMessage = {};
+                                                downloadMessage[mediaInfo.mediaType] = mediaInfo.mediaMessage;
+
+                                                const dlMsg = m.quoted?.key
+                                                        ? { ...m.quoted, message: downloadMessage }
+                                                        : {
+                                                                key: {
+                                                                        remoteJid: m.from,
+                                                                        fromMe: quotedParticipant ? false : (contextInfo?.fromMe ?? false),
+                                                                        id: quotedStanzaId,
+                                                                        ...(isJidGroup(m.from) && quotedParticipant ? { participant: quotedParticipant } : {})
+                                                                },
+                                                                message: downloadMessage
+                                                        };
+
+                                                buffer = await downloadMediaMessage(
+                                                        dlMsg,
+                                                        'buffer',
+                                                        {},
+                                                        {
+                                                                logger: hisoka.logger,
+                                                                reuploadRequest: hisoka.updateMediaMessage
+                                                        }
+                                                );
+                                        }
+
+                                        const jakartaTime = new Date().toLocaleString('id-ID', {
+                                                timeZone: 'Asia/Jakarta',
+                                                weekday: 'long',
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit',
+                                                second: '2-digit'
+                                        });
+
+                                        const caption = cachedMeta?.caption || mediaInfo.mediaMessage.caption || '';
+                                        const senderName = cachedMeta?.senderName || m.quoted?.pushName || m.pushName || 'Unknown';
+                                        const voLabel = mediaInfo.isViewOnce ? 'View Once' : 'Media';
+                                        let mediaTypeDisplay = '';
+                                        let sendOptions = {};
+
+                                        const formatCaption = (type, originalCaption = '') => {
+                                                return `╭═══『 *📱 ${voLabel.toUpperCase()} MEDIA* 』═══╮
+│
+│ *🎯 Type:* ${type}
+│ *⏰ Waktu:* ${jakartaTime} WIB
+│ *💬 Caption:* ${originalCaption || 'No caption'}
+│ *📱 Sender:* ${senderName}
+│ *✅ Status:* Berhasil dibuka
+│
+╰═════════════════════╯
+
+_📱 ${voLabel} berhasil dibuka!_`;
+                                        };
+
+                                        switch (mediaInfo.mediaType) {
+                                                case 'imageMessage':
+                                                        mediaTypeDisplay = '🖼️ Image';
+                                                        sendOptions = {
+                                                                image: buffer,
+                                                                caption: formatCaption(mediaTypeDisplay, caption)
+                                                        };
+                                                        break;
+
+                                                case 'videoMessage':
+                                                        mediaTypeDisplay = '🎥 Video';
+                                                        sendOptions = {
+                                                                video: buffer,
+                                                                caption: formatCaption(mediaTypeDisplay, caption)
+                                                        };
+                                                        break;
+
+                                                case 'audioMessage':
+                                                        mediaTypeDisplay = '🎵 Audio';
+                                                        sendOptions = {
+                                                                audio: buffer,
+                                                                mimetype: cachedMeta?.mimetype || mediaInfo.mediaMessage.mimetype || 'audio/ogg; codecs=opus',
+                                                                ptt: cachedMeta?.ptt || mediaInfo.mediaMessage.ptt || false
+                                                        };
+                                                        break;
+
+                                                case 'documentMessage':
+                                                        mediaTypeDisplay = '📄 Document';
+                                                        sendOptions = {
+                                                                document: buffer,
+                                                                caption: formatCaption(mediaTypeDisplay, caption),
+                                                                mimetype: cachedMeta?.mimetype || mediaInfo.mediaMessage.mimetype || 'application/octet-stream',
+                                                                fileName: cachedMeta?.fileName || mediaInfo.mediaMessage.fileName || 'ViewOnce_Document'
+                                                        };
+                                                        break;
+
+                                                case 'stickerMessage':
+                                                        mediaTypeDisplay = '🏷️ Sticker';
+                                                        sendOptions = {
+                                                                sticker: buffer
+                                                        };
+                                                        break;
+
+                                                default:
+                                                        throw new Error(`Unsupported media type: ${mediaInfo.mediaType}`);
+                                        }
+
+                                        // Kirim HANYA ke semua owner di config.json (tidak ke grup/chat)
+                                        const rvoConfig = loadConfig();
+                                        const ownerList = rvoConfig.owners || [];
+                                        for (const ownerNum of ownerList) {
+                                                const ownerJid = ownerNum.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+                                                await hisoka.sendMessage(ownerJid, sendOptions);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                        logCommand(m, hisoka, 'rvo');
+                                } catch (error) {
+                                        console.error('\x1b[31m[RVO] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `Gagal membuka view once: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'getsw':
+                        case 'sw': {
+                                try {
+                                        if (!m.isQuoted) {
+                                                if (query) break;
+                                                await tolak(hisoka, m, `*📖 Cara Penggunaan Get Story/Status*\n\n*Command:* .getsw / .sw\n*Cara:* Reply pesan story/status yang ingin diambil medianya\n\n*Format yang Didukung:*\n• 🖼️ Gambar Story\n• 🎥 Video Story\n• 🎵 Audio Story\n• 📄 Dokumen Story\n\n*Contoh:*\n1. Reply ke pesan story seseorang\n2. Ketik: .getsw\n3. Media dikirim ke owner`);
+                                                break;
+                                        }
+
+                                        const swQuotedMsg = m.content?.contextInfo?.quotedMessage;
+                                        if (!swQuotedMsg) {
+                                                await tolak(hisoka, m, '❌ Tidak ada pesan yang di-reply.');
+                                                break;
+                                        }
+
+                                        // Ekstrak media dari pesan yang di-reply (story/status atau pesan biasa)
+                                        let swTargetMsg = swQuotedMsg;
+                                        if (swTargetMsg.ephemeralMessage?.message) swTargetMsg = swTargetMsg.ephemeralMessage.message;
+                                        if (swTargetMsg.viewOnceMessage?.message) swTargetMsg = swTargetMsg.viewOnceMessage.message;
+                                        if (swTargetMsg.viewOnceMessageV2?.message) swTargetMsg = swTargetMsg.viewOnceMessageV2.message;
+                                        if (swTargetMsg.viewOnceMessageV2Extension?.message) swTargetMsg = swTargetMsg.viewOnceMessageV2Extension.message;
+
+                                        const swMediaTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'documentMessage', 'stickerMessage'];
+                                        const swMediaType = swMediaTypes.find(t => swTargetMsg[t]);
+
+                                        if (!swMediaType) {
+                                                await tolak(hisoka, m, '❌ Media tidak ditemukan. Pastikan me-reply story/status yang berisi media.');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+
+                                        const swContextInfo = m.content?.contextInfo;
+                                        const swParticipant = swContextInfo?.participant;
+                                        const swStanzaId = swContextInfo?.stanzaId;
+                                        const swMediaMessage = swTargetMsg[swMediaType];
+
+                                        let swDownloadMsg = {};
+                                        swDownloadMsg[swMediaType] = swMediaMessage;
+
+                                        const swDlMsg = m.quoted?.key
+                                                ? { ...m.quoted, message: swDownloadMsg }
+                                                : {
+                                                        key: {
+                                                                remoteJid: m.from,
+                                                                fromMe: swParticipant ? false : (swContextInfo?.fromMe ?? false),
+                                                                id: swStanzaId,
+                                                                ...(isJidGroup(m.from) && swParticipant ? { participant: swParticipant } : {})
+                                                        },
+                                                        message: swDownloadMsg
+                                                };
+
+                                        const swBuffer = await downloadMediaMessage(
+                                                swDlMsg,
+                                                'buffer',
+                                                {},
+                                                { logger: hisoka.logger, reuploadRequest: hisoka.updateMediaMessage }
+                                        );
+
+                                        const swJakartaTime = new Date().toLocaleString('id-ID', {
+                                                timeZone: 'Asia/Jakarta',
+                                                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                                                hour: '2-digit', minute: '2-digit', second: '2-digit'
+                                        });
+
+                                        const swSenderName = m.quoted?.pushName || swContextInfo?.pushName || m.pushName || 'Unknown';
+                                        const swCaption = swMediaMessage.caption || '';
+
+                                        const swFormatCaption = (type) => `╭═══『 *📖 GET STORY/STATUS* 』═══╮
+│
+│ *🎯 Type:* ${type}
+│ *⏰ Waktu:* ${swJakartaTime} WIB
+│ *📱 Dari:* ${swSenderName}
+│ *💬 Caption:* ${swCaption || 'No caption'}
+│
+╰═════════════════════╯
+
+_📖 Story berhasil diambil!_`;
+
+                                        let swSendOptions = {};
+                                        switch (swMediaType) {
+                                                case 'imageMessage':
+                                                        swSendOptions = { image: swBuffer, caption: swFormatCaption('🖼️ Image') };
+                                                        break;
+                                                case 'videoMessage':
+                                                        swSendOptions = { video: swBuffer, caption: swFormatCaption('🎥 Video') };
+                                                        break;
+                                                case 'audioMessage':
+                                                        swSendOptions = {
+                                                                audio: swBuffer,
+                                                                mimetype: swMediaMessage.mimetype || 'audio/ogg; codecs=opus',
+                                                                ptt: swMediaMessage.ptt || false
+                                                        };
+                                                        break;
+                                                case 'documentMessage':
+                                                        swSendOptions = {
+                                                                document: swBuffer,
+                                                                caption: swFormatCaption('📄 Document'),
+                                                                mimetype: swMediaMessage.mimetype || 'application/octet-stream',
+                                                                fileName: swMediaMessage.fileName || 'Story_Document'
+                                                        };
+                                                        break;
+                                                case 'stickerMessage':
+                                                        swSendOptions = { sticker: swBuffer };
+                                                        break;
+                                        }
+
+                                        // Kirim HANYA ke owner
+                                        const swConfig = loadConfig();
+                                        const swOwners = swConfig.owners || [];
+                                        for (const ownerNum of swOwners) {
+                                                const ownerJid = ownerNum.replace(/[^0-9]/g, '') + '@s.whatsapp.net';
+                                                await hisoka.sendMessage(ownerJid, swSendOptions);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'getsw');
+                                } catch (error) {
+                                        console.error('\x1b[31m[GETSW] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal mengambil story: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'ram': {
+                                try {
+                                        const { formatBytes, getCurrentMemoryUsage, getSystemMemoryInfo } = await import('../helper/memoryMonitor.js');
+                                        
+                                        const memUsage = getCurrentMemoryUsage();
+                                        const systemMem = getSystemMemoryInfo();
+                                        const memLimit = global.memoryMonitor?.memoryLimit || systemMem.total;
+                                        const percentage = ((memUsage.rss / memLimit) * 100).toFixed(1);
+                                        const systemPercentage = ((systemMem.used / systemMem.total) * 100).toFixed(1);
+                                        
+                                        let text = `╭═══『 *RAM STATUS* 』═══╮\n`;
+text += `│\n`;
+text += `│ *Process Memory*\n`;
+text += `│ ${formatBytes(memUsage.rss)} / ${formatBytes(memLimit)}\n`;
+text += `│ Usage: ${percentage}%\n`;
+text += `│\n`;
+text += `│ *System Memory*\n`;
+text += `│ ${formatBytes(systemMem.used)} / ${formatBytes(systemMem.total)}\n`;
+text += `│ Usage: ${systemPercentage}%\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+                                        
+                                        await tolak(hisoka, m, text);
+                                        logCommand(m, hisoka, 'cekram');
+                                } catch (error) {
+                                        console.error('\x1b[31m[CekRAM] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'typing':
+                        case 'typ': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const autoTyping = config.autoTyping || { enabled: false, delaySeconds: 5, privateChat: true, groupChat: true };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+                                        
+                                        if (args.length === 0) {
+                                                let text = `╭═══『 *AUTO TYPING* 』═══╮\n`;
+text += `│\n`;
+text += `│ *Status:* ${autoTyping.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+text += `│ *Delay:* ${autoTyping.delaySeconds || 5} detik\n`;
+text += `│ *Private Chat:* ${autoTyping.privateChat !== false ? '✅' : '❌'}\n`;
+text += `│ *Group Chat:* ${autoTyping.groupChat !== false ? '✅' : '❌'}\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .typing on/off\n`;
+text += `│ .typing set <detik>\n`;
+text += `│ .typing private on/off\n`;
+text += `│ .typing group on/off\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+                                        
+                                        if (args[0] === 'on') {
+                                                if (autoTyping.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Typing sudah aktif sebelumnya');
+                                                } else {
+                                                        config.autoTyping = { ...autoTyping, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ Auto Typing diaktifkan');
+                                                }
+                                        } else if (args[0] === 'off') {
+                                                if (!autoTyping.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Typing sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.autoTyping = { ...autoTyping, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Auto Typing dinonaktifkan');
+                                                }
+                                        } else if (args[0] === 'set' && args[1]) {
+                                                const seconds = parseInt(args[1]);
+                                                if (isNaN(seconds) || seconds < 1 || seconds > 60) {
+                                                        await tolak(hisoka, m, '❌ Delay harus antara 1-60 detik');
+                                                        break;
+                                                }
+                                                config.autoTyping = { ...autoTyping, delaySeconds: seconds };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, `✅ Delay Auto Typing diset ke ${seconds} detik`);
+                                        } else if (args[0] === 'private' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.autoTyping = { ...autoTyping, privateChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, `${enabled ? '✅' : '❌'} Auto Typing untuk Private Chat ${enabled ? 'diaktifkan' : 'dinonaktifkan'}`);
+                                        } else if (args[0] === 'group' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.autoTyping = { ...autoTyping, groupChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, `${enabled ? '✅' : '❌'} Auto Typing untuk Group Chat ${enabled ? 'diaktifkan' : 'dinonaktifkan'}`);
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .typing untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'typing');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Typing] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'recording':
+                        case 'record': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const autoRecording = config.autoRecording || { enabled: false, delaySeconds: 5, privateChat: true, groupChat: true };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+                                        
+                                        if (args.length === 0) {
+                                                let text = `╭═══『 *AUTO RECORDING* 』═══╮\n`;
+text += `│\n`;
+text += `│ *Status:* ${autoRecording.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+text += `│ *Delay:* ${autoRecording.delaySeconds || 5} detik\n`;
+text += `│ *Private Chat:* ${autoRecording.privateChat !== false ? '✅' : '❌'}\n`;
+text += `│ *Group Chat:* ${autoRecording.groupChat !== false ? '✅' : '❌'}\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .recording on/off\n`;
+text += `│ .recording set <detik>\n`;
+text += `│ .recording private on/off\n`;
+text += `│ .recording group on/off\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+                                        
+                                        if (args[0] === 'on') {
+                                                if (autoRecording.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Recording sudah aktif sebelumnya');
+                                                } else {
+                                                        config.autoRecording = { ...autoRecording, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ Auto Recording diaktifkan');
+                                                }
+                                        } else if (args[0] === 'off') {
+                                                if (!autoRecording.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Recording sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.autoRecording = { ...autoRecording, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Auto Recording dinonaktifkan');
+                                                }
+                                        } else if (args[0] === 'set' && args[1]) {
+                                                const seconds = parseInt(args[1]);
+                                                if (isNaN(seconds) || seconds < 1 || seconds > 60) {
+                                                        await tolak(hisoka, m, '❌ Delay harus antara 1-60 detik');
+                                                        break;
+                                                }
+                                                config.autoRecording = { ...autoRecording, delaySeconds: seconds };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, `✅ Delay Auto Recording diset ke ${seconds} detik`);
+                                        } else if (args[0] === 'private' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.autoRecording = { ...autoRecording, privateChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, `${enabled ? '✅' : '❌'} Auto Recording untuk Private Chat ${enabled ? 'diaktifkan' : 'dinonaktifkan'}`);
+                                        } else if (args[0] === 'group' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.autoRecording = { ...autoRecording, groupChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, `${enabled ? '✅' : '❌'} Auto Recording untuk Group Chat ${enabled ? 'diaktifkan' : 'dinonaktifkan'}`);
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .recording untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'recording');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Recording] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'simi': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const autoSimi = config.autoSimi || { enabled: false };
+                                        const args = query ? query.split(' ') : [];
+
+                                        if (args.length === 0) {
+                                                let text = `╭═══『 *🤖 WILY AI AUTO* 』═══╮\n`;
+text += `│\n`;
+text += `│ *Status:* ${autoSimi.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+text += `│ *AI Engine:* Gemini Vision (Gratis)\n`;
+text += `│ *Mode:* Grup & Private Chat\n`;
+text += `│ *Trigger:* Mention bot / Reply pesan bot\n`;
+text += `│\n`;
+text += `│ *Kemampuan AI:*\n`;
+text += `│ ✅ Analisis gambar & sticker\n`;
+text += `│ ✅ Baca teks di dalam gambar\n`;
+text += `│ ✅ Tahu judul anime/film/series\n`;
+text += `│ ✅ Kenali karakter anime/game\n`;
+text += `│ ✅ Ingat nama pengguna\n`;
+text += `│ ✅ Ngobrol santai & cerdas\n`;
+text += `│\n`;
+text += `│ *Perintah Manual AI:*\n`;
+text += `│ .wily [pertanyaan]\n`;
+text += `│ .wily (reply gambar/sticker)\n`;
+text += `│\n`;
+text += `│ *Pengaturan:*\n`;
+text += `│ .autosimi on  - Aktifkan\n`;
+text += `│ .autosimi off - Nonaktifkan\n`;
+text += `│\n`;
+text += `╰══════════════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+
+                                        if (args[0].toLowerCase() === 'on') {
+                                                if (autoSimi.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Wily AI Auto sudah aktif sebelumnya');
+                                                } else {
+                                                        config.autoSimi = { ...autoSimi, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ Wily AI Auto diaktifkan!\n\n🤖 Bot akan otomatis membalas dengan AI Gemini ketika di-mention atau di-reply.\n\nFitur: analisis gambar, sticker, teks, dan lainnya!');
+                                                }
+                                        } else if (args[0].toLowerCase() === 'off') {
+                                                if (!autoSimi.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Wily AI Auto sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.autoSimi = { ...autoSimi, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Wily AI Auto dinonaktifkan');
+                                                }
+                                        } else if (args[0].toLowerCase() === 'key' && args[1]) {
+                                                const newKey = args.slice(1).join(' ').trim();
+                                                if (newKey.length < 20) {
+                                                        await tolak(hisoka, m, '❌ API Key tidak valid.');
+                                                } else {
+                                                        config.autoSimi = { ...autoSimi, apiKey: newKey };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ API Key berhasil diset!\n\nGunakan .autosimi on untuk mengaktifkan.`);
+                                                }
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .autosimi untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'autosimi');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AutoSimi] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'wilyai': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const cfg  = loadConfig();
+                                        if (!cfg.wilyAI) cfg.wilyAI = { enabled: true, autoReply: true, scope: 'all' };
+                                        const w    = cfg.wilyAI;
+                                        const args = (query || '').trim().toLowerCase().split(/\s+/);
+                                        const sub  = args[0];
+                                        const val  = args[1];
+
+                                        const scopeLabel = (s) => s === 'pm' ? '📩 Private (PM)' : s === 'gc' ? '👥 Grup (GC)' : '🌐 Semua (PM + GC)';
+
+                                        // .wilyai — tampil status
+                                        if (!sub) {
+                                                const totalSesi = countHistory();
+                                                const curScope = w.scope || 'all';
+                                                let txt = `╭═══『 *⚙️ WILY AI SETTING* 』═══╮\n`;
+                                                txt    += `│\n`;
+                                                txt    += `│ 🤖 *.wily command* : ${w.enabled !== false ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+                                                txt    += `│ 💬 *Auto reply*    : ${w.autoReply !== false ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+                                                txt    += `│ 🎯 *Scope*         : ${scopeLabel(curScope)}\n`;
+                                                txt    += `│ 🗂️ *Sesi tersimpan*: ${totalSesi} sesi\n`;
+                                                txt    += `│\n`;
+                                                txt    += `│ 📋 *Cara pakai:*\n`;
+                                                txt    += `│ .wilyai on/off          → nyala/matikan .wily\n`;
+                                                txt    += `│ .wilyai replay on/off    → toggle auto reply\n`;
+                                                txt    += `│ .wilyai pm               → hanya private chat\n`;
+                                                txt    += `│ .wilyai gc               → hanya grup\n`;
+                                                txt    += `│ .wilyai all              → private + grup\n`;
+                                                txt    += `│ .wilyai reset            → hapus semua history\n`;
+                                                txt    += `│\n`;
+                                                txt    += `╰══════════════════════════════╯`;
+                                                console.log(`[wilyai] status → enabled:${w.enabled !== false}, autoReply:${w.autoReply !== false}, scope:${curScope}, sesi:${totalSesi}`);
+                                                await tolak(hisoka, m, txt);
+                                                break;
+                                        }
+
+                                        // .wilyai on / off — toggle fitur .wily utama
+                                        if (sub === 'on' || sub === 'off') {
+                                                const aktif = sub === 'on';
+                                                if (w.enabled === aktif || (w.enabled !== false && aktif)) {
+                                                        console.log(`[wilyai] toggle .wily → tidak ada perubahan, sudah ${aktif ? 'aktif' : 'nonaktif'}`);
+                                                        await tolak(hisoka, m, `ℹ️ Fitur .wily sudah ${aktif ? 'aktif' : 'nonaktif'} sebelumnya.`);
+                                                } else {
+                                                        cfg.wilyAI.enabled = aktif;
+                                                        saveConfig(cfg);
+                                                        console.log(`[wilyai] ✅ .wily berhasil di-${aktif ? 'ON' : 'OFF'} oleh ${m.sender}`);
+                                                        await hisoka.sendMessage(m.from, { react: { text: aktif ? '✅' : '🚫', key: m.key } });
+                                                        await tolak(hisoka, m, aktif
+                                                                ? '✅ Fitur *.wily* / *.ai* / *.tanya* berhasil *diaktifkan!*\nUser sudah bisa pakai AI lagi.'
+                                                                : '🚫 Fitur *.wily* / *.ai* / *.tanya* berhasil *dimatikan!*\nUser tidak bisa pakai AI sampai kamu aktifkan lagi.');
+                                                }
+                                                break;
+                                        }
+
+                                        // .wilyai replay on/off — toggle auto reply
+                                        if (sub === 'replay') {
+                                                if (val !== 'on' && val !== 'off') {
+                                                        console.log(`[wilyai] ⚠️ replay → format salah, val="${val}"`);
+                                                        await tolak(hisoka, m, '⚠️ Format: .wilyai replay on  atau  .wilyai replay off');
+                                                        break;
+                                                }
+                                                const aktif = val === 'on';
+                                                cfg.wilyAI.autoReply = aktif;
+                                                saveConfig(cfg);
+                                                console.log(`[wilyai] ✅ replay berhasil di-${aktif ? 'ON' : 'OFF'} oleh ${m.sender}`);
+                                                await hisoka.sendMessage(m.from, { react: { text: aktif ? '✅' : '🚫', key: m.key } });
+                                                await tolak(hisoka, m, aktif
+                                                        ? '✅ *Auto reply* diaktifkan!\nBot otomatis balas sesuai scope yang diset.'
+                                                        : '🚫 *Auto reply* dimatikan!\nBot tidak akan auto balas, tapi .wily tetap bisa dipakai.');
+                                                break;
+                                        }
+
+                                        // .wilyai pm|gc|all — atur scope auto reply
+                                        if (sub === 'pm' || sub === 'gc' || sub === 'all') {
+                                                cfg.wilyAI.scope = sub;
+                                                saveConfig(cfg);
+                                                console.log(`[wilyai] ✅ scope berhasil diset ke "${sub}" oleh ${m.sender}`);
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                await tolak(hisoka, m,
+                                                        `✅ *Scope auto reply diset ke: ${scopeLabel(sub)}*\n\n` +
+                                                        (sub === 'pm'  ? '📩 Bot hanya akan auto reply di *private chat (DM)*.' :
+                                                         sub === 'gc'  ? '👥 Bot hanya akan auto reply di *grup*.' :
+                                                                         '🌐 Bot akan auto reply di *private chat + grup*.')
+                                                );
+                                                break;
+                                        }
+
+                                        // .wilyai reset — hapus semua history AI
+                                        if (sub === 'reset' || sub === 'clear' || sub === 'hapus') {
+                                                const total = countHistory();
+                                                if (total === 0) {
+                                                        console.log(`[wilyai] reset → tidak ada history, folder sudah kosong`);
+                                                        await tolak(hisoka, m, '🗂️ Tidak ada history AI yang perlu dihapus. Folder sudah kosong.');
+                                                } else {
+                                                        clearAllHistory();
+                                                        console.log(`[wilyai] ✅ reset berhasil → ${total} sesi dihapus oleh ${m.sender}`);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '🗑️', key: m.key } });
+                                                        await tolak(hisoka, m, `🗑️ *History AI berhasil direset!*\n\n*${total} sesi* percakapan dihapus dari memori bot.\n\nSemua user akan mulai percakapan baru dari awal.`);
+                                                }
+                                                break;
+                                        }
+
+                                        console.log(`[wilyai] ⚠️ sub-perintah tidak dikenal → sub="${sub}" val="${val || ''}" dari ${m.sender}`);
+                                        await tolak(hisoka, m, '⚠️ Sub-perintah tidak dikenal.\n\nGunakan:\n.wilyai on/off\n.wilyai replay on/off\n.wilyai pm | gc | all\n.wilyai reset');
+
+                                } catch (e) {
+                                        console.error(`[wilyai] ❌ ERROR | code: ${e.code || 'N/A'} | message: ${e.message}`);
+                                        console.error(`[wilyai] stack: ${e.stack}`);
+                                }
+                                break;
+                        }
+
+                        case 'wily':
+                        case 'ai':
+                        case 'tanya': {
+                                try {
+                                        const wilyAIConfig = loadConfig().wilyAI || {};
+                                        if (wilyAIConfig.enabled === false) return;
+
+                                        const userName = getUserName(m.sender, m.pushName || 'Kak');
+                                        const now = new Date();
+                                        const hours = parseInt(now.toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Jakarta' }));
+                                        const timeOfDay = hours < 5 ? 'dini hari' : hours < 11 ? 'pagi' : hours < 15 ? 'siang' : hours < 18 ? 'sore' : 'malam';
+                                        const currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+                                        const currentDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+
+                                        // Reset history command
+                                        const lowerQuery = (query || '').trim().toLowerCase();
+                                        if (lowerQuery === 'reset' || lowerQuery === 'clear' || lowerQuery === 'hapus chat' || lowerQuery === 'mulai baru') {
+                                                const sessKey = getSessionKey(m);
+                                                const historyBeforeReset = getHistory(sessKey);
+
+                                                // Kirim backup history ke semua owner sebelum dihapus (jika ada data)
+                                                if (historyBeforeReset.length > 0) {
+                                                        try {
+                                                                const cfg      = loadConfig();
+                                                                const owners   = cfg.owners || [];
+                                                                const isGroup  = m.isGroup;
+                                                                const nowStr   = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+                                                                const exportData = {
+                                                                        sessionKey  : sessKey,
+                                                                        exportedAt  : nowStr,
+                                                                        triggeredBy : m.sender,
+                                                                        chat        : isGroup ? m.from : 'private',
+                                                                        totalMessages: historyBeforeReset.length,
+                                                                        messages    : historyBeforeReset,
+                                                                };
+                                                                const jsonBuf  = Buffer.from(JSON.stringify(exportData, null, 2), 'utf-8');
+                                                                const safeKey  = sessKey.replace(/[^a-z0-9_]/gi, '_').slice(0, 60);
+                                                                const fileName = `history_${safeKey}_${Date.now()}.json`;
+                                                                const caption  =
+                                                                        `╭─「 📋 *BACKUP HISTORY AI* 」\n` +
+                                                                        `│\n` +
+                                                                        `├─ 🔑 *Session :* ${sessKey}\n` +
+                                                                        `├─ 💬 *Chat    :* ${isGroup ? 'Group' : 'Private'}\n` +
+                                                                        `├─ 📨 *Dari    :* ${m.pushName || m.sender}\n` +
+                                                                        `├─ 🗂️ *Pesan   :* ${historyBeforeReset.length} entri\n` +
+                                                                        `│\n` +
+                                                                        `├─ ℹ️ Dikirim otomatis sebelum .wily reset\n` +
+                                                                        `│\n` +
+                                                                        `╰─ 🕐 ${nowStr}`;
+
+                                                                for (const ownerNum of owners) {
+                                                                        const ownerJid = `${ownerNum}@s.whatsapp.net`;
+                                                                        try {
+                                                                                await hisoka.sendMessage(ownerJid, {
+                                                                                        document : jsonBuf,
+                                                                                        fileName : fileName,
+                                                                                        mimetype : 'application/json',
+                                                                                        caption  : caption,
+                                                                                });
+                                                                        } catch (e) {
+                                                                                console.error('[WilyReset] Gagal kirim backup ke', ownerNum, e.message);
+                                                                        }
+                                                                }
+                                                        } catch (backupErr) {
+                                                                console.error('[WilyReset] Backup error:', backupErr.message);
+                                                        }
+                                                }
+
+                                                clearHistory(sessKey);
+                                                await hisoka.sendMessage(m.from, { react: { text: '🗑️', key: m.key } });
+                                                await tolak(hisoka, m,
+                                                        historyBeforeReset.length > 0
+                                                        ? `🗑️ Memory percakapan dihapus ${userName}!\n\n📋 _Backup ${historyBeforeReset.length} pesan sudah dikirim ke owner._\n\nKita mulai dari awal ya 😊`
+                                                        : `🗑️ Memory percakapan dihapus ${userName}! Kita mulai dari awal ya 😊`
+                                                );
+                                                logCommand(m, hisoka, 'wily');
+                                                break;
+                                        }
+
+                                        // Deteksi media: gambar, sticker, video, dokumen (dari pesan saat ini atau reply)
+                                        let imageBuffer = null;
+                                        let imageMime = 'image/jpeg';
+                                        let hasMedia = false;
+                                        let mediaLabel = '';
+                                        let isDocumentMode = false;
+                                        let documentContext = '';
+                                        let quotedTextContext = '';
+
+                                        const curType = getMediaTypeFromMessage(m);
+                                        const qtType = m.isQuoted ? getMediaTypeFromMessage(m.quoted) : '';
+
+                                        // Helper: download media dari quoted message
+                                        const downloadQuotedMedia = async () => await getQuotedMediaBuffer(hisoka, m);
+
+                                        // ── DETEKSI MEDIA DARI PESAN LANGSUNG ──
+                                        if ((curType === 'imageMessage' || curType === 'stickerMessage') && m.isMedia) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                                        imageBuffer = await m.downloadMedia();
+                                                        if (imageBuffer && imageBuffer.length > 0) {
+                                                                imageMime = curType === 'stickerMessage' ? 'image/webp' : 'image/jpeg';
+                                                                hasMedia = true;
+                                                                mediaLabel = curType === 'stickerMessage' ? 'sticker' : 'gambar';
+                                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m Media dari pesan: ${curType}, ${imageBuffer.length} bytes`);
+                                                        }
+                                                } catch (dlErr) {
+                                                        wilyError(`\x1b[31m[WilyAI]\x1b[39m Gagal download media: ${dlErr.message}`);
+                                                }
+                                        } else if (curType === 'videoMessage' && m.isMedia) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '🎬', key: m.key } });
+                                                        imageBuffer = await m.downloadMedia();
+                                                        if (imageBuffer && imageBuffer.length > 0) {
+                                                                imageMime = 'video/mp4';
+                                                                hasMedia = true;
+                                                                mediaLabel = 'video';
+                                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m Video dari pesan: ${imageBuffer.length} bytes`);
+                                                        }
+                                                } catch (dlErr) {
+                                                        wilyError(`\x1b[31m[WilyAI]\x1b[39m Gagal download video: ${dlErr.message}`);
+                                                }
+                                        } else if (curType === 'documentMessage' && m.isMedia) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '📄', key: m.key } });
+                                                try {
+                                                        const docBuffer = await m.downloadMedia();
+                                                        // Baca semua path yang mungkin untuk mime & filename
+                                                        const docMime = (
+                                                                m.msg?.mimetype ||
+                                                                m.message?.documentMessage?.mimetype ||
+                                                                m.content?.mimetype ||
+                                                                ''
+                                                        ).toLowerCase();
+                                                        const docFileName = (
+                                                                m.msg?.fileName ||
+                                                                m.message?.documentMessage?.fileName ||
+                                                                m.content?.fileName ||
+                                                                ''
+                                                        ).toLowerCase();
+                                                        const docExt = docFileName.split('.').pop() || '';
+                                                        const docSizeKB = docBuffer ? (docBuffer.length / 1024).toFixed(1) : 0;
+                                                        wilyLog(`\x1b[36m[WilyAI]\x1b[39m Dokumen: mime="${docMime}" name="${docFileName}" ext="${docExt}" size=${docSizeKB}KB`);
+
+                                                        // Deteksi tipe file dari MAGIC BYTES (paling akurat, tidak bergantung mime/nama)
+                                                        const isZipMagic = docBuffer && docBuffer.length >= 4 &&
+                                                                docBuffer[0] === 0x50 && docBuffer[1] === 0x4B &&
+                                                                (docBuffer[2] === 0x03 || docBuffer[2] === 0x05 || docBuffer[2] === 0x07);
+                                                        const isPdfMagic = docBuffer && docBuffer.length >= 4 &&
+                                                                docBuffer[0] === 0x25 && docBuffer[1] === 0x50 &&
+                                                                docBuffer[2] === 0x44 && docBuffer[3] === 0x46;
+                                                        const isRarMagic = docBuffer && docBuffer.length >= 7 &&
+                                                                docBuffer[0] === 0x52 && docBuffer[1] === 0x61 &&
+                                                                docBuffer[2] === 0x72 && docBuffer[3] === 0x21;
+                                                        const is7zMagic = docBuffer && docBuffer.length >= 6 &&
+                                                                docBuffer[0] === 0x37 && docBuffer[1] === 0x7A &&
+                                                                docBuffer[2] === 0xBC && docBuffer[3] === 0xAF;
+
+                                                        // Deteksi via mime/ekstensi sebagai fallback (magic bytes sudah lebih dulu dicek)
+                                                        const isZip = isZipMagic || docMime.includes('zip') ||
+                                                                ['zip', 'apk', 'jar', 'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp'].includes(docExt);
+                                                        const isPdf = isPdfMagic || docMime.includes('pdf') || docExt === 'pdf';
+                                                        const isRar = isRarMagic || docMime.includes('rar') || docExt === 'rar';
+                                                        const is7z = is7zMagic || docExt === '7z' || docMime.includes('7z');
+                                                        const isText = docMime.startsWith('text/') ||
+                                                                ['txt', 'csv', 'json', 'xml', 'html', 'htm', 'js', 'ts', 'py', 'java', 'cpp', 'c', 'css', 'md', 'yaml', 'yml', 'ini', 'conf', 'log', 'sh', 'bat'].includes(docExt);
+                                                        const isImage = docMime.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp'].includes(docExt);
+
+                                                        if (isZip && !isRar && !is7z) {
+                                                                // ── ZIP / DOCX / APK / JAR ──
+                                                                const zipResult = parseZipBuffer(docBuffer);
+                                                                if (zipResult.error) {
+                                                                        await tolak(hisoka, m, `❌ ${zipResult.error}`);
+                                                                        break;
+                                                                }
+                                                                const isDocxLike = ['docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp'].includes(docExt);
+                                                                const isApk = docExt === 'apk';
+                                                                const archiveLabel = isApk ? '📱 FILE APK' : isDocxLike ? `📝 FILE ${docExt.toUpperCase()}` : '📦 FILE ZIP';
+                                                                const passwordNote = zipResult.isPasswordProtected
+                                                                        ? `🔐 *Status:* *BERPASSWORD* (terenkripsi)`
+                                                                        : `🔓 *Status:* *Tidak berpassword*`;
+                                                                let zipText = `╭═══『 *${archiveLabel}* 』═══╮\n│\n`;
+                                                                zipText += `│ 📁 *Total File:* ${zipResult.files.length} file\n`;
+                                                                zipText += `│ ${passwordNote}\n│\n`;
+                                                                if (!isDocxLike) {
+                                                                        zipText += `│ *DAFTAR ISI:*\n`;
+                                                                        const displayFiles = zipResult.files.slice(0, 30);
+                                                                        for (const f of displayFiles) {
+                                                                                const lockIcon = f.encrypted ? '🔐' : '📄';
+                                                                                const sizeStr = f.size >= 1024 ? `${(f.size / 1024).toFixed(1)} MB` : `${f.size} KB`;
+                                                                                zipText += `│ ${lockIcon} ${f.name} _(${sizeStr})_\n`;
+                                                                        }
+                                                                        if (zipResult.files.length > 30) {
+                                                                                zipText += `│ _(... dan ${zipResult.files.length - 30} file lainnya)_\n`;
+                                                                        }
+                                                                } else {
+                                                                        // Untuk DOCX/XLSX dll, tunjukkan saja ringkasan
+                                                                        zipText += `│ _(Format Office — gunakan .wily untuk baca isinya lebih lanjut)_\n`;
+                                                                }
+                                                                zipText += `│\n╰═══════════════════════╯`;
+                                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                await tolak(hisoka, m, zipText);
+                                                                logCommand(m, hisoka, 'wily');
+                                                                break;
+                                                        } else if (isRar) {
+                                                                // ── RAR FILE ──
+                                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                await tolak(hisoka, m, `╭═══『 *📦 FILE RAR* 』═══╮\n│\n│ ⚠️ Format RAR terdeteksi!\n│\n│ RAR adalah format arsip yang bisa\n│ berpassword atau tidak.\n│\n│ *Catatan:* Format RAR tidak bisa\n│ dibaca isinya langsung oleh bot.\n│ Coba extract dulu atau kirim\n│ sebagai file ZIP.\n│\n╰═══════════════════════╯`);
+                                                                logCommand(m, hisoka, 'wily');
+                                                                break;
+                                                        } else if (is7z) {
+                                                                // ── 7Z FILE ──
+                                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                await tolak(hisoka, m, `╭═══『 *📦 FILE 7Z* 』═══╮\n│\n│ ⚠️ Format 7-Zip terdeteksi!\n│\n│ Format 7Z tidak bisa dibaca\n│ isinya langsung oleh bot.\n│ Coba kirim sebagai ZIP.\n│\n╰═══════════════════════╯`);
+                                                                logCommand(m, hisoka, 'wily');
+                                                                break;
+                                                        } else if (isPdf) {
+                                                                // ── PDF FILE ──
+                                                                await tolak(hisoka, m, `📄 Sedang membaca isi PDF...`);
+                                                                try {
+                                                                        const pdfText = await extractPdfText(docBuffer);
+                                                                        if (!pdfText || pdfText.length < 10) {
+                                                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                                                await tolak(hisoka, m, `❌ PDF ini tidak mengandung teks yang bisa dibaca (mungkin berupa scan/gambar). Coba kirim sebagai gambar untuk dianalisis.`);
+                                                                                break;
+                                                                        }
+                                                                        isDocumentMode = true;
+                                                                        documentContext = `[ISI PDF]\n${pdfText}`;
+                                                                        hasMedia = true;
+                                                                        mediaLabel = 'PDF';
+                                                                        wilyLog(`\x1b[36m[WilyAI]\x1b[39m PDF dibaca: ${pdfText.length} karakter`);
+                                                                } catch (pdfErr) {
+                                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                                        await tolak(hisoka, m, `❌ Gagal baca PDF: ${pdfErr.message}`);
+                                                                        break;
+                                                                }
+                                                        } else if (isText) {
+                                                                // ── TEKS / CODE / CSV / JSON / dll ──
+                                                                const textContent = docBuffer.toString('utf8').substring(0, 5000);
+                                                                isDocumentMode = true;
+                                                                documentContext = `[ISI FILE ${docExt.toUpperCase() || 'TEKS'}]\n${textContent}`;
+                                                                hasMedia = true;
+                                                                mediaLabel = `file ${docExt || 'teks'}`;
+                                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m File teks dibaca: ${textContent.length} karakter`);
+                                                        } else if (isImage) {
+                                                                // ── GAMBAR YANG DIKIRIM SEBAGAI DOKUMEN ──
+                                                                imageBuffer = docBuffer;
+                                                                imageMime = docMime || 'image/jpeg';
+                                                                hasMedia = true;
+                                                                mediaLabel = 'gambar';
+                                                        } else {
+                                                                // ── FILE TIDAK DIKENAL — Beri info ke AI ──
+                                                                isDocumentMode = true;
+                                                                documentContext = `[INFO FILE]\nNama: ${docFileName || 'tidak diketahui'}\nEkstensi: ${docExt || 'tidak ada'}\nUkuran: ${docSizeKB} KB\nMIME Type: ${docMime || 'tidak diketahui'}`;
+                                                                hasMedia = true;
+                                                                mediaLabel = `file ${docExt || 'tidak dikenal'}`;
+                                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m File tidak dikenal — metadata diteruskan ke AI`);
+                                                        }
+                                                } catch (docErr) {
+                                                        wilyError(`\x1b[31m[WilyAI]\x1b[39m Gagal proses dokumen: ${docErr.message}`);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                        await tolak(hisoka, m, `❌ Gagal proses file: ${docErr.message}`);
+                                                        break;
+                                                }
+                                        }
+
+                                        // ── DETEKSI MEDIA DARI PESAN YANG DI-REPLY ──
+                                        if (!hasMedia && m.isQuoted) {
+                                                if (qtType === 'imageMessage' || qtType === 'stickerMessage' || qtType === 'albumMessage') {
+                                                        try {
+                                                                await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                                                const cached = getCachedQuotedMedia(hisoka, m);
+                                                                imageBuffer = await downloadQuotedMedia();
+                                                                if (imageBuffer && imageBuffer.length > 0) {
+                                                                        const info = getMediaInfo(qtType, m.quoted, cached);
+                                                                        imageMime = info.mime;
+                                                                        hasMedia = true;
+                                                                        mediaLabel = info.label;
+                                                                        wilyLog(`\x1b[36m[WilyAI]\x1b[39m Media dari quoted: ${qtType}, ${imageBuffer.length} bytes`);
+                                                                }
+                                                        } catch (dlErr) {
+                                                                wilyError(`\x1b[31m[WilyAI]\x1b[39m Gagal download quoted media: ${dlErr.message}`);
+                                                        }
+                                                } else if (qtType === 'videoMessage') {
+                                                        try {
+                                                                await hisoka.sendMessage(m.from, { react: { text: '🎬', key: m.key } });
+                                                                imageBuffer = await downloadQuotedMedia();
+                                                                if (imageBuffer && imageBuffer.length > 0) {
+                                                                        imageMime = 'video/mp4';
+                                                                        hasMedia = true;
+                                                                        mediaLabel = 'video';
+                                                                        wilyLog(`\x1b[36m[WilyAI]\x1b[39m Video dari quoted: ${imageBuffer.length} bytes`);
+                                                                }
+                                                        } catch (dlErr) {
+                                                                wilyError(`\x1b[31m[WilyAI]\x1b[39m Gagal download quoted video: ${dlErr.message}`);
+                                                        }
+                                                } else if (qtType === 'documentMessage') {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '📄', key: m.key } });
+                                                        try {
+                                                                const docBuffer = await downloadQuotedMedia();
+                                                                const qtMime = (
+                                                                        m.quoted?.msg?.mimetype ||
+                                                                        m.quoted?.message?.documentMessage?.mimetype ||
+                                                                        m.quoted?.content?.mimetype || ''
+                                                                ).toLowerCase();
+                                                                const qtFileName = (
+                                                                        m.quoted?.msg?.fileName ||
+                                                                        m.quoted?.message?.documentMessage?.fileName ||
+                                                                        m.quoted?.content?.fileName || ''
+                                                                ).toLowerCase();
+                                                                const qtExt = qtFileName.split('.').pop() || '';
+                                                                const qtSizeKB = docBuffer ? (docBuffer.length / 1024).toFixed(1) : 0;
+                                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m Quoted doc: mime="${qtMime}" name="${qtFileName}" size=${qtSizeKB}KB`);
+
+                                                                // Magic bytes detection
+                                                                const qtIsZip = docBuffer && docBuffer.length >= 4 &&
+                                                                        docBuffer[0] === 0x50 && docBuffer[1] === 0x4B &&
+                                                                        (docBuffer[2] === 0x03 || docBuffer[2] === 0x05 || docBuffer[2] === 0x07);
+                                                                const qtIsPdf = docBuffer && docBuffer.length >= 4 &&
+                                                                        docBuffer[0] === 0x25 && docBuffer[1] === 0x50 &&
+                                                                        docBuffer[2] === 0x44 && docBuffer[3] === 0x46;
+                                                                const qtIsRar = docBuffer && docBuffer.length >= 4 &&
+                                                                        docBuffer[0] === 0x52 && docBuffer[1] === 0x61 &&
+                                                                        docBuffer[2] === 0x72 && docBuffer[3] === 0x21;
+                                                                const qtIs7z = docBuffer && docBuffer.length >= 6 &&
+                                                                        docBuffer[0] === 0x37 && docBuffer[1] === 0x7A &&
+                                                                        docBuffer[2] === 0xBC && docBuffer[3] === 0xAF;
+
+                                                                const isZip = qtIsZip || qtMime.includes('zip') ||
+                                                                        ['zip', 'apk', 'jar', 'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp'].includes(qtExt);
+                                                                const isPdf = qtIsPdf || qtMime.includes('pdf') || qtExt === 'pdf';
+                                                                const isRar = qtIsRar || qtMime.includes('rar') || qtExt === 'rar';
+                                                                const is7z = qtIs7z || qtExt === '7z';
+                                                                const isText = qtMime.startsWith('text/') ||
+                                                                        ['txt', 'csv', 'json', 'xml', 'html', 'htm', 'js', 'ts', 'py', 'java', 'cpp', 'c', 'css', 'md', 'yaml', 'yml', 'ini', 'conf', 'log', 'sh', 'bat'].includes(qtExt);
+
+                                                                if (isZip && !isRar && !is7z) {
+                                                                        const zipResult = parseZipBuffer(docBuffer);
+                                                                        if (zipResult.error) {
+                                                                                await tolak(hisoka, m, `❌ ${zipResult.error}`);
+                                                                                break;
+                                                                        }
+                                                                        const isDocxLike = ['docx', 'xlsx', 'pptx', 'odt'].includes(qtExt);
+                                                                        const archiveLabel = qtExt === 'apk' ? '📱 FILE APK' : isDocxLike ? `📝 FILE ${qtExt.toUpperCase()}` : '📦 FILE ZIP';
+                                                                        const passwordNote = zipResult.isPasswordProtected ? `🔐 *BERPASSWORD*` : `🔓 *Tidak berpassword*`;
+                                                                        let zipText = `╭═══『 *${archiveLabel}* 』═══╮\n│\n│ 📁 *Total File:* ${zipResult.files.length}\n│ ${passwordNote}\n│\n│ *DAFTAR ISI:*\n`;
+                                                                        for (const f of zipResult.files.slice(0, 30)) {
+                                                                                const lockIcon = f.encrypted ? '🔐' : '📄';
+                                                                                const sizeStr = f.size >= 1024 ? `${(f.size / 1024).toFixed(1)} MB` : `${f.size} KB`;
+                                                                                zipText += `│ ${lockIcon} ${f.name} _(${sizeStr})_\n`;
+                                                                        }
+                                                                        if (zipResult.files.length > 30) zipText += `│ _(... dan ${zipResult.files.length - 30} lainnya)_\n`;
+                                                                        zipText += `│\n╰═══════════════════════╯`;
+                                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                        await tolak(hisoka, m, zipText);
+                                                                        logCommand(m, hisoka, 'wily');
+                                                                        break;
+                                                                } else if (isRar) {
+                                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                        await tolak(hisoka, m, `📦 *File RAR terdeteksi.*\nBot tidak bisa baca isi RAR langsung. Coba extract dulu atau kirim sebagai ZIP.`);
+                                                                        logCommand(m, hisoka, 'wily');
+                                                                        break;
+                                                                } else if (is7z) {
+                                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                        await tolak(hisoka, m, `📦 *File 7Z terdeteksi.*\nBot tidak bisa baca isi 7Z. Coba kirim sebagai ZIP.`);
+                                                                        logCommand(m, hisoka, 'wily');
+                                                                        break;
+                                                                } else if (isPdf) {
+                                                                        await tolak(hisoka, m, `📄 Sedang membaca PDF...`);
+                                                                        const pdfText = await extractPdfText(docBuffer);
+                                                                        if (!pdfText || pdfText.length < 10) {
+                                                                                await tolak(hisoka, m, `❌ PDF tidak mengandung teks yang bisa dibaca.`);
+                                                                                break;
+                                                                        }
+                                                                        isDocumentMode = true;
+                                                                        documentContext = `[ISI PDF]\n${pdfText}`;
+                                                                        hasMedia = true;
+                                                                        mediaLabel = 'PDF';
+                                                                } else if (isText) {
+                                                                        const textContent = docBuffer.toString('utf8').substring(0, 5000);
+                                                                        isDocumentMode = true;
+                                                                        documentContext = `[ISI FILE ${qtExt.toUpperCase() || 'TEKS'}]\n${textContent}`;
+                                                                        hasMedia = true;
+                                                                        mediaLabel = `file ${qtExt || 'teks'}`;
+                                                                } else {
+                                                                        isDocumentMode = true;
+                                                                        documentContext = `[INFO FILE]\nNama: ${qtFileName || 'tidak diketahui'}\nEkstensi: ${qtExt || 'tidak ada'}\nUkuran: ${qtSizeKB} KB\nMIME Type: ${qtMime || 'tidak diketahui'}`;
+                                                                        hasMedia = true;
+                                                                        mediaLabel = `file ${qtExt || 'tidak dikenal'}`;
+                                                                }
+                                                        } catch (docErr) {
+                                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                                await tolak(hisoka, m, `❌ Gagal proses file: ${docErr.message}`);
+                                                                break;
+                                                        }
+                                                } else if (qtType === 'conversation' || qtType === 'extendedTextMessage') {
+                                                        // Reply ke pesan teks orang lain — beri konteks pengirim + isi pesan
+                                                        const senderName = m.quoted?.pushName || m.quoted?.key?.participant?.split('@')[0] || 'seseorang';
+                                                        const quotedText = m.quoted?.text || m.quoted?.body || '';
+                                                        if (quotedText) {
+                                                                quotedTextContext = `\n📩 KONTEKS PESAN YANG DI-REPLY:\nPengirim: ${senderName}\nIsi pesan: "${quotedText.substring(0, 500)}"`;
+                                                        }
+                                                }
+                                        }
+
+                                        let userQuestion = query?.trim() || '';
+
+                                        if (!userQuestion && !hasMedia && !quotedTextContext) {
+                                                let helpText = `╭═══『 *🤖 WILY AI* 』═══╮\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ Halo ${userName}! Aku Wily Bot AI 🤖\n`;
+                                                helpText += `│ AI cerdas berbasis Gemini Vision\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ *CARA PAKAI:*\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 💬 *Tanya sesuatu:*\n`;
+                                                helpText += `│ .wily [pertanyaan kamu]\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 🖼️ *Analisis gambar/sticker:*\n`;
+                                                helpText += `│ Kirim/reply gambar + .wily\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 🎬 *Analisis video:*\n`;
+                                                helpText += `│ Kirim/reply video + .wily\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 📄 *Baca PDF:*\n`;
+                                                helpText += `│ Kirim/reply PDF + .wily [pertanyaan]\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 📦 *Cek isi ZIP:*\n`;
+                                                helpText += `│ Kirim/reply file ZIP + .wily\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 🔍 *Cari & kirim gambar:*\n`;
+                                                helpText += `│ .wily cari gambar naruto\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 💬 *Reply pesan + tanya:*\n`;
+                                                helpText += `│ Reply pesan siapapun + .wily [pertanyaan]\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ 🧠 *Memory percakapan:*\n`;
+                                                helpText += `│ • Private: langsung lanjut otomatis\n`;
+                                                helpText += `│ • Grup: reply pesan bot untuk lanjut\n`;
+                                                helpText += `│ • .wily reset - hapus memory\n`;
+                                                helpText += `│\n`;
+                                                helpText += `│ *KEMAMPUAN AI:*\n`;
+                                                helpText += `│ ✅ Ingat percakapan sebelumnya\n`;
+                                                helpText += `│ ✅ Cari dan kirim gambar otomatis\n`;
+                                                helpText += `│ ✅ Baca teks di dalam gambar\n`;
+                                                helpText += `│ ✅ Tahu judul anime/film/series\n`;
+                                                helpText += `│ ✅ Kenali karakter/artis dari foto\n`;
+                                                helpText += `│ ✅ Baca isi file PDF\n`;
+                                                helpText += `│ ✅ Cek isi file ZIP + deteksi password\n`;
+                                                helpText += `│ ✅ Analisis video\n`;
+                                                helpText += `│ ✅ Jawab pertanyaan umum\n`;
+                                                helpText += `│\n`;
+                                                helpText += `╰══════════════════════╯`;
+                                                await tolak(hisoka, m, helpText);
+                                                break;
+                                        }
+
+                                        const hasSticker = hasMedia && mediaLabel === 'sticker';
+
+                                        if (!userQuestion && hasMedia) {
+                                                userQuestion = buildWilyMediaUserPrompt({
+                                                        mediaLabel,
+                                                        hasSticker,
+                                                        isDocumentMode,
+                                                        mode: 'command',
+                                                });
+                                        }
+                                        if (!userQuestion && quotedTextContext) {
+                                                userQuestion = `Bantu aku tentang pesan ini.`;
+                                        }
+
+                                        // ── SESSION KEY & HISTORY (harus sebelum imgSearch maupun Gemini) ──
+                                        const sessKey = getSessionKey(m);
+                                        const isReplyToBot = m.isQuoted && m.quoted?.key?.fromMe;
+                                        const useHistory = !m.isGroup || isReplyToBot;
+
+                                        // ── DETEKSI PERMINTAAN CARI GAMBAR ──
+                                        const imgSearchQuery = !hasMedia ? detectImageSearchQuery(userQuestion) : null;
+
+                                        if (imgSearchQuery) {
+                                                // Ekstrak jumlah gambar yang diminta (max 5)
+                                                const imgCount = Math.min(extractImageCount(userQuestion), 5);
+                                                await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                                await tolak(hisoka, m, await buildSmartImageWaitText({
+                                                        userName,
+                                                        userQuestion,
+                                                        query: imgSearchQuery,
+                                                        count: imgCount,
+                                                }));
+                                                let imgBotReply = '';
+                                                try {
+                                                        const imgResults = await searchAndGetImages(imgSearchQuery, imgCount);
+                                                        let captions = [];
+                                                        if (imgResults.length > 1) {
+                                                                captions = await buildSmartAlbumCaptions({
+                                                                        userQuestion,
+                                                                        query: imgSearchQuery,
+                                                                        images: imgResults,
+                                                                });
+                                                                await sendImageAlbum(hisoka, m, imgResults, captions);
+                                                        } else {
+                                                                const r = imgResults[0];
+                                                                captions = await buildSmartAlbumCaptions({
+                                                                        userQuestion,
+                                                                        query: imgSearchQuery,
+                                                                        images: imgResults,
+                                                                });
+                                                                const sentImage = await hisoka.sendMessage(m.from, {
+                                                                        image: r.buffer,
+                                                                        caption: captions[0] || `🖼️ *${r.title || imgSearchQuery}*`
+                                                                }, { quoted: m });
+                                                                rememberAIMedia(hisoka, sentImage, [{
+                                                                        buffer: r.buffer,
+                                                                        mime: 'image/jpeg',
+                                                                        label: 'gambar',
+                                                                        caption: captions[0] || r.title || imgSearchQuery,
+                                                                }]);
+                                                        }
+                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                        wilyLog(`\x1b[36m[WilyAI]\x1b[39m Image search: "${imgSearchQuery}" → ${imgResults.length} gambar`);
+                                                        imgBotReply = await buildSmartImageHistoryReply({
+                                                                userQuestion,
+                                                                query: imgSearchQuery,
+                                                                images: imgResults,
+                                                                captions,
+                                                        });
+                                                } catch (searchErr) {
+                                                        wilyError(`\x1b[31m[WilyAI]\x1b[39m Image search error: ${searchErr.message}`);
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                        imgBotReply = `Maaf aku gagal cariin gambar "${imgSearchQuery}" tadi. Coba minta lagi dengan kata kunci yang lebih spesifik ya!`;
+                                                        await tolak(hisoka, m, `❌ Maaf ${userName}, gagal cariin gambar "${imgSearchQuery}".\n\nCoba kata kunci yang lebih spesifik ya!`);
+                                                }
+                                                if (useHistory && imgBotReply) {
+                                                        addToHistory(sessKey, userQuestion, imgBotReply, buildHistoryMeta(m, { mediaLabel: 'gambar' }));
+                                                }
+                                                logCommand(m, hisoka, 'wily');
+                                                break;
+                                        }
+
+                                        // ── MEMORY PERCAKAPAN ──
+                                        const historyMessages = useHistory ? getHistory(sessKey) : [];
+                                        const hasHistory = historyMessages.length > 0;
+
+                                        // Gabungkan konteks dokumen atau teks quoted ke chatContext
+                                        let extraContext = `CATATAN: Kalau user minta cari/kirim gambar, jawab secara natural bahwa gambar sedang dipilih dan akan dikirim oleh bot. Jangan pakai kalimat template yang sama berulang-ulang.`;
+                                        if (documentContext) extraContext += `\n\n${documentContext}`;
+                                        if (quotedTextContext) extraContext += `\n${quotedTextContext}`;
+
+                                        const stopTyping_cmd = startTyping(hisoka, m);
+                                        const aiCmdUserMemory = detectAndUpdateMemory(m.sender, userQuestion);
+                                        const systemPrompt = buildWilyAICommandPrompt({
+                                                userName, currentTime, currentDate, timeOfDay,
+                                                hasHistory,
+                                                chatContext: extraContext,
+                                                isPrivate: !m.isGroup,
+                                                isOwner: m.isOwner,
+                                                hasImage: hasMedia && !isDocumentMode,
+                                                isImageReply: false,
+                                                hasSticker,
+                                                isStickerReply: false,
+                                                userMessage: userQuestion,
+                                                isDocumentMode,
+                                                history: historyMessages,
+                                                userMemory: aiCmdUserMemory,
+                                                sessionKey: sessKey,
+                                        });
+
+                                        // Bangun final user message (gabung pertanyaan + konteks dokumen jika ada)
+                                        const finalUserMsg = isDocumentMode && documentContext
+                                                ? `${documentContext}\n\n${userQuestion}`
+                                                : quotedTextContext
+                                                ? `${quotedTextContext}\n\nPertanyaan user: ${userQuestion}`
+                                                : userQuestion;
+
+                                        // Bangun contents array untuk Gemini
+                                        let contents;
+                                        if (!hasHistory) {
+                                                // Percakapan baru: sistem prompt + pertanyaan sekarang
+                                                if (imageBuffer && imageBuffer.length > 0 && !isDocumentMode) {
+                                                        contents = null; // handled below via askWithImage
+                                                } else {
+                                                        contents = [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + finalUserMsg }] }];
+                                                }
+                                        } else {
+                                                // Lanjut percakapan: sistem prompt sebagai pembuka, lalu history, lalu pertanyaan sekarang
+                                                if (imageBuffer && imageBuffer.length > 0 && !isDocumentMode) {
+                                                        contents = null; // handled below, history passed separately
+                                                } else {
+                                                        const cmdMsgMeta = buildHistoryMeta(m, { mediaLabel: hasMedia ? mediaLabel : null });
+                                                        contents = [
+                                                                { role: 'user', parts: [{ text: systemPrompt }] },
+                                                                { role: 'model', parts: [{ text: `Halo ${userName}! Aku Wily Bot, siap membantu kamu 🤖` }] },
+                                                                ...historyMessages,
+                                                                { role: 'user', parts: [{ text: wrapCurrentUserMessage(finalUserMsg, cmdMsgMeta) }] },
+                                                        ];
+                                                }
+                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m Melanjutkan percakapan (${historyMessages.length / 2} pesan sebelumnya) untuk ${m.sender}`);
+                                        }
+
+                                        console.log(`\x1b[36m[WilyAI]\x1b[0m ← ${m.sender} | "${userQuestion.substring(0, 80)}${userQuestion.length > 80 ? '...' : ''}" | media: ${hasMedia ? mediaLabel : 'teks'} | history: ${historyMessages.length / 2 || 0} pesan`);
+
+                                        let response;
+
+                                        if (imageBuffer && imageBuffer.length > 0 && !isDocumentMode) {
+                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m Vision request - buffer: ${imageBuffer.length} bytes, mime: ${imageMime}`);
+                                                let finalBuffer = imageBuffer;
+                                                let finalMime = imageMime;
+                                                if (imageMime === 'image/webp') {
+                                                        try {
+                                                                const sharp = (await import('sharp')).default;
+                                                                finalBuffer = await sharp(imageBuffer).jpeg({ quality: 90 }).toBuffer();
+                                                                finalMime = 'image/jpeg';
+                                                                wilyLog(`\x1b[36m[WilyAI]\x1b[39m Sticker dikonversi ke JPEG: ${finalBuffer.length} bytes`);
+                                                        } catch (sharpErr) {
+                                                                wilyError(`\x1b[31m[WilyAI]\x1b[39m Gagal konversi sticker: ${sharpErr.message}`);
+                                                        }
+                                                }
+                                                // Untuk gambar/video, gabungkan history teks + pesan media terakhir
+                                                if (hasHistory) {
+                                                        const visionMsgMeta = buildHistoryMeta(m, { mediaLabel: hasMedia ? mediaLabel : 'gambar' });
+                                                        const visionContents = [
+                                                                { role: 'user', parts: [{ text: systemPrompt }] },
+                                                                { role: 'model', parts: [{ text: `Halo ${userName}! Aku Wily Bot, siap membantu kamu 🤖` }] },
+                                                                ...historyMessages,
+                                                                {
+                                                                        role: 'user',
+                                                                        parts: [
+                                                                                { inlineData: { mimeType: finalMime, data: finalBuffer.toString('base64') } },
+                                                                                { text: wrapCurrentUserMessage(finalUserMsg, visionMsgMeta) },
+                                                                        ],
+                                                                },
+                                                        ];
+                                                        const models = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-pro-latest'];
+                                                        let lastErr = null;
+                                                        for (const model of models) {
+                                                                try {
+                                                                        response = await gemini.chat({ model, contents: visionContents });
+                                                                        wilyLog(`\x1b[36m[Gemini Vision]\x1b[0m ✅ Berhasil dengan model: ${model}`);
+                                                                        break;
+                                                                } catch (err) {
+                                                                        wilyError(`\x1b[31m[Gemini Vision]\x1b[0m ❌ Model ${model} gagal: ${err.message}`);
+                                                                        lastErr = err;
+                                                                }
+                                                        }
+                                                        if (!response) throw lastErr || new Error('Semua model gagal');
+                                                } else {
+                                                        response = await gemini.askWithImage(systemPrompt + '\n\n' + finalUserMsg, finalBuffer, finalMime);
+                                                }
+                                        } else {
+                                                response = await gemini.chat({ contents });
+                                        }
+
+                                        if (response && response.trim()) {
+                                                // Kalau user sudah kirim media (foto/video/dokumen), hapus marker [GAMBAR:...] dari respons AI
+                                                // agar bot tidak salah kirim gambar baru padahal user cuma minta analisis/identifikasi
+                                                let finalResponse = response.trim();
+                                                if (hasMedia) {
+                                                        const stripped = finalResponse.replace(/\[GAMBAR:[^\]]{1,200}\]/gi, '').replace(/\n{3,}/g, '\n\n').trim();
+                                                        if (stripped !== finalResponse) {
+                                                                console.log(`\x1b[36m[WilyAI]\x1b[0m ⚠️ Marker [GAMBAR:] dihapus dari respons karena user sudah kirim media`);
+                                                        }
+                                                        finalResponse = stripped;
+                                                }
+                                                const wilyMediaResult = await processAIMediaAndSend(hisoka, m, finalResponse, { sessionKey: sessKey });
+                                                const wilyClean = wilyMediaResult.sentText;
+                                                const wc = wilyMediaResult.counts;
+                                                const mediaSummary = [
+                                                        wc.images ? `${wc.images} gambar` : null,
+                                                        wc.voiceNotes ? `${wc.voiceNotes} VN` : null,
+                                                        wc.songs ? `${wc.songs} lagu` : null,
+                                                        wc.videos ? `${wc.videos} video` : null,
+                                                ].filter(Boolean).join(' + ');
+                                                console.log(`\x1b[36m[WilyAI]\x1b[0m → balas ${finalResponse.length} karakter${mediaSummary ? ` + ${mediaSummary}` : ''} ke ${m.sender}`);
+                                                if (useHistory) {
+                                                        addToHistory(sessKey, userQuestion, wilyClean || response.trim(), buildHistoryMeta(m));
+                                                }
+                                        } else {
+                                                console.log(`\x1b[36m[WilyAI]\x1b[0m ⚠️ AI respons kosong untuk ${m.sender}`);
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ AI tidak merespons, coba lagi.');
+                                        }
+
+                                        logCommand(m, hisoka, 'wily');
+                                } catch (error) {
+                                        console.error(`\x1b[31m[WilyAI]\x1b[0m ❌ code: ${error.code || 'N/A'} | ${error.message}`);
+                                        wilyError('\x1b[31m[WilyAI] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        const msg = error.message || '';
+                                        let userMsg;
+                                        if (/TOO_MANY_ATTEMPTS|rate.?limit|429/i.test(msg)) {
+                                                userMsg = '⏳ *Server AI lagi sibuk banget*\n\nLagi banyak yg pake, coba lagi 1-2 menit ya.';
+                                        } else if (/timeout|ETIMEDOUT|ECONNRESET|ENETUNREACH/i.test(msg)) {
+                                                userMsg = '🌐 *Koneksi ke AI putus*\n\nSinyal lagi naik turun, coba ulang dikit lagi ya.';
+                                        } else if (/Auth|Signup|idToken/i.test(msg)) {
+                                                userMsg = '🔐 *Auth AI lagi bermasalah*\n\nLagi diperbaiki otomatis, sabar bentar ya kak.';
+                                        } else {
+                                                userMsg = `❌ *AI gagal jawab*\n\n_${msg.slice(0, 120)}_`;
+                                        }
+                                        await tolak(hisoka, m, userMsg);
+                                }
+                                break;
+                        }
+
+                        case 'antidel':
+                        case 'ad': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const antiDelete = config.antiDelete || { enabled: false, privateChat: false, groupChat: false, sendTo: 'self' };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+                                        const sendTo = antiDelete.sendTo || 'self';
+
+                                        const sendToLabel = {
+                                                self: '📲 Saved Messages (bot)',
+                                                chat: '💬 Chat / Grup Asal',
+                                                both: '📲 Saved Messages + 💬 Chat Asal'
+                                        };
+
+                                        if (args.length === 0) {
+                                                const text =
+                                                        `╔═══════════════════════╗\n` +
+                                                        `║  🗑️  *ANTI DELETE*  🗑️  ║\n` +
+                                                        `╚═══════════════════════╝\n\n` +
+                                                        `📊 *Status:* ${antiDelete.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n` +
+                                                        `💬 *Private Chat:* ${antiDelete.privateChat ? '✅' : '❌'}\n` +
+                                                        `👥 *Group Chat:* ${antiDelete.groupChat ? '✅' : '❌'}\n` +
+                                                        `📤 *Kirim ke:* ${sendToLabel[sendTo] || sendToLabel.self}\n\n` +
+                                                        `📋 *Perintah:*\n` +
+                                                        `• *.antidel on/off* — Aktifkan/nonaktifkan\n` +
+                                                        `• *.antidel private on/off* — Untuk chat pribadi\n` +
+                                                        `• *.antidel group on/off* — Untuk grup\n` +
+                                                        `• *.antidel all on/off* — Private + Group\n` +
+                                                        `• *.antidel sendto self* — Kirim ke saved messages bot\n` +
+                                                        `• *.antidel sendto chat* — Kirim balik ke chat/grup asal\n` +
+                                                        `• *.antidel sendto both* — Kirim ke keduanya\n\n` +
+                                                        `📦 *Didukung:* Teks, Gambar, Video, Audio, Sticker, Dokumen`;
+
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+
+                                        if (args[0] === 'on') {
+                                                if (antiDelete.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Anti Delete sudah aktif.');
+                                                } else {
+                                                        config.antiDelete = { ...antiDelete, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, 
+                                                                `✅ *Anti Delete diaktifkan!*\n\n` +
+                                                                `📤 Pesan dihapus akan dikirim ke:\n` +
+                                                                `*${sendToLabel[sendTo] || sendToLabel.self}*\n\n` +
+                                                                `💡 Atur tujuan dengan: *.antidel sendto self/chat/both*`
+                                                        );
+                                                }
+
+                                        } else if (args[0] === 'off') {
+                                                if (!antiDelete.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Anti Delete sudah nonaktif.');
+                                                } else {
+                                                        config.antiDelete = { ...antiDelete, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ *Anti Delete dinonaktifkan.*');
+                                                }
+
+                                        } else if (args[0] === 'private' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.antiDelete = { ...antiDelete, privateChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, 
+                                                        `${enabled ? '✅' : '❌'} Anti Delete *Private Chat* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+                                                );
+
+                                        } else if (args[0] === 'group' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.antiDelete = { ...antiDelete, groupChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, 
+                                                        `${enabled ? '✅' : '❌'} Anti Delete *Group Chat* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+                                                );
+
+                                        } else if (args[0] === 'all' && args[1]) {
+                                                const enabled = args[1] === 'on';
+                                                config.antiDelete = { ...antiDelete, privateChat: enabled, groupChat: enabled };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, 
+                                                        `${enabled ? '✅' : '❌'} Anti Delete *Private + Group* ${enabled ? 'diaktifkan' : 'dinonaktifkan'}.`
+                                                );
+
+                                        } else if (args[0] === 'sendto' && args[1]) {
+                                                const valid = ['self', 'chat', 'both'];
+                                                const val = args[1];
+                                                if (!valid.includes(val)) {
+                                                        return await tolak(hisoka, m, 
+                                                                `❌ Nilai tidak valid!\n\n` +
+                                                                `Gunakan salah satu:\n` +
+                                                                `• *.antidel sendto self* — Kirim ke saved messages bot\n` +
+                                                                `• *.antidel sendto chat* — Kirim balik ke chat/grup asal\n` +
+                                                                `• *.antidel sendto both* — Kirim ke keduanya`
+                                                        );
+                                                }
+                                                config.antiDelete = { ...antiDelete, sendTo: val };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, 
+                                                        `✅ *Tujuan pengiriman anti delete diubah!*\n\n` +
+                                                        `📤 Sekarang dikirim ke:\n` +
+                                                        `*${sendToLabel[val]}*\n\n` +
+                                                        `${val === 'chat' ? '⚠️ Semua orang di grup/chat bisa melihat pesan yang dihapus.' : ''}`
+                                                );
+
+                                        } else {
+                                                await tolak(hisoka, m, 
+                                                        `❌ Perintah tidak valid.\n` +
+                                                        `Ketik *.antidel* untuk melihat bantuan.`
+                                                );
+                                        }
+
+                                        logCommand(m, hisoka, 'antidel');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AntiDelete] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'readsw': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const storyConfig = config.autoReadStory || {
+                                                enabled: true,
+                                                autoReaction: true,
+                                                randomDelay: true,
+                                                delayMinMs: 1000,
+                                                delayMaxMs: 20000,
+                                                fixedDelayMs: 3000
+                                        };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+                                        
+                                        if (args.length === 0) {
+                                                let statusText = '';
+                                                if (!storyConfig.enabled) {
+                                                        statusText = '❌ Nonaktif';
+                                                } else if (storyConfig.autoReaction !== false) {
+                                                        statusText = '✅ Read + Reaction';
+                                                } else {
+                                                        statusText = '✅ Read Only';
+                                                }
+                                                
+                                                let text = `╭═══『 *AUTO READ STORY* 』═══╮\n`;
+text += `│\n`;
+text += `│ *Status:* ${statusText}\n`;
+text += `│ *Reaction:* ${storyConfig.autoReaction !== false ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+text += `│ *Random Delay:* ${storyConfig.randomDelay !== false ? '✅' : '❌'}\n`;
+text += `│ *Delay Min:* ${(storyConfig.delayMinMs || 1000) / 1000} detik\n`;
+text += `│ *Delay Max:* ${(storyConfig.delayMaxMs || 20000) / 1000} detik\n`;
+text += `│ *Fixed Delay:* ${(storyConfig.fixedDelayMs || 3000) / 1000} detik\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .readsw true - Read + Reaction\n`;
+text += `│ .readsw false - Read Only\n`;
+text += `│ .readsw off - Nonaktifkan\n`;
+text += `│ .readsw delay <min> <max>\n`;
+text += `│   (dalam detik, contoh: delay 1 20)\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+                                        
+                                        const buildStatusReply = (cfg, action) => {
+                                                const delayMin = (cfg.delayMinMs || 1000) / 1000;
+                                                const delayMax = (cfg.delayMaxMs || 20000) / 1000;
+                                                const fixedDelay = (cfg.fixedDelayMs || 3000) / 1000;
+                                                const isRandom = cfg.randomDelay !== false;
+                                                const modeText = cfg.autoReaction !== false ? 'Read + Reaction' : 'Read Only';
+                                                
+                                                let text = `╭═══『 *AUTO READ STORY* 』═══╮\n`;
+text += `│\n`;
+text += `│ ${action}\n`;
+text += `│\n`;
+text += `│ *Mode:* ${modeText}\n`;
+text += `│ *Delay:* ${isRandom ? `${delayMin}-${delayMax}s (random)` : `${fixedDelay}s (fixed)`}\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+                                                return text;
+                                        };
+                                        
+                                        if (args[0] === 'true' || args[0] === 'on') {
+                                                if (storyConfig.enabled && storyConfig.autoReaction !== false) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Read Story + Reaction sudah aktif sebelumnya');
+                                                } else {
+                                                        config.autoReadStory = { ...storyConfig, enabled: true, autoReaction: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, buildStatusReply(config.autoReadStory, '✅ *Diaktifkan!*'));
+                                                }
+                                        } else if (args[0] === 'false') {
+                                                if (storyConfig.enabled && storyConfig.autoReaction === false) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Read Story (tanpa reaction) sudah aktif sebelumnya');
+                                                } else {
+                                                        config.autoReadStory = { ...storyConfig, enabled: true, autoReaction: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, buildStatusReply(config.autoReadStory, '✅ *Diaktifkan (Read Only)!*'));
+                                                }
+                                        } else if (args[0] === 'off') {
+                                                if (!storyConfig.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Read Story sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.autoReadStory = { ...storyConfig, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Auto Read Story dinonaktifkan');
+                                                }
+                                        } else if (args[0] === 'delay' && args[1] && args[2]) {
+                                                const minDelay = parseInt(args[1]);
+                                                const maxDelay = parseInt(args[2]);
+                                                
+                                                if (isNaN(minDelay) || isNaN(maxDelay)) {
+                                                        await tolak(hisoka, m, '❌ Delay harus berupa angka. Contoh: .readsw delay 1 20');
+                                                        break;
+                                                }
+                                                
+                                                if (minDelay < 1 || maxDelay > 60) {
+                                                        await tolak(hisoka, m, '❌ Delay min harus >= 1 detik dan max <= 60 detik');
+                                                        break;
+                                                }
+                                                
+                                                if (minDelay >= maxDelay) {
+                                                        await tolak(hisoka, m, '❌ Delay min harus lebih kecil dari delay max');
+                                                        break;
+                                                }
+                                                
+                                                config.autoReadStory = {
+                                                        ...storyConfig,
+                                                        delayMinMs: minDelay * 1000,
+                                                        delayMaxMs: maxDelay * 1000,
+                                                        randomDelay: true
+                                                };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, buildStatusReply(config.autoReadStory, `✅ *Delay diubah!*`));
+                                        } else if (args[0] === 'delay' && args[1] && !args[2]) {
+                                                const fixedDelay = parseInt(args[1]);
+                                                
+                                                if (isNaN(fixedDelay) || fixedDelay < 1 || fixedDelay > 60) {
+                                                        await tolak(hisoka, m, '❌ Delay harus antara 1-60 detik');
+                                                        break;
+                                                }
+                                                
+                                                config.autoReadStory = {
+                                                        ...storyConfig,
+                                                        fixedDelayMs: fixedDelay * 1000,
+                                                        randomDelay: false
+                                                };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, buildStatusReply(config.autoReadStory, `✅ *Fixed delay diubah!*`));
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .readsw untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'readsw');
+                                } catch (error) {
+                                        console.error('\x1b[31m[ReadSW] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'telegram':
+                        case 'tele': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const telegramConfig = config.telegram || {
+                                                enabled: true,
+                                                token: '',
+                                                chatId: ''
+                                        };
+                                        const telegramQuery = m.query ? m.query.toLowerCase().trim() : '';
+                                        const args = telegramQuery ? telegramQuery.split(' ') : [];
+                                        const validCommands = ['on', 'off', 'true', 'false', 'token', 'chatid', 'chat_id', 'id', 'tutorial', 'help', 'test', 'cek', 'check'];
+                                        
+                                        const validateToken = async (token) => {
+                                                try {
+                                                        const res = await fetch(`https://api.telegram.org/bot${token}/getMe`);
+                                                        const data = await res.json();
+                                                        if (data.ok) {
+                                                                return { valid: true, botName: data.result.first_name, username: data.result.username };
+                                                        }
+                                                        return { valid: false, error: data.description };
+                                                } catch (e) {
+                                                        return { valid: false, error: e.message };
+                                                }
+                                        };
+                                        
+                                        const validateChatId = async (token, chatId) => {
+                                                try {
+                                                        const res = await fetch(`https://api.telegram.org/bot${token}/getChat?chat_id=${chatId}`);
+                                                        const data = await res.json();
+                                                        if (data.ok) {
+                                                                return { valid: true, chatType: data.result.type, chatTitle: data.result.first_name || data.result.title };
+                                                        }
+                                                        return { valid: false, error: data.description };
+                                                } catch (e) {
+                                                        return { valid: false, error: e.message };
+                                                }
+                                        };
+                                        
+                                        const showHelp = async () => {
+                                                const statusText = telegramConfig.enabled ? '✅ Aktif' : '❌ Nonaktif';
+                                                
+                                                let tokenStatus = '❌ Belum diset';
+                                                let botInfo = '';
+                                                if (telegramConfig.token) {
+                                                        const tokenCheck = await validateToken(telegramConfig.token);
+                                                        if (tokenCheck.valid) {
+                                                                tokenStatus = `✅ Valid`;
+                                                                botInfo = `\n┃ *Bot:* @${tokenCheck.username}`;
+                                                        } else {
+                                                                tokenStatus = `❌ Invalid`;
+                                                        }
+                                                }
+                                                
+                                                let chatIdStatus = '❌ Belum diset';
+                                                let chatInfo = '';
+                                                if (telegramConfig.chatId && telegramConfig.token) {
+                                                        const chatCheck = await validateChatId(telegramConfig.token, telegramConfig.chatId);
+                                                        if (chatCheck.valid) {
+                                                                chatIdStatus = `✅ Valid`;
+                                                                chatInfo = `\n┃ *Chat:* ${chatCheck.chatTitle}`;
+                                                        } else {
+                                                                chatIdStatus = `❌ Invalid`;
+                                                        }
+                                                } else if (telegramConfig.chatId && !telegramConfig.token) {
+                                                        chatIdStatus = '⚠️ Set token dulu';
+                                                }
+                                                
+                                                let text = `╭═══『 *TELEGRAM NOTIF* 』═══╮\n`;
+text += `│\n`;
+text += `│ *Status:* ${statusText}\n`;
+text += `│ *Token:* ${tokenStatus}${botInfo}\n`;
+text += `│ *Chat ID:* ${chatIdStatus}${chatInfo}\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .telegram on - Aktifkan\n`;
+text += `│ .telegram off - Nonaktifkan\n`;
+text += `│ .telegram token <token>\n`;
+text += `│ .telegram chatid <id>\n`;
+text += `│ .telegram test - Test kirim\n`;
+text += `│ .telegram tutorial - Cara dapat\n`;
+text += `│\n`;
+text += `│ *Info:*\n`;
+text += `│ Fitur ini mengirim story WA\n`;
+text += `│ ke bot Telegram kamu\n`;
+text += `│\n`;
+text += `│ _Multi-prefix, tanpa titik_\n`;
+text += `│ _bot tetap merespon_\n`;
+text += `╰═════════════════╯`;
+                                                return text;
+                                        };
+                                        
+                                        const showTutorial = () => {
+                                                let text = `╭═══『 *TUTORIAL TELEGRAM* 』═══╮\n`;
+text += `│\n`;
+text += `│ *📱 CARA DAPAT BOT TOKEN:*\n`;
+text += `│\n`;
+text += `│ 1. Buka Telegram\n`;
+text += `│ 2. Cari @BotFather\n`;
+text += `│ 3. Ketik /newbot\n`;
+text += `│ 4. Masukkan nama bot\n`;
+text += `│ 5. Masukkan username bot\n`;
+text += `│    (harus diakhiri 'bot')\n`;
+text += `│ 6. Copy token yang diberikan\n`;
+text += `│ 7. Gunakan:\n`;
+text += `│    .telegram token <token>\n`;
+text += `│\n`;
+text += `│ *🆔 CARA DAPAT CHAT ID:*\n`;
+text += `│\n`;
+text += `│ 1. Buka Telegram\n`;
+text += `│ 2. Cari @userinfobot\n`;
+text += `│ 3. Klik Start\n`;
+text += `│ 4. Bot akan kirim ID kamu\n`;
+text += `│ 5. Copy angka ID tersebut\n`;
+text += `│ 6. Gunakan:\n`;
+text += `│    .telegram chatid <id>\n`;
+text += `│\n`;
+text += `│ *⚠️ PENTING:*\n`;
+text += `│ Setelah dapat token, kamu\n`;
+text += `│ HARUS chat bot kamu dulu\n`;
+text += `│ (klik Start) agar bot bisa\n`;
+text += `│ mengirim pesan ke kamu!\n`;
+text += `│\n`;
+text += `╰═════════════════════╯`;
+                                                return text;
+                                        };
+                                        
+                                        if (args.length === 0 || !validCommands.includes(args[0])) {
+                                                await tolak(hisoka, m, await showHelp());
+                                                break;
+                                        }
+                                        
+                                        if (args[0] === 'tutorial' || args[0] === 'help') {
+                                                await tolak(hisoka, m, showTutorial());
+                                        } else if (args[0] === 'test' || args[0] === 'cek' || args[0] === 'check') {
+                                                if (!telegramConfig.token || !telegramConfig.chatId) {
+                                                        await tolak(hisoka, m, '❌ Token dan Chat ID harus diset dulu!\n\nGunakan .telegram tutorial untuk panduan.');
+                                                        break;
+                                                }
+                                                
+                                                try {
+                                                        const testMsg = `✅ *Test Berhasil!*\n\nBot WhatsApp kamu berhasil terhubung ke Telegram.\n\n_Pesan ini dikirim pada ${new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' })}_`;
+                                                        const res = await fetch(`https://api.telegram.org/bot${telegramConfig.token}/sendMessage`, {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({
+                                                                        chat_id: telegramConfig.chatId,
+                                                                        text: testMsg,
+                                                                        parse_mode: 'Markdown'
+                                                                })
+                                                        });
+                                                        const data = await res.json();
+                                                        
+                                                        if (data.ok) {
+                                                                await tolak(hisoka, m, '✅ Test berhasil! Cek Telegram kamu.');
+                                                        } else {
+                                                                await tolak(hisoka, m, `❌ Gagal: ${data.description}\n\nPastikan kamu sudah Start bot di Telegram.`);
+                                                        }
+                                                } catch (e) {
+                                                        await tolak(hisoka, m, `❌ Error: ${e.message}`);
+                                                }
+                                        } else if (args[0] === 'on' || args[0] === 'true') {
+                                                if (telegramConfig.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Telegram notifikasi sudah aktif sebelumnya');
+                                                } else {
+                                                        config.telegram = { ...telegramConfig, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ Telegram notifikasi diaktifkan');
+                                                }
+                                        } else if (args[0] === 'off' || args[0] === 'false') {
+                                                if (!telegramConfig.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Telegram notifikasi sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.telegram = { ...telegramConfig, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Telegram notifikasi dinonaktifkan');
+                                                }
+                                        } else if (args[0] === 'token' && args[1]) {
+                                                const token = (m.query || '').replace(/^token\s*/i, '').trim();
+                                                config.telegram = { ...telegramConfig, token: token };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, '✅ Token Telegram berhasil diupdate');
+                                        } else if ((args[0] === 'chatid' || args[0] === 'chat_id' || args[0] === 'id') && args[1]) {
+                                                const chatIdValue = (m.query || '').replace(/^(chatid|chat_id|id)\s*/i, '').trim();
+                                                config.telegram = { ...telegramConfig, chatId: chatIdValue };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, '✅ Chat ID Telegram berhasil diupdate');
+                                        } else if (args[0] === 'token' && !args[1]) {
+                                                await tolak(hisoka, m, '❌ Format: .telegram token <bot_token>');
+                                        } else if ((args[0] === 'chatid' || args[0] === 'chat_id' || args[0] === 'id') && !args[1]) {
+                                                await tolak(hisoka, m, '❌ Format: .telegram chatid <chat_id>');
+                                        } else {
+                                                await tolak(hisoka, m, showHelp());
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'telegram');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Telegram] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'add': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                if (!query || !query.toLowerCase().startsWith('emoji')) break;
+                                try {
+                                        const { addEmojis, listEmojis } = await import('../helper/emoji.js');
+                                        
+                                        const emojiInput = query.replace(/^emoji\s*/i, '').trim();
+                                        
+                                        if (!emojiInput) {
+                                                await tolak(hisoka, m, `❌ Format: add emoji 😊,😄,😁\n\nContoh:\nadd emoji 😊\nadd emoji 😊,😄,😁`);
+                                                break;
+                                        }
+
+                                        const emojisToAdd = emojiInput.split(',').map(e => e.trim()).filter(e => e);
+                                        
+                                        if (emojisToAdd.length === 0) {
+                                                await tolak(hisoka, m, '❌ Tidak ada emoji yang valid untuk ditambahkan');
+                                                break;
+                                        }
+
+                                        const results = addEmojis(emojisToAdd);
+                                        const newList = listEmojis();
+                                        
+                                        let response = `╭═══『 *ADD EMOJI* 』═══╮\n│\n`;
+
+if (results.added.length > 0) {
+    response += `│ ✅ *Berhasil (${results.added.length}):* ${results.added.join(',')}\n`;
+}
+
+if (results.alreadyExists.length > 0) {
+    response += `│ ⚠️ *Sudah ada (${results.alreadyExists.length}):* ${results.alreadyExists.join(',')}\n`;
+}
+
+response += `│\n│ 📊 *Total:* ${newList.count} emoji\n`;
+response += `│ *Daftar:* ${newList.emojis.join(',')}\n`;
+response += `╰═════════════════╯`;
+                                        
+                                        await tolak(hisoka, m, response);
+                                        logCommand(m, hisoka, 'add emoji');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AddEmoji] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'del': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                if (!query || !query.toLowerCase().startsWith('emoji')) break;
+                                try {
+                                        const { deleteEmojis, listEmojis } = await import('../helper/emoji.js');
+                                        
+                                        const emojiInput = query.replace(/^emoji\s*/i, '').trim();
+                                        
+                                        if (!emojiInput) {
+                                                await tolak(hisoka, m, `❌ Format: del emoji 😊,😄\n\nContoh:\ndel emoji 😊\ndel emoji 😊,😄,😁`);
+                                                break;
+                                        }
+
+                                        const emojisToDelete = emojiInput.split(',').map(e => e.trim()).filter(e => e);
+                                        
+                                        if (emojisToDelete.length === 0) {
+                                                await tolak(hisoka, m, '❌ Tidak ada emoji yang valid untuk dihapus');
+                                                break;
+                                        }
+
+                                        const results = deleteEmojis(emojisToDelete);
+                                        const newList = listEmojis();
+                                        
+                                        let response = `╭═══『 *DEL EMOJI* 』═══╮\n│\n`;
+
+if (results.deleted.length > 0) {
+    response += `│ ✅ *Dihapus (${results.deleted.length}):* ${results.deleted.join(',')}\n`;
+}
+
+if (results.notFound.length > 0) {
+    response += `│ ⚠️ *Tidak ada (${results.notFound.length}):* ${results.notFound.join(',')}\n`;
+}
+
+response += `│\n│ 📊 *Sisa:* ${newList.count} emoji\n`;
+if (newList.emojis.length > 0) {
+    response += `│ *Daftar:* ${newList.emojis.join(',')}\n`;
+}
+response += `╰═════════════════╯`;
+                                        
+                                        await tolak(hisoka, m, response);
+                                        logCommand(m, hisoka, 'del emoji');
+                                } catch (error) {
+                                        console.error('\x1b[31m[DelEmoji] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'list': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                if (!query || !query.toLowerCase().startsWith('emoji')) break;
+                                try {
+                                        const { listEmojis } = await import('../helper/emoji.js');
+                                        const data = listEmojis();
+                                        
+                                        let response = `╭═══『 *LIST EMOJI* 』═══╮\n│\n`;
+response += `│ 📊 *Total:* ${data.count} emoji\n│\n`;
+
+if (data.emojis.length > 0) {
+    response += `│ *Daftar:* ${data.emojis.join(',')}\n`;
+} else {
+    response += `│ ❌ Belum ada emoji tersimpan\n`;
+}
+
+response += `│\n│ *Command:*\n`;
+response += `│ add emoji 😊,😄\n`;
+response += `│ del emoji 😊,😄\n`;
+response += `╰═════════════════╯`;
+                                        
+                                        await tolak(hisoka, m, response);
+                                        logCommand(m, hisoka, 'list emoji');
+                                } catch (error) {
+                                        console.error('\x1b[31m[ListEmoji] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'addemoji': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const { addEmojis, listEmojis } = await import('../helper/emoji.js');
+
+                                        if (!query) {
+                                                await tolak(hisoka, m, `❌ Format salah!\n\nContoh:\n.addemoji 😊\n.addemoji 😊,😄,😁`);
+                                                break;
+                                        }
+
+                                        const emojisToAdd = query.split(',').map(e => e.trim()).filter(e => e);
+
+                                        if (emojisToAdd.length === 0) {
+                                                await tolak(hisoka, m, '❌ Tidak ada emoji yang valid untuk ditambahkan');
+                                                break;
+                                        }
+
+                                        const results = addEmojis(emojisToAdd);
+                                        const newList = listEmojis();
+
+                                        let response = `╭═══『 *ADD EMOJI* 』═══╮\n│\n`;
+                                        if (results.added.length > 0) response += `│ ✅ *Ditambah (${results.added.length}):* ${results.added.join(' ')}\n`;
+                                        if (results.alreadyExists.length > 0) response += `│ ⚠️ *Sudah ada (${results.alreadyExists.length}):* ${results.alreadyExists.join(' ')}\n`;
+                                        response += `│\n│ 📊 *Total:* ${newList.count} emoji\n`;
+                                        if (newList.emojis.length > 0) response += `│ *Daftar:* ${newList.emojis.join(' ')}\n`;
+                                        response += `╰═════════════════╯`;
+
+                                        await tolak(hisoka, m, response);
+                                        logCommand(m, hisoka, 'addemoji');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AddEmoji] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'delemoji': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const { deleteEmojis, listEmojis } = await import('../helper/emoji.js');
+
+                                        if (!query) {
+                                                await tolak(hisoka, m, `❌ Format salah!\n\nContoh:\n.delemoji 😊\n.delemoji 😊,😄,😁`);
+                                                break;
+                                        }
+
+                                        const emojisToDelete = query.split(',').map(e => e.trim()).filter(e => e);
+
+                                        if (emojisToDelete.length === 0) {
+                                                await tolak(hisoka, m, '❌ Tidak ada emoji yang valid untuk dihapus');
+                                                break;
+                                        }
+
+                                        const results = deleteEmojis(emojisToDelete);
+                                        const newList = listEmojis();
+
+                                        let response = `╭═══『 *DEL EMOJI* 』═══╮\n│\n`;
+                                        if (results.deleted.length > 0) response += `│ ✅ *Dihapus (${results.deleted.length}):* ${results.deleted.join(' ')}\n`;
+                                        if (results.notFound.length > 0) response += `│ ⚠️ *Tidak ada (${results.notFound.length}):* ${results.notFound.join(' ')}\n`;
+                                        response += `│\n│ 📊 *Sisa:* ${newList.count} emoji\n`;
+                                        if (newList.emojis.length > 0) response += `│ *Daftar:* ${newList.emojis.join(' ')}\n`;
+                                        response += `╰═════════════════╯`;
+
+                                        await tolak(hisoka, m, response);
+                                        logCommand(m, hisoka, 'delemoji');
+                                } catch (error) {
+                                        console.error('\x1b[31m[DelEmoji] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'listemoji': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const { listEmojis } = await import('../helper/emoji.js');
+                                        const data = listEmojis();
+
+                                        let response = `╭═══『 *LIST EMOJI* 』═══╮\n│\n`;
+                                        response += `│ 📊 *Total:* ${data.count} emoji\n│\n`;
+                                        if (data.emojis.length > 0) {
+                                                response += `│ *Daftar:* ${data.emojis.join(' ')}\n`;
+                                        } else {
+                                                response += `│ ❌ Belum ada emoji tersimpan\n`;
+                                        }
+                                        response += `│\n│ *Command:*\n`;
+                                        response += `│ .addemoji 😊,😄\n`;
+                                        response += `│ .delemoji 😊,😄\n`;
+                                        response += `╰═════════════════╯`;
+
+                                        await tolak(hisoka, m, response);
+                                        logCommand(m, hisoka, 'listemoji');
+                                } catch (error) {
+                                        console.error('\x1b[31m[ListEmoji] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'online': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const autoOnline = config.autoOnline || { enabled: false, intervalSeconds: 30 };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+                                        
+                                        if (args.length === 0) {
+                                                let text = `╭═══『 *AUTO PRESENCE* 』═══╮\n│\n`;
+text += `│ *Mode:* ${autoOnline.enabled ? '✅ ONLINE' : '🙈 OFFLINE (Stealth)'}\n`;
+text += `│ *Interval:* ${autoOnline.intervalSeconds || 30} detik\n`;
+text += `│ *Running:* ${global.autoOnlineInterval ? '✅ Yes' : '❌ No'}\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .online on - Terlihat Online\n`;
+text += `│ .online off - Terlihat Offline\n`;
+text += `│ .online set <detik> - Set interval\n`;
+text += `│\n`;
+text += `│ *Info:* Mode OFFLINE mengirim\n`;
+text += `│ unavailable setiap ${autoOnline.intervalSeconds || 30}s agar\n`;
+text += `│ tetap tersembunyi walaupun WA\n`;
+text += `│ dibuka di HP\n`;
+text += `│\n`;
+text += `╰═════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+                                        
+                                        if (args[0] === 'on') {
+                                                if (autoOnline.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Online sudah aktif sebelumnya');
+                                                } else {
+                                                        config.autoOnline = { ...autoOnline, enabled: true };
+                                                        saveConfig(config);
+                                                        if (global.startAutoOnline) {
+                                                                global.startAutoOnline();
+                                                        } else if (global.hisokaClient) {
+                                                                global.hisokaClient.sendPresenceUpdate('available');
+                                                        }
+                                                        await tolak(hisoka, m, '✅ Auto Online diaktifkan - Anda terlihat online');
+                                                }
+                                        } else if (args[0] === 'off') {
+                                                if (!autoOnline.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Online sudah nonaktif sebelumnya - Anda terlihat offline');
+                                                } else {
+                                                        config.autoOnline = { ...autoOnline, enabled: false };
+                                                        saveConfig(config);
+                                                        if (global.startAutoOnline) {
+                                                                global.startAutoOnline();
+                                                        } else {
+                                                                if (global.autoOnlineInterval) {
+                                                                        clearInterval(global.autoOnlineInterval);
+                                                                        global.autoOnlineInterval = null;
+                                                                }
+                                                                if (global.hisokaClient) {
+                                                                        global.hisokaClient.sendPresenceUpdate('unavailable');
+                                                                }
+                                                        }
+                                                        console.log(`\x1b[33m[AutoOnline]\x1b[39m Switched to OFFLINE mode`);
+                                                        await tolak(hisoka, m, '🙈 Auto Online dinonaktifkan - Mode stealth aktif, status terus tersembunyi');
+                                                }
+                                        } else if (args[0] === 'set' && args[1]) {
+                                                const seconds = parseInt(args[1]);
+                                                if (isNaN(seconds) || seconds < 10 || seconds > 300) {
+                                                        await tolak(hisoka, m, '❌ Interval harus antara 10-300 detik');
+                                                        break;
+                                                }
+                                                config.autoOnline = { ...autoOnline, intervalSeconds: seconds };
+                                                saveConfig(config);
+                                                let timerStatus = '';
+                                                if (config.autoOnline.enabled) {
+                                                        if (global.startAutoOnline) {
+                                                                global.startAutoOnline();
+                                                                timerStatus = ' (timer restarted)';
+                                                        } else {
+                                                                timerStatus = ' (akan aktif saat reconnect)';
+                                                        }
+                                                }
+                                                await tolak(hisoka, m, `✅ Interval Auto Online diset ke ${seconds} detik${timerStatus}`);
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .online untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'online');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Online] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'anticall':
+                        case 'ac': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const antiCall = config.antiCall || { enabled: false, message: '', whitelist: [] };
+                                        const args = query ? query.split(' ') : [];
+                                        const argLower = args[0] ? args[0].toLowerCase() : '';
+                                        
+                                        if (args.length === 0) {
+                                                let text = `╭═══『 *ANTI CALL* 』═══╮\n│\n`;
+text += `│ *Status:* ${antiCall.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+text += `│ *Pesan:* ${antiCall.message || '(kosong)'}\n`;
+text += `│ *Whitelist:* ${(antiCall.whitelist || []).length} nomor\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .anticall on/off\n`;
+text += `│ .anticall msg <pesan>\n`;
+text += `│ .anticall list\n`;
+text += `│ .anticall add <nomor>\n`;
+text += `│ .anticall del <nomor>\n`;
+text += `│ .anticall reset\n`;
+text += `│\n`;
+text += `│ *Info:* Nomor whitelist tidak\n`;
+text += `│ akan di-reject panggilannya\n`;
+text += `│\n`;
+text += `╰═════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+                                        
+                                        if (argLower === 'on') {
+                                                if (antiCall.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Anti Call sudah aktif sebelumnya');
+                                                } else {
+                                                        config.antiCall = { ...antiCall, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ Anti Call diaktifkan - Panggilan suara akan otomatis ditolak');
+                                                }
+                                        } else if (argLower === 'off') {
+                                                if (!antiCall.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Anti Call sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.antiCall = { ...antiCall, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Anti Call dinonaktifkan');
+                                                }
+                                        } else if (argLower === 'msg' || argLower === 'message' || argLower === 'pesan') {
+                                                const newMsg = args.slice(1).join(' ');
+                                                if (!newMsg) {
+                                                        await tolak(hisoka, m, `📝 Pesan saat ini:\n\n${antiCall.message || '(kosong)'}\n\nGunakan: .anticall msg <pesan baru>`);
+                                                } else {
+                                                        config.antiCall = { ...antiCall, message: newMsg };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ Pesan Anti Call diubah menjadi:\n\n${newMsg}`);
+                                                }
+                                        } else if (argLower === 'list') {
+                                                const whitelist = antiCall.whitelist || [];
+                                                if (whitelist.length === 0) {
+                                                        await tolak(hisoka, m, '📋 Whitelist Anti Call kosong\n\nGunakan .anticall add <nomor> untuk menambahkan');
+                                                } else {
+                                                        let text = `╭═══『 *WHITELIST ANTICALL* 』═══╮\n│\n`;
+whitelist.forEach((num, i) => {
+    text += `│ ${i + 1}. ${num}\n`;
+});
+text += `│\n╰═════════════════╯`;
+                                                        await tolak(hisoka, m, text);
+                                                }
+                                        } else if (argLower === 'add') {
+                                                const number = args[1] ? args[1].replace(/[^0-9]/g, '') : '';
+                                                if (!number) {
+                                                        await tolak(hisoka, m, '❌ Masukkan nomor!\n\nContoh: .anticall add 628123456789');
+                                                        break;
+                                                }
+                                                const whitelist = antiCall.whitelist || [];
+                                                if (whitelist.includes(number)) {
+                                                        await tolak(hisoka, m, `ℹ️ Nomor ${number} sudah ada di whitelist`);
+                                                } else {
+                                                        whitelist.push(number);
+                                                        config.antiCall = { ...antiCall, whitelist };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} ditambahkan ke whitelist Anti Call`);
+                                                }
+                                        } else if (argLower === 'del' || argLower === 'delete' || argLower === 'hapus') {
+                                                const number = args[1] ? args[1].replace(/[^0-9]/g, '') : '';
+                                                if (!number) {
+                                                        await tolak(hisoka, m, '❌ Masukkan nomor!\n\nContoh: .anticall del 628123456789');
+                                                        break;
+                                                }
+                                                const whitelist = antiCall.whitelist || [];
+                                                const idx = whitelist.findIndex(n => n === number);
+                                                if (idx === -1) {
+                                                        await tolak(hisoka, m, `ℹ️ Nomor ${number} tidak ditemukan di whitelist`);
+                                                } else {
+                                                        whitelist.splice(idx, 1);
+                                                        config.antiCall = { ...antiCall, whitelist };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} dihapus dari whitelist Anti Call`);
+                                                }
+                                        } else if (argLower === 'reset' || argLower === 'clear') {
+                                                config.antiCall = { ...antiCall, whitelist: [] };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, '✅ Whitelist Anti Call direset');
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .anticall untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'anticall');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AntiCall] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'anticallvid':
+                        case 'acv': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const antiCallVideo = config.antiCallVideo || { enabled: false, message: '', whitelist: [] };
+                                        const args = query ? query.split(' ') : [];
+                                        const argLower = args[0] ? args[0].toLowerCase() : '';
+                                        
+                                        if (args.length === 0) {
+                                                let text = `╭═══『 *ANTI CALL VIDEO* 』═══╮\n│\n`;
+text += `│ *Status:* ${antiCallVideo.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
+text += `│ *Pesan:* ${antiCallVideo.message || '(kosong)'}\n`;
+text += `│ *Whitelist:* ${(antiCallVideo.whitelist || []).length} nomor\n`;
+text += `│\n`;
+text += `│ *Penggunaan:*\n`;
+text += `│ .anticallvid on/off\n`;
+text += `│ .anticallvid msg <pesan>\n`;
+text += `│ .anticallvid list\n`;
+text += `│ .anticallvid add <nomor>\n`;
+text += `│ .anticallvid del <nomor>\n`;
+text += `│ .anticallvid reset\n`;
+text += `│\n`;
+text += `│ *Info:* Nomor whitelist tidak\n`;
+text += `│ akan di-reject panggilannya\n`;
+text += `│\n`;
+text += `╰═════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+                                        
+                                        if (argLower === 'on') {
+                                                if (antiCallVideo.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Anti Call Video sudah aktif sebelumnya');
+                                                } else {
+                                                        config.antiCallVideo = { ...antiCallVideo, enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '✅ Anti Call Video diaktifkan - Panggilan video akan otomatis ditolak');
+                                                }
+                                        } else if (argLower === 'off') {
+                                                if (!antiCallVideo.enabled) {
+                                                        await tolak(hisoka, m, 'ℹ️ Anti Call Video sudah nonaktif sebelumnya');
+                                                } else {
+                                                        config.antiCallVideo = { ...antiCallVideo, enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, '❌ Anti Call Video dinonaktifkan');
+                                                }
+                                        } else if (argLower === 'msg' || argLower === 'message' || argLower === 'pesan') {
+                                                const newMsg = args.slice(1).join(' ');
+                                                if (!newMsg) {
+                                                        await tolak(hisoka, m, `📝 Pesan saat ini:\n\n${antiCallVideo.message || '(kosong)'}\n\nGunakan: .anticallvid msg <pesan baru>`);
+                                                } else {
+                                                        config.antiCallVideo = { ...antiCallVideo, message: newMsg };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ Pesan Anti Call Video diubah menjadi:\n\n${newMsg}`);
+                                                }
+                                        } else if (argLower === 'list') {
+                                                const whitelist = antiCallVideo.whitelist || [];
+                                                if (whitelist.length === 0) {
+                                                        await tolak(hisoka, m, '📋 Whitelist Anti Call Video kosong\n\nGunakan .anticallvid add <nomor> untuk menambahkan');
+                                                } else {
+                                                        let text = `╭═══『 *WHITELIST ANTICALL VIDEO* 』═══╮\n│\n`;
+whitelist.forEach((num, i) => {
+    text += `│ ${i + 1}. ${num}\n`;
+});
+text += `│\n╰═════════════════╯`;
+                                                        await tolak(hisoka, m, text);
+                                                }
+                                        } else if (argLower === 'add') {
+                                                const number = args[1] ? args[1].replace(/[^0-9]/g, '') : '';
+                                                if (!number) {
+                                                        await tolak(hisoka, m, '❌ Masukkan nomor!\n\nContoh: .anticallvid add 628123456789');
+                                                        break;
+                                                }
+                                                const whitelist = antiCallVideo.whitelist || [];
+                                                if (whitelist.includes(number)) {
+                                                        await tolak(hisoka, m, `ℹ️ Nomor ${number} sudah ada di whitelist`);
+                                                } else {
+                                                        whitelist.push(number);
+                                                        config.antiCallVideo = { ...antiCallVideo, whitelist };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} ditambahkan ke whitelist Anti Call Video`);
+                                                }
+                                        } else if (argLower === 'del' || argLower === 'delete' || argLower === 'hapus') {
+                                                const number = args[1] ? args[1].replace(/[^0-9]/g, '') : '';
+                                                if (!number) {
+                                                        await tolak(hisoka, m, '❌ Masukkan nomor!\n\nContoh: .anticallvid del 628123456789');
+                                                        break;
+                                                }
+                                                const whitelist = antiCallVideo.whitelist || [];
+                                                const idx = whitelist.findIndex(n => n === number);
+                                                if (idx === -1) {
+                                                        await tolak(hisoka, m, `ℹ️ Nomor ${number} tidak ditemukan di whitelist`);
+                                                } else {
+                                                        whitelist.splice(idx, 1);
+                                                        config.antiCallVideo = { ...antiCallVideo, whitelist };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} dihapus dari whitelist Anti Call Video`);
+                                                }
+                                        } else if (argLower === 'reset' || argLower === 'clear') {
+                                                config.antiCallVideo = { ...antiCallVideo, whitelist: [] };
+                                                saveConfig(config);
+                                                await tolak(hisoka, m, '✅ Whitelist Anti Call Video direset');
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .anticallvid untuk melihat bantuan.');
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'anticallvid');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AntiCallVideo] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'autocleaner': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const ac = config.autoCleaner || { enabled: true, intervalHours: 6 };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+
+                                        if (args.length === 0) {
+                                                const statusText =
+                                                        `╔════════════════════════╗\n` +
+                                                        `║  🧹 *AUTO CLEANER*  🧹  ║\n` +
+                                                        `╚════════════════════════╝\n\n` +
+                                                        `📊 *Status:* ${ac.enabled !== false ? '✅ Aktif' : '❌ Nonaktif'}\n` +
+                                                        `⏱️ *Interval:* Setiap ${ac.intervalHours || 6} jam\n\n` +
+                                                        `📋 *Fungsi:*\n` +
+                                                        `Hapus otomatis file sementara (hasil download) di folder tmp/ setiap beberapa jam.\n\n` +
+                                                        `📋 *Perintah:*\n` +
+                                                        `• *.autocleaner on* — Aktifkan\n` +
+                                                        `• *.autocleaner off* — Nonaktifkan\n` +
+                                                        `• *.autocleaner now* — Jalankan pembersihan sekarang\n` +
+                                                        `• *.autocleaner interval <jam>* — Ubah interval (contoh: interval 3)`;
+                                                await tolak(hisoka, m, statusText);
+                                                break;
+                                        }
+
+                                        if (args[0] === 'on') {
+                                                if (ac.enabled !== false) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Cleaner sudah aktif.');
+                                                } else {
+                                                        config.autoCleaner = { ...ac, enabled: true };
+                                                        saveConfig(config);
+                                                        restartAutoCleaner();
+                                                        await tolak(hisoka, m, `✅ *Auto Cleaner diaktifkan!*\n\nFile tmp/ akan dibersihkan otomatis setiap ${ac.intervalHours || 6} jam.`);
+                                                }
+                                        } else if (args[0] === 'off') {
+                                                if (ac.enabled === false) {
+                                                        await tolak(hisoka, m, 'ℹ️ Auto Cleaner sudah nonaktif.');
+                                                } else {
+                                                        config.autoCleaner = { ...ac, enabled: false };
+                                                        saveConfig(config);
+                                                        stopAutoCleaner();
+                                                        await tolak(hisoka, m, `✅ *Auto Cleaner dinonaktifkan.*\n\nFile tmp/ tidak akan dibersihkan otomatis.`);
+                                                }
+                                        } else if (args[0] === 'now') {
+                                                const result = clearOldFiles(0);
+                                                await tolak(hisoka, m, 
+                                                        `✅ *Pembersihan selesai!*\n\n` +
+                                                        `🗑️ File dihapus: ${result.deleted}\n` +
+                                                        `💾 Ruang dibebaskan: ${result.sizeFormatted || '0 B'}`
+                                                );
+                                        } else if (args[0] === 'interval') {
+                                                const jam = parseInt(args[1]);
+                                                if (isNaN(jam) || jam < 1 || jam > 168) {
+                                                        await tolak(hisoka, m, '❌ Interval harus angka antara 1–168 jam.\n\nContoh: *.autocleaner interval 3*');
+                                                } else {
+                                                        config.autoCleaner = { ...ac, enabled: true, intervalHours: jam };
+                                                        saveConfig(config);
+                                                        restartAutoCleaner();
+                                                        await tolak(hisoka, m, `✅ *Interval Auto Cleaner diubah!*\n\n⏱️ Sekarang: setiap *${jam} jam*\n\nPerubahan juga tersimpan di config.json.`);
+                                                }
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid.\n\nKetik *.autocleaner* untuk melihat bantuan.');
+                                        }
+
+                                        logCommand(m, hisoka, 'autocleaner');
+                                } catch (error) {
+                                        console.error('\x1b[31m[AutoCleaner Cmd] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'sessioncleaner': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const config = loadConfig();
+                                        const sc = config.sessionCleaner || { enabled: true };
+                                        const args = query ? query.toLowerCase().split(' ') : [];
+
+                                        if (args.length === 0) {
+                                                const statusText =
+                                                        `╔══════════════════════════╗\n` +
+                                                        `║  🔑 *SESSION CLEANER*  🔑  ║\n` +
+                                                        `╚══════════════════════════╝\n\n` +
+                                                        `📊 *Status:* ${sc.enabled !== false ? '✅ Aktif' : '❌ Nonaktif'}\n\n` +
+                                                        `📋 *Fungsi:*\n` +
+                                                        `Hapus otomatis pre-key & session WhatsApp yang sudah usang saat bot mulai. Menghemat memori dan storage.\n\n` +
+                                                        `📋 *Perintah:*\n` +
+                                                        `• *.sessioncleaner on* — Aktifkan\n` +
+                                                        `• *.sessioncleaner off* — Nonaktifkan\n` +
+                                                        `• *.sessioncleaner now* — Jalankan pembersihan session sekarang`;
+                                                await tolak(hisoka, m, statusText);
+                                                break;
+                                        }
+
+                                        if (args[0] === 'on') {
+                                                if (sc.enabled !== false) {
+                                                        await tolak(hisoka, m, 'ℹ️ Session Cleaner sudah aktif.');
+                                                } else {
+                                                        config.sessionCleaner = { enabled: true };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ *Session Cleaner diaktifkan!*\n\nPre-key & session lama akan dibersihkan otomatis saat bot mulai.`);
+                                                }
+                                        } else if (args[0] === 'off') {
+                                                if (sc.enabled === false) {
+                                                        await tolak(hisoka, m, 'ℹ️ Session Cleaner sudah nonaktif.');
+                                                } else {
+                                                        config.sessionCleaner = { enabled: false };
+                                                        saveConfig(config);
+                                                        await tolak(hisoka, m, `✅ *Session Cleaner dinonaktifkan.*\n\nPre-key & session lama tidak akan dibersihkan otomatis.`);
+                                                }
+                                        } else if (args[0] === 'now') {
+                                                const sessionDir = global.sessionDir || '';
+                                                if (!sessionDir) {
+                                                        await tolak(hisoka, m, '❌ Direktori session tidak ditemukan.');
+                                                        break;
+                                                }
+                                                cleanStaleSessionFiles(sessionDir, { skipConfigCheck: true });
+                                                await tolak(hisoka, m, `✅ *Pembersihan session selesai!*\n\nPre-key & session lama sudah dibersihkan.`);
+                                        } else {
+                                                await tolak(hisoka, m, '❌ Perintah tidak valid.\n\nKetik *.sessioncleaner* untuk melihat bantuan.');
+                                        }
+
+                                        logCommand(m, hisoka, 'sessioncleaner');
+                                } catch (error) {
+                                        console.error('\x1b[31m[SessionCleaner Cmd] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Terjadi kesalahan: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'react':
+                        case 'reaksi': {
+                                try {
+                                        const config = loadConfig();
+                                        const reactConfig = config.reactApi || {};
+                                        
+                                        if (!reactConfig.enabled) {
+                                                await tolak(hisoka, m, 'Mohon maaf, fitur react sedang tidak aktif saat ini. Silakan hubungi admin untuk mengaktifkannya.');
+                                                break;
+                                        }
+                                        
+                                        const apiKey = process.env.REACT_API_KEY || reactConfig.apiKey;
+                                        if (!apiKey) {
+                                                await tolak(hisoka, m, 'Mohon maaf, API key untuk fitur react belum dikonfigurasi. Silakan hubungi admin untuk mengaturnya.');
+                                                break;
+                                        }
+                                        
+                                        if (!query) {
+                                                await tolak(hisoka, m, `╭═══ *REACT CHANNEL* ═══╮
+│
+│ 📌 *Kirim Reaksi ke Saluran/Channel*
+│
+│ *Format:*
+│ .react [link] [emoji]
+│
+│ *Contoh Penggunaan:*
+│ .react https://whatsapp.com/
+│ channel/0029xxx/264 ♥️ 🙏🏻
+│
+│ *Keterangan:*
+│ • Link: URL postingan channel
+│ • Emoji: Reaksi (bisa lebih dari 1)
+│
+│ *Command Lainnya:*
+│ • .cekreact - Cek saldo coin
+│ • .setreactapi - Atur API key
+│
+╰══════════════════════╯`);
+                                                break;
+                                        }
+                                        
+                                        const [postLink, ...reactsArray] = query.split(' ');
+                                        const reacts = reactsArray.join(', ');
+                                        
+                                        if (!postLink || !reacts) {
+                                                await tolak(hisoka, m, `⚠️ *Format Tidak Lengkap!*
+
+Gunakan format:
+.react [link_post] [emoji1] [emoji2]
+
+Contoh:
+.react https://whatsapp.com/channel/xxx/123 ♥️ 🙏🏻`);
+                                                break;
+                                        }
+                                        
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Sedang memproses reaksi, mohon tunggu sebentar...');
+                                        
+                                        const axios = (await import('axios')).default;
+                                        const apiUrl = reactConfig.apiUrl || 'https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/channel/react-to-post';
+                                        
+                                        const requestData = {
+                                                post_link: postLink,
+                                                reacts: reacts
+                                        };
+                                        
+                                        const headers = {
+                                                'Accept': 'application/json, text/plain, */*',
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${apiKey}`
+                                        };
+                                        
+                                        const response = await axios.post(apiUrl, requestData, { headers, timeout: 30000 });
+                                        const data = response.data;
+                                        
+                                        const emojiList = reacts.split(',').map(e => e.trim()).filter(e => e);
+                                        const totalReactions = emojiList.length;
+                                        
+                                        let coinUsed = data.coinsUsed || data.coinUsed || data.coins_used || null;
+                                        if (!coinUsed && data.message) {
+                                                const coinMatch = data.message.match(/(\d+)\s*COIN/i);
+                                                if (coinMatch) coinUsed = parseInt(coinMatch[1]);
+                                        }
+                                        if (!coinUsed) coinUsed = totalReactions;
+                                        
+                                        let coinRemaining = data.coinsRemaining || data.coinRemaining || data.coins_remaining || data.balance || data.remainingCoins || null;
+                                        if (!coinRemaining && data.message) {
+                                                const remainMatch = data.message.match(/remaining[:\s]*(\d+)/i) || data.message.match(/sisa[:\s]*(\d+)/i);
+                                                if (remainMatch) coinRemaining = parseInt(remainMatch[1]);
+                                        }
+                                        
+                                        let hasil = `╭═══ *REACT BERHASIL* ═══╮\n`;
+hasil += `│\n`;
+hasil += `│ ✅ *Status:* Sukses!\n`;
+hasil += `│\n`;
+hasil += `│ 📊 *Detail Reaksi:*\n`;
+hasil += `│ ├ Emoji: ${emojiList.join(' ')}\n`;
+hasil += `│ ├ Jumlah: ${totalReactions} reaksi\n`;
+hasil += `│ └ Post: ...${postLink.slice(-20)}\n`;
+hasil += `│\n`;
+hasil += `│ 💰 *Info Coin:*\n`;
+hasil += `│ ├ Terpakai: ${coinUsed} coin\n`;
+hasil += `│ └ Sisa: ${coinRemaining !== null ? coinRemaining + ' coin' : 'Gunakan .cekreact'}\n`;
+if (data.botResponse) {
+    hasil += `│\n`;
+    hasil += `│ 🤖 *Respon:* ${data.botResponse}\n`;
+}
+hasil += `│\n`;
+hasil += `╰══════════════════════╯`;
+                                        
+                                        await m.reply({ edit: loadingMsg.key, text: hasil.trim() });
+                                        logCommand(m, hisoka, 'react');
+                                        
+                                } catch (error) {
+                                        console.error('\x1b[31m[React API] Error:\x1b[39m', error.message);
+                                        
+                                        let errorMessage = '';
+                                        
+                                        if (error.response) {
+                                                const status = error.response.status;
+                                                const responseData = error.response.data;
+                                                
+                                                if (status === 401 || status === 403) {
+                                                        errorMessage = `🔐 *Akses Ditolak*\n\nMohon maaf, sepertinya ada masalah dengan otorisasi API. Silakan hubungi admin untuk memeriksa API key.\n\n💡 *Tips:* Pastikan API key masih valid dan belum kadaluarsa.`;
+                                                } else if (status === 429) {
+                                                        errorMessage = `⏰ *Batas Penggunaan Tercapai*\n\nMohon maaf, layanan sedang sibuk atau batas penggunaan sudah tercapai. Silakan coba lagi dalam beberapa saat.\n\n💡 *Tips:* Tunggu beberapa menit sebelum mencoba kembali.`;
+                                                } else if (status === 400) {
+                                                        errorMessage = `📋 *Format Tidak Valid*\n\nMohon maaf, format permintaan tidak sesuai.\n\n📝 *Pesan Server:* ${responseData?.message || 'Format tidak valid'}\n\n💡 *Tips:* Pastikan link dan emoji yang dimasukkan sudah benar.`;
+                                                } else if (status === 404) {
+                                                        errorMessage = `🔍 *Tidak Ditemukan*\n\nMohon maaf, layanan API tidak dapat ditemukan. Silakan hubungi admin untuk memeriksa konfigurasi.`;
+                                                } else if (status >= 500) {
+                                                        errorMessage = `🔧 *Server Sedang Bermasalah*\n\nMohon maaf, server sedang mengalami gangguan sementara. Silakan coba lagi dalam beberapa saat.\n\n💡 *Tips:* Jika masalah berlanjut, silakan hubungi admin.`;
+                                                } else {
+                                                        errorMessage = `⚠️ *Terjadi Kesalahan*\n\n📊 *Status:* ${status}\n📝 *Pesan:* ${responseData?.message || 'Terjadi kesalahan tidak diketahui'}\n\n💡 *Tips:* Silakan coba lagi atau hubungi admin jika masalah berlanjut.`;
+                                                }
+                                        } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+                                                errorMessage = `⏱️ *Waktu Habis*\n\nMohon maaf, permintaan memakan waktu terlalu lama. Server mungkin sedang sibuk.\n\n💡 *Tips:* Silakan coba lagi dalam beberapa saat.`;
+                                        } else if (error.request) {
+                                                errorMessage = `🌐 *Tidak Dapat Terhubung*\n\nMohon maaf, tidak dapat terhubung ke server. Kemungkinan ada masalah jaringan atau server sedang tidak aktif.\n\n💡 *Tips:* Periksa koneksi internet atau coba lagi nanti.`;
+                                        } else {
+                                                errorMessage = `❌ *Terjadi Kesalahan*\n\nMohon maaf, terjadi kesalahan teknis: ${error.message}\n\n💡 *Tips:* Silakan coba lagi atau hubungi admin jika masalah berlanjut.`;
+                                        }
+                                        
+                                        await tolak(hisoka, m, errorMessage);
+                                }
+                                break;
+                        }
+
+                        case 'cekreact':
+                        case 'reactinfo': {
+                                try {
+                                        const config = loadConfig();
+                                        const reactConfig = config.reactApi || {};
+                                        
+                                        const apiKey = process.env.REACT_API_KEY || reactConfig.apiKey;
+                                        if (!apiKey) {
+                                                await tolak(hisoka, m, 'Mohon maaf, API key untuk fitur react belum dikonfigurasi.');
+                                                break;
+                                        }
+                                        
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Mengambil informasi saldo...');
+                                        
+                                        const axios = (await import('axios')).default;
+                                        const baseUrl = reactConfig.apiUrl || 'https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/channel/react-to-post';
+                                        const balanceUrl = baseUrl.replace('/react-to-post', '/balance') || 'https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/channel/balance';
+                                        
+                                        const headers = {
+                                                'Accept': 'application/json, text/plain, */*',
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${apiKey}`
+                                        };
+                                        
+                                        try {
+                                                const response = await axios.get(balanceUrl, { headers, timeout: 15000 });
+                                                const data = response.data;
+                                                
+                                                const balance = data.balance || data.coins || data.coin || data.saldo || 0;
+                                                const used = data.used || data.totalUsed || data.coins_used || 0;
+                                                const plan = data.plan || data.subscription || data.package || 'Standard';
+                                                const expiry = data.expiry || data.expired || data.expiryDate || '-';
+                                                
+                                                let hasil = `╭═══ *INFO SALDO REACT* ═══╮\n`;
+hasil += `│\n`;
+hasil += `│ 💰 *Saldo Coin:* ${balance} coin\n`;
+hasil += `│ 📊 *Total Terpakai:* ${used} coin\n`;
+hasil += `│ 📦 *Paket:* ${plan}\n`;
+if (expiry !== '-') {
+    hasil += `│ 📅 *Berlaku Hingga:* ${expiry}\n`;
+}
+hasil += `│\n`;
+hasil += `│ ✅ Status: Aktif\n`;
+hasil += `│\n`;
+hasil += `╰════════════════════════╯`;
+                                                
+                                                await m.reply({ edit: loadingMsg.key, text: hasil.trim() });
+                                        } catch (balanceError) {
+                                                const maskedKey = apiKey.slice(0, 10) + '...' + apiKey.slice(-5);
+                                                let hasil = `╭═══ *INFO REACT API* ═══╮\n`;
+hasil += `│\n`;
+hasil += `│ 🔑 *API Key:* ${maskedKey}\n`;
+hasil += `│ ✅ *Status:* ${reactConfig.enabled ? 'Aktif' : 'Nonaktif'}\n`;
+hasil += `│ 🌐 *Server:* Terhubung\n`;
+hasil += `│\n`;
+hasil += `│ ℹ️ *Info:*\n`;
+hasil += `│ Endpoint cek saldo tidak tersedia\n`;
+hasil += `│ atau sedang dalam pemeliharaan.\n`;
+hasil += `│ Silakan coba fitur .react\n`;
+hasil += `│\n`;
+hasil += `╰════════════════════════╯`;
+                                                
+                                                await m.reply({ edit: loadingMsg.key, text: hasil.trim() });
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'cekreact');
+                                        
+                                } catch (error) {
+                                        console.error('\x1b[31m[CekReact] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Mohon maaf, terjadi kesalahan saat mengecek saldo: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'setreactapi':
+                        case 'reactapi': {
+                                try {
+                                        if (!m.isOwner) {
+                                                await tolak(hisoka, m, 'Mohon maaf, perintah ini hanya dapat digunakan oleh owner bot.');
+                                                break;
+                                        }
+                                        
+                                        if (!query) {
+                                                const config = loadConfig();
+                                                const reactConfig = config.reactApi || {};
+                                                const currentKey = process.env.REACT_API_KEY || reactConfig.apiKey;
+                                                const maskedKey = currentKey ? currentKey.slice(0, 10) + '...' + currentKey.slice(-5) : 'Belum diatur';
+                                                
+                                                await tolak(hisoka, m, `╭═══ *SETTING REACT API* ═══╮
+│
+│ 📌 *Cara Penggunaan:*
+│ .setreactapi [api_key]
+│
+│ 📊 *Status Saat Ini:*
+│ ├ Status: ${reactConfig.enabled ? '✅ Aktif' : '❌ Nonaktif'}
+│ ├ API Key: ${maskedKey}
+│ └ Server: Default
+│
+╰════════════════════════════╯`);
+                                                break;
+                                        }
+                                        
+                                        const newApiKey = query.trim();
+                                        const config = loadConfig();
+                                        
+                                        if (!config.reactApi) {
+                                                config.reactApi = {
+                                                        enabled: true,
+                                                        apiKey: '',
+                                                        apiUrl: 'https://foreign-marna-sithaunarathnapromax-9a005c2e.koyeb.app/api/channel/react-to-post'
+                                                };
+                                        }
+                                        
+                                        config.reactApi.apiKey = newApiKey;
+                                        saveConfig(config);
+                                        
+                                        const maskedKey = newApiKey.slice(0, 10) + '...' + newApiKey.slice(-5);
+                                        await tolak(hisoka, m, `╭═══ *API KEY UPDATED* ═══╮
+│
+│ ✅ *Berhasil Diperbarui!*
+│
+│ 🔑 Key: ${maskedKey}
+│ 📊 Status: Aktif
+│
+│ 💡 Fitur react siap digunakan
+│
+╰═════════════════════════╯`);
+                                        logCommand(m, hisoka, 'setreactapi');
+                                        
+                                } catch (error) {
+                                        console.error('\x1b[31m[SetReactAPI] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `Mohon maaf, terjadi kesalahan saat mengatur API key: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'tt': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m, '❌ Masukkan link TikTok!\n\nContoh: .tt https://vt.tiktok.com/xxx\nAtau: .tt https://www.tiktok.com/@user/video/xxx');
+                                                break;
+                                        }
+                                        
+                                        const ttUrl = query.trim();
+                                        if (!ttUrl.includes('tiktok.com') && !ttUrl.includes('tiktok')) {
+                                                await tolak(hisoka, m, '❌ Link tidak valid! Pastikan link dari TikTok.');
+                                                break;
+                                        }
+                                        
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Sedang mengunduh dari TikTok...');
+                                        
+                                        const { Downloader } = await import('@tobyg74/tiktok-api-dl');
+                                        
+                                        let result = null;
+                                        let lastError = null;
+                                        
+                                        // Coba v3 dulu (URL paling bersih), lalu v2, lalu v1
+                                        const versions = ['v3', 'v2', 'v1'];
+                                        for (const version of versions) {
+                                                try {
+                                                        const res = await Downloader(ttUrl, { version });
+                                                        if (res && res.status === 'success' && res.result) {
+                                                                result = res;
+                                                                console.log('[TikTok] Success with version:', version);
+                                                                break;
+                                                        }
+                                                } catch (e) {
+                                                        lastError = e;
+                                                        continue;
+                                                }
+                                        }
+                                        
+                                        if (!result || result.status !== 'success') {
+                                                await m.reply({ edit: loadingMsg.key, text: '❌ Gagal mengunduh. Video mungkin privat atau link tidak valid.' });
+                                                break;
+                                        }
+                                        
+                                        const data = result.result;
+                                        const author = data.author || {};
+                                        const stats = data.statistics || data.stats || {};
+                                        const desc = data.description || data.desc || '';
+                                        
+                                        const formatNum = (num) => {
+                                                if (!num || num === 0) return null;
+                                                const n = parseInt(num) || 0;
+                                                if (isNaN(n) || n === 0) return null;
+                                                return n.toLocaleString('id-ID');
+                                        };
+                                        
+                                        const playCount = formatNum(stats.playCount || stats.play_count || stats.views || data.playCount);
+                                        const likeCount = formatNum(stats.likeCount || stats.like_count || stats.likes || stats.diggCount || data.likeCount);
+                                        const commentCount = formatNum(stats.commentCount || stats.comment_count || stats.comments || data.commentCount);
+                                        const shareCount = formatNum(stats.shareCount || stats.share_count || stats.shares || data.shareCount);
+                                        
+                                        let infoText = `╭═══ *TIKTOK DOWNLOADER* ═══╮\n`;
+infoText += `│ 👤 @${author.nickname || author.username || author.unique_id || data.author?.nickname || 'Unknown'}\n`;
+if (playCount) infoText += `│ 👁️ ${playCount} views\n`;
+if (likeCount) infoText += `│ ❤️ ${likeCount} likes\n`;
+if (commentCount) infoText += `│ 💬 ${commentCount} comments\n`;
+if (shareCount) infoText += `│ 🔄 ${shareCount} shares\n`;
+if (desc) {
+    const shortDesc = desc.length > 300 ? desc.substring(0, 300) + '...' : desc;
+    infoText += `│\n│ 📝 ${shortDesc}\n`;
+}
+infoText += `╰════════════════════════╯`;
+                                        
+                                        await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
+
+                                        // Generate AI caption untuk TikTok
+                                        const aiCaptionPromiseTT = gemini.ask(buildVideoDownloadCaptionPrompt({
+                                            platform: 'TikTok',
+                                            title: desc || '',
+                                            author: author.nickname || author.username || author.unique_id || 'Unknown',
+                                            views: playCount || '',
+                                            likes: likeCount || '',
+                                            comments: commentCount || '',
+                                            description: desc || '',
+                                        })).catch(() => null);
+                                        
+                                        // Ekstrak video URL — handle format v3 (videoHD/videoSD) dan v2 (video.playAddr sebagai array)
+                                        const pickUrl = (val) => {
+                                                if (!val) return null;
+                                                if (typeof val === 'string') return val;
+                                                if (Array.isArray(val)) return val[0] || null;
+                                                return null;
+                                        };
+                                        
+                                        let videoUrl = null;
+                                        
+                                        // v3 format: videoHD / videoSD / videoWatermark langsung di root
+                                        videoUrl = pickUrl(data.videoHD) || pickUrl(data.videoSD) || pickUrl(data.videoWatermark);
+                                        
+                                        // v2/v1 format: nested di dalam data.video
+                                        if (!videoUrl && data.video) {
+                                                if (typeof data.video === 'string') {
+                                                        videoUrl = data.video;
+                                                } else if (Array.isArray(data.video)) {
+                                                        videoUrl = data.video[0];
+                                                } else {
+                                                        videoUrl = pickUrl(data.video.playAddr)
+                                                                || pickUrl(data.video.downloadAddr)
+                                                                || pickUrl(data.video.noWatermark);
+                                                }
+                                        }
+                                        
+                                        // Tunggu AI caption selesai
+                                        const aiCaptionTT = await aiCaptionPromiseTT;
+                                        const finalCaptionTT = aiCaptionTT?.trim() || infoText;
+
+                                        if (videoUrl) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                video: { url: videoUrl },
+                                                                caption: finalCaptionTT
+                                                        }, { quoted: m });
+                                                } catch (videoErr) {
+                                                        console.log('[TikTok] Video send failed:', videoErr.message);
+                                                        await tolak(hisoka, m, '⚠️ Gagal mengirim video. Coba lagi nanti.');
+                                                }
+                                        }
+                                        
+                                        if (!videoUrl) {
+                                                const images = data.images || data.image || [];
+                                                if (images.length > 0) {
+                                                        await tolak(hisoka, m, `📸 Slide TikTok ditemukan (${images.length} gambar)`);
+                                                        for (let i = 0; i < Math.min(images.length, 10); i++) {
+                                                                const imgUrl = pickUrl(images[i]) || images[i];
+                                                                if (!imgUrl) continue;
+                                                                try {
+                                                                        await hisoka.sendMessage(m.from, {
+                                                                                image: { url: imgUrl },
+                                                                                caption: i === 0 ? finalCaptionTT : `📷 ${i + 1}/${images.length}`
+                                                                        }, { quoted: m });
+                                                                } catch (imgErr) {
+                                                                        console.log('[TikTok] Image send failed:', imgErr.message);
+                                                                }
+                                                        }
+                                                } else {
+                                                        await tolak(hisoka, m, '❌ Media tidak ditemukan dalam video ini.');
+                                                }
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'tiktok');
+                                } catch (error) {
+                                        console.error('\x1b[31m[TikTok] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'ig': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m, '❌ Masukkan link Instagram!\n\nContoh: .ig https://www.instagram.com/reel/xxx');
+                                                break;
+                                        }
+                                        
+                                        const igRaw = query.trim();
+                                        if (!igRaw.includes('instagram.com')) {
+                                                await tolak(hisoka, m, '❌ Link tidak valid! Pastikan link dari Instagram.');
+                                                break;
+                                        }
+                                        
+                                        // Clean URL: strip query params & trailing slash to get a clean link
+                                        let igUrl = igRaw;
+                                        try {
+                                                const parsed = new URL(igRaw);
+                                                igUrl = parsed.origin + parsed.pathname.replace(/\/$/, '') + '/';
+                                        } catch (_) {}
+                                        
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Sedang mengunduh dari Instagram...');
+                                        
+                                        // Try multiple APIs in order until one succeeds
+                                        const igApis = [
+                                                `https://archive.lick.eu.org/api/download/instagram?url=${encodeURIComponent(igUrl)}`,
+                                                `https://api.cenedril.net/api/dl/ig?url=${encodeURIComponent(igUrl)}`,
+                                                `https://api.agatz.xyz/api/instagram?url=${encodeURIComponent(igUrl)}`,
+                                        ];
+                                        
+                                        let data = null;
+                                        for (const apiUrl of igApis) {
+                                                try {
+                                                        const res = await fetch(apiUrl, { signal: AbortSignal.timeout(12000) });
+                                                        const json = await res.json();
+                                                        if (json.status && json.result) {
+                                                                data = json;
+                                                                break;
+                                                        }
+                                                } catch (_) {}
+                                        }
+                                        
+                                        if (!data || !data.result) {
+                                                await m.reply({ edit: loadingMsg.key, text: '❌ Gagal mengunduh. Pastikan link benar dan akun tidak private, lalu coba lagi.' });
+                                                break;
+                                        }
+                                        
+                                        const result = data.result;
+                                        const mediaUrls = result.url || [];
+                                        const caption = result.caption || '';
+                                        const username = result.username || 'Unknown';
+                                        const likes = result.like || 0;
+                                        const comments = result.comment || 0;
+                                        const isVideo = result.isVideo;
+                                        
+                                        let infoText = `╭═══ *INSTAGRAM DOWNLOADER* ═══╮\n`;
+infoText += `│ 👤 @${username}\n`;
+infoText += `│ ❤️ ${likes.toLocaleString()} likes\n`;
+infoText += `│ 💬 ${comments.toLocaleString()} comments\n`;
+if (caption) {
+    const shortCaption = caption.length > 200 ? caption.substring(0, 200) + '...' : caption;
+    infoText += `│\n│ 📝 ${shortCaption}\n`;
+}
+infoText += `╰════════════════════════╯`;
+                                        
+                                        if (mediaUrls.length === 0) {
+                                                await m.reply({ edit: loadingMsg.key, text: '❌ Media tidak ditemukan.' });
+                                                break;
+                                        }
+                                        
+                                        await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
+
+                                        // Generate AI caption untuk Instagram (paralel dengan pengiriman)
+                                        const aiCaptionPromiseIG = gemini.ask(buildVideoDownloadCaptionPrompt({
+                                            platform: 'Instagram',
+                                            author: username,
+                                            likes: likes ? likes.toLocaleString() : '',
+                                            comments: comments ? comments.toLocaleString() : '',
+                                            description: caption || '',
+                                        })).catch(() => null);
+
+                                        // Tunggu AI caption
+                                        const aiCaptionIG = await aiCaptionPromiseIG;
+                                        const finalCaptionIG = aiCaptionIG?.trim() || infoText;
+                                        
+                                        for (let i = 0; i < mediaUrls.length; i++) {
+                                                const mediaItem = mediaUrls[i];
+                                                const isFirstMedia = i === 0;
+                                                
+                                                // Support both string URLs and object items {url, type}
+                                                const mediaUrl = typeof mediaItem === 'object' ? (mediaItem.url || mediaItem.src || mediaItem) : mediaItem;
+                                                
+                                                // Detect per-item type: check object type property, else check URL extension, else fall back to global isVideo
+                                                let itemIsVideo = isVideo;
+                                                if (typeof mediaItem === 'object' && mediaItem.type) {
+                                                        itemIsVideo = mediaItem.type === 'video' || mediaItem.type === 'GraphVideo';
+                                                } else {
+                                                        const urlStr = String(mediaUrl).toLowerCase().split('?')[0];
+                                                        if (urlStr.endsWith('.mp4') || urlStr.endsWith('.mov') || urlStr.endsWith('.webm')) {
+                                                                itemIsVideo = true;
+                                                        } else if (urlStr.endsWith('.jpg') || urlStr.endsWith('.jpeg') || urlStr.endsWith('.png') || urlStr.endsWith('.webp')) {
+                                                                itemIsVideo = false;
+                                                        }
+                                                }
+                                                
+                                                try {
+                                                        if (itemIsVideo) {
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        video: { url: mediaUrl },
+                                                                        caption: isFirstMedia ? finalCaptionIG : ''
+                                                                }, { quoted: m });
+                                                        } else {
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        image: { url: mediaUrl },
+                                                                        caption: isFirstMedia ? finalCaptionIG : ''
+                                                                }, { quoted: m });
+                                                        }
+                                                } catch (sendErr) {
+                                                        console.error(`[IG] Failed to send media ${i + 1}:`, sendErr.message);
+                                                }
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'instagram');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Instagram] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'fb': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m, '❌ Masukkan link Facebook!\n\nContoh:\n.fb https://www.facebook.com/watch?v=xxx\n.fb https://fb.watch/xxx\n.fb https://www.facebook.com/reel/xxx\n.fb https://www.facebook.com/stories/xxx');
+                                                break;
+                                        }
+                                        
+                                        const fbUrl = query.trim();
+                                        if (!fbUrl.includes('facebook.com') && !fbUrl.includes('fb.watch') && !fbUrl.includes('fb.com')) {
+                                                await tolak(hisoka, m, '❌ Link tidak valid! Pastikan link dari Facebook.');
+                                                break;
+                                        }
+                                        
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Sedang mengunduh dari Facebook...');
+                                        
+                                        const isStory = fbUrl.includes('/stories/') || fbUrl.includes('story.php') || fbUrl.includes('/story/');
+                                        
+                                        let mediaData = null;
+                                        
+                                        // Method 1: archive.lick.eu.org (primary)
+                                        try {
+                                                const apiUrl = `https://archive.lick.eu.org/api/download/facebook?url=${encodeURIComponent(fbUrl)}`;
+                                                const response = await fetch(apiUrl, { signal: AbortSignal.timeout(20000) });
+                                                const data = await response.json();
+                                                
+                                                if (data.status && data.result && data.result.media && data.result.media.length > 0) {
+                                                        const mediaList = data.result.media;
+                                                        const hdMedia = mediaList.find(m => m.quality && (m.quality.toLowerCase().includes('hd') || m.quality.toLowerCase().includes('high')));
+                                                        const bestMedia = hdMedia || mediaList[0];
+                                                        if (bestMedia && bestMedia.url) {
+                                                                mediaData = {
+                                                                        url: bestMedia.url,
+                                                                        quality: hdMedia ? 'HD' : 'SD',
+                                                                        isHD: !!hdMedia,
+                                                                        title: data.result.metadata?.title || '',
+                                                                        isVideo: true
+                                                                };
+                                                        }
+                                                }
+                                        } catch (e) {
+                                                console.log('[FB] archive.lick failed:', e.message);
+                                        }
+                                        
+                                        // Method 2: direct page scraping via axios (Chrome user-agent, allow redirects)
+                                        if (!mediaData) {
+                                                try {
+                                                        const axios = (await import('axios')).default;
+                                                        const { data: pageData } = await axios.get(fbUrl, {
+                                                                maxRedirects: 10,
+                                                                headers: {
+                                                                        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                                                                        'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                                                                        'accept-language': 'en-US,en;q=0.5',
+                                                                        'sec-fetch-dest': 'document',
+                                                                        'sec-fetch-mode': 'navigate',
+                                                                        'sec-fetch-site': 'none',
+                                                                },
+                                                                timeout: 20000
+                                                        });
+                                                        
+                                                        const cleaned = pageData.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+                                                        
+                                                        const hdMatch = cleaned.match(/"browser_native_hd_url":"([^"]+)"/) || cleaned.match(/"playable_url_quality_hd":"([^"]+)"/);
+                                                        const sdMatch = cleaned.match(/"browser_native_sd_url":"([^"]+)"/) || cleaned.match(/"playable_url":"([^"]+)"/);
+                                                        
+                                                        const hdUrl = hdMatch ? hdMatch[1].replace(/\\/g, '') : null;
+                                                        const sdUrl = sdMatch ? sdMatch[1].replace(/\\/g, '') : null;
+                                                        
+                                                        const videoUrl = hdUrl || sdUrl;
+                                                        if (videoUrl && videoUrl.startsWith('https://')) {
+                                                                mediaData = {
+                                                                        url: videoUrl,
+                                                                        quality: hdUrl ? 'HD' : 'SD',
+                                                                        isHD: !!hdUrl,
+                                                                        isVideo: true
+                                                                };
+                                                                console.log('[FB] direct scraping success:', hdUrl ? 'HD' : 'SD');
+                                                        }
+                                                } catch (e) {
+                                                        console.log('[FB] direct scraping failed:', e.message);
+                                                }
+                                        }
+                                        
+                                        if (!mediaData || !mediaData.url) {
+                                                await m.reply({ edit: loadingMsg.key, text: '❌ Gagal mengunduh. Video/story mungkin private, perlu login, atau link tidak valid.' });
+                                                break;
+                                        }
+                                        
+                                        let infoText = `╭═══ *FACEBOOK DOWNLOADER* ═══╮\n`;
+infoText += `│ 📌 Tipe: ${isStory ? 'Story' : 'Video/Reel'}\n`;
+infoText += `│ 🎬 Kualitas: ${mediaData.quality}\n`;
+if (mediaData.duration) {
+    infoText += `│ ⏱️ Durasi: ${mediaData.duration}\n`;
+}
+if (mediaData.title) {
+    const shortTitle = mediaData.title.length > 50 ? mediaData.title.substring(0, 50) + '...' : mediaData.title;
+    infoText += `│ 📝 ${shortTitle}\n`;
+}
+infoText += `╰════════════════════════╯`;
+                                        
+                                        await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
+                                        
+                                        if (mediaData.isVideo !== false) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        video: { url: mediaData.url },
+                                                        caption: infoText
+                                                }, { quoted: m });
+                                        } else {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: { url: mediaData.url },
+                                                        caption: infoText
+                                                }, { quoted: m });
+                                        }
+                                        
+                                        logCommand(m, hisoka, 'facebook');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Facebook] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'stickerly':
+                        case 'stikerly':
+                        case 'stickly':
+                        case 'stickerpack':
+                        case 'stikerpack': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭═══『 🧩 *STICKERLY PACK* 』═══╮\n│\n` +
+                                                        `│ Download 1 pack sticker Stickerly.\n│\n` +
+                                                        `│ *Cara Pakai:*\n` +
+                                                        `│ • ${pfx}stickerly anime\n` +
+                                                        `│ • ${pfx}stickerly https://sticker.ly/s/4XBX01\n` +
+                                                        `│ • ${pfx}stickerly search kucing\n│\n` +
+                                                        `│ Jika pakai keyword, bot ambil pack hasil teratas.\n` +
+                                                        `│ Default: kirim sticker langsung agar pasti masuk.\n` +
+                                                        `│ Eksperimen kartu: ${pfx}stickerly native anime\n` +
+                                                        `╰══════════════════════╯`
+                                                );
+                                                break;
+                                        }
+
+                                        const { search, detail, downloadStickerBuffer, extractPackId } = _require(path.resolve('./src/scrape/stickerly.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+
+                                        const isSearchOnly = /^search\s+/i.test(input);
+                                        const isNativeSend = /^(native|card|kartu)\s+/i.test(input);
+                                        const cleanInput = isSearchOnly
+                                                ? input.replace(/^search\s+/i, '').trim()
+                                                : isNativeSend
+                                                        ? input.replace(/^(native|card|kartu)\s+/i, '').trim()
+                                                        : input;
+
+                                        if (!cleanInput) {
+                                                await tolak(hisoka, m, `❌ Masukkan kata kunci pencarian.\n\nContoh: ${pfx}stickerly search anime`);
+                                                break;
+                                        }
+
+                                        if (isSearchOnly) {
+                                                const packs = await search(cleanInput, { limit: 8 });
+                                                if (!packs.length) {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                        await tolak(hisoka, m, `❌ Pack Stickerly untuk *${cleanInput}* tidak ditemukan.`);
+                                                        break;
+                                                }
+
+                                                let resultText = `╭═══『 🔎 *HASIL STICKERLY* 』═══╮\n│\n`;
+                                                packs.forEach((pack, index) => {
+                                                        resultText += `│ ${index + 1}. *${pack.name}*\n`;
+                                                        resultText += `│    👤 ${pack.author}\n`;
+                                                        resultText += `│    🧩 ${pack.stickerCount} sticker${pack.isAnimated ? ' · animated' : ''}\n`;
+                                                        resultText += `│    🔗 ${pack.url}\n│\n`;
+                                                });
+                                                resultText += `│ Pakai: ${pfx}stickerly <link di atas>\n`;
+                                                resultText += `╰══════════════════════╯`;
+
+                                                await tolak(hisoka, m, resultText);
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'stickerly-search');
+                                                break;
+                                        }
+
+                                        let packInput = cleanInput;
+                                        if (!extractPackId(cleanInput)) {
+                                                const packs = await search(cleanInput, { limit: 1 });
+                                                if (!packs.length) {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                        await tolak(hisoka, m, `❌ Pack Stickerly untuk *${cleanInput}* tidak ditemukan.`);
+                                                        break;
+                                                }
+                                                packInput = packs[0].url || packs[0].id;
+                                        }
+
+                                        const pack = await detail(packInput);
+                                        const stickers = pack.stickers;
+
+                                        if (!stickers.length) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Sticker di pack ini kosong.');
+                                                break;
+                                        }
+
+                                        const infoText =
+                                                `╭═══『 🧩 *STICKERLY PACK* 』═══╮\n` +
+                                                `│ 📦 *Pack:* ${pack.name}\n` +
+                                                `│ 👤 *Author:* ${pack.author.name}\n` +
+                                                `│ 🧩 *Sticker:* ${stickers.length}/${pack.stickerCount}\n` +
+                                                `│ 👁️ *Views:* ${pack.viewCount.toLocaleString('id-ID')}\n` +
+                                                `│ 📤 *Export:* ${pack.exportCount.toLocaleString('id-ID')}\n` +
+                                                `│ 🔗 ${pack.url}\n│\n` +
+                                                `│ ${isNativeSend ? 'Mengirim kartu paket sticker native eksperimen...' : 'Mengirim sticker langsung agar pasti masuk...'}\n` +
+                                                `╰══════════════════════╯`;
+
+                                        const loadingMsg = await tolak(hisoka, m, infoText);
+
+                                        if (isNativeSend) {
+                                                const { Sticker, StickerTypes } = await import('wa-sticker-formatter');
+                                                const nativeFiles = [];
+
+                                                for (const [index, item] of pack.stickers.entries()) {
+                                                        const rawBuffer = await downloadStickerBuffer(item.imageUrl);
+                                                        const fileName = `sticker_${String(index + 1).padStart(3, '0')}.webp`;
+                                                        const isWebp = /\.webp(?:\?|$)/i.test(item.imageUrl) || rawBuffer.slice(8, 12).toString() === 'WEBP';
+                                                        let stickerBuffer = rawBuffer;
+
+                                                        if (!item.isAnimated && !isWebp) {
+                                                                const sticker = new Sticker(rawBuffer, {
+                                                                        pack: pack.name,
+                                                                        author: pack.author.name,
+                                                                        type: StickerTypes.FULL,
+                                                                        categories: ['✨'],
+                                                                        id: `stickerly.${pack.id}`,
+                                                                        quality: 85
+                                                                });
+                                                                stickerBuffer = await sticker.toBuffer();
+                                                        }
+
+                                                        nativeFiles.push({
+                                                                id: item.id,
+                                                                fileName,
+                                                                isAnimated: !!item.isAnimated,
+                                                                buffer: stickerBuffer
+                                                        });
+                                                }
+
+                                                const zipBuffer = await zipFiles(nativeFiles);
+                                                await sendStickerPackCard(hisoka, m.from, m, {
+                                                        ...pack,
+                                                        files: nativeFiles,
+                                                        trayIconFileName: nativeFiles[0]?.fileName || ''
+                                                }, zipBuffer);
+                                                const doneText = `✅ Kartu paket Stickerly eksperimen sudah dikirim.\n\n📦 *${pack.name}*\n🧩 *${pack.stickerCount}* sticker\n\nCatatan: beberapa WhatsApp menolak kartu pack custom. Kalau panel tidak bisa dibuka, pakai:\n${pfx}stickerly ${pack.url}`;
+                                                if (loadingMsg?.key) {
+                                                        await m.reply({ edit: loadingMsg.key, text: doneText });
+                                                } else {
+                                                        await tolak(hisoka, m, doneText);
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'stickerly');
+                                                break;
+                                        }
+
+                                        const { Sticker, StickerTypes } = await import('wa-sticker-formatter');
+                                        let sent = 0;
+                                        let failed = 0;
+
+                                        for (const item of stickers) {
+                                                try {
+                                                        const rawBuffer = await downloadStickerBuffer(item.imageUrl);
+                                                        const isWebp = /\.webp(?:\?|$)/i.test(item.imageUrl);
+                                                        let stickerBuffer = rawBuffer;
+
+                                                        if (!item.isAnimated && !isWebp) {
+                                                                const sticker = new Sticker(rawBuffer, {
+                                                                        pack: pack.name,
+                                                                        author: pack.author.name,
+                                                                        type: StickerTypes.FULL,
+                                                                        categories: ['🎭'],
+                                                                        id: `stickerly.${pack.id}`,
+                                                                        quality: 85
+                                                                });
+                                                                stickerBuffer = await sticker.toBuffer();
+                                                        }
+
+                                                        await hisoka.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
+                                                        sent++;
+                                                        if (sent % 5 === 0) await new Promise(resolve => setTimeout(resolve, 700));
+                                                } catch (sendErr) {
+                                                        failed++;
+                                                        console.error('[StickerLy] Failed sticker:', sendErr.message);
+                                                }
+                                        }
+
+                                        const doneText = failed
+                                                ? `✅ Stickerly selesai.\nTerkirim: *${sent}* sticker\nGagal: *${failed}* sticker`
+                                                : `✅ Stickerly selesai. *${sent}* sticker berhasil dikirim.`;
+
+                                        if (loadingMsg?.key) {
+                                                await m.reply({ edit: loadingMsg.key, text: doneText });
+                                        } else {
+                                                await tolak(hisoka, m, doneText);
+                                        }
+                                        await hisoka.sendMessage(m.from, { react: { text: sent ? '✅' : '❌', key: m.key } });
+                                        logCommand(m, hisoka, 'stickerly');
+                                } catch (error) {
+                                        console.error('\x1b[31m[StickerLy] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal mengambil Stickerly: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'stiker':
+                        case 'sticker':
+                        case 's': {
+                                try {
+                                        const os = await import('os');
+                                        const execAsync = util.promisify(exec);
+                                        const config = loadConfig();
+                                        const stickerConfig = config.sticker || { pack: 'WhatsApp Bot', author: 'Wilykun' };
+
+                                        const args = query ? query.split(' ') : [];
+
+                                        if (args[0] === 'author' || args[0] === 'pack') {
+                                                const type = args[0];
+                                                let value = args.slice(1).join(' ').trim();
+                                                if (!value) {
+                                                        await tolak(hisoka, m, `❌ Masukkan nama ${type}!\n\nContoh: .s ${type} ${type === 'author' ? 'Wily' : 'Bot Pack'}`);
+                                                        break;
+                                                }
+                                                if (value.length > 50) value = value.substring(0, 50);
+                                                const freshConfig = loadConfig();
+                                                if (!freshConfig.sticker) freshConfig.sticker = { pack: 'WhatsApp Bot', author: 'Wilykun' };
+                                                freshConfig.sticker[type] = value;
+                                                saveConfig(freshConfig);
+                                                await tolak(hisoka, m, `✅ Sticker ${type} berhasil diubah menjadi: *${value}*`);
+                                                logCommand(m, hisoka, `sticker-set-${type}`);
+                                                break;
+                                        }
+
+                                        const stickerCurrentType = getMediaTypeFromMessage(m);
+                                        const stickerQuotedType = m.isQuoted ? getMediaTypeFromMessage(m.quoted) : '';
+                                        const canUseCurrentMedia = m.isMedia && (stickerCurrentType === 'imageMessage' || stickerCurrentType === 'videoMessage');
+                                        const canUseQuotedMedia = m.isQuoted && (stickerQuotedType === 'imageMessage' || stickerQuotedType === 'videoMessage');
+
+                                        if (!canUseCurrentMedia && !canUseQuotedMedia) {
+                                                if (query) break;
+                                                const freshConfig = loadConfig();
+                                                const sc = freshConfig.sticker || { pack: 'WhatsApp Bot', author: 'Wilykun' };
+                                                const pfxS = m.prefix || '.';
+                                                let text = `╭═══『 🎭 *STICKER MAKER* 』═══╮\n│\n`;
+                                                text += `│ 📦 *Pack   :* ${sc.pack}\n`;
+                                                text += `│ ✍️ *Author :* ${sc.author}\n`;
+                                                text += `│\n`;
+                                                text += `│ 📋 *Cara Pakai:*\n`;
+                                                text += `│ • Kirim/reply 🖼️ *gambar* + ${pfxS}s\n`;
+                                                text += `│ • Kirim/reply 🎥 *video* + ${pfxS}s\n`;
+                                                text += `│   _(video otomatis jadi animated sticker)_\n`;
+                                                text += `│\n`;
+                                                text += `│ ⚙️ *Pengaturan:*\n`;
+                                                text += `│ • ${pfxS}s author <nama>\n`;
+                                                text += `│ • ${pfxS}s pack <nama>\n`;
+                                                text += `│\n`;
+                                                text += `│ 🏷️ *Alias:* ${pfxS}s · ${pfxS}stiker · ${pfxS}sticker\n`;
+                                                text += `╰══════════════════════╯`;
+                                                await tolak(hisoka, m, text);
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+
+                                        let mediaBuffer;
+                                        let mediaType;
+                                        let videoDuration = 0;
+
+                                        if (canUseCurrentMedia) {
+                                                mediaBuffer = await downloadMediaBuffer(hisoka, m);
+                                                mediaType = stickerCurrentType;
+                                                if (stickerCurrentType === 'videoMessage') {
+                                                        videoDuration = m.message?.videoMessage?.seconds ||
+                                                                m.content?.seconds ||
+                                                                unwrapMessagePayload(m)?.videoMessage?.seconds ||
+                                                                0;
+                                                }
+                                        } else if (canUseQuotedMedia) {
+                                                mediaBuffer = await getQuotedMediaBuffer(hisoka, m);
+                                                mediaType = stickerQuotedType;
+                                                if (stickerQuotedType === 'videoMessage') {
+                                                        videoDuration = m.quoted?.message?.videoMessage?.seconds ||
+                                                                m.quoted?.content?.seconds ||
+                                                                m.quoted?.raw?.videoMessage?.seconds ||
+                                                                unwrapMessagePayload(m.quoted)?.videoMessage?.seconds ||
+                                                                0;
+                                                }
+                                        } else {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Reply/kirim *gambar* atau *video* untuk membuat sticker!');
+                                                break;
+                                        }
+
+                                        // Cek durasi video — tolak jika lebih dari 10 detik
+                                        if (mediaType === 'videoMessage' && videoDuration > 10) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Video terlalu panjang! (${videoDuration} detik)\nMaksimal *10 detik* untuk sticker animasi.`);
+                                                break;
+                                        }
+
+                                        if (!mediaBuffer || mediaBuffer.length === 0) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Gagal download media, coba lagi');
+                                                break;
+                                        }
+
+                                        const freshConfig = loadConfig();
+                                        const freshSC = freshConfig.sticker || { pack: 'WhatsApp Bot', author: 'Wilykun' };
+
+                                        let stickerBuffer;
+
+                                        if (mediaType === 'videoMessage') {
+                                                // VIDEO → Animated Sticker via ffmpeg (lebih akurat & berkualitas)
+                                                const tmpDir = os.default.tmpdir();
+                                                const tmpIn  = path.join(tmpDir, `stk_in_${Date.now()}.mp4`);
+                                                const tmpOut = path.join(tmpDir, `stk_out_${Date.now()}.webp`);
+                                                try {
+                                                        fs.writeFileSync(tmpIn, mediaBuffer);
+                                                        // Trim max 10 detik, animated WebP via libwebp_anim
+                                                        // Max 10 detik agar animated sticker bisa bergerak di WA Business & WA Messenger semua versi HP
+                                                        const MAX_STICKER_BYTES = 500 * 1024; // 500KB batas WA mobile
+                                                        let quality = 80;
+                                                        let fps = 15;
+                                                        let webpBuf;
+
+                                                        // Loop kompresi otomatis sampai di bawah 500KB (async agar koneksi WA tidak putus)
+                                                        while (true) {
+                                                                await execAsync(
+                                                                        `ffmpeg -y -i "${tmpIn}" ` +
+                                                                        `-vf "fps=${fps},scale=512:512:force_original_aspect_ratio=decrease,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=black@0,format=rgba" ` +
+                                                                        `-vcodec libwebp_anim -lossless 0 -quality ${quality} -loop 0 -an "${tmpOut}"`,
+                                                                        { timeout: 60000 }
+                                                                );
+                                                                webpBuf = fs.readFileSync(tmpOut);
+                                                                if (webpBuf.length <= MAX_STICKER_BYTES) break;
+                                                                // File masih >500KB, turunkan quality & fps secara bertahap
+                                                                if (quality > 30) {
+                                                                        quality -= 15;
+                                                                } else if (fps > 8) {
+                                                                        fps -= 3;
+                                                                        quality = 50;
+                                                                } else {
+                                                                        // Sudah minimum, kirim apa adanya
+                                                                        break;
+                                                                }
+                                                        }
+
+                                                        // Tulis langsung webp (WA tetap baca sebagai sticker)
+                                                        stickerBuffer = webpBuf;
+                                                } finally {
+                                                        try { fs.unlinkSync(tmpIn); } catch {}
+                                                        try { fs.unlinkSync(tmpOut); } catch {}
+                                                }
+                                        } else {
+                                                // GAMBAR → Static Sticker via wa-sticker-formatter
+                                                const { Sticker, StickerTypes } = await import('wa-sticker-formatter');
+                                                const sticker = new Sticker(mediaBuffer, {
+                                                        pack: freshSC.pack,
+                                                        author: freshSC.author,
+                                                        type: StickerTypes.FULL,
+                                                        categories: ['🎭'],
+                                                        id: 'com.wilykun.wabot',
+                                                        quality: 90
+                                                });
+                                                stickerBuffer = await sticker.toBuffer();
+                                        }
+
+                                        if (!stickerBuffer || stickerBuffer.length === 0) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Gagal membuat sticker');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { sticker: stickerBuffer }, { quoted: m });
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'sticker');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Sticker] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal buat sticker: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'toimg': {
+                                try {
+                                        const sharp = (await import('sharp')).default;
+                                        
+                                        if (!m.isQuoted || quoted.type !== 'stickerMessage') {
+                                                if (query) break;
+                                                await tolak(hisoka, m, '❌ Reply sticker untuk dijadikan gambar!');
+                                                break;
+                                        }
+                                        
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        
+                                        const stickerBuffer = await downloadMediaMessage(
+                                                { ...m.quoted, message: m.quoted.raw },
+                                                'buffer',
+                                                {},
+                                                { logger: hisoka.logger, reuploadRequest: hisoka.updateMediaMessage }
+                                        );
+                                        
+                                        if (!stickerBuffer || stickerBuffer.length === 0) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Gagal download sticker');
+                                                break;
+                                        }
+                                        
+                                        let imageBuffer;
+                                        
+                                        try {
+                                                imageBuffer = await sharp(stickerBuffer)
+                                                        .png()
+                                                        .toBuffer();
+                                        } catch (sharpError) {
+                                                console.log('[Toimg] Sharp failed, trying ffmpeg:', sharpError.message);
+                                                const ffmpegExec = util.promisify(exec);
+                                                const timestamp = Date.now();
+                                                const tempInput = `/tmp/toimg_input_${timestamp}.webp`;
+                                                const tempOutput = `/tmp/toimg_output_${timestamp}.png`;
+                                                
+                                                fs.writeFileSync(tempInput, stickerBuffer);
+                                                
+                                                try {
+                                                        await ffmpegExec(
+                                                                `ffmpeg -y -i "${tempInput}" -vframes 1 "${tempOutput}"`,
+                                                                { timeout: 30000 }
+                                                        );
+                                                        if (fs.existsSync(tempOutput)) {
+                                                                imageBuffer = fs.readFileSync(tempOutput);
+                                                        }
+                                                } finally {
+                                                        if (fs.existsSync(tempInput)) fs.unlinkSync(tempInput);
+                                                        if (fs.existsSync(tempOutput)) fs.unlinkSync(tempOutput);
+                                                }
+                                        }
+                                        
+                                        if (!imageBuffer || imageBuffer.length === 0) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Gagal convert sticker ke gambar. Sticker mungkin dalam format yang tidak didukung.');
+                                                break;
+                                        }
+                                        
+                                        await hisoka.sendMessage(m.from, {
+                                                image: imageBuffer,
+                                                caption: '✅ Sticker berhasil diconvert ke gambar!'
+                                        }, { quoted: m });
+                                        
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'toimg');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Toimg] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+                                
+                        case 'jadibot': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+
+                                const jbPfx = m.prefix || '.';
+
+                                const sendJbBtn = async (bodyText) => {
+                                        await tolak(hisoka, m, bodyText);
+                                };
+
+                                const { number: parsedJadibotNumber, durationInput, rawNumberPart, hasInvalidPhoneChars } = parseJadibotCommandQuery(query || '');
+                                let number = parsedJadibotNumber;
+                                let finalDurationInput = durationInput;
+
+                                // Reply-based jadibot: jika membalas pesan seseorang & query hanya berisi durasi
+                                if (m.isQuoted && m.quoted?.sender && !m.quoted?.key?.fromMe) {
+                                        const queryTrimmed = (query || '').trim();
+                                        // Cek apakah tidak ada nomor valid (nomor terlalu pendek = bukan nomor WA)
+                                        const noValidNumber = !parsedJadibotNumber || parsedJadibotNumber.length < 7;
+                                        if (noValidNumber && queryTrimmed) {
+                                                const trialDuration = parseJadibotDuration(queryTrimmed);
+                                                if (trialDuration !== null) {
+                                                        // Ambil nomor dari pengirim pesan yang di-reply
+                                                        let quotedNum = (m.quoted.sender || '').split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
+                                                        if (quotedNum.startsWith('00')) quotedNum = quotedNum.slice(2);
+                                                        if (quotedNum.startsWith('08')) quotedNum = '62' + quotedNum.slice(1);
+                                                        else if (quotedNum.startsWith('8')) quotedNum = '62' + quotedNum;
+                                                        number = quotedNum;
+                                                        finalDurationInput = queryTrimmed;
+                                                }
+                                        }
+                                }
+
+                                const durationInfo = parseJadibotDuration(finalDurationInput);
+
+                                if (!number) {
+                                        const activeList = [...jadibotMap.keys()];
+                                        const activeInfo = activeList.length
+                                                ? `📊 *Bot aktif sekarang: ${activeList.length}*`
+                                                : `📭 Belum ada jadibot aktif.`;
+                                        await sendJbBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   🤖  *J A D I B O T*  ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `❌ *Nomor tidak boleh kosong!*\n\n` +
+                                                `📌 *Format pakai koma (direkomendasikan):*\n` +
+                                                `_${jbPfx}jadibot 628xxx,30m_ → 30 menit\n` +
+                                                `_${jbPfx}jadibot 628xxx,2j_ → 2 jam\n` +
+                                                `_${jbPfx}jadibot 628xxx,3h_ → 3 hari\n` +
+                                                `_${jbPfx}jadibot 628xxx,p_ → permanent\n\n` +
+                                                `📌 *Format spasi juga bisa:*\n` +
+                                                `_${jbPfx}jadibot 628xxx 1 jam_\n` +
+                                                `_${jbPfx}jadibot 628xxx 1 hari_\n` +
+                                                `_${jbPfx}jadibot 628xxx permanent_\n\n` +
+                                                `⏱️ *Singkatan durasi:*\n` +
+                                                `• *m* = menit  • *j* = jam  • *h* = hari  • *p* = permanent\n\n` +
+                                                `💡 *Reply pesan seseorang:*\n` +
+                                                `_${jbPfx}jadibot 1j_ atau _${jbPfx}jadibot 3h_\n\n` +
+                                                `⏳ Jika durasi kosong, otomatis *1 hari*.\n\n` +
+                                                `${activeInfo}`
+                                        );
+                                        break;
+                                }
+
+                                // Validasi karakter format nomor (huruf/simbol tidak diizinkan)
+                                if (hasInvalidPhoneChars) {
+                                        const badPart = rawNumberPart || (query || '').split(',')[0].trim()
+                                        await sendJbBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   🤖  *J A D I B O T*  ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `❌ *Format penulisan nomor salah!*\n\n` +
+                                                `📱 Yang kamu tulis: \`${badPart || '-'}\`\n\n` +
+                                                `✅ *Format yang diterima:*\n` +
+                                                `• \`+62 896-6792-3162\` (dengan spasi & strip)\n` +
+                                                `• \`+6289667923162\` (dengan +)\n` +
+                                                `• \`6289667923162\` (tanpa +)\n` +
+                                                `• \`08xxxxxxxxxx\` (otomatis jadi 62xxx)\n\n` +
+                                                `🌏 *Contoh berbagai negara:*\n` +
+                                                `🇮🇩 Indo: _${jbPfx}jadibot 6289xxx,1h_\n` +
+                                                `🇲🇾 Malay: _${jbPfx}jadibot 601xxx,1h_\n` +
+                                                `🇺🇸 USA: _${jbPfx}jadibot 1555xxx,1h_\n` +
+                                                `🇸🇬 SG: _${jbPfx}jadibot 6581xxx,1h_\n\n` +
+                                                `❌ Tidak boleh ada huruf atau simbol aneh.`
+                                        );
+                                        break;
+                                }
+
+                                // Validasi panjang nomor (min 8 digit setelah normalisasi)
+                                if (number.length < 8) {
+                                        const badPart = rawNumberPart || number || (query || '').split(',')[0].trim()
+                                        await sendJbBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   🤖  *J A D I B O T*  ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `❌ *Nomor terlalu pendek!*\n\n` +
+                                                `📱 Yang kamu tulis: \`${badPart || '-'}\`\n` +
+                                                `Nomor WA harus minimal 8 digit dan\n` +
+                                                `menggunakan kode negara.\n\n` +
+                                                `✅ *Format yang diterima:*\n` +
+                                                `• \`+62 896-6792-3162\` (dengan spasi & strip)\n` +
+                                                `• \`+6289667923162\` (dengan +)\n` +
+                                                `• \`6289667923162\` (tanpa +)\n` +
+                                                `• \`08xxxxxxxxxx\` (otomatis jadi 62xxx)\n\n` +
+                                                `🌏 *Contoh berbagai negara:*\n` +
+                                                `🇮🇩 Indo: _${jbPfx}jadibot 6289xxx,1h_\n` +
+                                                `🇲🇾 Malay: _${jbPfx}jadibot 601xxx,1h_\n` +
+                                                `🇺🇸 USA: _${jbPfx}jadibot 1555xxx,1h_\n` +
+                                                `🇸🇬 SG: _${jbPfx}jadibot 6581xxx,1h_`
+                                        );
+                                        break;
+                                }
+
+                                if (!durationInfo) {
+                                        const badDur = finalDurationInput || '-'
+                                        await sendJbBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   ⏰  *MASA BERLAKU*  ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `❌ *Format durasi tidak valid!*\n\n` +
+                                                `⌨️ Yang kamu tulis: \`${badDur}\`\n\n` +
+                                                `📌 *Contoh yang benar:*\n` +
+                                                `_${jbPfx}jadibot ${number},30m_ → 30 menit\n` +
+                                                `_${jbPfx}jadibot ${number},2j_ → 2 jam\n` +
+                                                `_${jbPfx}jadibot ${number},3h_ → 3 hari\n` +
+                                                `_${jbPfx}jadibot ${number},p_ → permanent\n\n` +
+                                                `⏱️ *Singkatan durasi valid:*\n` +
+                                                `• *m* = menit  • *j* = jam\n` +
+                                                `• *h* = hari   • *p* = permanent\n\n` +
+                                                `✅ Contoh: _${jbPfx}jadibot ${number},1h_`
+                                        );
+                                        break;
+                                }
+
+                                if (number.startsWith('08'))
+                                        number = '62' + number.slice(1);
+
+                                if (jadibotMap.has(number)) {
+                                        if (!durationInfo.isDefault) {
+                                                // User memberi durasi eksplisit → update expiry bot yg sedang aktif
+                                                const sock = jadibotMap.get(number)
+                                                const sendReplyFn = async (msg) => tolak(hisoka, m, msg)
+                                                if (durationInfo.ms === 'permanent') {
+                                                        removeJadibotExpiry(number)
+                                                        await sendJbBtn(
+                                                                `╔══════════════════════╗\n` +
+                                                                `║   🤖  *J A D I B O T*  ║\n` +
+                                                                `╚══════════════════════╝\n\n` +
+                                                                `✅ *Masa berlaku diperbarui!*\n` +
+                                                                `📱 +${maskNumber(number)}\n` +
+                                                                `⏳ Masa berlaku: *Permanent* ♾️\n\n` +
+                                                                `Bot tetap aktif tanpa batas waktu.`
+                                                        )
+                                                } else {
+                                                        removeJadibotExpiry(number)
+                                                        ensureJadibotExpiry(number, durationInfo.ms, 'active')
+                                                        scheduleJadibotExpiry(number, sendReplyFn)
+                                                        const info = getJadibotExpirySummary(number)
+                                                        await sendJbBtn(
+                                                                `╔══════════════════════╗\n` +
+                                                                `║   🤖  *J A D I B O T*  ║\n` +
+                                                                `╚══════════════════════╝\n\n` +
+                                                                `✅ *Masa berlaku diperbarui!*\n` +
+                                                                `📱 +${maskNumber(number)}\n` +
+                                                                `⏳ Sisa: *${info.remaining}*\n` +
+                                                                `📅 Habis: ${info.expiresAtText}\n\n` +
+                                                                `Bot tetap aktif, durasi diperbarui.`
+                                                        )
+                                                }
+                                        } else {
+                                                await sendJbBtn(
+                                                        `╔══════════════════════╗\n` +
+                                                        `║   🤖  *J A D I B O T*  ║\n` +
+                                                        `╚══════════════════════╝\n\n` +
+                                                        `⚠️ *Nomor sudah aktif!*\n` +
+                                                        `+${maskNumber(number)} sedang berjalan sebagai jadibot.\n\n` +
+                                                        `💡 Hentikan dulu: *${jbPfx}stopbot ${number}*`
+                                                );
+                                        }
+                                        break;
+                                }
+
+                                const mainNum = hisoka.mainBotNumber
+                                        || hisoka.user?.id?.split(':')[0]
+                                        || '';
+
+                                // Validasi nomor terdaftar di WhatsApp (skip jika sudah ada sesi)
+                                const sessionDir = path.join(process.cwd(), 'jadibot', number)
+                                const hasExistingSession = fs.existsSync(path.join(sessionDir, 'creds.json'))
+                                if (!hasExistingSession) {
+                                        try {
+                                                await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } })
+                                                const waResult = await hisoka.onWhatsApp(number + '@s.whatsapp.net')
+                                                const isRegistered = Array.isArray(waResult) && waResult.length > 0 && waResult[0]?.exists
+                                                if (!isRegistered) {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } })
+                                                        const { flag: cFlag, name: cName } = getPhoneCountryInfo(number)
+                                                        await sendJbBtn(
+                                                                `╔══════════════════════╗\n` +
+                                                                `║   🤖  *J A D I B O T*  ║\n` +
+                                                                `╚══════════════════════╝\n\n` +
+                                                                `❌ *Nomor tidak terdaftar di WhatsApp!*\n\n` +
+                                                                `${cFlag} *Negara:* ${cName}\n` +
+                                                                `📱 *Nomor:* +${number}\n\n` +
+                                                                `Nomor ini tidak ditemukan atau belum\n` +
+                                                                `terdaftar sebagai akun WhatsApp aktif.\n\n` +
+                                                                `💡 *Pastikan:*\n` +
+                                                                `• Nomor sudah benar termasuk kode negara\n` +
+                                                                `• Nomor aktif dan punya akun WhatsApp\n` +
+                                                                `• Format: _${jbPfx}jadibot 628xxx,1h_\n\n` +
+                                                                `📌 *Contoh kode negara:*\n` +
+                                                                `🇮🇩 Indonesia: 62xxx\n` +
+                                                                `🇲🇾 Malaysia: 60xxx\n` +
+                                                                `🇺🇸 Amerika: 1xxx\n` +
+                                                                `🇸🇬 Singapura: 65xxx`
+                                                        )
+                                                        break
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } })
+                                        } catch {
+                                                // Gagal cek → tetap lanjut agar tidak block user
+                                        }
+                                }
+
+                                const { flag: connFlag, name: connCountry } = getPhoneCountryInfo(number)
+                                await tolak(hisoka, m, 
+                                        `╔══════════════════════╗\n` +
+                                        `║   🤖  *J A D I B O T*  ║\n` +
+                                        `╚══════════════════════╝\n\n` +
+                                        `⏳ Sedang menghubungkan...\n` +
+                                        `${connFlag} *Negara:* ${connCountry}\n` +
+                                        `📱 *Nomor:* +${number}\n` +
+                                        `🕒 *Masa berlaku:* ${durationInfo.label}\n\n` +
+                                        `Kode pairing akan segera dikirim.`
+                                );
+
+                                await startJadibot(
+                                        number,
+                                        async (msg) => tolak(hisoka, m, msg),
+                                        mainNum,
+                                        async (key, text) => {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { edit: key, text })
+                                                } catch {}
+                                        },
+                                        async (code, num) => {
+                                                const fmt = formatPairingCode(code)
+                                                const masked = maskNumber(num)
+                                                const footerText = `📲 Tap tombol untuk salin kode · +${num}`
+
+                                                // Reply (quote) pesan pengguna langsung dengan tombol salin
+                                                let sentInfo = null
+                                                try {
+                                                        sentInfo = await m.reply({
+                                                                interactiveMessage: {
+                                                                        contextInfo: {
+                                                                                stanzaId: m.key.id,
+                                                                                participant: m.sender,
+                                                                                quotedMessage: m.message
+                                                                        },
+                                                                        title:
+                                                                                `╔══════════════════════╗\n` +
+                                                                                `║   🤖  *J A D I B O T*   ║\n` +
+                                                                                `╚══════════════════════╝\n\n` +
+                                                                                `📱 *Nomor:* ${masked}\n\n` +
+                                                                                `📋 *Cara Memasukkan Kode Pairing:*\n\n` +
+                                                                                `1️⃣ Ketuk *"Salin Kode"* di bawah, kode kamu:\n` +
+                                                                                `┌─────────────────┐\n` +
+                                                                                `│   *${fmt}*   │\n` +
+                                                                                `└─────────────────┘\n` +
+                                                                                `2️⃣ Buka *WhatsApp* → ketuk ⋮ (titik tiga)\n` +
+                                                                                `3️⃣ Pilih *Perangkat Tertaut*\n` +
+                                                                                `4️⃣ Ketuk *Tautkan Perangkat*\n` +
+                                                                                `5️⃣ Pilih *Tautkan dengan nomor telepon*\n` +
+                                                                                `6️⃣ Masukkan kode yang sudah disalin\n\n` +
+                                                                                `⏳ Kode berlaku *3 menit*\n` +
+                                                                                `🕒 Masa jadibot *${durationInfo.label}*\n` +
+                                                                                `⚠️ Gagal? Ketik *.jadibot* lagi`,
+                                                                        footer: `📲 Salin kode lalu masukkan di WhatsApp · +${num}`,
+                                                                        buttons: [{
+                                                                                name: 'cta_copy',
+                                                                                buttonParamsJson: JSON.stringify({
+                                                                                        display_text: '🔑 Salin Kode Pairing Jadibot',
+                                                                                        copy_code: fmt
+                                                                                })
+                                                                        }]
+                                                                }
+                                                        })
+                                                } catch {
+                                                        sentInfo = await tolak(hisoka, m, 
+                                                                `╔══════════════════════╗\n` +
+                                                                `║   🤖  *J A D I B O T*   ║\n` +
+                                                                `╚══════════════════════╝\n\n` +
+                                                                `📱 *Nomor:* ${masked}\n\n` +
+                                                                `🔑 *Kode Pairing:*\n` +
+                                                                `┌─────────────────┐\n` +
+                                                                `│   *${fmt}*   │\n` +
+                                                                `└─────────────────┘\n\n` +
+                                                                `📋 Cara masukkan kode:\n` +
+                                                                `1️⃣ Buka WhatsApp → ⋮ → Perangkat Tertaut\n` +
+                                                                `2️⃣ Tautkan Perangkat → Tautkan dengan nomor\n` +
+                                                                `3️⃣ Masukkan kode di atas\n\n` +
+                                                                `⏳ Berlaku *3 menit* · Masa jadibot *${durationInfo.label}*\n` +
+                                                                `⚠️ Gagal? ketik *.jadibot* lagi\n\n` +
+                                                                `\`\`\`${fmt}\`\`\``
+                                                        )
+                                                }
+
+                                                if (sentInfo?.key) {
+                                                        try {
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        react: { text: '🔑', key: sentInfo.key }
+                                                                })
+                                                        } catch {}
+                                                }
+
+                                                return sentInfo
+                                        },
+                                        durationInfo.ms
+                                );
+                        }
+                                break;
+
+                        case 'upbot': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+
+                                const upPfx = m.prefix || '.';
+                                const sendUpBtn = async (bodyText) => { await tolak(hisoka, m, bodyText); };
+
+                                const { number: upNumber, durationInput: upDurationInput } = parseJadibotCommandQuery(query || '');
+                                let upNum = upNumber;
+
+                                // Support reply ke pesan: ambil nomor dari pengirim
+                                if (m.isQuoted && m.quoted?.sender && !m.quoted?.key?.fromMe && (!upNum || upNum.length < 7)) {
+                                        let qNum = (m.quoted.sender || '').split('@')[0].split(':')[0].replace(/[^0-9]/g, '');
+                                        if (qNum.startsWith('00')) qNum = qNum.slice(2);
+                                        if (qNum.startsWith('08')) qNum = '62' + qNum.slice(1);
+                                        else if (qNum.startsWith('8')) qNum = '62' + qNum;
+                                        upNum = qNum;
+                                }
+
+                                if (upNum && upNum.startsWith('08')) upNum = '62' + upNum.slice(1);
+
+                                const upDurationInfo = parseJadibotDuration(upDurationInput);
+
+                                if (!upNum) {
+                                        await sendUpBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `❌ *Nomor tidak boleh kosong!*\n\n` +
+                                                `📌 *Format koma (direkomendasikan):*\n` +
+                                                `_${upPfx}upbot 628xxx,30m_ → perpanjang 30 menit\n` +
+                                                `_${upPfx}upbot 628xxx,2j_ → perpanjang 2 jam\n` +
+                                                `_${upPfx}upbot 628xxx,3h_ → perpanjang 3 hari\n` +
+                                                `_${upPfx}upbot 628xxx,p_ → ubah ke permanent\n\n` +
+                                                `📌 *Format spasi juga bisa:*\n` +
+                                                `_${upPfx}upbot 628xxx 2j_\n\n` +
+                                                `⏱️ *Singkatan: m=menit, j=jam, h=hari, p=permanent*`
+                                        );
+                                        break;
+                                }
+
+                                if (!upDurationInfo || upDurationInput === '') {
+                                        await sendUpBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `❌ *Format durasi tidak valid!*\n\n` +
+                                                `📌 *Contoh:*\n` +
+                                                `_${upPfx}upbot ${upNum},30m_\n` +
+                                                `_${upPfx}upbot ${upNum},2j_\n` +
+                                                `_${upPfx}upbot ${upNum},3h_\n` +
+                                                `_${upPfx}upbot ${upNum},p_\n\n` +
+                                                `⏱️ *Singkatan: m=menit, j=jam, h=hari, p=permanent*`
+                                        );
+                                        break;
+                                }
+
+                                if (!jadibotMap.has(upNum)) {
+                                        await sendUpBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `⚠️ *Bot tidak aktif!*\n` +
+                                                `+${maskNumber(upNum)} tidak ditemukan dalam daftar jadibot aktif.\n\n` +
+                                                `💡 Aktifkan dulu: _${upPfx}jadibot ${upNum},${upDurationInput}_`
+                                        );
+                                        break;
+                                }
+
+                                const upSendReplyFn = async (msg) => tolak(hisoka, m, msg);
+                                // Ambil info lama sebelum dihapus
+                                const oldCmdInfo = getJadibotExpirySummary(upNum);
+                                const oldCmdLabel = oldCmdInfo?.remaining || 'Tidak ada data';
+                                const oldCmdExpire = oldCmdInfo?.expiresAtText || '-';
+                                if (upDurationInfo.ms === 'permanent') {
+                                        removeJadibotExpiry(upNum)
+                                        await sendUpBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `✅ *Durasi diperbarui!*\n` +
+                                                `📱 +${maskNumber(upNum)}\n\n` +
+                                                `📊 *Perubahan masa berlaku:*\n` +
+                                                `⏮️ Sebelumnya : *${oldCmdLabel}*\n` +
+                                                `✨ Terbaru    : *Permanent* ♾️\n\n` +
+                                                `Bot tetap aktif tanpa batas waktu.`
+                                        );
+                                } else {
+                                        extendJadibotExpiry(upNum, upDurationInfo.ms, 'active')
+                                        scheduleJadibotExpiry(upNum, upSendReplyFn)
+                                        const upInfo = getJadibotExpirySummary(upNum)
+                                        await sendUpBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║   ⏫  *U P B O T*   ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `✅ *Durasi diperbarui!*\n` +
+                                                `📱 +${maskNumber(upNum)}\n\n` +
+                                                `📊 *Perubahan masa berlaku:*\n` +
+                                                `⏮️ Sebelumnya : *${oldCmdLabel}*\n` +
+                                                `   Exp lama   : ${oldCmdExpire}\n` +
+                                                `➕ Ditambah   : *${upDurationInfo.label}*\n` +
+                                                `✨ Total baru : *${upInfo.remaining}*\n` +
+                                                `   Exp baru   : ${upInfo.expiresAtText}\n\n` +
+                                                `Bot tetap aktif, durasi diperpanjang.`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'stopbot': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                const stopChoiceKey = getJadibotChoiceKey(m);
+                                const existingStopChoice = pendingJadibotChoices.get(stopChoiceKey);
+                                if (existingStopChoice?.timeout) clearTimeout(existingStopChoice.timeout);
+                                pendingJadibotChoices.delete(stopChoiceKey);
+
+                                const pfx = m.prefix || '.';
+                                const rawQuery = (query || '').trim();
+
+                                const sendStopBtn = async (bodyText) => {
+                                        await tolak(hisoka, m, bodyText);
+                                };
+
+                                // Handle batal
+                                if (rawQuery.toLowerCase() === 'batal') {
+                                        await sendStopBtn(
+                                                `╔══════════════════════╗\n` +
+                                                `║  🛑  *STOP JADIBOT*  ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `✅ *Dibatalkan!*\n` +
+                                                `Bot tidak dihentikan.\n\n` +
+                                                `💡 Ketik *${pfx}listbot* untuk lihat bot aktif.`
+                                        );
+                                        break;
+                                }
+
+                                // Handle confirm: ".stopbot <nomor> confirm"
+                                const confirmMatch = rawQuery.match(/^(\d+)\s+confirm$/i);
+                                if (confirmMatch) {
+                                        let number = confirmMatch[1];
+                                        if (number.startsWith('08')) number = '62' + number.slice(1);
+                                        await stopJadibot(number, async (text) => {
+                                                await sendStopBtn(text);
+                                        });
+                                        break;
+                                }
+
+                                // No number — show realtime picker list
+                                let number = rawQuery.replace(/[^0-9]/g, '');
+                                if (!number) {
+                                        const list = [...jadibotMap.keys()];
+
+                                        if (!list.length) {
+                                                await sendStopBtn(
+                                                        `╔══════════════════════╗\n` +
+                                                        `║  🛑  *STOP JADIBOT*  ║\n` +
+                                                        `╚══════════════════════╝\n\n` +
+                                                        `📭 *Tidak ada jadibot yang aktif.*\n\n` +
+                                                        `💡 Ketik *${pfx}jadibot <nomor>* untuk tambah bot.`
+                                                );
+                                                break;
+                                        }
+
+                                        let bodyText =
+                                                `╔══════════════════════╗\n` +
+                                                `║  🛑  *STOP JADIBOT*  ║\n` +
+                                                `╚══════════════════════╝\n\n` +
+                                                `📊 *Bot aktif: ${list.length}*\n\n`;
+
+                                        for (const [i, num] of list.entries()) {
+                                                const meta = getJadibotExpiry(num);
+                                                const sisa = meta ? formatRemainingTime(Number(meta.expiresAt) - Date.now()) : 'belum tercatat';
+                                                bodyText += `${i + 1}. *+${num}*\n   🟢 Aktif · Sisa ${sisa}\n`;
+                                        }
+
+                                        bodyText +=
+                                                `\n💡 Ketik:\n` +
+                                                `*${pfx}stopbot <nomor>*\n` +
+                                                `untuk menghentikan bot.`;
+
+                                        await sendStopBtn(bodyText);
+                                        break;
+                                }
+
+                                if (number.startsWith('08')) number = '62' + number.slice(1);
+
+                                const isRunning = jadibotMap.has(number);
+                                const maskedNum = maskNumber(number);
+
+                                await sendStopBtn(
+                                        `╔══════════════════════╗\n` +
+                                        `║  🛑  *STOP JADIBOT*  ║\n` +
+                                        `╚══════════════════════╝\n\n` +
+                                        `📱 *Nomor:* +${maskedNum}\n` +
+                                        `📶 *Status:* ${isRunning ? '🟢 Aktif' : '🔴 Tidak aktif'}\n\n` +
+                                        `⚠️ Yakin ingin menghentikan bot ini?\n\n` +
+                                        `✅ Ketik: *${pfx}stopbot ${number} confirm*\n` +
+                                        `❌ Batal: *${pfx}stopbot batal*`
+                                );
+                        }
+                                break;
+
+                        case 'backup': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+
+                                const archiver = (await import('archiver')).default;
+                                const config = loadConfig();
+                                const owners = config.owners || [];
+
+                                const EXCLUDED = new Set([
+                                        'attached_assets', '.git', '.agents', 'sessions', 'jadibot',
+                                        '.upm', 'node_modules', 'package-lock.json',
+                                        '.cache', '.local'
+                                ]);
+                                const EXCLUDED_FILES = new Set([
+                                        'bin/yt-dlp'
+                                ]);
+
+                                const rootDir = process.cwd();
+
+                                // Kumpulkan semua item top-level yang akan di-backup
+                                const allItems = fs.readdirSync(rootDir);
+                                const includedItems = allItems.filter(i => !EXCLUDED.has(i));
+                                const excludedItems = allItems.filter(i => EXCLUDED.has(i));
+
+                                // Hitung total file rekursif (real-time)
+                                function countFilesRecursive(dir, relBase = '') {
+                                        let count = 0;
+                                        try {
+                                                const items = fs.readdirSync(dir, { withFileTypes: true });
+                                                for (const item of items) {
+                                                        if (EXCLUDED.has(item.name)) continue;
+                                                        const relPath = relBase ? `${relBase}/${item.name}` : item.name;
+                                                        if (EXCLUDED_FILES.has(relPath)) continue;
+                                                        if (item.isDirectory()) {
+                                                                count += countFilesRecursive(path.join(dir, item.name), relPath);
+                                                        } else {
+                                                                count++;
+                                                        }
+                                                }
+                                        } catch {}
+                                        return count;
+                                }
+
+                                const totalFiles = countFilesRecursive(rootDir);
+
+                                // Pisahkan folder dan file untuk tampilan
+                                const includedFolders = includedItems.filter(i => {
+                                        try { return fs.statSync(path.join(rootDir, i)).isDirectory(); } catch { return false; }
+                                });
+                                const includedFiles = includedItems.filter(i => {
+                                        try { return fs.statSync(path.join(rootDir, i)).isFile(); } catch { return false; }
+                                });
+
+                                // Hitung isi tiap folder (file & subfolder langsung di dalamnya)
+                                function getFolderStats(dirPath) {
+                                        try {
+                                                const items = fs.readdirSync(dirPath, { withFileTypes: true });
+                                                const files = items.filter(i => i.isFile()).length;
+                                                const folders = items.filter(i => i.isDirectory()).length;
+                                                return { files, folders };
+                                        } catch { return { files: 0, folders: 0 }; }
+                                }
+
+                                const folderLines = includedFolders.map((f, i) => {
+                                        const isLast = i === includedFolders.length - 1;
+                                        const prefix = isLast ? '└─' : '├─';
+                                        const { files, folders } = getFolderStats(path.join(rootDir, f));
+                                        const detail = [
+                                                files ? `${files} file` : '',
+                                                folders ? `${folders} folder` : ''
+                                        ].filter(Boolean).join(', ') || 'kosong';
+                                        return `${prefix} 📂 *${f}/* → _${detail}_`;
+                                });
+
+                                const fileLines = includedFiles.map((f, i) => {
+                                        const isLast = i === includedFiles.length - 1;
+                                        const prefix = isLast ? '└─' : '├─';
+                                        return `${prefix} 📄 ${f}`;
+                                });
+
+                                // Reaction ⏳ dulu
+                                await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+
+                                await tolak(hisoka, m, 
+                                        `╭─「 🗜️ *BACKUP BOT* 」\n` +
+                                        `│\n` +
+                                        `│ ⏳ _Sedang memproses backup..._\n` +
+                                        `│\n` +
+                                        `├─ 📁 *Folder (${includedFolders.length})*\n` +
+                                        folderLines.map(l => `│  ${l}`).join('\n') + '\n' +
+                                        `│\n` +
+                                        `├─ 📄 *File Root (${includedFiles.length})*\n` +
+                                        fileLines.map(l => `│  ${l}`).join('\n') + '\n' +
+                                        `│\n` +
+                                        `├─ 🗂️ *Total keseluruhan:* ${totalFiles} file\n` +
+                                        `│\n` +
+                                        `├─ 🚫 *Dikecualikan (${excludedItems.length}):*\n` +
+                                        `│  ├─ ${excludedItems.join(', ')}\n` +
+                                        `│  └─ bin/yt-dlp _(auto-download)_\n` +
+                                        `│\n` +
+                                        `╰─ _Membuat zip, harap tunggu..._`
+                                );
+
+                                // Buat zip ke /tmp
+                                const rawZipName = query
+                                        ? query.trim().replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').slice(0, 80)
+                                        : `Readsw_${Date.now()}`;
+                                const zipName = rawZipName.endsWith('.zip') ? rawZipName : `${rawZipName}.zip`;
+                                const zipPath = path.join('/tmp', zipName);
+                                const output = fs.createWriteStream(zipPath);
+                                const archive = archiver('zip', { zlib: { level: 9 } });
+
+                                await new Promise((resolve, reject) => {
+                                        output.on('close', resolve);
+                                        archive.on('error', reject);
+                                        archive.pipe(output);
+
+                                        function addToArchive(archive, absPath, relPath) {
+                                                const stat = fs.statSync(absPath);
+                                                if (stat.isDirectory()) {
+                                                        const children = fs.readdirSync(absPath);
+                                                        for (const child of children) {
+                                                                const childRel = `${relPath}/${child}`;
+                                                                if (EXCLUDED_FILES.has(childRel)) continue;
+                                                                addToArchive(archive, path.join(absPath, child), childRel);
+                                                        }
+                                                } else {
+                                                        archive.file(absPath, { name: relPath });
+                                                }
+                                        }
+
+                                        for (const item of includedItems) {
+                                                const fullPath = path.join(rootDir, item);
+                                                addToArchive(archive, fullPath, item);
+                                        }
+                                        archive.finalize();
+                                });
+
+                                const zipBuffer = fs.readFileSync(zipPath);
+                                const zipSizeMB = (zipBuffer.length / 1024 / 1024).toFixed(2);
+
+                                // Caption ringkas untuk dokumen zip
+                                const zipCaption =
+                                        `╭─「 📦 *BACKUP SELESAI* 」\n` +
+                                        `│\n` +
+                                        `├─ 🗜️ *File :* ${zipName}\n` +
+                                        `├─ 📏 *Ukuran :* ${zipSizeMB} MB\n` +
+                                        `├─ 🗂️ *Total :* ${totalFiles} file\n` +
+                                        `│\n` +
+                                        `├─ 📁 *Folder (${includedFolders.length})*\n` +
+                                        includedFolders.map(f => {
+                                                const { files, folders } = getFolderStats(path.join(rootDir, f));
+                                                const detail = [files ? `${files} file` : '', folders ? `${folders} folder` : ''].filter(Boolean).join(', ') || 'kosong';
+                                                return `│  └─ ${f}/ → ${detail}`;
+                                        }).join('\n') + '\n' +
+                                        `│\n` +
+                                        `├─ 🚫 *Exclude :* ${excludedItems.join(', ')}, bin/yt-dlp\n` +
+                                        `│\n` +
+                                        `╰─ 🕐 ${new Date().toLocaleString('id-ID')}`;
+
+                                // Kirim ke semua owner
+                                const sentTo = [];
+                                for (const ownerNum of owners) {
+                                        const ownerJid = `${ownerNum}@s.whatsapp.net`;
+                                        try {
+                                                await hisoka.sendMessage(ownerJid, {
+                                                        document: zipBuffer,
+                                                        fileName: zipName,
+                                                        mimetype: 'application/zip',
+                                                        caption: zipCaption,
+                                                });
+                                                sentTo.push(ownerNum);
+                                        } catch (e) {
+                                                console.error('[Backup] Gagal kirim ke', ownerNum, e.message);
+                                        }
+                                }
+
+                                // Hapus file zip tmp
+                                try { fs.unlinkSync(zipPath); } catch {}
+
+                                // Reaction ✅ selesai
+                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                await tolak(hisoka, m, 
+                                        sentTo.length
+                                        ? `╭─「 ✅ *BACKUP BERHASIL* 」\n` +
+                                          `│\n` +
+                                          `├─ 📏 *Ukuran :* ${zipSizeMB} MB\n` +
+                                          `├─ 🗂️ *Total file :* ${totalFiles}\n` +
+                                          `│\n` +
+                                          `├─ 📨 *Terkirim ke ${sentTo.length} owner:*\n` +
+                                          sentTo.map((n, i) => `│  ${i + 1}. +${n}`).join('\n') + '\n' +
+                                          `│\n` +
+                                          `╰─ 🕐 ${new Date().toLocaleString('id-ID')}`
+                                        : `╭─「 ⚠️ *BACKUP* 」\n│\n├─ Zip dibuat tapi gagal kirim ke semua owner.\n╰─ Cek nomor owner di config.json`
+                                );
+
+                                logCommand(m, hisoka, 'backup');
+                        }
+                                break;
+
+                        case 'ceksesi': {
+                                if (!m.isOwner) return;
+                                try {
+                                        const sesiDir = path.join(process.cwd(), 'sessions', process.env.BOT_SESSION_NAME || 'hisoka');
+                                        const files = fs.readdirSync(sesiDir);
+                                        const total = files.length;
+
+                                        const EMOJI_MAP = {
+                                                'session':               '🔑',
+                                                'pre-key':               '🗝️',
+                                                'sender-key':            '📨',
+                                                'app-state-sync-key':    '🔄',
+                                                'app-state-sync-version':'📋',
+                                                'creds.json':            '🛡️',
+                                                'contacts.json':         '👥',
+                                                'groups.json':           '🫂',
+                                                'settings.json':         '⚙️',
+                                        };
+                                        const DESC_MAP = {
+                                                'session':               'Sesi & koneksi utama bot',
+                                                'pre-key':               'Kunci enkripsi pesan (E2E)',
+                                                'sender-key':            'Kunci enkripsi per grup/chat',
+                                                'app-state-sync-key':    'Sinkronisasi state WhatsApp',
+                                                'app-state-sync-version':'Versi sync state WA',
+                                                'creds.json':            'Kredensial utama bot',
+                                                'contacts.json':         'Cache kontak tersimpan',
+                                                'groups.json':           'Cache data grup',
+                                                'settings.json':         'Pengaturan sesi lokal',
+                                        };
+
+                                        const groups = {};
+                                        for (const file of files) {
+                                                const name = file.replace(/\.json$/, '');
+                                                let group;
+                                                if (name.startsWith('app-state-sync-key'))          group = 'app-state-sync-key';
+                                                else if (name.startsWith('app-state-sync-version'))  group = 'app-state-sync-version';
+                                                else if (name.startsWith('pre-key'))                 group = 'pre-key';
+                                                else if (name.startsWith('sender-key'))              group = 'sender-key';
+                                                else if (name.startsWith('session'))                 group = 'session';
+                                                else                                                  group = file;
+                                                groups[group] = (groups[group] || 0) + 1;
+                                        }
+
+                                        const sorted = Object.entries(groups).sort((a, b) => b[1] - a[1]);
+                                        const lines = sorted.map(([g, c]) => {
+                                                const emoji = EMOJI_MAP[g] || '📄';
+                                                const desc  = DESC_MAP[g]  || 'File sesi lainnya';
+                                                return `├─ ${emoji} *${g}* ──→ *${c} file*\n│  └ _${desc}_`;
+                                        });
+
+                                        const teks =
+                                                `╭─「 🗂️ *CEK SESI* 」\n` +
+                                                `│\n` +
+                                                lines.join('\n') + '\n' +
+                                                `│\n` +
+                                                `├─ 📦 *Total :* ${total} file\n` +
+                                                `├─ 📁 *Path  :* sessions/${process.env.BOT_SESSION_NAME || 'hisoka'}\n` +
+                                                `╰─ 🕐 ${new Date().toLocaleString('id-ID')}`;
+
+                                        await tolak(hisoka, m, teks);
+                                        logCommand(m, hisoka, 'ceksesi');
+                                } catch (e) {
+                                        await tolak(hisoka, m, `❌ Gagal baca sesi: ${e.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'cekerror': {
+                                if (!m.isOwner) return;
+
+                                const arg = (query || '').trim().toLowerCase();
+
+                                // Hanya respon jika: kosong, 'reset', 'clear', atau angka valid
+                                if (arg !== '' && arg !== 'reset' && arg !== 'clear' && !/^\d+$/.test(arg)) return;
+
+                                await hisoka.sendMessage(m.from, { react: { text: `🔍`, key: m.key } });
+
+                                if (arg === 'reset' || arg === 'clear') {
+                                        clearErrors();
+                                        await tolak(hisoka, m, `╭─「 🗑️ *ERROR LOG* 」\n│\n╰➤ Semua log error berhasil dihapus!\n\n┗━➤ 🚀 *Powered By Wily Bot*`);
+                                        logCommand(m, hisoka, 'cekerror');
+                                        break;
+                                }
+
+                                const limit = parseInt(arg) || 3;
+                                const summary = formatErrorReport(Math.min(limit, 50));
+                                await tolak(hisoka, m, summary);
+
+                                generateErrorFileTxt();
+                                const txtPath   = getInfoErrorTxtPath();
+                                const txtExists = fs.existsSync(txtPath);
+
+                                if (txtExists) {
+                                        const fileBuffer = fs.readFileSync(txtPath);
+                                        const { uniqueErrors, totalOccurred } = getErrorStats();
+                                        const dupCount = totalOccurred - uniqueErrors;
+                                        await hisoka.sendMessage(m.from, {
+                                                document: fileBuffer,
+                                                mimetype: 'text/plain',
+                                                fileName: 'infoerror.txt',
+                                                caption:
+                                                        `📄 *infoerror.txt*\n` +
+                                                        `├ 🔴 Jenis error unik : *${uniqueErrors}*\n` +
+                                                        `├ 🔁 Total kejadian   : *${totalOccurred}*\n` +
+                                                        `╰ ♻️ Duplikat digabung : *${dupCount > 0 ? dupCount : 0}*`
+                                        }, { quoted: m });
+                                }
+
+                                logCommand(m, hisoka, 'cekerror');
+                                break;
+                        }
+
+                        case 'listbot': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+
+                                const ljPfx = m.prefix || '.';
+                                await cleanupExpiredJadibots(async () => {});
+                                const list = [...jadibotMap.keys()];
+                                const jadibotChoiceKey = getJadibotChoiceKey(m);
+                                const oldPending = pendingJadibotChoices.get(jadibotChoiceKey);
+                                if (oldPending?.timeout) clearTimeout(oldPending.timeout);
+                                pendingJadibotChoices.delete(jadibotChoiceKey);
+
+                                if (!list.length) {
+                                        await hisoka.sendMessage(m.from, {
+                                                text:
+                                                        `*LIST JADIBOT*\n\n` +
+                                                        `Belum ada jadibot yang aktif.\n\n` +
+                                                        `Tambah jadibot:\n` +
+                                                        `${ljPfx}jadibot <nomor>`
+                                        }, { quoted: m });
+                                        break;
+                                }
+
+                                // Sort: paling mau expired di atas, permanent di bawah
+                                const sortedList = [...list].sort((a, b) => {
+                                        const metaA = getJadibotExpiry(a);
+                                        const metaB = getJadibotExpiry(b);
+                                        const expA = metaA ? Number(metaA.expiresAt) : Infinity;
+                                        const expB = metaB ? Number(metaB.expiresAt) : Infinity;
+                                        return expA - expB;
+                                });
+
+                                const now = Date.now();
+
+                                const ljNow = new Date();
+                                const ljHari = ljNow.toLocaleDateString('id-ID', { weekday: 'long', timeZone: 'Asia/Jakarta' });
+                                const ljTanggal = ljNow.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+                                const ljWaktu = ljNow.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Jakarta' });
+
+                                const detailLines = sortedList.map((num, i) => {
+                                        const info = getJadibotExpirySummary(num);
+                                        const meta = getJadibotExpiry(num);
+                                        const remainingMs = meta ? Number(meta.expiresAt) - now : Infinity;
+                                        const isAlmostExpired = remainingMs !== Infinity && remainingMs < 30 * 60 * 1000;
+                                        const statusTag = isAlmostExpired ? ' (Hampir Habis)' : '';
+                                        const namaUser = getUserName(`${num}@s.whatsapp.net`, '-');
+
+                                        let expireText = 'Permanent';
+                                        if (meta && Number(meta.expiresAt) > 0) {
+                                                const expDate = new Date(Number(meta.expiresAt));
+                                                const expHari = expDate.toLocaleDateString('id-ID', { weekday: 'long', timeZone: 'Asia/Jakarta' });
+                                                const expTanggal = expDate.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', timeZone: 'Asia/Jakarta' });
+                                                const expWaktu = expDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Jakarta' }).replace(/\./g, ':');
+                                                expireText = `${expHari}, ${expTanggal} | ${expWaktu} WIB`;
+                                        }
+
+                                        return (
+                                                `${i + 1}. *+${num}*${statusTag}\n` +
+                                                `   Nama   : ${namaUser}\n` +
+                                                `   Sisa   : ${info.remaining}\n` +
+                                                `   Expire : ${expireText}`
+                                        );
+                                }).join('\n\n');
+
+                                const ljBodyText =
+                                        `*LIST BOT AKTIF*\n` +
+                                        `━━━━━━━━━━━━━━━━━━━━━\n` +
+                                        `Total  : *${sortedList.length} bot aktif*\n` +
+                                        `Waktu  : ${ljHari}, ${ljTanggal} | ${ljWaktu} WIB\n` +
+                                        `━━━━━━━━━━━━━━━━━━━━━\n\n` +
+                                        `${detailLines}\n\n` +
+                                        `━━━━━━━━━━━━━━━━━━━━━\n` +
+                                        `*Cara pakai — reply pesan ini:*\n\n` +
+                                        `Stop bot:\n` +
+                                        `   Ketik urutan → contoh: *1*\n\n` +
+                                        `Perpanjang durasi:\n` +
+                                        `   Ketik *urutan,durasi* → contoh:\n` +
+                                        `   • *1,3j*  → perpanjang bot 1 selama 3 jam\n` +
+                                        `   • *2,1h*  → perpanjang bot 2 selama 1 hari\n` +
+                                        `   • *1,p*   → ubah bot 1 ke permanent\n\n` +
+                                        `Singkatan: m=menit, j=jam, h=hari, p=permanent\n` +
+                                        `Pilihan berlaku *2 menit*`;
+
+                                const sentList = await hisoka.sendMessage(m.from, { text: ljBodyText }, { quoted: m });
+                                const botMsgId = sentList?.key?.id || '';
+
+                                const timeout = setTimeout(() => {
+                                        pendingJadibotChoices.delete(jadibotChoiceKey);
+                                }, 2 * 60 * 1000);
+                                pendingJadibotChoices.set(jadibotChoiceKey, {
+                                        numbers: sortedList,
+                                        botMsgId,
+                                        createdAt: Date.now(),
+                                        expiresAt: Date.now() + (2 * 60 * 1000),
+                                        timeout
+                                });
+                                logCommand(m, hisoka, 'listbot');
+                        }
+                                break;
+                        
+
+                        case 'play': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m, '❌ Masukkan judul lagu!\n\nContoh: .play shape of you ed sheeran');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, '🔍 Mencari lagu...');
+
+                                        const yts = (await import('yt-search')).default;
+                                        const searchResult = await yts(query.trim());
+
+                                        if (!searchResult || !searchResult.videos || searchResult.videos.length === 0) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await m.reply({ edit: loadingMsg.key, text: '❌ Lagu tidak ditemukan!' });
+                                                break;
+                                        }
+
+                                        const video = searchResult.videos[0];
+
+                                        if (video.seconds > 600) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await m.reply({ edit: loadingMsg.key, text: `❌ Durasi terlalu panjang! (${video.duration.timestamp})\nMaksimal 10 menit.` });
+                                                break;
+                                        }
+
+                                        const thumbUrl = video.thumbnail || `https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`;
+                                        const videoLink = video.url || `https://youtu.be/${video.videoId}`;
+                                        const durStr = video.duration.timestamp;
+                                        const viewsFmt = video.views ? video.views.toLocaleString('id-ID') : '?';
+
+                                        let playBody = `╭═══〔 *🎵 PLAY MUSIC* 〕═══╮\n`;
+                                        playBody += `│\n`;
+                                        playBody += `│ 📌 *${video.title}*\n`;
+                                        playBody += `│ ⏱️ Durasi  : ${durStr}\n`;
+                                        playBody += `│ 👁️ Views   : ${viewsFmt}\n`;
+                                        if (video.author?.name) playBody += `│ 👤 Channel : ${video.author.name}\n`;
+                                        playBody += `│ 🔗 Link    : ${videoLink}\n`;
+                                        playBody += `│\n`;
+                                        playBody += `│ Pilih format di bawah 👇\n`;
+                                        playBody += `╰═══════════════════════╯`;
+
+                                        let buttonSent = false;
+                                        try {
+                                                await new Button()
+                                                        .setImage(thumbUrl)
+                                                        .setBody(playBody)
+                                                        .setFooter('⏳ Pilihan hangus dalam 2 menit')
+                                                        .addReply('🎵 Audio MP3', '1')
+                                                        .addReply('🎬 Video MP4 (360p)', '2')
+                                                        .run(m.from, hisoka, m);
+                                                buttonSent = true;
+                                        } catch {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: { url: thumbUrl },
+                                                        caption: playBody + `\n\n🎵 *1* - Audio MP3\n🎬 *2* - Video MP4\n\n_Balas dengan angka pilihanmu_`
+                                                }, { quoted: m });
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🎵', key: m.key } });
+                                        await m.reply({
+                                                edit: loadingMsg.key,
+                                                text: buttonSent
+                                                        ? `🎵 Ketemu! Tap tombol *Audio MP3* atau *Video MP4* untuk download.`
+                                                        : `🎵 Ketemu! Balas dengan *1* untuk Audio MP3 atau *2* untuk Video MP4.`
+                                        });
+
+                                        // Simpan pilihan pending dengan timeout 2 menit
+                                        const timeoutId = setTimeout(() => {
+                                                if (pendingPlayChoices.has(m.sender)) {
+                                                        pendingPlayChoices.delete(m.sender);
+                                                }
+                                        }, 2 * 60 * 1000);
+
+                                        pendingPlayChoices.set(m.sender, {
+                                                url: video.url,
+                                                title: video.title,
+                                                duration: durStr,
+                                                seconds: video.seconds,
+                                                timeout: timeoutId
+                                        });
+
+                                        logCommand(m, hisoka, 'play');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Play] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal mencari lagu: ${error.message?.substring(0, 200)}`);
+                                }
+                                break;
+                        }
+
+                        case 'ytmp3': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m, '❌ Masukkan link YouTube!\n\nContoh: .ytmp3 https://youtu.be/xxx\nAtau: .ytmp3 https://www.youtube.com/watch?v=xxx');
+                                                break;
+                                        }
+
+                                        const ytUrl = query.trim();
+                                        if (!ytUrl.includes('youtube.com') && !ytUrl.includes('youtu.be')) {
+                                                await tolak(hisoka, m, '❌ Link tidak valid! Gunakan link YouTube.');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Mengambil info video...');
+
+                                        const ytdlpBin = await ensureYtdlp(hisoka, m);
+
+                                        const metaRaw = await new Promise((resolve, reject) => {
+                                                exec(`"${ytdlpBin}" --js-runtimes node --no-playlist --dump-json "${ytUrl}"`, { timeout: 30000 }, (err, stdout, stderr) => {
+                                                        if (err) return reject(new Error(parseYtdlpError(stderr, err.message)));
+                                                        resolve(stdout.trim());
+                                                });
+                                        });
+
+                                        const meta = JSON.parse(metaRaw);
+                                        const duration = meta.duration || 0;
+
+                                        if (duration > 600) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await m.reply({ edit: loadingMsg.key, text: `❌ Durasi terlalu panjang! (${Math.floor(duration / 60)} menit)\nMaksimal 10 menit.` });
+                                                break;
+                                        }
+
+                                        await m.reply({ edit: loadingMsg.key, text: '⏳ Mengunduh audio MP3...' });
+
+                                        const durMin = Math.floor(duration / 60);
+                                        const durSec = Math.floor(duration % 60);
+                                        const durStr = `${durMin}:${String(durSec).padStart(2, '0')}`;
+                                        const viewsFmt = meta.view_count ? parseInt(meta.view_count).toLocaleString('id-ID') : '?';
+                                        const thumbUrl = meta.thumbnail || `https://i.ytimg.com/vi/${meta.id}/hqdefault.jpg`;
+                                        const videoLink = `https://youtu.be/${meta.id}`;
+
+                                        let mp3Caption = `╭═══〔 *🎵 YTMP3 DOWNLOADER* 〕═══╮\n`;
+                                        mp3Caption += `│\n`;
+                                        mp3Caption += `│ 📌 *${meta.title}*\n`;
+                                        mp3Caption += `│ ⏱️ Durasi  : ${durStr}\n`;
+                                        mp3Caption += `│ 👁️ Views   : ${viewsFmt}\n`;
+                                        if (meta.uploader) mp3Caption += `│ 👤 Channel : ${meta.uploader}\n`;
+                                        if (meta.like_count) mp3Caption += `│ 👍 Likes   : ${parseInt(meta.like_count).toLocaleString('id-ID')}\n`;
+                                        mp3Caption += `│ 🔗 Link    : ${videoLink}\n`;
+                                        mp3Caption += `│\n`;
+                                        mp3Caption += `│ ⬇️ _Sedang mengunduh audio MP3..._\n`;
+                                        mp3Caption += `╰══════════════════════════════╯`;
+
+                                        // Generate AI caption secara paralel saat download berjalan
+                                        const aiCaptionPromiseYtmp3 = gemini.ask(buildVideoDownloadCaptionPrompt({
+                                            platform: 'YouTube Audio',
+                                            title: meta.title || '',
+                                            author: meta.uploader || meta.channel || '',
+                                            duration: durStr,
+                                            views: viewsFmt,
+                                            likes: meta.like_count ? parseInt(meta.like_count).toLocaleString('id-ID') : '',
+                                            description: meta.description || '',
+                                        })).catch(() => null);
+
+                                        await hisoka.sendMessage(m.from, {
+                                                image: { url: thumbUrl },
+                                                caption: mp3Caption
+                                        }, { quoted: m });
+
+                                        const tmpId = Date.now();
+                                        const tmpFile = path.join(process.cwd(), 'tmp', `ytmp3_${tmpId}.mp3`);
+                                        const tmpTemplate = path.join(process.cwd(), 'tmp', `ytmp3_${tmpId}.%(ext)s`);
+
+                                        await new Promise((resolve, reject) => {
+                                                const cmd = `"${ytdlpBin}" --js-runtimes node --no-playlist -x --audio-format mp3 --audio-quality 5 -o "${tmpTemplate}" "${ytUrl}"`;
+                                                exec(cmd, { timeout: 120000 }, (err, stdout, stderr) => {
+                                                        if (err) return reject(new Error(parseYtdlpError(stderr, err.message)));
+                                                        resolve();
+                                                });
+                                        });
+
+                                        const audioBuffer = fs.readFileSync(tmpFile);
+
+                                        // Tunggu AI caption selesai
+                                        const aiCaptionYtmp3 = await aiCaptionPromiseYtmp3;
+                                        const finalCaptionYtmp3 = aiCaptionYtmp3?.trim() || `🎵 *${meta.title}*\n👤 ${meta.uploader || ''}\n⏱️ ${durStr}`;
+
+                                        await hisoka.sendMessage(m.from, {
+                                                audio: audioBuffer,
+                                                mimetype: 'audio/mpeg',
+                                                fileName: `${meta.title.replace(/[^\w\s]/gi, '')}.mp3`,
+                                                ptt: false
+                                        }, { quoted: m });
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        await m.reply({ edit: loadingMsg.key, text: `✅ *Audio MP3 berhasil dikirim!*\n\n${finalCaptionYtmp3}` });
+
+                                        try { fs.unlinkSync(tmpFile); } catch (_) {}
+
+                                        logCommand(m, hisoka, 'ytmp3');
+                                } catch (error) {
+                                        console.error('\x1b[31m[YTMP3] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal mengunduh audio: ${error.message?.substring(0, 200)}`);
+                                }
+                                break;
+                        }
+
+                        case 'ytmp4': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m, '❌ Masukkan link YouTube!\n\nContoh: .ytmp4 https://youtu.be/xxx\nAtau: .ytmp4 https://www.youtube.com/watch?v=xxx');
+                                                break;
+                                        }
+
+                                        const ytUrl = query.trim();
+                                        if (!ytUrl.includes('youtube.com') && !ytUrl.includes('youtu.be')) {
+                                                await tolak(hisoka, m, '❌ Link tidak valid! Gunakan link YouTube.');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Mengambil info video...');
+
+                                        const ytdlpBin = await ensureYtdlp(hisoka, m);
+
+                                        const metaRaw = await new Promise((resolve, reject) => {
+                                                exec(`"${ytdlpBin}" --js-runtimes node --no-playlist --dump-json "${ytUrl}"`, { timeout: 30000 }, (err, stdout, stderr) => {
+                                                        if (err) return reject(new Error(parseYtdlpError(stderr, err.message)));
+                                                        resolve(stdout.trim());
+                                                });
+                                        });
+
+                                        const meta = JSON.parse(metaRaw);
+                                        const duration = meta.duration || 0;
+
+                                        if (duration > 300) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await m.reply({ edit: loadingMsg.key, text: `❌ Durasi terlalu panjang! (${Math.floor(duration / 60)} menit)\nMaksimal 5 menit untuk video.` });
+                                                break;
+                                        }
+
+                                        await m.reply({ edit: loadingMsg.key, text: '⏳ Mengunduh video MP4...' });
+
+                                        const durMin = Math.floor(duration / 60);
+                                        const durSec = Math.floor(duration % 60);
+                                        const durStr = `${durMin}:${String(durSec).padStart(2, '0')}`;
+                                        const viewsFmt = meta.view_count ? parseInt(meta.view_count).toLocaleString('id-ID') : '?';
+                                        const thumbUrl = meta.thumbnail || `https://i.ytimg.com/vi/${meta.id}/hqdefault.jpg`;
+                                        const videoLink = `https://youtu.be/${meta.id}`;
+
+                                        let mp4Caption = `╭═══〔 *🎬 YTMP4 DOWNLOADER* 〕═══╮\n`;
+                                        mp4Caption += `│\n`;
+                                        mp4Caption += `│ 📌 *${meta.title}*\n`;
+                                        mp4Caption += `│ ⏱️ Durasi  : ${durStr}\n`;
+                                        mp4Caption += `│ 📐 Kualitas: 360p\n`;
+                                        mp4Caption += `│ 👁️ Views   : ${viewsFmt}\n`;
+                                        if (meta.uploader) mp4Caption += `│ 👤 Channel : ${meta.uploader}\n`;
+                                        if (meta.like_count) mp4Caption += `│ 👍 Likes   : ${parseInt(meta.like_count).toLocaleString('id-ID')}\n`;
+                                        mp4Caption += `│ 🔗 Link    : ${videoLink}\n`;
+                                        mp4Caption += `│\n`;
+                                        mp4Caption += `│ ⬇️ _Sedang mengunduh video MP4..._\n`;
+                                        mp4Caption += `╰══════════════════════════════╯`;
+
+                                        // Generate AI caption paralel saat download berjalan
+                                        const aiCaptionPromiseYtmp4 = gemini.ask(buildVideoDownloadCaptionPrompt({
+                                            platform: 'YouTube',
+                                            title: meta.title || '',
+                                            author: meta.uploader || meta.channel || '',
+                                            duration: durStr,
+                                            views: viewsFmt,
+                                            likes: meta.like_count ? parseInt(meta.like_count).toLocaleString('id-ID') : '',
+                                            description: meta.description || '',
+                                        })).catch(() => null);
+
+                                        await hisoka.sendMessage(m.from, {
+                                                image: { url: thumbUrl },
+                                                caption: mp4Caption
+                                        }, { quoted: m });
+
+                                        const tmpId = Date.now();
+                                        const tmpFile = path.join(process.cwd(), 'tmp', `ytmp4_${tmpId}.mp4`);
+                                        const tmpTemplate = path.join(process.cwd(), 'tmp', `ytmp4_${tmpId}.%(ext)s`);
+
+                                        await new Promise((resolve, reject) => {
+                                                const cmd = `"${ytdlpBin}" --js-runtimes node --no-playlist -f "bestvideo[height<=360]+bestaudio/best[height<=360]" --merge-output-format mp4 --postprocessor-args "ffmpeg:-c:v libx264 -c:a aac -movflags +faststart -preset fast -crf 28" -o "${tmpTemplate}" "${ytUrl}"`;
+                                                exec(cmd, { timeout: 240000 }, (err, stdout, stderr) => {
+                                                        if (err) return reject(new Error(parseYtdlpError(stderr, err.message)));
+                                                        resolve();
+                                                });
+                                        });
+
+                                        const videoBuffer = fs.readFileSync(tmpFile);
+
+                                        // Tunggu AI caption selesai
+                                        const aiCaptionYtmp4 = await aiCaptionPromiseYtmp4;
+                                        const finalCaptionYtmp4 = aiCaptionYtmp4?.trim() || `🎬 *${meta.title}*\n👤 ${meta.uploader || ''}\n⏱️ ${durStr} • 360p`;
+
+                                        await hisoka.sendMessage(m.from, {
+                                                video: videoBuffer,
+                                                caption: finalCaptionYtmp4,
+                                                mimetype: 'video/mp4'
+                                        }, { quoted: m });
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        await m.reply({ edit: loadingMsg.key, text: `✅ *Video MP4 berhasil dikirim!*\n📌 ${meta.title}` });
+
+                                        try { fs.unlinkSync(tmpFile); } catch (_) {}
+
+                                        logCommand(m, hisoka, 'ytmp4');
+                                } catch (error) {
+                                        console.error('\x1b[31m[YTMP4] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal mengunduh video: ${error.message?.substring(0, 200)}`);
+                                }
+                                break;
+                        }
+
+                        case 'antitagsw': {
+                                if (!m.isGroup) return tolak(hisoka, m, '❌ Fitur ini hanya bisa digunakan di grup!');
+                                if (!m.isAdmin && !m.isOwner) return tolak(hisoka, m, '❌ Hanya admin grup atau owner bot yang bisa menggunakan perintah ini!');
+
+                                const arg = (query || '').trim().toLowerCase();
+
+                                if (arg === 'on') {
+                                        const config = loadConfig();
+                                        if (!config.antiTagSW?.enabled) {
+                                                return tolak(hisoka, m, '❌ Fitur AntiTagSW dinonaktifkan secara global oleh owner bot.\nUbah *antiTagSW.enabled* di config.json menjadi *true* terlebih dahulu.');
+                                        }
+
+                                        toggleAntiTagSW(m.from, true);
+                                        await tolak(hisoka, m, 
+                                                `╭───〔 *✅ ANTI-TAG SEMUA WARGA* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🟢 *Fitur AntiTagSW AKTIF!*\n` +
+                                                `│\n` +
+                                                `│ ⚙️ Konfigurasi:\n` +
+                                                `│ • Maks. warning: *${config.antiTagSW?.maxWarnings ?? 3}x*\n` +
+                                                `│\n` +
+                                                `│ ℹ️ Anggota yang mentag grup lewat\n` +
+                                                `│    STATUS akan diperingatkan & dikick!\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, 'antitagsw on');
+                                } else if (arg === 'off') {
+                                        toggleAntiTagSW(m.from, false);
+                                        await tolak(hisoka, m, 
+                                                `╭───〔 *❌ ANTI-TAG SEMUA WARGA* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🔴 *Fitur AntiTagSW NONAKTIF!*\n` +
+                                                `│\n` +
+                                                `│ ℹ️ Semua warning di grup ini\n` +
+                                                `│    juga telah direset.\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, 'antitagsw off');
+                                } else if (arg === 'reset') {
+                                        resetWarnings(m.from);
+                                        await tolak(hisoka, m, '✅ Semua warning AntiTagSW di grup ini telah direset!');
+                                        logCommand(m, hisoka, 'antitagsw reset');
+                                } else {
+                                        const config = loadConfig();
+                                        const isEnabled = isAntiTagSWEnabled(m.from);
+                                        const globalEnabled = config.antiTagSW?.enabled ?? false;
+                                        const warnings = getWarnings(m.from);
+                                        const totalWarned = Object.keys(warnings).length;
+
+                                        let statusText =
+                                                `╭───〔 *ℹ️ ANTI-TAG SEMUA WARGA* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🌐 Global   : ${globalEnabled ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│ 📌 Grup ini : ${isEnabled ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│\n` +
+                                                `│ ⚙️ Konfigurasi:\n` +
+                                                `│ • Maks. warning: *${config.antiTagSW?.maxWarnings ?? 3}x*\n` +
+                                                `│ • Member warned: *${totalWarned} orang*\n` +
+                                                `│\n` +
+                                                `│ ℹ️ Mendeteksi tag grup via STATUS\n` +
+                                                `│\n` +
+                                                `│ 📋 Cara penggunaan:\n` +
+                                                `│ • *.antitagsw on*  → Aktifkan\n` +
+                                                `│ • *.antitagsw off* → Nonaktifkan\n` +
+                                                `│ • *.antitagsw reset* → Reset warning\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`;
+
+                                        await tolak(hisoka, m, statusText);
+                                }
+                                break;
+                        }
+
+                        case 'welgod':
+                        case 'setwelgod': {
+                                if (!m.isGroup) return tolak(hisoka, m, '❌ Fitur ini hanya bisa digunakan di dalam grup!');
+                                if (!m.isAdmin && !m.isOwner) return tolak(hisoka, m, '❌ Hanya admin grup atau owner bot yang bisa menggunakan perintah ini!');
+
+                                const argWg = (query || '').trim().toLowerCase();
+                                const cfgPathWg = path.join(process.cwd(), 'config.json');
+                                const cfgWg = loadConfig();
+                                if (!cfgWg.welcomeGoodbye) cfgWg.welcomeGoodbye = { enabled: true, groups: {} };
+                                if (!cfgWg.welcomeGoodbye.groups) cfgWg.welcomeGoodbye.groups = {};
+                                if (!cfgWg.welcomeGoodbye.groups[m.from]) cfgWg.welcomeGoodbye.groups[m.from] = {};
+
+                                if (!cfgWg.welcomeGoodbye.enabled) {
+                                        return tolak(hisoka, m, `❌ Fitur Welcome/Goodbye dinonaktifkan secara global.\nUbah *welcomeGoodbye.enabled* di config.json menjadi *true*.`);
+                                }
+
+                                if (argWg === 'on') {
+                                        cfgWg.welcomeGoodbye.groups[m.from].welcome = true;
+                                        cfgWg.welcomeGoodbye.groups[m.from].goodbye = true;
+                                        fs.writeFileSync(cfgPathWg, JSON.stringify(cfgWg, null, 4));
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *✅ WELGOD CARD* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🟢 *Welcome & Goodbye AKTIF!*\n` +
+                                                `│\n` +
+                                                `│ 🖼️ Bot akan otomatis kirim canvas\n` +
+                                                `│    saat ada anggota masuk/keluar grup.\n` +
+                                                `│\n` +
+                                                `│ 💡 Nonaktifkan: *.welgod off*\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, 'setwelgod on');
+                                } else if (argWg === 'off') {
+                                        cfgWg.welcomeGoodbye.groups[m.from].welcome = false;
+                                        cfgWg.welcomeGoodbye.groups[m.from].goodbye = false;
+                                        fs.writeFileSync(cfgPathWg, JSON.stringify(cfgWg, null, 4));
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *❌ WELGOD CARD* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🔴 *Welcome & Goodbye NONAKTIF!*\n` +
+                                                `│\n` +
+                                                `│ Bot tidak akan kirim canvas masuk\n` +
+                                                `│    maupun keluar di grup ini.\n` +
+                                                `│\n` +
+                                                `│ 💡 Aktifkan: *.welgod on*\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, 'setwelgod off');
+                                } else {
+                                        const wOn = cfgWg.welcomeGoodbye.groups[m.from]?.welcome === true;
+                                        const gOn = cfgWg.welcomeGoodbye.groups[m.from]?.goodbye === true;
+                                        const globalOnWg = cfgWg.welcomeGoodbye.enabled;
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *ℹ️ WELGOD CARD* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🌐 Global    : ${globalOnWg ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│ 👋 Welcome  : ${wOn ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│ 🚪 Goodbye  : ${gOn ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│\n` +
+                                                `│ 🖼️ Aktifkan keduanya sekaligus untuk\n` +
+                                                `│    canvas masuk & keluar di grup ini.\n` +
+                                                `│\n` +
+                                                `│ 📋 Cara penggunaan:\n` +
+                                                `│ • *.welgod on*  → Aktifkan keduanya\n` +
+                                                `│ • *.welgod off* → Nonaktifkan keduanya\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'welcome':
+                        case 'goodbye':
+                        case 'setwelcome':
+                        case 'setgoodbye': {
+                                if (!m.isGroup) return tolak(hisoka, m, '❌ Fitur ini hanya bisa digunakan di dalam grup!');
+                                if (!m.isAdmin && !m.isOwner) return tolak(hisoka, m, '❌ Hanya admin grup atau owner bot yang bisa menggunakan perintah ini!');
+
+                                const isWelcomeCmd = m.command === 'welcome' || m.command === 'setwelcome';
+                                const featureName = isWelcomeCmd ? 'Welcome' : 'Goodbye';
+                                const featureKey  = isWelcomeCmd ? 'welcome' : 'goodbye';
+                                const arg = (query || '').trim().toLowerCase();
+
+                                const cfgPath = path.join(process.cwd(), 'config.json');
+                                const cfg = loadConfig();
+                                if (!cfg.welcomeGoodbye) cfg.welcomeGoodbye = { enabled: true, groups: {} };
+                                if (!cfg.welcomeGoodbye.groups) cfg.welcomeGoodbye.groups = {};
+                                if (!cfg.welcomeGoodbye.groups[m.from]) cfg.welcomeGoodbye.groups[m.from] = {};
+
+                                if (!cfg.welcomeGoodbye.enabled) {
+                                        return tolak(hisoka, m, `❌ Fitur Welcome/Goodbye dinonaktifkan secara global.\nUbah *welcomeGoodbye.enabled* di config.json menjadi *true*.`);
+                                }
+
+                                if (arg === 'on') {
+                                        cfg.welcomeGoodbye.groups[m.from][featureKey] = true;
+                                        fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 4));
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *✅ ${featureName.toUpperCase()} CARD* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🟢 *Fitur ${featureName} Card AKTIF!*\n` +
+                                                `│\n` +
+                                                `│ 🖼️ Bot akan otomatis kirim gambar canvas\n` +
+                                                `│    saat ada anggota ${isWelcomeCmd ? 'bergabung' : 'keluar'} di grup ini.\n` +
+                                                `│\n` +
+                                                `│ 💡 Nonaktifkan: *.${featureKey} off*\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, `set${featureKey} on`);
+                                } else if (arg === 'off') {
+                                        cfg.welcomeGoodbye.groups[m.from][featureKey] = false;
+                                        fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 4));
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *❌ ${featureName.toUpperCase()} CARD* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🔴 *Fitur ${featureName} Card NONAKTIF!*\n` +
+                                                `│\n` +
+                                                `│ Bot tidak akan kirim gambar canvas\n` +
+                                                `│    di grup ini.\n` +
+                                                `│\n` +
+                                                `│ 💡 Aktifkan: *.${featureKey} on*\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                        logCommand(m, hisoka, `set${featureKey} off`);
+                                } else {
+                                        const isOn = cfg.welcomeGoodbye.groups[m.from]?.[featureKey] === true;
+                                        const globalOn = cfg.welcomeGoodbye.enabled;
+                                        await tolak(hisoka, m,
+                                                `╭───〔 *ℹ️ ${featureName.toUpperCase()} CARD* 〕───╮\n` +
+                                                `│\n` +
+                                                `│ 🌐 Global   : ${globalOn ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│ 📌 Grup ini : ${isOn ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│\n` +
+                                                `│ 🖼️ Mengirim gambar canvas keren saat\n` +
+                                                `│    anggota ${isWelcomeCmd ? 'bergabung' : 'keluar'} dari grup ini.\n` +
+                                                `│\n` +
+                                                `│ 📋 Cara penggunaan:\n` +
+                                                `│ • *.${featureKey} on*  → Aktifkan\n` +
+                                                `│ • *.${featureKey} off* → Nonaktifkan\n` +
+                                                `│\n` +
+                                                `╰────────────────────────────────────╯`
+                                        );
+                                }
+                                break;
+                        }
+
+                        case 'upswgc':
+                        case 'swgc':
+                        case 'swgrup':
+                        case 'swgroup':
+                        case 'statusgrup':
+                        case 'statusgroup': {
+                                if (!m.isOwner) return tolak(hisoka, m, '❌ Fitur ini hanya untuk owner!');
+
+                                const swgcCaption = query ? query.trim() : '';
+                                let swgcMeta = {};
+                                let swgcTempFile = null;
+
+                                // PRIORITAS 1: Media di pesan saat ini (kirim gambar/video/audio dengan caption .upswgc teks)
+                                const swgcSelfType = m.type || '';
+                                if (m.isMedia && /image|video|audio/i.test(swgcSelfType)) {
+                                        try {
+                                                const swgcBuf = await m.downloadMedia();
+                                                if (!swgcBuf) return tolak(hisoka, m, '❌ Gagal mengambil media.');
+
+                                                const swgcMime = m.content?.mimetype || 'application/octet-stream';
+                                                const swgcExt = swgcMime.split('/')[1]?.split(';')[0]?.trim() || 'bin';
+                                                swgcTempFile = path.join(process.cwd(), 'tmp', `upswgc_${Date.now()}.${swgcExt}`);
+                                                fs.writeFileSync(swgcTempFile, swgcBuf);
+
+                                                if (/image/i.test(swgcSelfType)) {
+                                                        swgcMeta = { type: 'image', file: swgcTempFile, mime: swgcMime };
+                                                        if (swgcCaption) swgcMeta.caption = swgcCaption;
+                                                } else if (/video/i.test(swgcSelfType)) {
+                                                        swgcMeta = { type: 'video', file: swgcTempFile, mime: swgcMime };
+                                                        if (swgcCaption) swgcMeta.caption = swgcCaption;
+                                                } else if (/audio/i.test(swgcSelfType)) {
+                                                        swgcMeta = { type: 'audio', file: swgcTempFile, mime: swgcMime };
+                                                        if (swgcCaption) swgcMeta.caption = swgcCaption;
+                                                }
+                                        } catch (e) {
+                                                if (swgcTempFile && fs.existsSync(swgcTempFile)) fs.unlinkSync(swgcTempFile);
+                                                return tolak(hisoka, m, '❌ Gagal memproses media: ' + (e.message || e));
+                                        }
+                                // PRIORITAS 2: Reply ke pesan lain yang berisi media
+                                } else if (m.isQuoted && m.quoted) {
+                                        try {
+                                                const qType = m.quoted.type || '';
+                                                if (!/image|video|audio/i.test(qType)) {
+                                                        return tolak(hisoka, m, '❌ Reply harus berupa image/video/audio.');
+                                                }
+
+                                                const swgcBuf = await m.quoted.downloadMedia();
+                                                if (!swgcBuf) return tolak(hisoka, m, '❌ Gagal mengambil media quoted.');
+
+                                                const swgcMime = m.quoted.content?.mimetype || 'application/octet-stream';
+                                                const swgcExt = swgcMime.split('/')[1]?.split(';')[0]?.trim() || 'bin';
+                                                swgcTempFile = path.join(process.cwd(), 'tmp', `upswgc_${Date.now()}.${swgcExt}`);
+                                                fs.writeFileSync(swgcTempFile, swgcBuf);
+
+                                                if (/image/i.test(qType)) {
+                                                        swgcMeta = { type: 'image', file: swgcTempFile, mime: swgcMime };
+                                                        if (swgcCaption) swgcMeta.caption = swgcCaption;
+                                                } else if (/video/i.test(qType)) {
+                                                        swgcMeta = { type: 'video', file: swgcTempFile, mime: swgcMime };
+                                                        if (swgcCaption) swgcMeta.caption = swgcCaption;
+                                                } else if (/audio/i.test(qType)) {
+                                                        swgcMeta = { type: 'audio', file: swgcTempFile, mime: swgcMime };
+                                                        if (swgcCaption) swgcMeta.caption = swgcCaption;
+                                                }
+                                        } catch (e) {
+                                                if (swgcTempFile && fs.existsSync(swgcTempFile)) fs.unlinkSync(swgcTempFile);
+                                                return tolak(hisoka, m, '❌ Media tidak valid atau gagal diproses: ' + (e.message || e));
+                                        }
+                                } else if (swgcCaption) {
+                                        swgcMeta = { type: 'text', text: swgcCaption };
+                                } else {
+                                        return tolak(hisoka, m, 
+                                                `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛\n` +
+                                                `✦ 📢 *.UPSWGC* — CARA PAKAI ✦\n` +
+                                                `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛\n\n` +
+                                                `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                                `  🖼️ *Cara 1 — Kirim Langsung*\n` +
+                                                `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                                `▸ Kirim *foto* dengan caption *.upswgc [teks]*\n` +
+                                                `▸ Kirim *video* dengan caption *.upswgc [teks]*\n` +
+                                                `▸ Kirim *audio* dengan caption *.upswgc [teks]*\n\n` +
+                                                `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                                `  🔁 *Cara 2 — Reply Pesan*\n` +
+                                                `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                                `▸ Reply *foto/video/audio* + *.upswgc [caption]*\n\n` +
+                                                `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                                `  💬 *Cara 3 — Kirim Teks*\n` +
+                                                `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                                `▸ *.upswgc teks pesan kamu*\n\n` +
+                                                `_Bot akan menampilkan pilihan grup tujuan_ 👇`
+                                        );
+                                }
+
+                                const allGids = hisoka.groups.keys().filter(id => id.endsWith('@g.us'));
+                                if (!allGids.length) {
+                                        if (swgcTempFile && fs.existsSync(swgcTempFile)) fs.unlinkSync(swgcTempFile);
+                                        return tolak(hisoka, m, '❌ Tidak ada grup dalam database bot.');
+                                }
+
+                                const swgcEncoded = encodeURIComponent(JSON.stringify(swgcMeta));
+                                const swgcPrefix = m.prefix || '.';
+
+                                // Hitung total stats semua grup
+                                let swgcTotalMember = 0;
+                                let swgcTotalAdmin = 0;
+                                for (const gid of allGids) {
+                                        try {
+                                                const gm = hisoka.groups.read(gid);
+                                                if (!gm?.participants) continue;
+                                                swgcTotalMember += gm.participants.length;
+                                                swgcTotalAdmin += gm.participants.filter(p => p.admin).length;
+                                        } catch (_) {}
+                                }
+
+                                const swgcRows = [
+                                        {
+                                                title: '📢 Semua Grup',
+                                                description: `◆ ${allGids.length} grup  ◆ 👥 ${swgcTotalMember} member  ◆ 🛡️ ${swgcTotalAdmin} admin`,
+                                                id: `${swgcPrefix}sendstatus all ${swgcEncoded}`
+                                        }
+                                ];
+
+                                for (const gid of allGids) {
+                                        try {
+                                                const meta = hisoka.groups.read(gid);
+                                                if (!meta) continue;
+                                                const pts = meta.participants || [];
+                                                const mTotal = pts.length;
+                                                const aTotal = pts.filter(p => p.admin).length;
+                                                const aPct = mTotal > 0 ? Math.round((aTotal / mTotal) * 10) : 0;
+                                                const aBar = '█'.repeat(aPct) + '░'.repeat(10 - aPct);
+                                                swgcRows.push({
+                                                        title: (meta.subject || gid).substring(0, 24),
+                                                        description: `👥 ${mTotal} member  ◆  🛡️ ${aTotal} admin\n[${aBar}]`,
+                                                        id: `${swgcPrefix}sendstatus ${gid} ${swgcEncoded}`
+                                                });
+                                        } catch (_) {}
+                                }
+
+                                // Tentukan label tipe konten
+                                const swgcTypeLabel = swgcMeta.type === 'image' ? '🖼️ Gambar'
+                                        : swgcMeta.type === 'video' ? '🎥 Video'
+                                        : swgcMeta.type === 'audio' ? '🎵 Audio'
+                                        : '💬 Teks';
+                                const swgcCaptionInfo = swgcMeta.caption ? `\n◆ Caption: _${swgcMeta.caption.substring(0, 40)}${swgcMeta.caption.length > 40 ? '...' : ''}_` : '';
+
+                                const swgcBodyText =
+                                        `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛\n` +
+                                        `✦ 📢 *KIRIM GROUP STATUS* ✦\n` +
+                                        `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛\n\n` +
+                                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                        `  📦 *INFO KONTEN*\n` +
+                                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                        `${swgcTypeLabel}${swgcCaptionInfo}\n\n` +
+                                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                        `  🏘️ *STATS SEMUA GRUP*\n` +
+                                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
+                                        `🗂️ Total Grup   ﹕ ${allGids.length} grup\n` +
+                                        `👥 Total Member ﹕ ${swgcTotalMember} orang\n` +
+                                        `🛡️ Total Admin  ﹕ ${swgcTotalAdmin} orang\n` +
+                                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n\n` +
+                                        `_Pilih grup tujuan di bawah_ 👇`;
+
+                                const swgcMsg = generateWAMessageFromContent(
+                                        m.from,
+                                        {
+                                                viewOnceMessage: {
+                                                        message: {
+                                                                messageContextInfo: { deviceListMetadata: {}, deviceListMetadataVersion: 2 },
+                                                                interactiveMessage: {
+                                                                        body: { text: swgcBodyText },
+                                                                        nativeFlowMessage: {
+                                                                                buttons: [
+                                                                                        {
+                                                                                                name: 'single_select',
+                                                                                                buttonParamsJson: JSON.stringify({
+                                                                                                        title: '🏘️ PILIH GRUP TUJUAN',
+                                                                                                        sections: [
+                                                                                                                { title: '🏘️ Daftar Grup Bot', rows: swgcRows }
+                                                                                                        ]
+                                                                                                })
+                                                                                        }
+                                                                                ]
+                                                                        }
+                                                                }
+                                                        }
+                                                }
+                                        },
+                                        { quoted: m },
+                                        {}
+                                );
+
+                                await hisoka.relayMessage(swgcMsg.key.remoteJid, swgcMsg.message, {
+                                        messageId: swgcMsg.key.id
+                                });
+
+                                logCommand(m, hisoka, m.command);
+                                break;
+                        }
+
+                        case 'sendstatus': {
+                                if (!m.isOwner) return;
+
+                                const ssArgs = m.text.trim().split(/ +/);
+                                if (ssArgs.length < 3) return;
+
+                                const ssTarget = ssArgs[1];
+                                const ssEncoded = ssArgs.slice(2).join(' ');
+
+                                let ssMeta;
+                                try {
+                                        ssMeta = JSON.parse(decodeURIComponent(ssEncoded));
+                                } catch (e) {
+                                        return tolak(hisoka, m, '❌ Gagal memparse konten: ' + (e.message || e));
+                                }
+
+                                const ssAllGids = hisoka.groups.keys().filter(id => id.endsWith('@g.us'));
+                                const ssTargets = ssTarget === 'all' ? ssAllGids : [ssTarget];
+
+                                if (!ssTargets.length) return tolak(hisoka, m, '❌ Tidak ada grup tujuan.');
+
+                                let ssRawContent;
+                                let ssAudioCaption = null;
+                                if (ssMeta.type === 'text') {
+                                        ssRawContent = { text: ssMeta.text };
+                                } else if (ssMeta.type === 'image') {
+                                        ssRawContent = { image: { url: ssMeta.file } };
+                                        if (ssMeta.caption) ssRawContent.caption = ssMeta.caption;
+                                } else if (ssMeta.type === 'video') {
+                                        ssRawContent = { video: { url: ssMeta.file } };
+                                        if (ssMeta.caption) ssRawContent.caption = ssMeta.caption;
+                                } else if (ssMeta.type === 'audio') {
+                                        ssRawContent = { audio: { url: ssMeta.file }, mimetype: ssMeta.mime || 'audio/ogg; codecs=opus', ptt: false };
+                                        // Caption audio dikirim terpisah sebagai teks status
+                                        if (ssMeta.caption) ssAudioCaption = ssMeta.caption;
+                                } else {
+                                        return tolak(hisoka, m, '❌ Tipe konten tidak dikenali.');
+                                }
+
+                                await tolak(hisoka, m, `⏳ Mengirim sebagai Group Status ke *${ssTargets.length}* grup, mohon tunggu...`);
+
+                                let ssOk = 0, ssFail = 0;
+                                for (const gid of ssTargets) {
+                                        try {
+                                                const ssInside = await generateWAMessageContent(ssRawContent, {
+                                                        upload: hisoka.waUploadToServer
+                                                });
+                                                const ssSecret = crypto.randomBytes(32);
+                                                const ssMsg = generateWAMessageFromContent(gid, {
+                                                        messageContextInfo: { messageSecret: ssSecret },
+                                                        groupStatusMessageV2: {
+                                                                message: {
+                                                                        ...ssInside,
+                                                                        messageContextInfo: { messageSecret: ssSecret }
+                                                                }
+                                                        }
+                                                }, {});
+                                                await hisoka.relayMessage(gid, ssMsg.message, { messageId: ssMsg.key.id });
+
+                                                // Kirim caption audio sebagai status teks terpisah
+                                                if (ssAudioCaption) {
+                                                        await new Promise(r => setTimeout(r, 800));
+                                                        const ssCaptionInside = await generateWAMessageContent({ text: ssAudioCaption }, {
+                                                                upload: hisoka.waUploadToServer
+                                                        });
+                                                        const ssCaptionSecret = crypto.randomBytes(32);
+                                                        const ssCaptionMsg = generateWAMessageFromContent(gid, {
+                                                                messageContextInfo: { messageSecret: ssCaptionSecret },
+                                                                groupStatusMessageV2: {
+                                                                        message: {
+                                                                                ...ssCaptionInside,
+                                                                                messageContextInfo: { messageSecret: ssCaptionSecret }
+                                                                        }
+                                                                }
+                                                        }, {});
+                                                        await hisoka.relayMessage(gid, ssCaptionMsg.message, { messageId: ssCaptionMsg.key.id });
+                                                }
+
+                                                ssOk++;
+                                                if (ssTargets.length > 1) await new Promise(r => setTimeout(r, 1000));
+                                        } catch (e) {
+                                                console.error(`[sendstatus] Gagal ke ${gid}:`, e.message);
+                                                ssFail++;
+                                        }
+                                }
+
+                                if (ssMeta.file && fs.existsSync(ssMeta.file)) {
+                                        try { fs.unlinkSync(ssMeta.file); } catch (_) {}
+                                }
+
+                                await tolak(hisoka, m, 
+                                        `✅ *Selesai Kirim Group Status!*\n\n` +
+                                        `📊 *Hasil:*\n` +
+                                        `• ✅ Berhasil : ${ssOk} grup\n` +
+                                        `• ❌ Gagal    : ${ssFail} grup\n` +
+                                        `• 📦 Total    : ${ssTargets.length} grup`
+                                );
+
+                                logCommand(m, hisoka, 'sendstatus');
+                                break;
+                        }
+
+                        case 'gt':
+                        case 'gtag':
+                        case 'ghosttag': {
+                                if (!m.isOwner) return;
+
+                                const gtPrefix = m.prefix || '.';
+                                const gtUserJid = hisoka.user?.id;
+
+                                const gtGroupKeys = hisoka.groups.keys().filter(id => id.endsWith('@g.us'));
+
+                                // ── Helper: kirim albumMessage ghosttag ke 1 grup ──
+                                async function gtSendOne(jid) {
+                                        let participants = [];
+                                        try {
+                                                const meta = hisoka.groups.read(jid);
+                                                participants = (meta?.participants || []).map(v => v.phoneNumber || v.id).filter(Boolean);
+                                        } catch (_) {}
+                                        if (!participants.length) {
+                                                try {
+                                                        const fetched = await hisoka.groupMetadata(jid);
+                                                        participants = fetched.participants.map(v => v.id).filter(Boolean);
+                                                } catch (_) {}
+                                        }
+                                        if (!participants.length) return 0;
+                                        const album = generateWAMessageFromContent(
+                                                jid,
+                                                {
+                                                        albumMessage: {
+                                                                expectedImageCount: 0,
+                                                                expectedVideoCount: 0,
+                                                                contextInfo: { mentionedJid: participants }
+                                                        }
+                                                },
+                                                { userJid: gtUserJid }
+                                        );
+                                        await hisoka.relayMessage(jid, album.message, { messageId: album.key.id });
+                                        return participants.length;
+                                }
+
+                                // ── Tampilkan menu button jika tidak ada query / bukan JID / bukan 'all' ──
+                                if (!query || (!query.trim().endsWith('@g.us') && query.trim() !== 'all')) {
+                                        if (!gtGroupKeys.length) return tolak(hisoka, m, '❌ Bot tidak bergabung di grup manapun.');
+
+                                        const gtBotNum = (hisoka.user?.id || '').split('@')[0].split(':')[0];
+                                        const gtTotalMemberAll = gtGroupKeys.reduce((acc, jid) => {
+                                                const g = hisoka.groups.read(jid);
+                                                return acc + (g?.participants?.length || 0);
+                                        }, 0);
+
+                                        const gtSorted = gtGroupKeys
+                                                .map(jid => {
+                                                        const g = hisoka.groups.read(jid);
+                                                        const parts = g?.participants || [];
+                                                        const totalMember = parts.length;
+                                                        const totalAdmin = parts.filter(p => p.admin).length;
+                                                        const isBotAdmin = parts.some(p => {
+                                                                const num = (p.jid || p.phoneNumber || p.id || '').split('@')[0].split(':')[0];
+                                                                return num === gtBotNum && p.admin;
+                                                        });
+                                                        return {
+                                                                jid,
+                                                                name: g?.subject || g?.name || jid,
+                                                                totalMember,
+                                                                totalAdmin,
+                                                                isBotAdmin
+                                                        };
+                                                })
+                                                .sort((a, b) => b.totalMember - a.totalMember || a.name.toLowerCase().localeCompare(b.name.toLowerCase(), 'id', { numeric: true }));
+
+                                        const btn = new Button()
+                                                .setBody(
+                                                        `『 👻 』 *G H O S T  T A G*\n` +
+                                                        `▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n\n` +
+                                                        `✦ *Semua Grup* — tag semua grup sekaligus\n` +
+                                                        `✦ *Pilih Satu Grup* — pilih dari daftar\n\n` +
+                                                        `▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬\n` +
+                                                        `🗂️ Grup   : *${gtGroupKeys.length}* grup\n` +
+                                                        `👥 Member : *${gtTotalMemberAll}* total`
+                                                )
+                                                .setFooter(`⚡ Wily Bot • Ghost Tag System`)
+                                                .addReply('🌐 Tag Semua Grup', `${gtPrefix}ghosttag all`)
+                                                .addSelection('📂 Pilih Satu Grup')
+                                                .makeSections('✦ Daftar Grup');
+
+                                        for (const { jid, name, totalMember, totalAdmin, isBotAdmin } of gtSorted) {
+                                                const adminBadge = isBotAdmin ? '👑 Admin' : '👤 Member';
+                                                btn.makeRow(
+                                                        adminBadge,
+                                                        name,
+                                                        `👥 ${totalMember} anggota  •  🛡️ ${totalAdmin} admin`,
+                                                        `${gtPrefix}ghosttag ${jid}`
+                                                );
+                                        }
+
+                                        await btn.run(m.from, hisoka, m);
+                                        logCommand(m, hisoka, 'ghosttag');
+                                        break;
+                                }
+
+                                // ── Mode: semua grup ──
+                                if (query.trim() === 'all') {
+                                        if (!gtGroupKeys.length) return tolak(hisoka, m, '❌ Bot tidak bergabung di grup manapun.');
+
+                                        await tolak(hisoka, m, `⏳ Mengirim ghost tag ke *${gtGroupKeys.length}* grup, mohon tunggu...`);
+
+                                        let gtOk = 0, gtFail = 0, gtTotalMember = 0;
+                                        for (const jid of gtGroupKeys) {
+                                                try {
+                                                        const count = await gtSendOne(jid);
+                                                        if (count > 0) { gtOk++; gtTotalMember += count; }
+                                                        else gtFail++;
+                                                } catch (_) { gtFail++; }
+                                                if (gtGroupKeys.length > 1) await new Promise(r => setTimeout(r, 1000));
+                                        }
+
+                                        await tolak(hisoka, m, 
+                                                `✅ *Ghost Tag Selesai!*\n\n` +
+                                                `📊 *Hasil:*\n` +
+                                                `• ✅ Berhasil : ${gtOk} grup\n` +
+                                                `• ❌ Gagal    : ${gtFail} grup\n` +
+                                                `• 👥 Total    : ${gtTotalMember} member di-tag`
+                                        );
+                                        logCommand(m, hisoka, 'ghosttag');
+                                        break;
+                                }
+
+                                // ── Mode: satu grup dari JID ──
+                                const gtJid = query.trim();
+                                try {
+                                        const count = await gtSendOne(gtJid);
+                                        if (!count) return tolak(hisoka, m, '❌ Tidak ada member ditemukan atau gagal mengambil data grup.');
+                                        await tolak(hisoka, m, `✅ Ghost tag berhasil dikirim ke *${count}* member!`);
+                                } catch (e) {
+                                        await tolak(hisoka, m, '❌ Gagal mengirim ghost tag: ' + (e.message || e));
+                                }
+
+                                logCommand(m, hisoka, 'ghosttag');
+                                break;
+                        }
+
+                        case 'hd':
+                        case 'remini':
+                        case 'hdr':
+                        case 'hdvid':
+                        case 'vidhd':
+                        case 'hdvideo': {
+                                try {
+                                        const { hdvideo } = _require(path.resolve('./src/scrape/hdvid.cjs'));
+                                        const { hdr } = _require(path.resolve('./src/scrape/iloveimg.cjs'));
+
+                                        const isMediaMsg = m.isMedia && (m.type === 'imageMessage' || m.type === 'videoMessage' || m.type === 'stickerMessage');
+                                        const isQuotedMedia = m.isQuoted && quoted.isMedia && (quoted.type === 'imageMessage' || quoted.type === 'videoMessage' || quoted.type === 'stickerMessage');
+
+                                        if (!isMediaMsg && !isQuotedMedia) {
+                                                await tolak(hisoka, m,
+                                                        `╭═══『 🖼️ *HD Enhancer* 』═══╮\n│\n` +
+                                                        `│ Tingkatkan kualitas gambar/video\n` +
+                                                        `│ menjadi lebih tajam & jernih!\n│\n` +
+                                                        `│ *Cara Pakai:*\n` +
+                                                        `│ • Kirim gambar/video dengan caption\n` +
+                                                        `│   *.hd* / *.remini* / *.hdvideo*\n` +
+                                                        `│ • Atau reply ke gambar/video\n│\n` +
+                                                        `│ *Perintah:*\n` +
+                                                        `│ *.hd* / *.remini* / *.hdr* → Gambar\n` +
+                                                        `│ *.hdvid* / *.vidhd* / *.hdvideo* → Video\n` +
+                                                        `│\n╰═════════════════════╯`
+                                                );
+                                                break;
+                                        }
+
+                                        let mediaBuffer;
+                                        let mediaType;
+
+                                        if (isMediaMsg) {
+                                                mediaBuffer = await m.downloadMedia();
+                                                mediaType = m.type;
+                                        } else {
+                                                mediaBuffer = await downloadMediaMessage(
+                                                        { ...m.quoted, message: m.quoted.raw },
+                                                        'buffer',
+                                                        {},
+                                                        { logger: hisoka.logger, reuploadRequest: hisoka.updateMediaMessage }
+                                                );
+                                                mediaType = quoted.type;
+                                        }
+
+                                        if (!mediaBuffer || mediaBuffer.length === 0) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, '❌ Gagal download media. Coba lagi!');
+                                                break;
+                                        }
+
+                                        const isVideo = mediaType === 'videoMessage';
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        await tolak(hisoka, m, `⏳ Sedang memproses ${isVideo ? 'video' : 'gambar'} ke kualitas HD...\nMohon tunggu, proses ini membutuhkan waktu.`);
+
+                                        if (isVideo) {
+                                                const resultUrl = await hdvideo(mediaBuffer);
+
+                                                const videoFetch = await fetch(resultUrl);
+                                                if (!videoFetch.ok) throw new Error('Gagal mengunduh hasil video HD');
+                                                let videoBuffer = Buffer.from(await videoFetch.arrayBuffer());
+
+                                                const execAsync = util.promisify(exec);
+                                                const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Jakarta' }));
+                                                const hariList  = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+                                                const bulanList = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+                                                const txtLine1 = `${hariList[now.getDay()]}, ${now.getDate()} ${bulanList[now.getMonth()]} ${now.getFullYear()}`;
+                                                const txtLine2 = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} WIB`;
+                                                const fontBold  = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf';
+                                                const tmpWmIn   = `/tmp/hdvid_wm_in_${Date.now()}.mp4`;
+                                                const tmpWmOut  = `/tmp/hdvid_wm_out_${Date.now()}.mp4`;
+                                                fs.writeFileSync(tmpWmIn, videoBuffer);
+                                                const vf = [
+                                                        `drawbox=x=iw-325:y=ih-82:w=315:h=72:color=black@0.55:t=fill`,
+                                                        `drawbox=x=iw-325:y=ih-82:w=315:h=72:color=white@0.85:t=2`,
+                                                        `drawbox=x=iw-320:y=ih-50:w=305:h=1:color=white@0.5:t=fill`,
+                                                        `drawtext=fontfile='${fontBold}':text='${txtLine1}':fontsize=15:fontcolor=white:x=W-320:y=H-75:shadowcolor=black@0.9:shadowx=1:shadowy=1`,
+                                                        `drawtext=fontfile='${fontBold}':text='${txtLine2}':fontsize=18:fontcolor=cyan:x=W-320:y=H-46:shadowcolor=black@0.9:shadowx=1:shadowy=1`
+                                                ].join(',');
+                                                try {
+                                                        await execAsync(
+                                                                `ffmpeg -y -i "${tmpWmIn}" -vf "${vf}" -c:v libx264 -profile:v baseline -level 3.1 -preset fast -crf 23 -pix_fmt yuv420p -c:a aac -b:a 128k -movflags +faststart "${tmpWmOut}"`,
+                                                                { timeout: 120000 }
+                                                        );
+                                                        videoBuffer = fs.readFileSync(tmpWmOut);
+                                                } finally {
+                                                        try { fs.unlinkSync(tmpWmIn); } catch (_) {}
+                                                        try { fs.unlinkSync(tmpWmOut); } catch (_) {}
+                                                }
+
+                                                await hisoka.sendMessage(m.from, {
+                                                        video: videoBuffer,
+                                                        mimetype: 'video/mp4',
+                                                        caption: '✅ Video berhasil diproses ke kualitas HD!'
+                                                }, { quoted: m });
+
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        } else {
+                                                const resultBuffer = await hdr(mediaBuffer, 4);
+
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: Buffer.from(resultBuffer),
+                                                        caption: '✅ Gambar berhasil diproses ke kualitas HD!'
+                                                }, { quoted: m });
+
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        }
+
+                                        logCommand(m, hisoka, 'hd');
+                                } catch (error) {
+                                        console.error('\x1b[31m[HD] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal memproses media HD: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'ss':
+                        case 'screenshot': {
+                                try {
+                                        const { screenshotWeb } = _require(path.resolve('./src/scrape/screenshot.cjs'));
+
+                                        const targetUrl = query || '';
+                                        if (!targetUrl) {
+                                                await tolak(hisoka, m,
+                                                        `╭═══『 📸 *Screenshot Web* 』═══╮\n│\n` +
+                                                        `│ Ambil screenshot tampilan website!\n│\n` +
+                                                        `│ *Cara Pakai:*\n` +
+                                                        `│ *.ss* https://example.com\n│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ *.ss* https://kusonime.com\n│\n` +
+                                                        `╰══════════════════════════╯`
+                                                );
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        await tolak(hisoka, m, `⏳ Sedang mengambil screenshot *${targetUrl}*...\nMohon tunggu sebentar.`);
+
+                                        const imgBuffer = await screenshotWeb(targetUrl);
+
+                                        await hisoka.sendMessage(m.from, {
+                                                image: imgBuffer,
+                                                caption: `╭═══『 📸 *Screenshot Web* 』═══╮\n│\n│ 🌐 *URL:* ${targetUrl}\n│ ✅ Screenshot berhasil diambil!\n│\n╰══════════════════════════╯`
+                                        }, { quoted: m });
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'ss');
+                                } catch (error) {
+                                        console.error('\x1b[31m[SS] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal screenshot: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'ssweb':
+                        case 'scrapeweb':
+                        case 'webinfo': {
+                                try {
+                                        const { scrapeWeb } = _require(path.resolve('./src/scrape/screenshot.cjs'));
+
+                                        const targetUrl = query || '';
+                                        if (!targetUrl) {
+                                                await tolak(hisoka, m,
+                                                        `╭═══『 🔍 *Scrape Web* 』═══╮\n│\n` +
+                                                        `│ Ambil info & konten dari website!\n│\n` +
+                                                        `│ *Cara Pakai:*\n` +
+                                                        `│ *.ssweb* https://example.com\n│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ *.ssweb* https://kusonime.com\n│\n` +
+                                                        `╰══════════════════════════╯`
+                                                );
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        await tolak(hisoka, m, `⏳ Sedang scraping *${targetUrl}*...\nMohon tunggu.`);
+
+                                        const data = await scrapeWeb(targetUrl);
+
+                                        let teks = `╭═══『 🔍 *Scrape Web* 』═══╮\n│\n`;
+                                        teks += `│ 🌐 *URL:* ${data.url}\n`;
+                                        teks += `│ 📊 *Status:* ${data.statusCode}\n│\n`;
+                                        teks += `│ 📌 *Judul:*\n│ ${data.title}\n│\n`;
+
+                                        if (data.description) {
+                                                teks += `│ 📝 *Deskripsi:*\n│ ${data.description}\n│\n`;
+                                        }
+
+                                        if (data.headings && data.headings.length > 0) {
+                                                teks += `│ 🏷️ *Heading:*\n`;
+                                                data.headings.slice(0, 5).forEach(h => {
+                                                        teks += `│ • ${h}\n`;
+                                                });
+                                                teks += `│\n`;
+                                        }
+
+                                        if (data.paragraphs && data.paragraphs.length > 0) {
+                                                teks += `│ 📄 *Konten:*\n`;
+                                                data.paragraphs.slice(0, 3).forEach(p => {
+                                                        teks += `│ ${p}...\n`;
+                                                });
+                                                teks += `│\n`;
+                                        }
+
+                                        if (data.links && data.links.length > 0) {
+                                                teks += `│ 🔗 *Link:*\n`;
+                                                data.links.slice(0, 5).forEach(l => {
+                                                        teks += `│ • ${l.text}\n`;
+                                                });
+                                                teks += `│\n`;
+                                        }
+
+                                        teks += `╰══════════════════════════╯`;
+
+                                        if (data.ogImage) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        image: { url: data.ogImage },
+                                                        caption: teks
+                                                }, { quoted: m });
+                                        } else {
+                                                await tolak(hisoka, m, teks);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'ssweb');
+                                } catch (error) {
+                                        console.error('\x1b[31m[SSWEB] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal scraping: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        default:
+                                break;
+                }
+        } catch (error) {
+                const errMsg = error?.message || String(error);
+                const cmdSrc = `command:${m?.command || '?'}`;
+                console.error(`\x1b[31m[Handler] Error on command "${m?.command || '?'}":\x1b[39m`, errMsg);
+                if (isNoSpaceError(error)) cleanupWritePressure();
+                logError(error, cmdSrc);
+                try {
+                        if (m?.reply && m?.command) {
+                                const errorText = isNoSpaceError(error)
+                                        ? `❌ Perintah *.${m.command}* sempat gagal karena ruang tulis sementara penuh.\n\nPembersihan otomatis sudah dijalankan. Coba ketik perintahnya lagi.`
+                                        : `❌ Terjadi error pada perintah *.${m.command}*\n\n_${errMsg}_\n\nBot tetap berjalan, coba lagi atau gunakan perintah lain.`;
+                                await hisoka.sendMessage(m.from, { text: errorText }, { quoted: m });
+                        }
+                } catch (_) {}
+        }
+}

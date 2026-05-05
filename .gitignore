@@ -1,0 +1,34 @@
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+.upm
+tmp/
+bin/
+replit.md
+.local
+.cache
+.config
+data
+index.d.ts
+
+# Force-include node_modules dan .replit (override system gitignore)
+!node_modules
+!node_modules/**
+!.replit
+
+# Sessions — cuma 3 file penting di hisoka yang di-upload
+sessions/**
+!sessions/
+!sessions/hisoka/
+!sessions/hisoka/creds.json
+!sessions/hisoka/contacts.json
+!sessions/hisoka/groups.json
+
+# Jadibot — folder ada tapi isinya dikosongkan
+jadibot/**
+!jadibot/
+!jadibot/.gitkeep
+.token
+
