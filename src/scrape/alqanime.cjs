@@ -26,7 +26,7 @@ function parseAnimeCards(md) {
     let m;
     while ((m = regex.exec(md)) !== null) {
         const url  = m[4];
-        if (seen.has(url)) continue;
+        if (url.includes('wp-content') || url.includes('?') || seen.has(url)) continue;
         seen.add(url);
         const title     = m[3].trim();
         const thumbnail = m[2];
@@ -103,8 +103,15 @@ function parseDetail(md) {
     const scoreM = md.match(/Score\s+([\d.]+)/);
     if (scoreM && !info.Score) info.Score = scoreM[1];
 
+    // Ambil sinopsis — hanya paragraf pertama sebelum baris notice/emoji
     const synM    = md.match(/## Sinopsis[^\n]*\n\n([^#]+)/);
-    const sinopsis = synM ? synM[1].replace(/\n/g, ' ').trim() : '';
+    let sinopsis = '';
+    if (synM) {
+        const raw = synM[1].trim();
+        // Potong di baris yang ada icon notice (✴, !, gambar)
+        const cutIdx = raw.search(/\n\s*(?:✴|!|#+\s)/);
+        sinopsis = (cutIdx > 0 ? raw.slice(0, cutIdx) : raw).replace(/\n/g, ' ').trim();
+    }
 
     // Ambil genre hanya dari konten post, sebelum sidebar genre list
     const postContent = md.split(/### Sukai Kami|### Rekomendasi|### Komentar/)[0];

@@ -3817,6 +3817,150 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 break;
                         }
 
+                        case 'alqanime':
+                        case 'alq': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 🎌 *ALQANIME* 」\n` +
+                                                        `│\n` +
+                                                        `│ *Cari anime sub indo (batch/episode):*\n` +
+                                                        `│ ${pfx}alq <judul>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ ${pfx}alq one piece\n` +
+                                                        `│ ${pfx}alq naruto\n` +
+                                                        `│ ${pfx}alq attack on titan\n` +
+                                                        `│\n` +
+                                                        `│ 📺 Info + link download per resolusi\n` +
+                                                        `│ 🌐 Source: alqanime.net\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const _alqPath = path.resolve('./src/scrape/alqanime.cjs');
+                                        delete _require.cache[_alqPath];
+                                        const { searchAlqanime, getDetailAlqanime } = _require(_alqPath);
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                        await tolak(hisoka, m, `🔍 Mencari *${input}* di Alqanime...`);
+
+                                        const results = await searchAlqanime(input);
+
+                                        if (!results.length) {
+                                                await tolak(hisoka, m, `❌ Tidak ada hasil untuk *${input}*.\nCoba kata kunci lain.`);
+                                                break;
+                                        }
+
+                                        // Kalau banyak hasil, tampilkan list dulu
+                                        if (results.length > 1) {
+                                                let listText = `🎌 *Hasil Pencarian: "${input}"*\n`;
+                                                listText += `━━━━━━━━━━━━━━━━━━━\n`;
+                                                results.slice(0, 8).forEach((r, i) => {
+                                                        listText += `${i + 1}. ${r.title}\n`;
+                                                });
+                                                listText += `\n_Menampilkan detail hasil pertama..._`;
+                                                await tolak(hisoka, m, listText);
+                                        }
+
+                                        await tolak(hisoka, m, `📡 Mengambil detail *${results[0].title}*...`);
+                                        const detail = await getDetailAlqanime(results[0].url);
+
+                                        const info = detail.info || {};
+                                        const eps = detail.episodes || [];
+                                        const latestEp = eps[0];
+
+                                        let text = `🎌 *${detail.title}*\n`;
+                                        text += `━━━━━━━━━━━━━━━━━━━\n`;
+                                        if (info.Status)   text += `📌 Status   : ${info.Status}\n`;
+                                        if (info.Tipe)     text += `🎬 Tipe     : ${info.Tipe}\n`;
+                                        if (info.Studio)   text += `🏢 Studio   : ${info.Studio}\n`;
+                                        if (info.Dirilis)  text += `📅 Dirilis  : ${info.Dirilis}\n`;
+                                        if (info.Durasi)   text += `⏱ Durasi   : ${info.Durasi}\n`;
+                                        if (info.Episode)  text += `📺 Episode  : ${info.Episode}\n`;
+                                        if (info.Score)    text += `⭐ Score    : ${info.Score}\n`;
+                                        if (detail.genres?.length) text += `🏷 Genre    : ${detail.genres.join(', ')}\n`;
+                                        if (detail.sinopsis) {
+                                                text += `━━━━━━━━━━━━━━━━━━━\n`;
+                                                text += `📖 *Sinopsis:*\n${detail.sinopsis.slice(0, 300)}${detail.sinopsis.length > 300 ? '...' : ''}\n`;
+                                        }
+
+                                        if (latestEp) {
+                                                text += `━━━━━━━━━━━━━━━━━━━\n`;
+                                                text += `📥 *Download Episode ${latestEp.episode}:*\n`;
+                                                for (const [res, hosts] of Object.entries(latestEp.links)) {
+                                                        const hostList = hosts.map(h => `[${h.host}](${h.url})`).join(' | ');
+                                                        text += `• *${res.toUpperCase()}* : ${hostList}\n`;
+                                                }
+                                                if (eps.length > 1) {
+                                                        text += `\n_...dan ${eps.length - 1} episode lainnya_\n`;
+                                                }
+                                        }
+
+                                        text += `━━━━━━━━━━━━━━━━━━━\n`;
+                                        text += `🌐 ${results[0].url}`;
+
+                                        if (detail.thumbnail) {
+                                                const thumbBuf = await _require('axios').get(detail.thumbnail, { responseType: 'arraybuffer', timeout: 15000 }).then(r => Buffer.from(r.data)).catch(() => null);
+                                                if (thumbBuf) {
+                                                        await hisoka.sendMessage(m.from, { image: thumbBuf, caption: text }, { quoted: m });
+                                                } else {
+                                                        await tolak(hisoka, m, text);
+                                                }
+                                        } else {
+                                                await tolak(hisoka, m, text);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[ALQANIME] Error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'alqanime');
+                                        await tolak(hisoka, m, `❌ Gagal ambil data Alqanime.\n💬 ${err?.message?.slice(0, 120) || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'alqupdate':
+                        case 'alqanimeupdate': {
+                                try {
+                                        const _alqPath2 = path.resolve('./src/scrape/alqanime.cjs');
+                                        delete _require.cache[_alqPath2];
+                                        const { getLatestAlqanime } = _require(_alqPath2);
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '📺', key: m.key } });
+                                        await tolak(hisoka, m, `📺 Mengambil rilisan terbaru Alqanime...`);
+
+                                        const items = await getLatestAlqanime();
+
+                                        if (!items.length) {
+                                                await tolak(hisoka, m, `❌ Gagal ambil data terbaru.`);
+                                                break;
+                                        }
+
+                                        let text = `🎌 *Rilisan Terbaru — Alqanime*\n`;
+                                        text += `━━━━━━━━━━━━━━━━━━━\n`;
+                                        items.slice(0, 15).forEach((a, i) => {
+                                                text += `${i + 1}. ${a.title}\n    🔗 ${a.url}\n`;
+                                        });
+                                        text += `━━━━━━━━━━━━━━━━━━━\n`;
+                                        text += `🌐 alqanime.net`;
+
+                                        await tolak(hisoka, m, text);
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[ALQUPDATE] Error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'alqanimeupdate');
+                                        await tolak(hisoka, m, `❌ Gagal ambil update Alqanime.\n💬 ${err?.message?.slice(0, 100) || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
                         case 'pixivr18':
                         case 'pixiv18': {
                                 try {
