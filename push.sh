@@ -516,7 +516,36 @@ validate_token() {
 pick_repo() {
   local tok="$1"
   local cur_repo="$2"
+  local _saved_repo_file=".repo.last"
 
+  # ── Cek repo tersimpan dari sesi sebelumnya ──────────────────────────────
+  local _saved_repo=""
+  if [ -f "$_saved_repo_file" ]; then
+    _saved_repo=$(tr -d '\n\r ' < "$_saved_repo_file")
+  fi
+
+  if [ -n "$_saved_repo" ]; then
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+    echo -e "${C_BOLD}║        📁  PILIH REPOSITORY — BANG WILY          ║${C_RESET}" >&2
+    echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+    echo "" >&2
+    echo -e "  ${C_DIM}Repo terakhir yang dipakai:${C_RESET}" >&2
+    echo -e "  ${C_GREEN}${C_BOLD}▶ ${_saved_repo}${C_RESET}" >&2
+    echo "" >&2
+    echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
+    printf "  ${C_BOLD}Enter = pakai ini, ketik 'ganti' untuk pilih ulang ▸ ${C_RESET}" >&2
+    local _saved_pick=""
+    read -r _saved_pick </dev/tty
+    _saved_pick=$(echo "$_saved_pick" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+    if [ "$_saved_pick" != "ganti" ]; then
+      echo "$_saved_repo"
+      return
+    fi
+    # Lanjut ke menu penuh di bawah
+  fi
+
+  # ── Ambil daftar repo dari GitHub API ───────────────────────────────────
   echo -e "${C_DIM}  📋 Mengambil daftar repo dari GitHub...${C_RESET}" >&2
 
   local http_code
@@ -547,7 +576,7 @@ pick_repo() {
     return
   fi
 
-  # Tampilkan menu
+  # ── Tampilkan menu daftar repo ───────────────────────────────────────────
   clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
   echo -e "${C_BOLD}║        📁  PILIH REPOSITORY — BANG WILY          ║${C_RESET}" >&2
@@ -561,7 +590,7 @@ pick_repo() {
     repo_arr+=("$rname")
     local marker=""
     if [ "$rname" = "$cur_repo" ]; then
-      marker="  ${C_GREEN}← saat ini${C_RESET}"
+      marker="  ${C_GREEN}← default script${C_RESET}"
       cur_idx=$i
     fi
     printf "  ${C_CYAN}[%2d]${C_RESET}  %-45s%b\n" "$i" "$rname" "$marker" >&2
@@ -571,33 +600,27 @@ pick_repo() {
   local total=$(( i - 1 ))
   echo "" >&2
   echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
-
-  if [ "$cur_idx" -gt 0 ]; then
-    printf "  ${C_BOLD}Pilih nomor [1-%d] atau Enter = tetap %s ▸ ${C_RESET}" "$total" "$cur_repo" >&2
-  else
-    printf "  ${C_BOLD}Pilih nomor repo [1-%d] ▸ ${C_RESET}" "$total" >&2
-  fi
+  printf "  ${C_BOLD}Pilih nomor [1-%d] atau Enter = %s ▸ ${C_RESET}" "$total" "$cur_repo" >&2
 
   local pick=""
   read -r pick </dev/tty
   pick=$(echo "$pick" | tr -d '\n\r ')
 
-  # Enter → tetap pakai cur_repo
+  local chosen_repo=""
+
   if [ -z "$pick" ]; then
-    echo "$cur_repo"
-    return
+    chosen_repo="$cur_repo"
+  elif echo "$pick" | grep -qE '^[0-9]+$' && [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
+    chosen_repo="${repo_arr[$(( pick - 1 ))]}"
+  else
+    echo -e "  ${C_YELLOW}⚠️  Pilihan tidak valid, pakai: ${C_BOLD}${cur_repo}${C_RESET}" >&2
+    sleep 1
+    chosen_repo="$cur_repo"
   fi
 
-  # Validasi angka dalam range
-  if echo "$pick" | grep -qE '^[0-9]+$' && [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
-    echo "${repo_arr[$(( pick - 1 ))]}"
-    return
-  fi
-
-  # Input tidak valid → fallback
-  echo -e "  ${C_YELLOW}⚠️  Pilihan tidak valid, pakai: ${C_BOLD}${cur_repo}${C_RESET}" >&2
-  sleep 1
-  echo "$cur_repo"
+  # Simpan pilihan ke .repo.last agar run berikutnya tidak perlu pilih ulang
+  printf '%s' "$chosen_repo" > "$_saved_repo_file"
+  echo "$chosen_repo"
 }
 
 TOKEN=$(setup_token)

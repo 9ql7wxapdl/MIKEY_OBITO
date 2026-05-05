@@ -30,4 +30,6 @@ sessions/**
 !jadibot/
 !jadibot/**
 .token
+.token.secret
+.repo.last
 
