@@ -8,7 +8,9 @@
       "durationMs": 86400000,
       "durationText": "1 hari",
       "status": "active",
-      "isPaused": false
+      "isPaused": true,
+      "pausedAt": 1777991400293,
+      "pausedRemainingMs": 64771948
     }
   }
 }

@@ -12869,7 +12869,8 @@
     "id": "62895704334234@s.whatsapp.net",
     "name": "▫️Dinda",
     "lid": "142696211599405@lid",
-    "jid": "62895704334234@s.whatsapp.net"
+    "jid": "62895704334234@s.whatsapp.net",
+    "notify": "☁️"
   },
   "6282246327071@s.whatsapp.net": {
     "isContact": true,
@@ -22503,8 +22504,7 @@
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
     "jid": "6285175463174@s.whatsapp.net",
-    "notify": "sunshine.jpeg",
-    "verifiedName": "sunshine.jpeg"
+    "notify": "sunshine.jpeg"
   },
   "6283138972115@s.whatsapp.net": {
     "isContact": true,
@@ -26755,7 +26755,8 @@
     "id": "6285791556825@s.whatsapp.net",
     "name": "NightMare | BadDreamer",
     "lid": "87552958685217@lid",
-    "jid": "6285791556825@s.whatsapp.net"
+    "jid": "6285791556825@s.whatsapp.net",
+    "notify": "nmka.nam"
   },
   "6281911847973@s.whatsapp.net": {
     "isContact": true,
@@ -26790,7 +26791,9 @@
     "id": "6285711200877@s.whatsapp.net",
     "name": "Naizo 👍",
     "lid": "168736715731040@lid",
-    "jid": "6285711200877@s.whatsapp.net"
+    "jid": "6285711200877@s.whatsapp.net",
+    "notify": "Albiverstappen",
+    "verifiedName": "Albiverstappen"
   },
   "60147892416@s.whatsapp.net": {
     "isContact": true,
@@ -31462,5 +31465,19 @@
     "id": "240831718015103@lid",
     "lid": "240831718015103@lid",
     "imgUrl": "changed"
+  },
+  "23674618863@s.whatsapp.net": {
+    "id": "23674618863@s.whatsapp.net",
+    "notify": "mw sewa? chat owner"
+  },
+  "204981626007721@lid": {
+    "id": "204981626007721@lid",
+    "lid": "204981626007721@lid",
+    "imgUrl": "removed"
+  },
+  "142270875574282@lid": {
+    "id": "142270875574282@lid",
+    "lid": "142270875574282@lid",
+    "imgUrl": "removed"
   }
 }
