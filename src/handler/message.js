@@ -2032,6 +2032,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                             // Jadibot hanya merespon command yang diizinkan
                             const jadibotAllowedCommands = new Set([
                                 'p', 'ping',
+                                'menu',
                                 'rvo', 'viewonce', 'vo',
                                 'antidel', 'ad',
                                 'readsw',
@@ -4424,6 +4425,62 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         case 'menu': {
                                 try {
+                                        // ── JADIBOT: tampilkan menu khusus tanpa thumbnail ──
+                                        if (hisoka?.isMainBot === false) {
+                                                const jadibotNum = getJadibotNumber(hisoka);
+                                                const jadibotUptime = process.uptime();
+                                                const juh = Math.floor(jadibotUptime / 3600);
+                                                const jum = Math.floor((jadibotUptime % 3600) / 60);
+                                                const jus = Math.floor(jadibotUptime % 60);
+                                                const menuTeks =
+`╔══════════════════════════╗
+║   🤖  *MENU JADIBOT*   🤖   ║
+╚══════════════════════════╝
+
+👤 *Nama*   : ${m.pushName || 'User'}
+📱 *Nomor*  : +${jadibotNum}
+⏱️ *Uptime* : ${juh}j ${jum}m ${jus}d
+🌐 *Status* : Online 🟢
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+╭─「 📌 *UMUM* 」
+├➤ *.p / .ping* — Cek status bot
+╰➤ *.menu* — Tampilkan menu ini
+
+╭─「 ⚙️ *SETTING* 」
+├➤ *.readsw on/off* — Auto read story
+├➤ *.readsw true* — Read + Reaction
+├➤ *.readsw false* — Read Only
+├➤ *.antidel on/off* — Anti delete pesan
+├➤ *.antidel private on/off* — Private chat
+├➤ *.antidel group on/off* — Grup
+╰➤ *.antidel sendto self/chat/both*
+
+╭─「 👁️ *VIEW ONCE* 」
+╰➤ *.rvo / .viewonce / .vo* — Buka view once
+
+╭─「 🎨 *STICKER* 」
+├➤ *.sticker / .s* — Buat sticker
+╰➤ *.toimg* — Sticker → Gambar
+
+╭─「 📥 *DOWNLOAD* 」
+├➤ *.tt [link]* — Download TikTok
+├➤ *.ig [link]* — Download Instagram
+├➤ *.fb [link]* — Download Facebook
+├➤ *.ytmp3 [link]* — YouTube → Audio
+├➤ *.ytmp4 [link]* — YouTube → Video
+╰➤ *.play [judul]* — Cari & download lagu
+
+━━━━━━━━━━━━━━━━━━━━━━
+_⚙️ Setting tersimpan per-jadibot realtime_
+_📦 Powered by Wily Bot V14.5_ 🤖`;
+                                                await hisoka.sendMessage(m.from, { text: menuTeks }, { quoted: m });
+                                                logCommand(m, hisoka, 'menu');
+                                                break;
+                                        }
+
+                                        // ── MAIN BOT: menu normal dengan thumbnail ──
                                         const cfg      = loadConfig();
                                         const botReply = cfg.botReply || {};
                                         const botName  = botReply.botName     || 'Wily Bot';
