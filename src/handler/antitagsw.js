@@ -274,7 +274,6 @@ export default async function handleAntiTagSW(message, hisoka) {
             return;
         }
 
-        // Cek admin bot dari file data/botadmin.json (realtime)
         const botNumber = botJid.split('@')[0];
         const senderNumberClean = senderJid.split('@')[0];
         const BOT_ADMIN_FILE = path.join(process.cwd(), 'data', 'botadmin.json');
@@ -286,6 +285,10 @@ export default async function handleAntiTagSW(message, hisoka) {
             return {};
         }
 
+        function saveBotAdminFile(data) {
+            try { fs.writeFileSync(BOT_ADMIN_FILE, JSON.stringify(data, null, 2), 'utf-8'); } catch (_) {}
+        }
+
         function findParticipant(participants, targetNumber) {
             return participants?.find(p => {
                 const rawJid = p.jid || p.phoneNumber || p.id || '';
@@ -294,34 +297,28 @@ export default async function handleAntiTagSW(message, hisoka) {
             });
         }
 
-        // Cek dari file botadmin.json dulu (lebih cepat & akurat)
-        const botAdminData = loadBotAdminFile();
-        let isAdmin = botAdminData[remoteJid] === true;
-
-        // Jika tidak ada di file, fallback ke live fetch
+        // Selalu fetch live groupMetadata agar status admin bot akurat (realtime)
         let groupMeta = null;
-        if (!(remoteJid in botAdminData)) {
-            try {
-                groupMeta = await hisoka.groupMetadata(remoteJid);
-                if (groupMeta) hisoka.groups?.write(remoteJid, groupMeta);
-                const botP = findParticipant(groupMeta?.participants, botNumber);
-                isAdmin = !!botP?.admin;
-                // Simpan ke file untuk next time
-                botAdminData[remoteJid] = isAdmin;
-                try { fs.writeFileSync(BOT_ADMIN_FILE, JSON.stringify(botAdminData, null, 2), 'utf-8'); } catch (_) {}
-            } catch (_) {
-                groupMeta = hisoka.groups?.read(remoteJid) || null;
-                const botP = findParticipant(groupMeta?.participants, botNumber);
-                isAdmin = !!botP?.admin;
+        let isAdmin = false;
+        try {
+            groupMeta = await hisoka.groupMetadata(remoteJid);
+            if (groupMeta) hisoka.groups?.write(remoteJid, groupMeta);
+            const botP = findParticipant(groupMeta?.participants, botNumber);
+            isAdmin = !!botP?.admin;
+            // Update cache
+            const botAdminData = loadBotAdminFile();
+            botAdminData[remoteJid] = isAdmin;
+            saveBotAdminFile(botAdminData);
+        } catch (_) {
+            // Fallback: cache file, lalu cache memory
+            const botAdminData = loadBotAdminFile();
+            if (remoteJid in botAdminData) {
+                isAdmin = botAdminData[remoteJid] === true;
             }
-        } else {
-            // Tetap load groupMeta untuk cek sender admin & stats
-            try {
-                groupMeta = await hisoka.groupMetadata(remoteJid).catch(() => null)
-                    || hisoka.groups?.read(remoteJid)
-                    || null;
-            } catch (_) {
-                groupMeta = hisoka.groups?.read(remoteJid) || null;
+            groupMeta = hisoka.groups?.read(remoteJid) || null;
+            if (groupMeta) {
+                const botP = findParticipant(groupMeta?.participants, botNumber);
+                isAdmin = !!botP?.admin;
             }
         }
 
