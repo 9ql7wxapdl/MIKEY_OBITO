@@ -183,6 +183,14 @@ function getJadibotExpirySummary(number) {
   const meta = getJadibotExpiry(number)
   if (!meta) {
     return {
+      remaining: 'Tidak diketahui',
+      expiresAtText: 'Tidak diketahui',
+      durationText: 'Tidak diketahui',
+      status: 'unknown'
+    }
+  }
+  if (meta.permanent === true) {
+    return {
       remaining: 'Permanent',
       expiresAtText: 'Permanent',
       durationText: 'Permanent',
@@ -236,11 +244,46 @@ function getJadibotExpiry(number) {
   return data.bots[number] || null
 }
 
+function setPermanentJadibot(number, status = 'active') {
+  number = String(number || '').replace(/[^0-9]/g, '')
+  if (expiryTimers.has(number)) {
+    clearTimeout(expiryTimers.get(number))
+    expiryTimers.delete(number)
+  }
+  clearJadibotExpiryWarningTimers(number)
+  const now = Date.now()
+  const data = loadJadibotRealtimeData()
+  const existing = data.bots[number] || {}
+  data.bots[number] = {
+    ...existing,
+    number,
+    permanent: true,
+    status,
+    createdAt: existing.createdAt || now,
+    updatedAt: now,
+    expiresAt: undefined,
+    durationMs: undefined,
+    durationText: 'Permanent',
+    isPaused: undefined,
+    pausedAt: undefined,
+    pausedRemainingMs: undefined,
+  }
+  saveJadibotRealtimeData(data)
+  return data.bots[number]
+}
+
 function ensureJadibotExpiry(number, durationMs = null, status = 'starting') {
   number = String(number || '').replace(/[^0-9]/g, '')
   const now = Date.now()
   const data = loadJadibotRealtimeData()
   const existing = data.bots[number]
+  if (existing?.permanent === true) {
+    existing.status = status
+    existing.updatedAt = now
+    data.bots[number] = existing
+    saveJadibotRealtimeData(data)
+    return existing
+  }
   if (existing && Number(existing.expiresAt) > now) {
     existing.status = status
     existing.updatedAt = now
@@ -270,7 +313,7 @@ function extendJadibotExpiry(number, addedDurationMs, status = 'active') {
   const now = Date.now()
   const data = loadJadibotRealtimeData()
   const existing = data.bots[number] || null
-  const oldExpiresAt = Number(existing?.expiresAt) || 0
+  const oldExpiresAt = existing?.permanent === true ? now : (Number(existing?.expiresAt) || 0)
   const baseExpiresAt = oldExpiresAt > now ? oldExpiresAt : now
   const oldRemainingMs = Math.max(0, baseExpiresAt - now)
   const newExpiresAt = baseExpiresAt + addMs
@@ -320,7 +363,9 @@ function removeJadibotExpiry(number) {
 
 function isJadibotExpired(number) {
   const meta = getJadibotExpiry(number)
-  return !!meta && Number(meta.expiresAt) <= Date.now()
+  if (!meta) return false
+  if (meta.permanent === true) return false
+  return Number(meta.expiresAt) <= Date.now()
 }
 
 function msgJadibotExpired(number) {
@@ -392,6 +437,7 @@ function scheduleJadibotExpiry(number, sendReply = null) {
   number = String(number || '').replace(/[^0-9]/g, '')
   const meta = getJadibotExpiry(number)
   if (!meta) return
+  if (meta.permanent === true) return
   if (expiryTimers.has(number)) {
     clearTimeout(expiryTimers.get(number))
     expiryTimers.delete(number)
@@ -441,6 +487,7 @@ function purgeExpiredJadibotSessions() {
   const now = Date.now()
   const expired = []
   for (const [number, meta] of Object.entries(data.bots)) {
+    if (meta?.permanent === true) continue
     if (Number(meta?.expiresAt) <= now) expired.push(number)
   }
   for (const number of expired) {
@@ -821,13 +868,17 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
       startingSocketMap.delete(number)
       pairingRequested.delete(number)
       if (durationMs === 'permanent') {
-        removeJadibotExpiry(number)
+        setPermanentJadibot(number, 'active')
       } else if (hasRequestedDuration) {
         ensureJadibotExpiry(number, durationMs, 'active')
         scheduleJadibotExpiry(number, sendReply)
       } else if (getJadibotExpiry(number)) {
         updateJadibotExpiryStatus(number, 'active')
         scheduleJadibotExpiry(number, sendReply)
+      } else {
+        ensureJadibotExpiry(number, DEFAULT_JADIBOT_DURATION_MS, 'active')
+        scheduleJadibotExpiry(number, sendReply)
+        console.log(`[JADIBOT] ⚠️ ${number} tidak ada data expiry → diberi durasi default 24 jam`)
       }
 
       if (pairingTimeout.has(number)) {
@@ -1068,13 +1119,17 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
       hasConnected = true
       jadibotMap.set(number, sock)
       if (durationMs === 'permanent') {
-        removeJadibotExpiry(number)
+        setPermanentJadibot(number, 'active')
       } else if (hasRequestedDuration) {
         ensureJadibotExpiry(number, durationMs, 'active')
         scheduleJadibotExpiry(number, sendReply)
       } else if (getJadibotExpiry(number)) {
         updateJadibotExpiryStatus(number, 'active')
         scheduleJadibotExpiry(number, sendReply)
+      } else {
+        ensureJadibotExpiry(number, DEFAULT_JADIBOT_DURATION_MS, 'active')
+        scheduleJadibotExpiry(number, sendReply)
+        console.log(`[JADIBOT QR] ⚠️ ${number} tidak ada data expiry → diberi durasi default 24 jam`)
       }
       console.log(`[JADIBOT QR] ✅ ${number} CONNECTED via QR`)
       try {
@@ -1257,6 +1312,7 @@ function pauseAllJadibotTimers() {
   let changed = false
   for (const [number, meta] of Object.entries(data.bots)) {
     if (meta.isPaused) continue
+    if (meta.permanent === true) continue
     const remaining = Number(meta.expiresAt) - now
     if (remaining <= 0) continue
     data.bots[number] = {
@@ -1276,6 +1332,7 @@ function resumeAllJadibotTimers() {
   const now = Date.now()
   let changed = false
   for (const [number, meta] of Object.entries(data.bots)) {
+    if (meta.permanent === true) continue
     if (!meta.isPaused) continue
     const remaining = Number(meta.pausedRemainingMs) || 0
     if (remaining <= 0) {
@@ -1314,6 +1371,7 @@ export {
   cleanupExpiredJadibots,
   purgeExpiredJadibotSessions,
   removeJadibotExpiry,
+  setPermanentJadibot,
   ensureJadibotExpiry,
   extendJadibotExpiry,
   updateJadibotExpiryStatus,

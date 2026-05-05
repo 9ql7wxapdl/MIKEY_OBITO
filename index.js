@@ -732,7 +732,7 @@ setTimeout(() => {
   }
   for (const number of validBots) {
     const meta = getJadibotExpiry(number);
-    const sisa = meta ? formatRemainingTime(Number(meta.expiresAt) - Date.now()) : 'Permanent';
+    const sisa = !meta ? 'tidak ada data' : meta.permanent === true ? 'Permanent ♾️' : formatRemainingTime(Number(meta.expiresAt) - Date.now());
     console.log(`${C}║${R} ${G}▶  ${R}${B}${number}${R} - sisa ${sisa}`);
   }
   console.log(`${C}╚══════════════════════════════════╝${R}`);

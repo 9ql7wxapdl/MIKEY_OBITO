@@ -35,7 +35,7 @@ import { msToTime, loadConfig, saveConfig, getCaseName } from '../helper/utils.j
 import { stopAutoCleaner, restartAutoCleaner, cleanStaleSessionFiles, clearOldFiles, clearTmpFolder } from '../helper/cleaner.js';
 import { getUptimeFormatted, getBotStats } from '../db/botStats.js';
 import { logError, formatErrorReport, clearErrors, generateErrorFileTxt, getInfoErrorTxtPath, getErrorStats } from '../db/errorLog.js';
-import { startJadibot, startJadibotQR, stopJadibot, jadibotMap, pendingJadibotChoices, formatPairingCode, maskNumber, parseJadibotDuration, getJadibotExpiry, formatRemainingTime, getJadibotExpirySummary, cleanupExpiredJadibots, removeJadibotExpiry, ensureJadibotExpiry, extendJadibotExpiry, scheduleJadibotExpiry } from '../helper/jadibot.js';
+import { startJadibot, startJadibotQR, stopJadibot, jadibotMap, pendingJadibotChoices, formatPairingCode, maskNumber, parseJadibotDuration, getJadibotExpiry, formatRemainingTime, getJadibotExpirySummary, cleanupExpiredJadibots, removeJadibotExpiry, setPermanentJadibot, ensureJadibotExpiry, extendJadibotExpiry, scheduleJadibotExpiry } from '../helper/jadibot.js';
 import { hasViewOnceCache, getViewOnceCache } from '../helper/voCache.js';
 import { isAntiTagSWEnabled, toggleAntiTagSW, resetWarnings, getWarnings } from './antitagsw.js';
 // yg bawah pindah ke sini
@@ -9099,7 +9099,7 @@ infoText += `╰═════════════════════�
                                                 const sock = jadibotMap.get(number)
                                                 const sendReplyFn = async (msg) => tolak(hisoka, m, msg)
                                                 if (durationInfo.ms === 'permanent') {
-                                                        removeJadibotExpiry(number)
+                                                        setPermanentJadibot(number, 'active')
                                                         await sendJbBtn(
                                                                 `╔══════════════════════╗\n` +
                                                                 `║   🤖  *J A D I B O T*  ║\n` +
@@ -9451,7 +9451,7 @@ infoText += `╰═════════════════════�
 
                                         for (const [i, num] of list.entries()) {
                                                 const meta = getJadibotExpiry(num);
-                                                const sisa = meta ? formatRemainingTime(Number(meta.expiresAt) - Date.now()) : 'belum tercatat';
+                                                const sisa = !meta ? 'belum tercatat' : meta.permanent === true ? 'Permanent ♾️' : formatRemainingTime(Number(meta.expiresAt) - Date.now());
                                                 bodyText += `${i + 1}. *+${num}*\n   🟢 Aktif · Sisa ${sisa}\n`;
                                         }
 
