@@ -1,0 +1,64 @@
+════════════════════════════════════════════════════════════════════════
+  ██╗███╗   ██╗███████╗ ██████╗     ███████╗██████╗ ██████╗  ██████╗ ██████╗
+  ██║████╗  ██║██╔════╝██╔═══██╗    ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
+  ██║██╔██╗ ██║█████╗  ██║   ██║    █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝
+  ██║██║╚██╗██║██╔══╝  ██║   ██║    ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗
+  ██║██║ ╚████║██║     ╚██████╔╝    ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
+  ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+════════════════════════════════════════════════════════════════════════
+  FILE     : infoerror.txt
+  Bot      : Wily Bot
+  Update   : 05/05/2026, 08.09.25  (realtime — diperbarui otomatis setiap ada error)
+════════════════════════════════════════════════════════════════════════
+
+  RINGKASAN
+────────────────────────────────────────────────────────────────────────
+  Total Jenis Error (unik)  : 2
+  Total Kejadian Error       : 4
+  Maks. Simpan               : 200 jenis error
+  Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
+  Urutan                     : Terbaru di atas
+
+  DAFTAR ERROR LENGKAP  [2 jenis, 4 kejadian total]
+────────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #001  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 05/05/2026, 08.09.24
+│  Terakhir    : 05/05/2026, 08.09.25
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at Timeout._onTimeout (file:///home/runner/workspace/src/helper/hotReload.js:102:29)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #002  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 05/05/2026, 08.09.24
+│  Terakhir    : 05/05/2026, 08.09.25
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)
+└───────────────────────────────────────────────────────────────────────
+
+════════════════════════════════════════════════════════════════════════
+  End of Report  —  Total: 2 jenis, 4 kejadian
+  Terakhir diperbarui: 05/05/2026, 08.09.25
+════════════════════════════════════════════════════════════════════════
