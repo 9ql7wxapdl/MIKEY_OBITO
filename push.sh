@@ -509,6 +509,97 @@ validate_token() {
   esac
 }
 
+# ===== Pilih repository dari daftar milik akun GitHub =====
+# $1 = TOKEN yang sudah valid
+# $2 = REPO saat ini (default/fallback)
+# Output (stdout): nama repo yang dipilih
+pick_repo() {
+  local tok="$1"
+  local cur_repo="$2"
+
+  echo -e "${C_DIM}  📋 Mengambil daftar repo dari GitHub...${C_RESET}" >&2
+
+  local http_code
+  http_code=$(curl -s \
+    -o /tmp/_gh_repos.json \
+    -w "%{http_code}" \
+    -H "Authorization: token ${tok}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/user/repos?type=owner&sort=updated&per_page=100" 2>/dev/null)
+
+  if [ "$http_code" != "200" ]; then
+    echo -e "  ${C_YELLOW}⚠️  Gagal ambil daftar repo (HTTP ${http_code}). Pakai: ${C_BOLD}${cur_repo}${C_RESET}" >&2
+    rm -f /tmp/_gh_repos.json
+    echo "$cur_repo"
+    return
+  fi
+
+  # Ekstrak full_name lalu ambil bagian setelah "/" → nama repo saja
+  local repo_names
+  repo_names=$(grep -o '"full_name":"[^"]*"' /tmp/_gh_repos.json \
+    | sed 's|"full_name":"[^/]*/||;s|"||g')
+  rm -f /tmp/_gh_repos.json
+
+  if [ -z "$repo_names" ]; then
+    echo -e "  ${C_YELLOW}⚠️  Tidak ada repo ditemukan. Pakai: ${C_BOLD}${cur_repo}${C_RESET}" >&2
+    echo "$cur_repo"
+    return
+  fi
+
+  # Tampilkan menu
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+  echo -e "${C_BOLD}║        📁  PILIH REPOSITORY — BANG WILY          ║${C_RESET}" >&2
+  echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+  echo "" >&2
+
+  local i=1 cur_idx=0
+  local repo_arr=()
+  while IFS= read -r rname; do
+    [ -z "$rname" ] && continue
+    repo_arr+=("$rname")
+    local marker=""
+    if [ "$rname" = "$cur_repo" ]; then
+      marker="  ${C_GREEN}← saat ini${C_RESET}"
+      cur_idx=$i
+    fi
+    printf "  ${C_CYAN}[%2d]${C_RESET}  %-45s%b\n" "$i" "$rname" "$marker" >&2
+    i=$(( i + 1 ))
+  done <<< "$repo_names"
+
+  local total=$(( i - 1 ))
+  echo "" >&2
+  echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
+
+  if [ "$cur_idx" -gt 0 ]; then
+    printf "  ${C_BOLD}Pilih nomor [1-%d] atau Enter = tetap %s ▸ ${C_RESET}" "$total" "$cur_repo" >&2
+  else
+    printf "  ${C_BOLD}Pilih nomor repo [1-%d] ▸ ${C_RESET}" "$total" >&2
+  fi
+
+  local pick=""
+  read -r pick </dev/tty
+  pick=$(echo "$pick" | tr -d '\n\r ')
+
+  # Enter → tetap pakai cur_repo
+  if [ -z "$pick" ]; then
+    echo "$cur_repo"
+    return
+  fi
+
+  # Validasi angka dalam range
+  if echo "$pick" | grep -qE '^[0-9]+$' && [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
+    echo "${repo_arr[$(( pick - 1 ))]}"
+    return
+  fi
+
+  # Input tidak valid → fallback
+  echo -e "  ${C_YELLOW}⚠️  Pilihan tidak valid, pakai: ${C_BOLD}${cur_repo}${C_RESET}" >&2
+  sleep 1
+  echo "$cur_repo"
+}
+
 TOKEN=$(setup_token)
 
 # Validasi token ke GitHub secara real-time
@@ -526,6 +617,13 @@ while true; do
   # Langsung panggil setup_token lagi — akan minta paste token baru
   TOKEN=$(setup_token)
 done
+
+# Pilih repo tujuan push dari daftar GitHub (bisa Enter untuk skip)
+REPO=$(pick_repo "$TOKEN" "$REPO")
+echo "" >&2
+echo -e "  ${C_BOLD}📁 Repository tujuan: ${C_GREEN}${REPO}${C_RESET}" >&2
+echo "" >&2
+sleep 1
 
 REMOTE_URL="https://${USER}:${TOKEN}@github.com/${USER}/${REPO}.git"
 
