@@ -237,18 +237,71 @@ setup_token() {
       echo -e "  ${C_YELLOW}⚠️  Token tidak valid / placeholder.${C_RESET}" >&2
     fi
     echo "" >&2
-    echo -e "  ${C_BOLD}Pilih jenis token GitHub kamu:${C_RESET}" >&2
+    echo -e "  ${C_BOLD}Pilih opsi:${C_RESET}" >&2
     echo "" >&2
-    echo -e "  ${C_CYAN}[1]${C_RESET} ${C_BOLD}Classic Token${C_RESET}      ${C_DIM}— token berawalan  ghp_...${C_RESET}" >&2
-    echo -e "  ${C_CYAN}[2]${C_RESET} ${C_BOLD}Fine-grained Token${C_RESET} ${C_DIM}— token berawalan  github_pat_...${C_RESET}" >&2
+    echo -e "  ${C_CYAN}[1]${C_RESET} ${C_BOLD}Classic Token${C_RESET}         ${C_DIM}— belum punya, buat baru  (ghp_...)${C_RESET}" >&2
+    echo -e "  ${C_CYAN}[2]${C_RESET} ${C_BOLD}Fine-grained Token${C_RESET}    ${C_DIM}— belum punya, buat baru  (github_pat_...)${C_RESET}" >&2
+    echo -e "  ${C_CYAN}[3]${C_RESET} ${C_BOLD}Sudah punya token${C_RESET}     ${C_DIM}— langsung paste token lama / yang sudah ada${C_RESET}" >&2
     echo "" >&2
     echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
-    printf "  ${C_BOLD}Pilih [1/2] ▸ ${C_RESET}" >&2
+    printf "  ${C_BOLD}Pilih [1/2/3] ▸ ${C_RESET}" >&2
     local _tok_type=""
     read -r _tok_type </dev/tty
     _tok_type=$(echo "$_tok_type" | tr -d '\n\r ')
 
-    # ── Layar 2: Instruksi sesuai pilihan ───────────────────────────────────
+    # ── Pilihan 3: langsung paste, skip instruksi ────────────────────────────
+    if [ "$_tok_type" = "3" ]; then
+      clear >/dev/tty 2>/dev/null || true
+      echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+      echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
+      echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_DIM}Paste token kamu di bawah (Classic / Fine-grained, keduanya diterima).${C_RESET}" >&2
+      echo "" >&2
+      echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
+      printf "  ${C_BOLD}Paste token ▸ ${C_RESET}" >&2
+
+      local input_tok3=""
+      read -rs input_tok3 </dev/tty
+      echo "" >&2
+      input_tok3=$(echo "$input_tok3" | tr -d '\n\r ')
+
+      if [ -z "$input_tok3" ] || echo "$input_tok3" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; then
+        echo -e "  ${C_RED}❌ Token kosong atau tidak valid. Coba lagi.${C_RESET}" >&2
+        sleep 1
+        tok=""
+        continue
+      fi
+
+      # Auto-detect jenis token dari prefix
+      local _det3_label="" _det3_color="$C_GREEN"
+      case "$input_tok3" in
+        ghp_*)          _det3_label="Classic Token  (ghp_...)" ;;
+        github_pat_*)   _det3_label="Fine-grained Token  (github_pat_...)" ;;
+        ghs_*)          _det3_label="Server-to-Server Token  (ghs_...)"; _det3_color="$C_YELLOW" ;;
+        gho_*)          _det3_label="OAuth App Token  (gho_...)";         _det3_color="$C_YELLOW" ;;
+        ghu_*)          _det3_label="OAuth User Token  (ghu_...)";        _det3_color="$C_YELLOW" ;;
+        *)              _det3_label="Token tidak dikenal / format non-standar"; _det3_color="$C_RED" ;;
+      esac
+
+      printf '%s' "$input_tok3" > .token.secret
+      clear >/dev/tty 2>/dev/null || true
+      echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+      echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
+      echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_DIM}Jenis token terdeteksi:${C_RESET}" >&2
+      echo -e "  ${_det3_color}${C_BOLD}▶ ${_det3_label}${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
+      echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
+      echo "" >&2
+      sleep 1
+      tok="$input_tok3"
+      continue
+    fi
+
+    # ── Layar 2: Instruksi sesuai pilihan 1 / 2 ─────────────────────────────
     clear >/dev/tty 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
