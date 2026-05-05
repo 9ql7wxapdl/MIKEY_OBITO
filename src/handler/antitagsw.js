@@ -332,55 +332,7 @@ export default async function handleAntiTagSW(message, hisoka) {
         if (groupMeta?.participants) {
             const senderParticipant = findParticipant(groupMeta.participants, senderNumberClean);
             if (senderParticipant?.admin) {
-                console.log(`\x1b[33m[AntiTagSW] Admin tag SW: ${senderNumber} — balas + reaksi\x1b[39m`);
-                try {
-                    const now = new Date();
-                    const timeStr = now.toLocaleTimeString('id-ID', {
-                        timeZone: 'Asia/Jakarta',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                    });
-                    const dateStr = now.toLocaleDateString('id-ID', {
-                        timeZone: 'Asia/Jakarta',
-                        day: '2-digit', month: '2-digit', year: 'numeric'
-                    });
-
-                    const maxWarnings = antiTagSWConfig.maxWarnings ?? 3;
-                    const stats = buildGroupStats(groupMeta, 0, maxWarnings);
-
-                    const adminMsg =
-                        `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛\n` +
-                        `✦ 👑 *TAG STATUS ADMIN* 👑 ✦\n` +
-                        `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛\n` +
-                        `\n` +
-                        `👤 *Admin* ﹕@${senderNumber}\n` +
-                        `🕐 *Waktu* ﹕${timeStr} • ${dateStr}\n` +
-                        `${contentEmoji} *Konten* ﹕${contentLabel}\n` +
-                        `📡 *Metode* ﹕${tagMethod}\n` +
-                        `\n` +
-                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
-                        `  📊 *STATISTIK GRUP*\n` +
-                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
-                        `👥 *Total Member*  ﹕ ${stats.totalMembers} orang\n` +
-                        `🛡️ *Total Admin*   ﹕ ${stats.totalAdmins} orang\n` +
-                        `🙋 *Member Biasa* ﹕ ${stats.totalMembers_} orang\n` +
-                        `📈 *Rasio Admin*   ﹕ ${stats.adminPct}%\n` +
-                        `     [${stats.adminBar}]\n` +
-                        `◈━━━━━━━━━━━━━━━━━━━━━━━◈\n` +
-                        `\n` +
-                        `✅ Admin *diizinkan* mentag grup.\n` +
-                        `🔔 Anggota telah diberitahu!\n` +
-                        `\n` +
-                        `_Terima kasih telah aktif mengelola grup!_ 🙏`;
-
-                    await hisoka.sendMessage(remoteJid, {
-                        text: adminMsg,
-                        contextInfo: { mentionedJid: [senderJid] }
-                    }, { quoted: message });
-
-                    await hisoka.sendMessage(remoteJid, {
-                        react: { text: '👑', key: message.key }
-                    });
-                } catch (_) {}
+                // Admin bebas tag status — bot diam saja
                 return;
             }
         }

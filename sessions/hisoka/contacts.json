@@ -5534,7 +5534,9 @@
     "id": "6287766516011@s.whatsapp.net",
     "name": "Akbar 547",
     "lid": "248627335299292@lid",
-    "jid": "6287766516011@s.whatsapp.net"
+    "jid": "6287766516011@s.whatsapp.net",
+    "notify": "Abauu'u",
+    "verifiedName": "Abauu'u"
   },
   "6281385135399@s.whatsapp.net": {
     "isContact": true,
@@ -6103,8 +6105,7 @@
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
     "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily",
-    "verifiedName": "Wily"
+    "notify": "Wily"
   },
   "6282116333703@s.whatsapp.net": {
     "isContact": true,
@@ -8219,7 +8220,8 @@
     "id": "6285860196593@s.whatsapp.net",
     "name": "! Gibran V2 ( JADIBOT REACTIONSW )",
     "lid": "7465408147570@lid",
-    "jid": "6285860196593@s.whatsapp.net"
+    "jid": "6285860196593@s.whatsapp.net",
+    "notify": "Asmodarty"
   },
   "6285809691158@s.whatsapp.net": {
     "isContact": true,
@@ -8842,7 +8844,8 @@
     "id": "6283134844523@s.whatsapp.net",
     "name": "Hamdan",
     "lid": "239328697536578@lid",
-    "jid": "6283134844523@s.whatsapp.net"
+    "jid": "6283134844523@s.whatsapp.net",
+    "notify": "Anda Siapa?"
   },
   "6283873192689@s.whatsapp.net": {
     "isContact": true,
@@ -9563,7 +9566,8 @@
     "id": "6285730994384@s.whatsapp.net",
     "name": "! Name",
     "lid": "32560214179906@lid",
-    "jid": "6285730994384@s.whatsapp.net"
+    "jid": "6285730994384@s.whatsapp.net",
+    "notify": "Name"
   },
   "6289665400498@s.whatsapp.net": {
     "isContact": true,
@@ -18295,7 +18299,8 @@
     "id": "6282161429908@s.whatsapp.net",
     "name": "√𝘚𝘩𝘦𝘯𝘢𝘢",
     "lid": "131061380042825@lid",
-    "jid": "6282161429908@s.whatsapp.net"
+    "jid": "6282161429908@s.whatsapp.net",
+    "notify": "RIYAN"
   },
   "6288214936581@s.whatsapp.net": {
     "isContact": true,
@@ -20108,7 +20113,8 @@
     "id": "6281368074650@s.whatsapp.net",
     "name": "▶︎ •၊၊||၊|။||||။‌‌‌‌‌၊|•↻",
     "lid": "63462487134320@lid",
-    "jid": "6281368074650@s.whatsapp.net"
+    "jid": "6281368074650@s.whatsapp.net",
+    "notify": "⚔️"
   },
   "6289518904407@s.whatsapp.net": {
     "isContact": true,
@@ -24681,8 +24687,7 @@
     "name": "γυς ρου [ NOKOS 2 ]",
     "lid": "3638558740716@lid",
     "jid": "6285188150676@s.whatsapp.net",
-    "notify": "pou",
-    "verifiedName": "pou"
+    "notify": "pou"
   },
   "6285750179446@s.whatsapp.net": {
     "isContact": true,
@@ -25924,7 +25929,8 @@
     "id": "18258961472@s.whatsapp.net",
     "name": "Hamdan [ NOKOS ]",
     "lid": "54392187277397@lid",
-    "jid": "18258961472@s.whatsapp.net"
+    "jid": "18258961472@s.whatsapp.net",
+    "notify": "Anda Siapa??"
   },
   "6285895710403@s.whatsapp.net": {
     "isContact": true,
@@ -31482,6 +31488,20 @@
   "6030553575639@lid": {
     "id": "6030553575639@lid",
     "lid": "6030553575639@lid",
+    "imgUrl": "changed"
+  },
+  "23674618863@s.whatsapp.net": {
+    "id": "23674618863@s.whatsapp.net",
+    "notify": "mw sewa? chat owner"
+  },
+  "102323451871423@lid": {
+    "id": "102323451871423@lid",
+    "lid": "102323451871423@lid",
+    "imgUrl": "changed"
+  },
+  "50543309377552@lid": {
+    "id": "50543309377552@lid",
+    "lid": "50543309377552@lid",
     "imgUrl": "changed"
   }
 }
