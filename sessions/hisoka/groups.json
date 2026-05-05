@@ -13322,7 +13322,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1980,
+    "size": 1979,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -23081,11 +23081,6 @@
         "admin": null
       },
       {
-        "id": "199862662500417@lid",
-        "jid": "199862662500417@lid",
-        "admin": null
-      },
-      {
         "id": "125052938879173@lid",
         "jid": "125052938879173@lid",
         "admin": null
@@ -23239,12 +23234,17 @@
   },
   "120363426777219297@g.us": {
     "id": "120363426777219297@g.us",
+    "addressingMode": "lid",
     "subject": "Sss",
     "subjectOwner": "6289667923162@s.whatsapp.net",
+    "subjectOwnerLid": "97968623505429@lid",
     "subjectTime": 1777990411,
     "size": 2,
     "creation": 1777990411,
     "owner": "6289667923162@s.whatsapp.net",
+    "ownerLid": "97968623505429@lid",
+    "descOwner": "",
+    "descOwnerLid": "",
     "restrict": false,
     "announce": false,
     "isCommunity": false,
@@ -23263,7 +23263,6 @@
         "admin": "superadmin"
       }
     ],
-    "ephemeralDuration": 86400,
-    "author": "97968623505429@lid"
+    "ephemeralDuration": 86400
   }
 }
