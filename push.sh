@@ -222,7 +222,8 @@ setup_token() {
   fi
 
   # Kalau masih kosong atau placeholder, langsung minta input token
-  while [ -z "$tok" ] || echo "$tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; do
+  # Catatan: ghp_x SENGAJA tidak dimasukkan — token valid bisa berawalan ghp_x
+  while [ -z "$tok" ] || echo "$tok" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; do
     clear 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
@@ -244,7 +245,7 @@ setup_token() {
     echo "" >&2
     input_tok=$(echo "$input_tok" | tr -d '\n\r ')
 
-    if [ -z "$input_tok" ] || echo "$input_tok" | grep -qE '^(#|ghp_x|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your)'; then
+    if [ -z "$input_tok" ] || echo "$input_tok" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; then
       echo -e "  ${C_RED}❌ Token kosong atau tidak valid. Coba lagi.${C_RESET}" >&2
       sleep 1
       tok=""
@@ -346,17 +347,35 @@ validate_token() {
       return 0
       ;;
     401)
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt
       echo "" >&2
-      echo -e "  ${C_RED}❌ Token TIDAK valid atau sudah expired!${C_RESET}" >&2
-      echo -e "  ${C_DIM}   HTTP 401 Unauthorized — token ditolak oleh GitHub.${C_RESET}" >&2
-      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt .token.secret 2>/dev/null
+      echo -e "  ${C_RED}❌ Token ditolak GitHub (HTTP 401).${C_RESET}" >&2
+      echo -e "  ${C_YELLOW}   Token baru kadang butuh beberapa detik untuk aktif.${C_RESET}" >&2
+      echo "" >&2
+      printf "  ${C_BOLD}Tekan Enter untuk coba lagi, atau ketik 'baru' untuk ganti token ▸ ${C_RESET}" >&2
+      local _retry_pick=""
+      read -r _retry_pick </dev/tty
+      _retry_pick=$(echo "$_retry_pick" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+      if [ "$_retry_pick" = "baru" ]; then
+        rm -f .token.secret 2>/dev/null
+        return 1
+      fi
+      # Coba lagi dengan token yang sama (jangan hapus file)
       return 1
       ;;
     403)
+      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt
       echo "" >&2
       echo -e "  ${C_RED}❌ Token ditolak — permission kurang (HTTP 403).${C_RESET}" >&2
-      echo -e "  ${C_DIM}   Pastikan token punya scope: repo (full control).${C_RESET}" >&2
-      rm -f /tmp/_gh_validate.json /tmp/_gh_validate_headers.txt .token.secret 2>/dev/null
+      echo -e "  ${C_DIM}   Pastikan scope ${C_BOLD}repo${C_RESET}${C_DIM} (full control) dicentang saat buat token.${C_RESET}" >&2
+      echo "" >&2
+      printf "  ${C_BOLD}Tekan Enter untuk coba lagi, atau ketik 'baru' untuk ganti token ▸ ${C_RESET}" >&2
+      local _retry_pick403=""
+      read -r _retry_pick403 </dev/tty
+      _retry_pick403=$(echo "$_retry_pick403" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+      if [ "$_retry_pick403" = "baru" ]; then
+        rm -f .token.secret 2>/dev/null
+      fi
       return 1
       ;;
     ""|000)
