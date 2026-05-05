@@ -739,7 +739,12 @@ prepare_stage() {
 
 # ===== Ambil daftar branch (lokal + remote origin) =====
 fetch_branches() {
-  git fetch origin --quiet 2>/dev/null || true
+  # Gunakan REMOTE_URL (dengan token) agar autentikasi pasti valid
+  local _remote="${REMOTE_URL:-origin}"
+
+  git fetch "$_remote" --quiet 2>/dev/null \
+    || git fetch origin --quiet 2>/dev/null \
+    || true
 
   # Bangun pola ignore (regex) dari IGNORE_BRANCHES
   local ignore_pattern=""
@@ -753,8 +758,8 @@ fetch_branches() {
     git for-each-ref --format='%(refname)' refs/heads/ 2>/dev/null \
       | sed 's|^refs/heads/||'
 
-    # Branch remote di origin — pakai ls-remote biar bersih, tanpa HEAD
-    git ls-remote --heads origin 2>/dev/null \
+    # Branch remote — pakai REMOTE_URL dengan token agar tidak gagal auth
+    git ls-remote --heads "$_remote" 2>/dev/null \
       | awk '{print $2}' | sed 's|^refs/heads/||'
   } \
     | grep -v '^$' \
@@ -1021,9 +1026,19 @@ action_create_branch() {
   echo ""
   echo -e "  ${C_CYAN}▸${C_RESET} bikin branch ${C_BOLD}${name}${C_RESET} dari ${DEFAULT_BRANCH}..."
   if ! git checkout -q "$DEFAULT_BRANCH" 2>/dev/null; then
-    echo -e "${C_RED}✖ Gagal pindah ke ${DEFAULT_BRANCH}${C_RESET}"
-    sleep 2
-    return
+    # Branch belum ada lokal — coba ambil dari remote
+    git fetch origin "$DEFAULT_BRANCH" --quiet 2>/dev/null || true
+    if git show-ref --verify --quiet "refs/remotes/origin/${DEFAULT_BRANCH}"; then
+      if ! git checkout -q -b "$DEFAULT_BRANCH" "origin/${DEFAULT_BRANCH}" 2>/dev/null; then
+        echo -e "${C_RED}✖ Gagal pindah ke ${DEFAULT_BRANCH}${C_RESET}"
+        sleep 2
+        return
+      fi
+    else
+      echo -e "${C_RED}✖ Gagal pindah ke ${DEFAULT_BRANCH} (tidak ditemukan lokal maupun remote)${C_RESET}"
+      sleep 2
+      return
+    fi
   fi
   if ! git checkout -q -b "$name" 2>/dev/null; then
     echo -e "${C_RED}✖ Gagal bikin branch lokal${C_RESET}"
