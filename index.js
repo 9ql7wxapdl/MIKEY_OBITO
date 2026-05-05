@@ -705,6 +705,7 @@ setTimeout(() => {
   if (!bots.length) return;
 
   const C = '\x1b[36m', G = '\x1b[32m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
+  const RED = '\x1b[31m', DIM = '\x1b[2m';
 
   const validBots = [];
   const invalidBots = [];
@@ -732,8 +733,24 @@ setTimeout(() => {
   }
   for (const number of validBots) {
     const meta = getJadibotExpiry(number);
-    const sisa = !meta ? 'tidak ada data' : meta.permanent === true ? 'Permanent ♾️' : formatRemainingTime(Number(meta.expiresAt) - Date.now());
-    console.log(`${C}║${R} ${G}▶  ${R}${B}${number}${R} - sisa ${sisa}`);
+    let sisaLabel, sisaColor, icon;
+    if (!meta) {
+      sisaColor = DIM; icon = '❓'; sisaLabel = 'tidak ada data';
+    } else if (meta.permanent === true) {
+      sisaColor = C; icon = '♾️ '; sisaLabel = 'Permanent';
+    } else {
+      const remainingMs = Number(meta.expiresAt) - Date.now();
+      if (remainingMs <= 0) {
+        sisaColor = RED; icon = '💀'; sisaLabel = 'kedaluwarsa';
+      } else if (remainingMs < 60 * 60 * 1000) {
+        sisaColor = RED; icon = '🔴'; sisaLabel = formatRemainingTime(remainingMs);
+      } else if (remainingMs < 24 * 60 * 60 * 1000) {
+        sisaColor = Y;   icon = '🟡'; sisaLabel = formatRemainingTime(remainingMs);
+      } else {
+        sisaColor = G;   icon = '🟢'; sisaLabel = formatRemainingTime(remainingMs);
+      }
+    }
+    console.log(`${C}║${R} ${G}▶  ${R}${B}${number}${R} ${icon} ${sisaColor}${sisaLabel}${R}`);
   }
   console.log(`${C}╚══════════════════════════════════╝${R}`);
 
