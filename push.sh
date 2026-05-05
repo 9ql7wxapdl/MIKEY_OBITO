@@ -255,34 +255,36 @@ setup_token() {
     echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
     echo "" >&2
 
+    # URL pre-filled: name/note, scope/permissions sudah otomatis terisi saat dibuka
+    local _url_classic="https://github.com/settings/tokens/new?description=${REPO}&scopes=repo"
+    local _url_finegrained="https://github.com/settings/personal-access-tokens/new?name=${REPO}&description=Token+push+script+WilyBot&repository_access=all&permissions%5Bcontents%5D=write&permissions%5Bmetadata%5D=read"
+
     if [ "$_tok_type" = "2" ]; then
       echo -e "  ${C_BOLD}Fine-grained Token${C_RESET} ${C_DIM}(berawalan github_pat_...)${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}1.${C_RESET} Buka URL ini:" >&2
-      echo -e "     ${C_BLUE}https://github.com/settings/personal-access-tokens/new${C_RESET}" >&2
+      echo -e "  ${C_CYAN}1.${C_RESET} Buka URL ini ${C_DIM}(form sudah otomatis terisi)${C_RESET}:" >&2
+      echo -e "     ${C_BLUE}${_url_finegrained}${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}2.${C_RESET} Isi pengaturan:" >&2
-      echo -e "     ${C_DIM}• Token name   :${C_RESET} bebas (mis. ${C_BOLD}WilyBot${C_RESET})" >&2
-      echo -e "     ${C_DIM}• Expiration   :${C_RESET} ${C_BOLD}No expiration${C_RESET} ${C_DIM}(disarankan)${C_RESET}" >&2
-      echo -e "     ${C_DIM}• Repository   :${C_RESET} ${C_BOLD}All repositories${C_RESET}" >&2
+      echo -e "  ${C_CYAN}2.${C_RESET} Cek isian yang sudah auto-terisi:" >&2
+      echo -e "     ${C_DIM}• Token name       :${C_RESET} ${C_BOLD}${REPO}${C_RESET} ${C_DIM}(bisa diganti)${C_RESET}" >&2
+      echo -e "     ${C_DIM}• Repository access:${C_RESET} ${C_BOLD}All repositories${C_RESET}" >&2
+      echo -e "     ${C_DIM}• Contents         :${C_RESET} ${C_BOLD}Read and write${C_RESET} ${C_DIM}(sudah tercentang)${C_RESET}" >&2
+      echo -e "     ${C_DIM}• Metadata         :${C_RESET} ${C_BOLD}Read-only${C_RESET} ${C_DIM}(sudah tercentang)${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}3.${C_RESET} Permissions → Repository permissions:" >&2
-      echo -e "     ${C_DIM}• Contents     :${C_RESET} ${C_BOLD}Read and write${C_RESET}" >&2
-      echo -e "     ${C_DIM}• Metadata     :${C_RESET} ${C_BOLD}Read-only${C_RESET} ${C_DIM}(otomatis tercentang)${C_RESET}" >&2
+      echo -e "  ${C_CYAN}3.${C_RESET} Set ${C_BOLD}Expiration → No expiration${C_RESET} ${C_DIM}(disarankan)${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}4.${C_RESET} Klik ${C_BOLD}Generate token${C_RESET} → copy token-nya" >&2
+      echo -e "  ${C_CYAN}4.${C_RESET} Scroll bawah → klik ${C_BOLD}Generate token${C_RESET} → copy token-nya" >&2
     else
       echo -e "  ${C_BOLD}Classic Token${C_RESET} ${C_DIM}(berawalan ghp_...)${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}1.${C_RESET} Buka URL ini:" >&2
-      echo -e "     ${C_BLUE}https://github.com/settings/tokens/new${C_RESET}" >&2
+      echo -e "  ${C_CYAN}1.${C_RESET} Buka URL ini ${C_DIM}(form sudah otomatis terisi)${C_RESET}:" >&2
+      echo -e "     ${C_BLUE}${_url_classic}${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}2.${C_RESET} Isi pengaturan:" >&2
-      echo -e "     ${C_DIM}• Note         :${C_RESET} bebas (mis. ${C_BOLD}WilyBot${C_RESET})" >&2
-      echo -e "     ${C_DIM}• Expiration   :${C_RESET} ${C_BOLD}No expiration${C_RESET} ${C_DIM}(disarankan)${C_RESET}" >&2
+      echo -e "  ${C_CYAN}2.${C_RESET} Cek isian yang sudah auto-terisi:" >&2
+      echo -e "     ${C_DIM}• Note  :${C_RESET} ${C_BOLD}${REPO}${C_RESET} ${C_DIM}(bisa diganti)${C_RESET}" >&2
+      echo -e "     ${C_DIM}• Scope :${C_RESET} ${C_BOLD}repo${C_RESET} ${C_DIM}(sudah tercentang — full control)${C_RESET}" >&2
       echo "" >&2
-      echo -e "  ${C_CYAN}3.${C_RESET} Centang scope: ${C_BOLD}repo${C_RESET} ${C_DIM}(baris paling atas — full control)${C_RESET}" >&2
-      echo -e "     ${C_DIM}  Scope lain TIDAK perlu dicentang${C_RESET}" >&2
+      echo -e "  ${C_CYAN}3.${C_RESET} Set ${C_BOLD}Expiration → No expiration${C_RESET} ${C_DIM}(disarankan)${C_RESET}" >&2
       echo "" >&2
       echo -e "  ${C_CYAN}4.${C_RESET} Scroll bawah → klik ${C_BOLD}Generate token${C_RESET} → copy token-nya" >&2
     fi
