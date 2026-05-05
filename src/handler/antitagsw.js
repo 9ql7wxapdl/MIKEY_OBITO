@@ -268,11 +268,17 @@ export default async function handleAntiTagSW(message, hisoka) {
         const senderNumber = jidDecode(senderJid)?.user || senderJid.split('@')[0] || '';
 
         // Skip owner
-        if (isOwnerJid(senderJid, senderNumber, config)) return;
+        if (isOwnerJid(senderJid, senderNumber, config)) {
+            console.log(`\x1b[33m[AntiTagSW-DEBUG] BERHENTI: sender adalah OWNER (${senderNumber}) — dilewati\x1b[39m`);
+            return;
+        }
 
         // Skip bot sendiri
         const botJid = jidNormalizedUser(hisoka.user?.id || '');
-        if (areJidsSameUser(senderJid, botJid)) return;
+        if (areJidsSameUser(senderJid, botJid)) {
+            console.log(`\x1b[33m[AntiTagSW-DEBUG] BERHENTI: sender adalah BOT sendiri — dilewati\x1b[39m`);
+            return;
+        }
 
         // Cek admin bot dari file data/botadmin.json (realtime)
         const botNumber = botJid.split('@')[0];

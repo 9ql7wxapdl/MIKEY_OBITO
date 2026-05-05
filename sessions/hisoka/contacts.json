@@ -10191,7 +10191,8 @@
     "id": "6289504802678@s.whatsapp.net",
     "name": "! Rendra wa 126",
     "lid": "263445207371837@lid",
-    "jid": "6289504802678@s.whatsapp.net"
+    "jid": "6289504802678@s.whatsapp.net",
+    "notify": "Rennbu"
   },
   "6285657305937@s.whatsapp.net": {
     "isContact": true,
@@ -15637,7 +15638,8 @@
     "id": "6289678522775@s.whatsapp.net",
     "name": "! Zacky Ariansyah",
     "lid": "193020829909081@lid",
-    "jid": "6289678522775@s.whatsapp.net"
+    "jid": "6289678522775@s.whatsapp.net",
+    "notify": "Zacky Ariansyah"
   },
   "6285863964491@s.whatsapp.net": {
     "isContact": true,
@@ -24676,7 +24678,9 @@
     "id": "6285188150676@s.whatsapp.net",
     "name": "γυς ρου [ NOKOS 2 ]",
     "lid": "3638558740716@lid",
-    "jid": "6285188150676@s.whatsapp.net"
+    "jid": "6285188150676@s.whatsapp.net",
+    "notify": "pou",
+    "verifiedName": "pou"
   },
   "6285750179446@s.whatsapp.net": {
     "isContact": true,
@@ -31445,5 +31449,15 @@
     "id": "106536814805225@lid",
     "lid": "106536814805225@lid",
     "imgUrl": "changed"
+  },
+  "192040923082956@lid": {
+    "id": "192040923082956@lid",
+    "lid": "192040923082956@lid",
+    "imgUrl": "changed"
+  },
+  "7065489662193@lid": {
+    "id": "7065489662193@lid",
+    "lid": "7065489662193@lid",
+    "imgUrl": "removed"
   }
 }
