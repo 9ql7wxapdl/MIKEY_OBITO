@@ -1533,6 +1533,9 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         const isPrivateDM = !m.isGroup && m.from !== 'status@broadcast';
                                         const isStickerMsg = getMediaTypeFromMessage(m) === 'stickerMessage';
                                         // Grup: trigger saat bot di-mention/tag ATAU saat ada yang reply pesan bot
+                                        if (m.isGroup && !m.key?.fromMe && (wilyMentionedJids.length > 0 || isReplyToBotMsg)) {
+                                                wilyLog(`[WilyGC-Debug] scopeAllowGC=${scopeAllowGC} | isWilyOn=${isWilyOn} | isAutoReplyOn=${isAutoReplyOn} | isWilyMentioned=${isWilyMentioned} | isReplyToBotMsg=${isReplyToBotMsg} | mentions=${JSON.stringify(wilyMentionedJids)} | botNum=${wilyBotNum} | text="${m.text?.slice(0, 50)}"`);
+                                        }
                                         const triggerGroup = scopeAllowGC && m.isGroup && (isWilyMentioned || isReplyToBotMsg);
                                         // Private: semua pesan yang masuk ke DM (teks, sticker, gambar, video, dll) langsung trigger bot
                                         const triggerPM    = scopeAllowPM && isPrivateDM;
@@ -1838,6 +1841,14 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                         }
                                                 } catch (arErr) {
                                                         wilyError('\x1b[31m[WilyAutoReply] Error:\x1b[39m', arErr.message);
+                                                        const isAuthErr = arErr.message?.includes('Auth error') || arErr.message?.includes('Signup') || arErr.message?.includes('rate-limit') || arErr.message?.includes('TOO_MANY');
+                                                        try {
+                                                                if (isAuthErr) {
+                                                                        await m.reply('⚠️ *WilyAI lagi gangguan* — server AI-nya kena rate-limit, coba lagi beberapa menit lagi ya kak 🙏');
+                                                                } else {
+                                                                        await m.reply(`⚠️ *WilyAI error* — ${arErr.message?.slice(0, 100) || 'unknown error'}`);
+                                                                }
+                                                        } catch (_) {}
                                                 }
                                         }
 

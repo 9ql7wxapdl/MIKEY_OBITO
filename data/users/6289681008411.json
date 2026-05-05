@@ -1,5 +1,12 @@
 {
   "name": "Hen V1",
   "updatedAt": "2026-05-05T07:54:38.501Z",
-  "firstSeen": "2026-05-05T07:54:38.501Z"
+  "firstSeen": "2026-05-05T07:54:38.501Z",
+  "aiMemory": {
+    "style": "santai",
+    "nickname": null,
+    "lang": "id",
+    "lastUpdated": "2026-05-05T13:53:25.973Z",
+    "msgCount": 27
+  }
 }
