@@ -788,7 +788,8 @@
     "id": "6285695777114@s.whatsapp.net",
     "name": "! Aisyah",
     "lid": "129334601846925@lid",
-    "jid": "6285695777114@s.whatsapp.net"
+    "jid": "6285695777114@s.whatsapp.net",
+    "notify": "Ryuuka De Altheria"
   },
   "6282272596309@s.whatsapp.net": {
     "isContact": true,
@@ -15105,7 +15106,8 @@
     "id": "6288247569901@s.whatsapp.net",
     "name": "🗿 Fariq",
     "lid": "4213446820079@lid",
-    "jid": "6288247569901@s.whatsapp.net"
+    "jid": "6288247569901@s.whatsapp.net",
+    "notify": "Aii_Gntng😎"
   },
   "6281247041843@s.whatsapp.net": {
     "isContact": true,
@@ -31439,5 +31441,15 @@
   "212611350872@s.whatsapp.net": {
     "id": "212611350872@s.whatsapp.net",
     "notify": "— Fiora Sylvie"
+  },
+  "127079576272993@lid": {
+    "id": "127079576272993@lid",
+    "lid": "127079576272993@lid",
+    "imgUrl": "changed"
+  },
+  "220447819980874@lid": {
+    "id": "220447819980874@lid",
+    "lid": "220447819980874@lid",
+    "imgUrl": "changed"
   }
 }
