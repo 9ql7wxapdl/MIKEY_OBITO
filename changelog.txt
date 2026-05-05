@@ -1,11 +1,13 @@
-🤖 Script Wily Bot — *V14.5*
-📅 Updated: Selasa, 5 Mei 2026
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-📦 Total Update: *19*
-🔧 6 Bug Fix  |  ♻️ 5 Pembaruan  |  ✨ 8 Fitur Baru
-━━━━━━━━━━━━━━━━━━━━━━━━━━
+╔══════════════════════════════════╗
+║   🤖  W I L Y  B O T  —  V 1 4 . 5   ║
+╚══════════════════════════════════╝
+📅 Updated  : Selasa, 5 Mei 2026
+📦 Total    : 19 Update
+🔧 Bug Fix  : 6  |  ♻️ Pembaruan : 5  |  ✨ Fitur Baru : 8
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔧 BUG FIX
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ◈ Fix Jadibot Tidak Reconnect Setelah Disconnect
 ◈ Fix Jadibot Tidak Auto-Start Saat Bot Restart
@@ -13,83 +15,74 @@
 ◈ Fix .dbstats Error Jika Tabel Belum Ada
 ◈ Fix Session Jadibot Dianggap Tidak Valid Pasca Migrasi
 ◈ Fix AI Tidak Merespons / Respons Error
-> ✦ Perbaikan handling error pada Gemini & Groq
-> ✦ AI tidak lagi stuck atau kirim pesan kosong
+  ✦ Perbaikan handling error pada Gemini & Groq
+  ✦ AI tidak lagi stuck atau kirim pesan kosong
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ♻️ PEMBARUAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ◈ .dbstats Lebih Lengkap — tampilkan contacts, groups, settings
 ◈ Sistem Reconnect Jadibot Lebih Stabil & guard duplikat diperketat
 ◈ Peningkatan Fitur AI — respons lebih akurat & stabil
-> ✦ Optimasi prompt handling & konteks percakapan
-
+  ✦ Optimasi prompt handling & konteks percakapan
 ◈ Session Kembali Menggunakan creds.json (Rollback dari SQLite)
-> ✦ Semua sesi (main + jadibot) kembali ke format creds.json
-> ✦ Lebih familiar & mudah dikelola manual
+  ✦ Semua sesi (main + jadibot) kembali ke format creds.json
+  ✦ Lebih familiar & mudah dikelola manual
+◈ Ekspansi Fitur Jadibot — lebih banyak command bisa diakses
+  ✦ User jadibot kini bisa akses download, sticker, rvo, dll
+  ✦ Setting per-user jadibot tersimpan realtime ke JSON sendiri
 
-◈ [V14.5] Ekspansi Fitur Jadibot — lebih banyak command tersedia
-> ✦ User jadibot kini bisa akses lebih banyak command
-> ✦ Setting per-user jadibot tersimpan realtime ke JSON
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✨ FITUR BARU
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ◈ .dbstats / .sessiondb / .sessionstat — Statistik Session
-> ✦ Info creds.json, jumlah pre-key, session & sender-key files
-> ✦ Tampil ukuran total semua sesi (main + jadibot)
+  ✦ Info creds.json, jumlah pre-key, session & sender-key files
+  ✦ Tampil ukuran total semua sesi (main + jadibot)
 
 ◈ .kusonime — Download Anime dari Kusonime
-> ✦ Cari & download anime dengan mudah lewat bot
+  ✦ Cari & download anime dengan mudah lewat bot
 
 ◈ .nhentai — Cari Doujin dari NHentai
-> ✦ Cari berdasarkan kode atau keyword (khusus grup NSFW)
+  ✦ Cari berdasarkan kode atau keyword (khusus grup NSFW)
 
 ◈ SQLiteDB — Penyimpanan contacts/groups/settings
-> ✦ Data store (bukan session) tetap pakai SQLite untuk performa
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✨ FITUR BARU — V14.5 (5 Mei 2026)
+  ✦ Data store (bukan session) tetap pakai SQLite untuk performa
 
 ◈ [JADIBOT] Per-User Settings Realtime
-> ✦ Setiap user jadibot punya setting sendiri di data/jadibot_settings.json
-> ✦ Tidak bertabrakan antar jadibot maupun dengan main bot
-> ✦ Atomic write (tmp → rename) aman dari data corrupt
+  ✦ Setiap jadibot punya setting sendiri di jadibot_settings.json
+  ✦ Tidak bertabrakan antar jadibot maupun dengan main bot
+  ✦ Atomic write — aman dari data corrupt
+
+◈ [JADIBOT] .menu — Menu Khusus Jadibot (Tanpa Thumbnail)
+  ✦ Tampilan teks bersih, hanya fitur yang tersedia untuk jadibot
+  ✦ Main bot tetap pakai menu dengan thumbnail foto profil
 
 ◈ [JADIBOT] .antidel on/off — Anti-Delete per Jadibot
-> ✦ User jadibot aktifkan/nonaktifkan anti-delete sendiri
-> ✦ Mendukung: private, group, all, sendto self/chat/both
-> ✦ Tersimpan realtime ke jadibot_settings.json (tidak ganggu config.json)
+  ✦ User jadibot aktifkan/nonaktifkan anti-delete sendiri
+  ✦ Mendukung: private, group, all, sendto self/chat/both
+  ✦ Tersimpan realtime ke jadibot_settings.json
 
 ◈ [JADIBOT] .readsw on/off/true/false — Auto Read Story per Jadibot
-> ✦ User jadibot atur mode Read+Reaction atau Read Only
-> ✦ Bisa atur delay kustom: .readsw delay <min> <max>
-> ✦ Tersimpan realtime ke jadibot_settings.json
+  ✦ User jadibot atur mode Read+Reaction atau Read Only
+  ✦ Bisa atur delay kustom: .readsw delay <min> <max>
+  ✦ Tersimpan realtime ke jadibot_settings.json
 
 ◈ [JADIBOT] .rvo / .viewonce / .vo — Buka View Once
-> ✦ User jadibot kini bisa buka pesan view once
-> ✦ Mendukung gambar, video, audio, dokumen, sticker
+  ✦ Mendukung gambar, video, audio, dokumen, sticker
 
 ◈ [JADIBOT] Download Media — .tt .ig .fb .ytmp3 .ytmp4 .play
-> ✦ User jadibot kini bisa gunakan semua command download
-> ✦ TikTok, Instagram, Facebook, YouTube MP3/MP4, Search Play
+  ✦ TikTok, Instagram, Facebook, YouTube MP3/MP4, Search Play
 
 ◈ [JADIBOT] .sticker / .s — Buat Sticker
-> ✦ User jadibot kini bisa konversi gambar/video/GIF jadi sticker
-> ✦ Mendukung semua format media yang didukung bot utama
+  ✦ Konversi gambar/video jadi sticker langsung dari jadibot
 
-◈ [JADIBOT] .toimg — Konversi Sticker ke Gambar
-> ✦ User jadibot kini bisa ubah sticker balik ke gambar
-> ✦ Reply sticker → .toimg → terima gambar PNG/JPG
+◈ [JADIBOT] .toimg — Sticker → Gambar
+  ✦ Reply sticker → .toimg → terima gambar PNG
 
-◈ [SYSTEM] Arsitektur Jadibot Settings Baru
-> ✦ File baru: src/helper/jadibotSettings.js
-> ✦ Fungsi: loadAllJadibotSettings, saveAllJadibotSettings
-> ✦ Fungsi: getJadibotAntidel, getJadibotReadsw, setJadibotUserSetting, getJadibotNumber
-> ✦ Auto-create data/jadibot_settings.json jika belum ada
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━
-🤖 Wily-Bot — Updated *5 Mei 2026* | Versi *V14.5*
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 Wily-Bot  |  Versi V14.5  |  5 Mei 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
