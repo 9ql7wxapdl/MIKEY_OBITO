@@ -224,6 +224,8 @@ setup_token() {
   # Kalau masih kosong atau placeholder, langsung minta input token
   # Catatan: ghp_x SENGAJA tidak dimasukkan — token valid bisa berawalan ghp_x
   while [ -z "$tok" ] || echo "$tok" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; do
+
+    # ── Layar 1: Pilih jenis token ──────────────────────────────────────────
     clear 2>/dev/null || true
     echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
     echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
@@ -235,19 +237,56 @@ setup_token() {
       echo -e "  ${C_YELLOW}⚠️  Token tidak valid / placeholder.${C_RESET}" >&2
     fi
     echo "" >&2
-    echo -e "  ${C_BOLD}Cara buat token baru:${C_RESET}" >&2
+    echo -e "  ${C_BOLD}Pilih jenis token GitHub kamu:${C_RESET}" >&2
     echo "" >&2
-    echo -e "  ${C_CYAN}[A] Classic Token${C_RESET} ${C_DIM}(recommended — token berawalan ghp_...)${C_RESET}" >&2
-    echo -e "      ${C_BLUE}https://github.com/settings/tokens/new${C_RESET}" >&2
-    echo -e "      ${C_DIM}→ Centang scope: ${C_RESET}${C_BOLD}repo${C_RESET} ${C_DIM}(baris paling atas, full control)${C_RESET}" >&2
-    echo -e "      ${C_DIM}→ Scope lain TIDAK perlu dicentang${C_RESET}" >&2
+    echo -e "  ${C_CYAN}[1]${C_RESET} ${C_BOLD}Classic Token${C_RESET}      ${C_DIM}— token berawalan  ghp_...${C_RESET}" >&2
+    echo -e "  ${C_CYAN}[2]${C_RESET} ${C_BOLD}Fine-grained Token${C_RESET} ${C_DIM}— token berawalan  github_pat_...${C_RESET}" >&2
     echo "" >&2
-    echo -e "  ${C_CYAN}[B] Fine-grained Token${C_RESET} ${C_DIM}(token berawalan github_pat_...)${C_RESET}" >&2
-    echo -e "      ${C_BLUE}https://github.com/settings/personal-access-tokens/new${C_RESET}" >&2
-    echo -e "      ${C_DIM}→ Repository access: ${C_RESET}${C_BOLD}All repositories${C_RESET}" >&2
-    echo -e "      ${C_DIM}→ Permissions → Contents: ${C_RESET}${C_BOLD}Read and write${C_RESET}" >&2
+    echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
+    printf "  ${C_BOLD}Pilih [1/2] ▸ ${C_RESET}" >&2
+    local _tok_type=""
+    read -r _tok_type </dev/tty
+    _tok_type=$(echo "$_tok_type" | tr -d '\n\r ')
+
+    # ── Layar 2: Instruksi sesuai pilihan ───────────────────────────────────
+    clear 2>/dev/null || true
+    echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+    echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
+    echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
     echo "" >&2
-    echo -e "  ${C_DIM}💡 Expiration: bebas pilih manual — disarankan ${C_RESET}${C_BOLD}No expiration${C_RESET}${C_DIM} biar tidak perlu buat ulang${C_RESET}" >&2
+
+    if [ "$_tok_type" = "2" ]; then
+      echo -e "  ${C_BOLD}Fine-grained Token${C_RESET} ${C_DIM}(berawalan github_pat_...)${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}1.${C_RESET} Buka URL ini:" >&2
+      echo -e "     ${C_BLUE}https://github.com/settings/personal-access-tokens/new${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}2.${C_RESET} Isi pengaturan:" >&2
+      echo -e "     ${C_DIM}• Token name   :${C_RESET} bebas (mis. ${C_BOLD}WilyBot${C_RESET})" >&2
+      echo -e "     ${C_DIM}• Expiration   :${C_RESET} ${C_BOLD}No expiration${C_RESET} ${C_DIM}(disarankan)${C_RESET}" >&2
+      echo -e "     ${C_DIM}• Repository   :${C_RESET} ${C_BOLD}All repositories${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}3.${C_RESET} Permissions → Repository permissions:" >&2
+      echo -e "     ${C_DIM}• Contents     :${C_RESET} ${C_BOLD}Read and write${C_RESET}" >&2
+      echo -e "     ${C_DIM}• Metadata     :${C_RESET} ${C_BOLD}Read-only${C_RESET} ${C_DIM}(otomatis tercentang)${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}4.${C_RESET} Klik ${C_BOLD}Generate token${C_RESET} → copy token-nya" >&2
+    else
+      echo -e "  ${C_BOLD}Classic Token${C_RESET} ${C_DIM}(berawalan ghp_...)${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}1.${C_RESET} Buka URL ini:" >&2
+      echo -e "     ${C_BLUE}https://github.com/settings/tokens/new${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}2.${C_RESET} Isi pengaturan:" >&2
+      echo -e "     ${C_DIM}• Note         :${C_RESET} bebas (mis. ${C_BOLD}WilyBot${C_RESET})" >&2
+      echo -e "     ${C_DIM}• Expiration   :${C_RESET} ${C_BOLD}No expiration${C_RESET} ${C_DIM}(disarankan)${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}3.${C_RESET} Centang scope: ${C_BOLD}repo${C_RESET} ${C_DIM}(baris paling atas — full control)${C_RESET}" >&2
+      echo -e "     ${C_DIM}  Scope lain TIDAK perlu dicentang${C_RESET}" >&2
+      echo "" >&2
+      echo -e "  ${C_CYAN}4.${C_RESET} Scroll bawah → klik ${C_BOLD}Generate token${C_RESET} → copy token-nya" >&2
+    fi
+
     echo "" >&2
     echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
     printf "  ${C_BOLD}Paste token ▸ ${C_RESET}" >&2
@@ -265,6 +304,11 @@ setup_token() {
     fi
 
     printf '%s' "$input_tok" > .token.secret
+    clear 2>/dev/null || true
+    echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
+    echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
+    echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
+    echo "" >&2
     echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
     echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
     echo "" >&2
