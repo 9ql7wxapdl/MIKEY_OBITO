@@ -6102,7 +6102,9 @@
     "id": "6289688206739@s.whatsapp.net",
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
-    "jid": "6289688206739@s.whatsapp.net"
+    "jid": "6289688206739@s.whatsapp.net",
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "6282116333703@s.whatsapp.net": {
     "isContact": true,
@@ -24813,7 +24815,9 @@
     "id": "6282136282264@s.whatsapp.net",
     "name": "-zpa-",
     "lid": "143396526112850@lid",
-    "jid": "6282136282264@s.whatsapp.net"
+    "jid": "6282136282264@s.whatsapp.net",
+    "notify": "Z-pa",
+    "verifiedName": "Z-pa"
   },
   "6281246328872@s.whatsapp.net": {
     "isContact": true,
@@ -31428,7 +31432,8 @@
   "26345463611535@lid": {
     "id": "26345463611535@lid",
     "lid": "26345463611535@lid",
-    "notify": "J"
+    "notify": "J",
+    "imgUrl": "changed"
   },
   "274255723921630@lid": {
     "id": "274255723921630@lid",
@@ -31464,5 +31469,19 @@
     "id": "54395928592530@lid",
     "lid": "54395928592530@lid",
     "imgUrl": "removed"
+  },
+  "96724693606570@lid": {
+    "id": "96724693606570@lid",
+    "lid": "96724693606570@lid",
+    "imgUrl": "changed"
+  },
+  "212611350872@s.whatsapp.net": {
+    "id": "212611350872@s.whatsapp.net",
+    "notify": "— Fiora Sylvie"
+  },
+  "6030553575639@lid": {
+    "id": "6030553575639@lid",
+    "lid": "6030553575639@lid",
+    "imgUrl": "changed"
   }
 }

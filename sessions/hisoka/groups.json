@@ -4006,7 +4006,7 @@
     "subjectOwner": "6285187063723@s.whatsapp.net",
     "subjectOwnerLid": "8014979436608@lid",
     "subjectTime": 1769434437,
-    "size": 836,
+    "size": 835,
     "creation": 1769433881,
     "owner": "6285809163320@s.whatsapp.net",
     "ownerLid": "44698278310084@lid",
@@ -7102,11 +7102,6 @@
       {
         "id": "138229898604751@lid",
         "jid": "138229898604751@lid",
-        "admin": null
-      },
-      {
-        "id": "38354292863104@lid",
-        "jid": "38354292863104@lid",
         "admin": null
       },
       {

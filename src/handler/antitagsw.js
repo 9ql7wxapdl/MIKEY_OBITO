@@ -220,12 +220,6 @@ export default async function handleAntiTagSW(message, hisoka) {
 
         const remoteJid = message.key.remoteJid;
 
-        // [DEBUG] Log semua pesan grup yang masuk
-        if (isJidGroup(remoteJid) && !message.key?.fromMe) {
-            const dbgType = getContentType(message.message);
-            if (dbgType) console.log(`\x1b[36m[AntiTagSW-DEBUG] Grup msg masuk | type: ${dbgType} | remoteJid: ${remoteJid}\x1b[39m`);
-        }
-
         if (!isJidGroup(remoteJid)) return;
         if (message.key?.fromMe) return;
 
