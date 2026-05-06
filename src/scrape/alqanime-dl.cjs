@@ -8,13 +8,15 @@ const path     = require('path');
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 // ─── Ekstrak URL dari shortlink ouo.io ────────────────────────────────────
+// Hanya berfungsi untuk format ouo.io/st/?s=URL (s= param berisi tujuan asli).
+// True shortlink (ouo.io/XXXXX) diblok Cloudflare dari semua datacenter IP.
 function resolveOuo(url) {
     try {
         const u = new URL(url);
         const real = u.searchParams.get('s');
         if (real) return decodeURIComponent(real);
     } catch (_) {}
-    return url;
+    return null; // null = true shortlink, tidak bisa di-bypass
 }
 
 // ─── PixelDrain: langsung dari API ────────────────────────────────────────
@@ -103,18 +105,25 @@ async function resolveAceFile(url) {
 async function resolveDirectLink(rawUrl) {
     let url = rawUrl.trim();
 
-    // Buka ouo.io wrapper dulu
-    if (url.includes('ouo.io')) url = resolveOuo(url);
+    // Buka ouo.io wrapper dulu (hanya format st/?s= yang bisa di-ekstrak)
+    if (url.includes('ouo.io') || url.includes('ouo.press')) {
+        const extracted = resolveOuo(url);
+        if (!extracted) {
+            // True ouo.io shortlink — diblok Cloudflare dari semua datacenter
+            throw new Error('ouo.io:blocked');
+        }
+        url = extracted;
+    }
 
     if (url.includes('pixeldrain.com'))  return await resolvePixelDrain(url);
     if (url.includes('mediafire.com'))   return await resolveMediaFire(url);
     if (url.includes('acefile.co'))      return await resolveAceFile(url);
 
     if (url.includes('gofile.io')) {
-        throw new Error('GoFile butuh akun premium. Pakai link PixelDrain atau MediaFire.');
+        throw new Error('GoFile membutuhkan akun premium — tidak bisa didownload otomatis.');
     }
-    if (url.includes('terabox') || url.includes('4shared')) {
-        throw new Error('Host ini tidak didukung. Pakai link PixelDrain atau MediaFire.');
+    if (url.includes('terabox') || url.includes('1024terabox') || url.includes('4shared')) {
+        throw new Error('Host ini tidak didukung untuk download otomatis.');
     }
 
     // Fallback: coba HEAD dulu, anggap direct

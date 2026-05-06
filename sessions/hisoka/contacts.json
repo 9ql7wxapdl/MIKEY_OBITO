@@ -15634,7 +15634,8 @@
     "id": "6289678522775@s.whatsapp.net",
     "name": "! Zacky Ariansyah",
     "lid": "193020829909081@lid",
-    "jid": "6289678522775@s.whatsapp.net"
+    "jid": "6289678522775@s.whatsapp.net",
+    "notify": "Zacky Ariansyah"
   },
   "6285863964491@s.whatsapp.net": {
     "isContact": true,
@@ -31452,7 +31453,8 @@
   "81582920577063@lid": {
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
-    "notify": "Wily"
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "107735043596357@lid": {
     "id": "107735043596357@lid",

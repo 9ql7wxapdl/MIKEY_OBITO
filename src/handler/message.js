@@ -2322,18 +2322,26 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 );
                                                                 const tmpDir  = path.join(process.cwd(), 'tmp');
                                                                 let resolved;
-                                                                let lastErr = '';
+                                                                let allOuo = true;
                                                                 for (const candidate of allLinks) {
                                                                         try {
                                                                                 await m.reply({ edit: progMsg.key, text: `🔍 Mencoba host *${candidate.host}*...` });
                                                                                 resolved = await alqResolve(candidate.url);
+                                                                                allOuo = false;
                                                                                 break;
                                                                         } catch (re) {
-                                                                                lastErr = re.message;
+                                                                                if (!re.message?.includes('ouo.io:blocked')) allOuo = false;
                                                                         }
                                                                 }
                                                                 if (!resolved) {
-                                                                        await m.reply({ edit: progMsg.key, text: `❌ Semua host gagal. Error terakhir: ${lastErr}` });
+                                                                        if (allOuo) {
+                                                                                const epResList = ['360p','480p','720p','1080p'].filter(r => ep.links[r]?.length);
+                                                                                await hisoka.sendMessage(m.from, { react: { text: '🔗', key: m.key } });
+                                                                                await m.reply({ edit: progMsg.key, text: `🔗 *Link ouo.io — buka manual di browser*\n_Bot tidak bisa download otomatis karena ouo.io memblokir server._` });
+                                                                                await hisoka.sendMessage(m.from, { text: formatAlqLinkMsg(detail.title, ep, prefRes, epResList) }, { quoted: m });
+                                                                        } else {
+                                                                                await m.reply({ edit: progMsg.key, text: `❌ Semua host gagal. Coba lagi nanti.` });
+                                                                        }
                                                                         return;
                                                                 }
                                                                 const { directUrl, fileName, host, size } = resolved;
@@ -2511,18 +2519,25 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 // Resolve direct link — coba semua host secara berurutan
                                                                 const allLinks = getAllAlqLinksByPriority(ep.links, prefRes);
                                                                 let resolved;
-                                                                let lastErr = '';
+                                                                let allOuoBatch = true;
                                                                 for (const candidate of allLinks) {
                                                                         try {
                                                                                 await m.reply({ edit: progMsg.key, text: `🔍 Ep ${ep.episode}${batchLbl}: mencoba *${candidate.host}* (${candidate.res.toUpperCase()})...` });
                                                                                 resolved = await alqResolve(candidate.url);
+                                                                                allOuoBatch = false;
                                                                                 break;
                                                                         } catch (re) {
-                                                                                lastErr = re.message;
+                                                                                if (!re.message?.includes('ouo.io:blocked')) allOuoBatch = false;
                                                                         }
                                                                 }
                                                                 if (!resolved) {
-                                                                        throw new Error(`Ep ${ep.episode}: semua host gagal → ${lastErr}`);
+                                                                        if (allOuoBatch) {
+                                                                                const epResList = ['360p','480p','720p','1080p'].filter(r => ep.links[r]?.length);
+                                                                                await hisoka.sendMessage(m.from, { text: formatAlqLinkMsg(pendingAlq.animeTitle, ep, prefRes, epResList) }, { quoted: m });
+                                                                                tmpFiles.push({ file: null, fileName: 'link_only', ep: ep.episode, host: 'ouo.io', sizeStr: '-' });
+                                                                                continue;
+                                                                        }
+                                                                        throw new Error(`Ep ${ep.episode}: semua host gagal.`);
                                                                 }
 
                                                                 const { directUrl, fileName, host, size } = resolved;

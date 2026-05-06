@@ -8,18 +8,18 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 06/05/2026, 08.08.25  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 06/05/2026, 08.22.55  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
   Total Jenis Error (unik)  : 8
-  Total Kejadian Error       : 17
+  Total Kejadian Error       : 20
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [8 jenis, 17 kejadian total]
+  DAFTAR ERROR LENGKAP  [8 jenis, 20 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
@@ -66,9 +66,9 @@
 │
 │  DETAIL
 │  Sumber      : alqdl_auto
-│  Frekuensi   : 2x (duplikat digabung)
+│  Frekuensi   : 3x (duplikat digabung)
 │  Pertama     : 06/05/2026, 07.24.40
-│  Terakhir    : 06/05/2026, 07.26.42
+│  Terakhir    : 06/05/2026, 08.19.25
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  AxiosError: Request failed with status code 403
@@ -84,9 +84,9 @@
 │
 │  DETAIL
 │  Sumber      : ALQDL_AUTO
-│  Frekuensi   : 2x (duplikat digabung)
+│  Frekuensi   : 3x (duplikat digabung)
 │  Pertama     : 06/05/2026, 07.24.40
-│  Terakhir    : 06/05/2026, 07.26.42
+│  Terakhir    : 06/05/2026, 08.19.25
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [ALQDL_AUTO] Error: Request failed with status code 403
@@ -102,9 +102,9 @@
 │
 │  DETAIL
 │  Sumber      : console.error
-│  Frekuensi   : 1x (baru terjadi)
+│  Frekuensi   : 2x (duplikat digabung)
 │  Pertama     : 05/05/2026, 09.15.11
-│  Terakhir    : 05/05/2026, 09.15.11
+│  Terakhir    : 06/05/2026, 08.22.55
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
@@ -167,6 +167,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 8 jenis, 17 kejadian
-  Terakhir diperbarui: 06/05/2026, 08.08.25
+  End of Report  —  Total: 8 jenis, 20 kejadian
+  Terakhir diperbarui: 06/05/2026, 08.22.55
 ════════════════════════════════════════════════════════════════════════
