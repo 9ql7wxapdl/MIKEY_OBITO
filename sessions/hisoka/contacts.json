@@ -865,7 +865,9 @@
     "id": "6285956660403@s.whatsapp.net",
     "name": "! Fadli",
     "lid": "176549462564879@lid",
-    "jid": "6285956660403@s.whatsapp.net"
+    "jid": "6285956660403@s.whatsapp.net",
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6285641568690@s.whatsapp.net": {
     "isContact": true,
@@ -25941,7 +25943,8 @@
     "id": "18258961472@s.whatsapp.net",
     "name": "Hamdan [ NOKOS ]",
     "lid": "54392187277397@lid",
-    "jid": "18258961472@s.whatsapp.net"
+    "jid": "18258961472@s.whatsapp.net",
+    "notify": "Anda Siapa??"
   },
   "6285895710403@s.whatsapp.net": {
     "isContact": true,
@@ -31429,5 +31432,10 @@
     "id": "97968623505429@lid",
     "lid": "97968623505429@lid",
     "notify": "Hen V2"
+  },
+  "29768636432576@lid": {
+    "id": "29768636432576@lid",
+    "lid": "29768636432576@lid",
+    "imgUrl": "changed"
   }
 }

@@ -123,9 +123,25 @@
               "text": "[⏰ 06 Mei, 14.15]\nH-hei, iya. Itu *struktur database SQLite* yang pakai *mode WAL* seperti yang aku maksud. 🖼️\n\nKalau yang kamu kirim itu, ada file `auth.db` sebagai database utamanya, `auth.db-shm` untuk shared memory, sama `auth.db-wal` untuk log transaksi. Jadi, ya... kalau itu yang kamu maksud 'bentuk sesi', berarti sudah benar.\n\nEmangnya kenapa, Anda Siapa? Ada masalah atau apa?"
             }
           ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.17 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"coba\" | 👤 Anda Siapa?]\nWet"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.17]\nWet? Ap-apaan sih itu maksudnya? Jelasin yang bener dong, Anda Siapa. Aku nggak ngerti kalau cuma sepotong-sepotong gitu."
+            }
+          ]
         }
       ],
-      "lastActivity": 1778051750774
+      "lastActivity": 1778051852039
     }
   },
   "sticker_pattern": {
@@ -168,6 +184,11 @@
       "total_sent": 3,
       "moods": {},
       "last_sent": 1777992654
+    },
+    "https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-HONOLULU.webp": {
+      "total_sent": 1,
+      "moods": {},
+      "last_sent": 1778051850
     }
   },
   "sticker_story": {
@@ -556,6 +577,13 @@
         "context": "H-hei, iya. Itu *struktur database SQLite* yang pakai *mode WAL* seperti yang aku maksud. 🖼️ Kalau yang kamu kirim itu, ada file `auth.db` sebagai database utamanya, `auth.db-shm` untuk shared memor",
         "was_fallback": 0,
         "sent_at": 1778051746
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-HONOLULU.webp",
+        "mood": "",
+        "context": "Wet? Ap-apaan sih itu maksudnya? Jelasin yang bener dong, Anda Siapa. Aku nggak ngerti kalau cuma sepotong-sepotong gitu. [REPLY-STIKER: https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-",
+        "was_fallback": 0,
+        "sent_at": 1778051850
       }
     ]
   }

@@ -2217,7 +2217,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 const isReplyToMenu = m.isQuoted && (!pendingUpd.botMsgId || quotedId === pendingUpd.botMsgId);
                                 const rawChoice  = String(m.text || '').trim();
 
-                                if (isReplyToMenu && rawChoice && !m.command) {
+                                if (isReplyToMenu && rawChoice && !m.prefix) {
                                         if (pendingUpd.expiresAt <= Date.now()) {
                                                 pendingAlqUpdateChoices.delete(alqUpdKey);
                                                 await tolak(hisoka, m, '⏳ Menu sudah kedaluwarsa. Ketik `.alqupdate` lagi.');
@@ -2373,7 +2373,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 const isReplyToMenu = m.isQuoted && (!pendingAlq.botMsgId || quotedId === pendingAlq.botMsgId);
                                 const rawChoice  = String(m.text || '').trim();
 
-                                if (isReplyToMenu && rawChoice && !m.command) {
+                                if (isReplyToMenu && rawChoice && !m.prefix) {
                                         // Kedaluwarsa
                                         if (pendingAlq.expiresAt <= Date.now()) {
                                                 pendingAlqDlChoices.delete(alqKey);
