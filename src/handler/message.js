@@ -35,7 +35,7 @@ import { msToTime, loadConfig, saveConfig, getCaseName } from '../helper/utils.j
 import { stopAutoCleaner, restartAutoCleaner, cleanStaleSessionFiles, clearOldFiles, clearTmpFolder } from '../helper/cleaner.js';
 import { getUptimeFormatted, getBotStats } from '../db/botStats.js';
 import { logError, formatErrorReport, clearErrors, generateErrorFileTxt, getInfoErrorTxtPath, getErrorStats } from '../db/errorLog.js';
-import { startJadibot, startJadibotQR, stopJadibot, jadibotMap, pendingJadibotChoices, formatPairingCode, maskNumber, parseJadibotDuration, getJadibotExpiry, formatRemainingTime, getJadibotExpirySummary, cleanupExpiredJadibots, removeJadibotExpiry, setPermanentJadibot, ensureJadibotExpiry, extendJadibotExpiry, scheduleJadibotExpiry } from '../helper/jadibot.js';
+import { startJadibot, startJadibotQR, stopJadibot, jadibotMap, jadibotConnectedAt, pendingJadibotChoices, formatPairingCode, maskNumber, parseJadibotDuration, getJadibotExpiry, formatRemainingTime, getJadibotExpirySummary, cleanupExpiredJadibots, removeJadibotExpiry, setPermanentJadibot, ensureJadibotExpiry, extendJadibotExpiry, scheduleJadibotExpiry } from '../helper/jadibot.js';
 import { hasViewOnceCache, getViewOnceCache } from '../helper/voCache.js';
 import { isAntiTagSWEnabled, toggleAntiTagSW, resetWarnings, getWarnings } from './antitagsw.js';
 // yg bawah pindah ke sini
@@ -4735,10 +4735,12 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         // ── JADIBOT: tampilkan menu khusus tanpa thumbnail ──
                                         if (hisoka?.isMainBot === false) {
                                                 const jadibotNum = getJadibotNumber(hisoka);
-                                                const jadibotUptime = process.uptime();
-                                                const juh = Math.floor(jadibotUptime / 3600);
-                                                const jum = Math.floor((jadibotUptime % 3600) / 60);
-                                                const jus = Math.floor(jadibotUptime % 60);
+                                                const jadibotConnectTs = jadibotConnectedAt.get(jadibotNum) || Date.now();
+                                                const jadibotUptimeMs = Date.now() - jadibotConnectTs;
+                                                const jadibotUptimeSec = Math.floor(jadibotUptimeMs / 1000);
+                                                const juh = Math.floor(jadibotUptimeSec / 3600);
+                                                const jum = Math.floor((jadibotUptimeSec % 3600) / 60);
+                                                const jus = Math.floor(jadibotUptimeSec % 60);
                                                 const expSum = getJadibotExpirySummary(jadibotNum);
                                                 const masaAktifLine = expSum.status === 'permanent'
                                                         ? `♾️ *Masa Aktif* : Permanent`

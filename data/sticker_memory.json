@@ -222,5 +222,47 @@
     ],
     "seen_count": 1,
     "last_seen": 1777992681
+  },
+  "222dae0f437448cce0b1144da5792f41749b76a284e9602930c83fbfc8d0a2ee": {
+    "emotion": "ngambek",
+    "category": "meme ekspresi",
+    "description": "Stiker karakter anime dengan pipi menggembung dan ekspresi merajuk, disertai teks 'NGAMBEK'.",
+    "tags": [
+      "ngambek",
+      "merajuk",
+      "anime",
+      "meme",
+      "ekspresi"
+    ],
+    "seen_count": 1,
+    "last_seen": 1777995535
+  },
+  "7aaaaa6f74314619d0e36fc9ded5935d7b315884c54bdf0f6c95566c97220923": {
+    "emotion": "Menolak",
+    "category": "Meme, Anime",
+    "description": "Stiker meme ini menampilkan boneka plush karakter anime berambut pirang dengan ekspresi ketus dan tulisan 'NEIN' (Tidak) di sampingnya, menunjukkan penolakan.",
+    "tags": [
+      "Meme",
+      "Anime",
+      "Boneka",
+      "Penolakan",
+      "Nein"
+    ],
+    "seen_count": 1,
+    "last_seen": 1777995608
+  },
+  "748b728ac4a1fc63665b38f0b569de345fa0e9717f461c4919e08bfe70c98193": {
+    "emotion": "senang",
+    "category": "karakter",
+    "description": "Stiker karakter cangkir kopi berwarna putih dengan wajah tersenyum bahagia.",
+    "tags": [
+      "kopi",
+      "cangkir",
+      "senyum",
+      "karakter",
+      "lucu"
+    ],
+    "seen_count": 1,
+    "last_seen": 1777995705
   }
 }

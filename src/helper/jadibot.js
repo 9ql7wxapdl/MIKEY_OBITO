@@ -61,6 +61,7 @@ const JADIBOT_EXPIRY_WARNING_THRESHOLDS = [
 
 /* ================= STATE ================= */
 const jadibotMap = new Map()
+const jadibotConnectedAt = new Map()
 const startingSocketMap = new Map()
 const pairingRequested = new Set()
 const stoppingJadibot = new Set()
@@ -964,6 +965,7 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
       hasConnectedOnce = true
       const isFreshPairing = pairingRequested.has(number)
       jadibotMap.set(number, sock)
+      jadibotConnectedAt.set(number, Date.now())
       startingSocketMap.delete(number)
       pairingRequested.delete(number)
       if (durationMs === 'permanent') {
@@ -1217,6 +1219,7 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
     if (connection === 'open') {
       hasConnected = true
       jadibotMap.set(number, sock)
+      jadibotConnectedAt.set(number, Date.now())
       if (durationMs === 'permanent') {
         setPermanentJadibot(number, 'active')
       } else if (hasRequestedDuration) {
@@ -1459,6 +1462,7 @@ export {
   startJadibotQR,
   stopJadibot,
   jadibotMap,
+  jadibotConnectedAt,
   pendingJadibotChoices,
   formatPairingCode,
   maskNumber,

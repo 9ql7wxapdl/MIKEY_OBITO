@@ -865,7 +865,9 @@
     "id": "6285956660403@s.whatsapp.net",
     "name": "! Fadli",
     "lid": "176549462564879@lid",
-    "jid": "6285956660403@s.whatsapp.net"
+    "jid": "6285956660403@s.whatsapp.net",
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6285641568690@s.whatsapp.net": {
     "isContact": true,
@@ -12473,7 +12475,8 @@
     "id": "6281358906746@s.whatsapp.net",
     "name": "Staa Kaiser's Wife :› Lya",
     "lid": "246913492365535@lid",
-    "jid": "6281358906746@s.whatsapp.net"
+    "jid": "6281358906746@s.whatsapp.net",
+    "notify": "soy nurista  — 21's [ dont pm/rc ]"
   },
   "212773356578@s.whatsapp.net": {
     "isContact": true,
@@ -19414,7 +19417,8 @@
     "id": "6288226422521@s.whatsapp.net",
     "name": "√ Cindy",
     "lid": "131597797978351@lid",
-    "jid": "6288226422521@s.whatsapp.net"
+    "jid": "6288226422521@s.whatsapp.net",
+    "notify": "cynny."
   },
   "6283151413946@s.whatsapp.net": {
     "isContact": true,
@@ -21606,7 +21610,8 @@
     "id": "6287768752790@s.whatsapp.net",
     "name": "¥ Andini",
     "lid": "105420123283659@lid",
-    "jid": "6287768752790@s.whatsapp.net"
+    "jid": "6287768752790@s.whatsapp.net",
+    "notify": "dinni."
   },
   "6283863612151@s.whatsapp.net": {
     "isContact": true,
@@ -28227,7 +28232,8 @@
     "id": "6281549166315@s.whatsapp.net",
     "name": "kazuko・友",
     "lid": "215693693821070@lid",
-    "jid": "6281549166315@s.whatsapp.net"
+    "jid": "6281549166315@s.whatsapp.net",
+    "notify": "adien"
   },
   "628983572420@s.whatsapp.net": {
     "isContact": true,
@@ -31523,6 +31529,26 @@
   "188416507510912@lid": {
     "id": "188416507510912@lid",
     "lid": "188416507510912@lid",
+    "imgUrl": "changed"
+  },
+  "177305041240287@lid": {
+    "id": "177305041240287@lid",
+    "lid": "177305041240287@lid",
+    "imgUrl": "removed"
+  },
+  "81582920577063@lid": {
+    "id": "81582920577063@lid",
+    "lid": "81582920577063@lid",
+    "notify": "Wily"
+  },
+  "11506284548304@lid": {
+    "id": "11506284548304@lid",
+    "lid": "11506284548304@lid",
+    "imgUrl": "removed"
+  },
+  "255606522957828@lid": {
+    "id": "255606522957828@lid",
+    "lid": "255606522957828@lid",
     "imgUrl": "changed"
   }
 }

@@ -8,18 +8,18 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 05/05/2026, 09.15.16  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 06/05/2026, 06.10.48  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
   Total Jenis Error (unik)  : 4
-  Total Kejadian Error       : 7
+  Total Kejadian Error       : 11
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [4 jenis, 7 kejadian total]
+  DAFTAR ERROR LENGKAP  [4 jenis, 11 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
@@ -66,9 +66,9 @@
 │
 │  DETAIL
 │  Sumber      : console.error
-│  Frekuensi   : 2x (duplikat digabung)
+│  Frekuensi   : 4x (duplikat digabung)
 │  Pertama     : 05/05/2026, 08.09.24
-│  Terakhir    : 05/05/2026, 08.09.25
+│  Terakhir    : 06/05/2026, 06.10.48
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
@@ -84,9 +84,9 @@
 │
 │  DETAIL
 │  Sumber      : console.error
-│  Frekuensi   : 2x (duplikat digabung)
+│  Frekuensi   : 4x (duplikat digabung)
 │  Pertama     : 05/05/2026, 08.09.24
-│  Terakhir    : 05/05/2026, 08.09.25
+│  Terakhir    : 06/05/2026, 06.10.48
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
@@ -95,6 +95,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 4 jenis, 7 kejadian
-  Terakhir diperbarui: 05/05/2026, 09.15.16
+  End of Report  —  Total: 4 jenis, 11 kejadian
+  Terakhir diperbarui: 06/05/2026, 06.10.48
 ════════════════════════════════════════════════════════════════════════

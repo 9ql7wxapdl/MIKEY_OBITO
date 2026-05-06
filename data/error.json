@@ -23,18 +23,18 @@
       "source": "console.error",
       "message": "\u001b[31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.\u001b[39m",
       "stack": "Error: \u001b[31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.\u001b[39m\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at Timeout._onTimeout (file:///home/runner/workspace/src/helper/hotReload.js:102:29)",
-      "count": 2,
+      "count": 4,
       "firstSeen": "2026-05-05T08:09:24.667Z",
-      "lastSeen": "2026-05-05T08:09:25.790Z"
+      "lastSeen": "2026-05-06T06:10:48.566Z"
     },
     {
       "fingerprint": "console.error::\u001b[Nm[HotReload] Gagal load 'src/handler/message.js':\u001b[Nm The requested module '../helper/jadibot.js' does not provide an",
       "source": "console.error",
       "message": "\u001b[31m[HotReload] Gagal load 'src/handler/message.js':\u001b[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'",
       "stack": "Error: \u001b[31m[HotReload] Gagal load 'src/handler/message.js':\u001b[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)\n    at async Timeout._onTimeout (file:///home/runner/workspace/src/helper/hotReload.js:92:29)",
-      "count": 2,
+      "count": 4,
       "firstSeen": "2026-05-05T08:09:24.666Z",
-      "lastSeen": "2026-05-05T08:09:25.789Z"
+      "lastSeen": "2026-05-06T06:10:48.563Z"
     }
   ]
 }
