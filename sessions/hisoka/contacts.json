@@ -9593,7 +9593,8 @@
     "id": "6281374976765@s.whatsapp.net",
     "name": "√tita💅",
     "lid": "195713338183899@lid",
-    "jid": "6281374976765@s.whatsapp.net"
+    "jid": "6281374976765@s.whatsapp.net",
+    "notify": "."
   },
   "62895338417360@s.whatsapp.net": {
     "isContact": true,
@@ -26176,7 +26177,8 @@
     "id": "6287753663297@s.whatsapp.net",
     "name": "▫️Jihaa",
     "lid": "207417140891666@lid",
-    "jid": "6287753663297@s.whatsapp.net"
+    "jid": "6287753663297@s.whatsapp.net",
+    "notify": "𝐧"
   },
   "62895360707465@s.whatsapp.net": {
     "isContact": true,
@@ -31541,5 +31543,10 @@
     "id": "168616171438298@lid",
     "lid": "168616171438298@lid",
     "imgUrl": "changed"
+  },
+  "84636709445686@lid": {
+    "id": "84636709445686@lid",
+    "lid": "84636709445686@lid",
+    "notify": "F"
   }
 }
