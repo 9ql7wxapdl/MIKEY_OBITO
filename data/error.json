@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "alqdl_auto::Ep N: gagal resolve → Request failed with status code N",
+      "source": "alqdl_auto",
+      "message": "Ep 01: gagal resolve → Request failed with status code 404",
+      "stack": "Error: Ep 01: gagal resolve → Request failed with status code 404\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778054819065:2504:79)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-06T08:08:25.338Z",
+      "lastSeen": "2026-05-06T08:08:25.338Z"
+    },
+    {
+      "fingerprint": "ALQDL_AUTO::[ALQDL_AUTO] Error: Ep N: gagal resolve → Request failed with status code N",
+      "source": "ALQDL_AUTO",
+      "message": "[ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404",
+      "stack": "Error: [ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778054819065:2604:65)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-06T08:08:25.336Z",
+      "lastSeen": "2026-05-06T08:08:25.336Z"
+    },
+    {
       "fingerprint": "alqdl_auto::Request failed with status code N",
       "source": "alqdl_auto",
       "message": "Request failed with status code 403",

@@ -488,7 +488,7 @@ function formatAlqLinkMsg(animeTitle, ep, prefRes, resList) {
 }
 
 function pickBestAlqLink(links, preferredRes) {
-    const hostPriority = ['acefile', 'pixeldrain', 'mediafire'];
+    const hostPriority = ['pixeldrain', 'acefile', 'mediafire'];
     const resPriority = ['1080p', '720p', '480p', '360p'];
     function getBestHost(hosts) {
         if (!hosts?.length) return null;
@@ -2295,14 +2295,6 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 delete _require.cache[_dlPath];
                                                                 const { resolveDirectLink: alqResolve, downloadToTmp: alqDownload, formatSize: alqSize } = _require(_dlPath);
 
-                                                                // Deteksi ouo.io — tidak bisa di-bypass server-side, kirim link langsung
-                                                                if (isOuoLink(link.url)) {
-                                                                        const epResList = ['360p','480p','720p','1080p'].filter(r => ep.links[r]?.length);
-                                                                        await hisoka.sendMessage(m.from, { react: { text: '🔗', key: m.key } });
-                                                                        await hisoka.sendMessage(m.from, { text: formatAlqLinkMsg(detail.title, ep, prefRes, epResList) }, { quoted: m });
-                                                                        return;
-                                                                }
-
                                                                 const progMsg = await tolak(hisoka, m,
                                                                         `📥 *Mempersiapkan download...*\n🎌 ${detail.title}\n📺 Ep ${ep.episode} — ${link.res.toUpperCase()} (${link.host})`
                                                                 );
@@ -2484,15 +2476,6 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                                                 if (!link) {
                                                                         throw new Error(`Ep ${ep.episode}: tidak ada link untuk resolusi ${prefRes || 'apapun'}`);
-                                                                }
-
-                                                                // Deteksi ouo.io — tidak bisa di-bypass server-side, kirim link langsung
-                                                                if (isOuoLink(link.url)) {
-                                                                        const epResList = ['360p','480p','720p','1080p'].filter(r => ep.links[r]?.length);
-                                                                        await m.reply({ edit: progMsg.key, text: `🔗 *Link tersedia — ouo.io (buka di browser)*` });
-                                                                        await hisoka.sendMessage(m.from, { text: formatAlqLinkMsg(pendingAlq.animeTitle, ep, prefRes, epResList) }, { quoted: m });
-                                                                        tmpFiles.push({ file: null, fileName: 'link_only', ep: ep.episode, host: 'ouo.io', sizeStr: '-' });
-                                                                        continue;
                                                                 }
 
                                                                 // Resolve direct link
@@ -4490,18 +4473,6 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         const parts   = input.split(/\s+/);
                                         const rawUrl  = parts[0];
                                         const wantZip = parts.slice(1).some(p => p.toLowerCase() === 'zip');
-
-                                        // ouo.io tidak bisa di-resolve server-side dari Replit (diblok Cloudflare)
-                                        if (isOuoLink(rawUrl)) {
-                                                await hisoka.sendMessage(m.from, { react: { text: '🔗', key: m.key } });
-                                                await tolak(hisoka, m,
-                                                        `🔗 *Link ouo.io tidak bisa didownload otomatis*\n\n` +
-                                                        `❌ Server bot diblokir oleh ouo.io.\n\n` +
-                                                        `📌 *Buka link ini di browser kamu:*\n${rawUrl}\n\n` +
-                                                        `⚠️ _Klik "I'm Human" lalu download manual_`
-                                                );
-                                                break;
-                                        }
 
                                         const _dlPath = path.resolve('./src/scrape/alqanime-dl.cjs');
                                         delete _require.cache[_dlPath];
