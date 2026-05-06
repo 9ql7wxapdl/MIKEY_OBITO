@@ -4735,7 +4735,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         // ── JADIBOT: tampilkan menu khusus tanpa thumbnail ──
                                         if (hisoka?.isMainBot === false) {
                                                 const jadibotNum = getJadibotNumber(hisoka);
-                                                const jadibotConnectTs = jadibotConnectedAt.get(jadibotNum) || Date.now();
+                                                const jadibotConnectTs = jadibotConnectedAt.get(jadibotNum) || getJadibotExpiry(jadibotNum)?.connectedAt || Date.now();
                                                 const jadibotUptimeMs = Date.now() - jadibotConnectTs;
                                                 const jadibotUptimeSec = Math.floor(jadibotUptimeMs / 1000);
                                                 const juh = Math.floor(jadibotUptimeSec / 3600);

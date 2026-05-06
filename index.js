@@ -50,7 +50,7 @@ import { getCaseName, loadConfig } from './src/helper/utils.js';
 import { MemoryMonitor } from './src/helper/memoryMonitor.js';
 import { getPhoneRegion, formatPhoneWithRegion } from './src/helper/phoneRegion.js';
 import { ensureTmpDir, startAutoCleaner, stopAutoCleaner, restartAutoCleaner, cleanStaleSessionFiles } from './src/helper/cleaner.js'; // ini baru
-import { startJadibot, jadibotMap, purgeExpiredJadibotSessions, getJadibotExpiry, formatRemainingTime, pauseAllJadibotTimers, resumeAllJadibotTimers } from './src/helper/jadibot.js';
+import { startJadibot, jadibotMap, purgeExpiredJadibotSessions, getJadibotExpiry, formatRemainingTime, pauseAllJadibotTimers, resumeAllJadibotTimers, restoreConnectedAtMap } from './src/helper/jadibot.js';
 import { safeGetPNForLID } from './src/helper/socketCompat.js';
 import { saveViewOnceCache, cleanOldViewOnceCache, hasViewOnceCache } from './src/helper/voCache.js';
 // ini baru - yg bawah pindah ke sini
@@ -695,6 +695,7 @@ setTimeout(() => {
   if (!fs.existsSync(jadibotDir)) return;
 
   resumeAllJadibotTimers();
+  restoreConnectedAtMap();
   const expiredBots = purgeExpiredJadibotSessions();
 
   const bots = fs.readdirSync(jadibotDir).filter(name => {

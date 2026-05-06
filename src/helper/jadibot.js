@@ -416,6 +416,23 @@ function updateJadibotExpiryStatus(number, status) {
   return data.bots[number]
 }
 
+function persistConnectedAt(number, ts) {
+  number = String(number || '').replace(/[^0-9]/g, '')
+  const data = loadJadibotRealtimeData()
+  if (!data.bots[number]) return
+  data.bots[number].connectedAt = ts
+  saveJadibotRealtimeData(data)
+}
+
+function restoreConnectedAtMap() {
+  const data = loadJadibotRealtimeData()
+  for (const [number, meta] of Object.entries(data.bots || {})) {
+    if (meta?.connectedAt && !jadibotConnectedAt.has(number)) {
+      jadibotConnectedAt.set(number, Number(meta.connectedAt))
+    }
+  }
+}
+
 function removeJadibotExpiry(number) {
   number = String(number || '').replace(/[^0-9]/g, '')
   if (expiryTimers.has(number)) {
@@ -964,8 +981,10 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
     if (connection === 'open') {
       hasConnectedOnce = true
       const isFreshPairing = pairingRequested.has(number)
+      const _connectTs = Date.now()
       jadibotMap.set(number, sock)
-      jadibotConnectedAt.set(number, Date.now())
+      jadibotConnectedAt.set(number, _connectTs)
+      persistConnectedAt(number, _connectTs)
       startingSocketMap.delete(number)
       pairingRequested.delete(number)
       if (durationMs === 'permanent') {
@@ -1218,8 +1237,10 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
     /* ===== CONNECTED ===== */
     if (connection === 'open') {
       hasConnected = true
+      const _connectTs = Date.now()
       jadibotMap.set(number, sock)
-      jadibotConnectedAt.set(number, Date.now())
+      jadibotConnectedAt.set(number, _connectTs)
+      persistConnectedAt(number, _connectTs)
       if (durationMs === 'permanent') {
         setPermanentJadibot(number, 'active')
       } else if (hasRequestedDuration) {
@@ -1480,5 +1501,6 @@ export {
   updateJadibotExpiryStatus,
   scheduleJadibotExpiry,
   pauseAllJadibotTimers,
-  resumeAllJadibotTimers
+  resumeAllJadibotTimers,
+  restoreConnectedAtMap
 }
