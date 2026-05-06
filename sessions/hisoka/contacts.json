@@ -23795,7 +23795,8 @@
     "id": "6281337711694@s.whatsapp.net",
     "name": "! Wira V2",
     "lid": "249516745867409@lid",
-    "jid": "6281337711694@s.whatsapp.net"
+    "jid": "6281337711694@s.whatsapp.net",
+    "notify": "."
   },
   "62895619428857@s.whatsapp.net": {
     "isContact": true,
@@ -25216,7 +25217,8 @@
     "id": "6281393564657@s.whatsapp.net",
     "name": "Yus ( Donasi Jadi Bot )",
     "lid": "174577888038922@lid",
-    "jid": "6281393564657@s.whatsapp.net"
+    "jid": "6281393564657@s.whatsapp.net",
+    "notify": "γυς ρου"
   },
   "6283147747888@s.whatsapp.net": {
     "isContact": true,
@@ -31454,5 +31456,55 @@
     "id": "99111017681140@lid",
     "lid": "99111017681140@lid",
     "imgUrl": "changed"
+  },
+  "272992718352503@lid": {
+    "id": "272992718352503@lid",
+    "lid": "272992718352503@lid",
+    "imgUrl": "removed"
+  },
+  "157260563095773@lid": {
+    "id": "157260563095773@lid",
+    "lid": "157260563095773@lid",
+    "imgUrl": "changed"
+  },
+  "85401414947016@lid": {
+    "id": "85401414947016@lid",
+    "lid": "85401414947016@lid",
+    "imgUrl": "removed"
+  },
+  "169810138779863@lid": {
+    "id": "169810138779863@lid",
+    "lid": "169810138779863@lid",
+    "imgUrl": "changed"
+  },
+  "16669019770978@lid": {
+    "id": "16669019770978@lid",
+    "lid": "16669019770978@lid",
+    "imgUrl": "removed"
+  },
+  "146827986874463@lid": {
+    "id": "146827986874463@lid",
+    "lid": "146827986874463@lid",
+    "imgUrl": "removed"
+  },
+  "176549462564879@lid": {
+    "id": "176549462564879@lid",
+    "lid": "176549462564879@lid",
+    "notify": "Cosmouz"
+  },
+  "188716853289015@lid": {
+    "id": "188716853289015@lid",
+    "lid": "188716853289015@lid",
+    "imgUrl": "changed"
+  },
+  "54327360094461@lid": {
+    "id": "54327360094461@lid",
+    "lid": "54327360094461@lid",
+    "imgUrl": "changed"
+  },
+  "28982489649336@lid": {
+    "id": "28982489649336@lid",
+    "lid": "28982489649336@lid",
+    "imgUrl": "removed"
   }
 }
