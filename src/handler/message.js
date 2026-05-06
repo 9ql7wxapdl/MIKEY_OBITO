@@ -10161,11 +10161,31 @@ infoText += `╰═════════════════════�
                                                 expireText = `${expHari}, ${expTanggal} | ${expWaktu} WIB`;
                                         }
 
+                                        const connectedTs = jadibotConnectedAt.get(num) || Number(meta?.connectedAt) || 0;
+                                        let onlineLine = '';
+                                        if (connectedTs > 0) {
+                                                const onlineMs = now - connectedTs;
+                                                const onlineSec = Math.max(0, Math.floor(onlineMs / 1000));
+                                                const onlineH = Math.floor(onlineSec / 3600);
+                                                const onlineM = Math.floor((onlineSec % 3600) / 60);
+                                                const onlineS = onlineSec % 60;
+                                                const durasiStr = onlineH > 0
+                                                        ? `${onlineH}j ${onlineM}m`
+                                                        : onlineM > 0
+                                                                ? `${onlineM}m ${onlineS}d`
+                                                                : `${onlineS}d`;
+                                                const sejakDate = new Date(connectedTs);
+                                                const sejakWaktu = sejakDate.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' }).replace(/\./g, ':');
+                                                const sejakTgl = sejakDate.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', timeZone: 'Asia/Jakarta' });
+                                                onlineLine = `\n   Online : ${durasiStr} (sejak ${sejakTgl} ${sejakWaktu} WIB)`;
+                                        }
+
                                         return (
                                                 `${i + 1}. *+${num}*${statusTag}\n` +
                                                 `   Nama   : ${namaUser}\n` +
                                                 `   Sisa   : ${info.remaining}\n` +
-                                                `   Expire : ${expireText}`
+                                                `   Expire : ${expireText}` +
+                                                onlineLine
                                         );
                                 }).join('\n\n');
 
