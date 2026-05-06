@@ -1,5 +1,12 @@
 {
   "name": "Anda Siapa?",
   "updatedAt": "2026-05-05T08:49:17.579Z",
-  "firstSeen": "2026-05-05T08:49:17.579Z"
+  "firstSeen": "2026-05-05T08:49:17.579Z",
+  "aiMemory": {
+    "style": null,
+    "nickname": null,
+    "lang": null,
+    "lastUpdated": "2026-05-06T07:15:27.631Z",
+    "msgCount": 1
+  }
 }

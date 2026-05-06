@@ -5293,7 +5293,9 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.rvo*
 ├➤ *.s*
 ├➤ *.stickerly*
+├➤ *.stickerpack [query]*
 ├➤ *.toimg*
+├➤ *.react / .reaksi [reply pesan]*
 ├➤ *.listgroup*
 ├➤ *.group*
 ├➤ *.welcome on/off*
@@ -5303,7 +5305,9 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ╭─「 📡 *STATUS* 」
 │
 ├➤ *.upswgc*
-╰➤ *.antitagsw*
+├➤ *.antitagsw*
+├➤ *.sw / .getsw*
+╰➤ *.sendstatus / .swgc [reply media]*
 
 ╭─「 🔍 *INFO & CEK* 」
 │
@@ -5335,6 +5339,37 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.hd / .remini / .hdr*
 ╰➤ *.hdvid / .vidhd / .hdvideo*
 
+╭─「 🎌 *ANIME* 」
+│
+├➤ *.kusonime / .anime [judul]*
+├➤ *.kusonimeupdate*
+├➤ *.alq / .alqanime [judul]*
+├➤ *.alqupdate*
+╰➤ *.alqdl [link]*
+
+╭─「 🔞 *NHENTAI* 」
+│
+├➤ *.nh / .nhentai [judul/kode]*
+├➤ *.nhget [id]*
+├➤ *.nhrand*
+╰➤ *.nhdl [id]*
+
+╭─「 🤖 *AI CHAT* 」
+│
+├➤ *.ai / .tanya [pesan]*
+├➤ *.mymemory*
+╰➤ *.forgetme*
+
+╭─「 🌐 *WEB & TEMP MAIL* 」
+│
+├➤ *.ss / .screenshot [link]*
+├➤ *.ssweb / .webinfo [link]*
+├➤ *.tmail / .tempmail*
+├➤ *.tminbox*
+├➤ *.tmread [id]*
+├➤ *.tmwait*
+╰➤ *.tmdel*
+
 ╭─「 🤖 *JADIBOT* 」
 │
 ├➤ *.jadibot*
@@ -5347,6 +5382,11 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.backup / .ceksesi / .eval / .bash*
 ├➤ *.addemoji / .delemoji / .listemoji*
 ├➤ *.wily / .simi / .wilyai*
+├➤ *.upbot*
+├➤ *.dbstats / .sessiondb*
+├➤ *.listcontact*
+├➤ *.all [teks]*
+├➤ *.ac / .acv*
 ╰➤ *.cekerror / .contact*
 
 ▸▸▸━━━━━━━━━━━━━━━━━━━━◂◂◂
@@ -5466,9 +5506,38 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.hd / .remini / .hdr*
 ├➤ *.hdvid / .vidhd / .hdvideo*
 │
-├➤ *.react*
+├➤ *.react / .reaksi [reply pesan]*
 ├➤ *.cekreact*
 ├➤ *.setreactapi*
+│
+├➤ *.kusonime / .anime [judul]*
+├➤ *.kusonimeupdate*
+├➤ *.alq / .alqanime [judul]*
+├➤ *.alqupdate*
+├➤ *.alqdl [link]*
+│
+├➤ *.nh / .nhentai [judul/kode]*
+├➤ *.nhget [id]*
+├➤ *.nhrand*
+├➤ *.nhdl [id]*
+│
+├➤ *.ai / .tanya [pesan]*
+├➤ *.mymemory / .myprofile*
+├➤ *.forgetme / .resetmemory*
+│
+├➤ *.ss / .screenshot [link]*
+├➤ *.ssweb / .webinfo [link]*
+│
+├➤ *.tmail / .tempmail*
+├➤ *.tminbox*
+├➤ *.tmread [id]*
+├➤ *.tmwait*
+├➤ *.tmdel*
+│
+├➤ *.sw / .getsw*
+├➤ *.sendstatus / .swgc [reply media]*
+│
+├➤ *.stickerpack [query]*
 │
 ├➤ *.jadibot*
 ├➤ *.stopbot*
@@ -5489,6 +5558,11 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.ceksesi*
 ├➤ *.eval*
 ├➤ *.bash*
+├➤ *.upbot*
+├➤ *.dbstats / .sessiondb*
+├➤ *.listcontact*
+├➤ *.all [teks]*
+├➤ *.ac / .acv*
 ╰➤ *.cekerror*
 
 `;
@@ -5555,7 +5629,10 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.quoted*
 ├➤ *.rvo*
 ├➤ *.s*
+├➤ *.stickerly [query/link]*
+├➤ *.stickerpack [query]*
 ├➤ *.toimg*
+├➤ *.react / .reaksi [reply pesan]*
 ├➤ *.listgroup*
 ╰➤ *.group*
 
@@ -5587,7 +5664,11 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.antitagsw on*
 ├➤ *.antitagsw off*
 ├➤ *.antitagsw reset*
-╰➤ *.antitagsw status*
+├➤ *.antitagsw status*
+├➤ *.sw / .getsw*
+│   _Reply story/status → ambil medianya_
+╰➤ *.sendstatus / .swgc [reply media]*
+   _Kirim status ke semua kontak/grup_
 
 `;
 
@@ -5621,7 +5702,13 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.play [judul/link]*
 ├➤ *.stickerly [query/link]*
 ├➤ *.hd / .remini / .hdr*
-╰➤ *.hdvid / .vidhd / .hdvideo*
+├➤ *.hdvid / .vidhd / .hdvideo*
+│
+├➤ *.kusonime / .anime [judul]*
+├➤ *.kusonimeupdate*
+├➤ *.alq / .alqanime [judul]*
+├➤ *.alqupdate*
+╰➤ *.alqdl [link]*
 
 `;
 
@@ -5681,6 +5768,7 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.backup*
 ├➤ *.eval [kode]*
 ├➤ *.bash [perintah]*
+├➤ *.ceksesi*
 ├➤ *.addemoji*
 ├➤ *.delemoji*
 ├➤ *.listemoji*
@@ -5693,6 +5781,12 @@ _memberikan pengalaman terbaik!"_ ✨
 │   ├ .wilyai replay on/off
 │   ├ .wilyai pm | gc | all
 │   ╰ .wilyai reset
+├➤ *.upbot*
+├➤ *.dbstats / .sessiondb*
+├➤ *.listcontact*
+├➤ *.all [teks]*
+├➤ *.ac [nomor]*
+├➤ *.acv [nomor]*
 ╰➤ *.contact*
 
 `;

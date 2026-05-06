@@ -105,6 +105,27 @@
         }
       ],
       "lastActivity": 1777995778772
+    },
+    "6283134844523@s.whatsapp.net_120363383540766761@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.15 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"Yg db v14 itu kan?\" | 📎 KIRIM GAMBAR | 👤 Anda Siapa?]\nYg kek gini bentuk sesi nya"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.15]\nH-hei, iya. Itu *struktur database SQLite* yang pakai *mode WAL* seperti yang aku maksud. 🖼️\n\nKalau yang kamu kirim itu, ada file `auth.db` sebagai database utamanya, `auth.db-shm` untuk shared memory, sama `auth.db-wal` untuk log transaksi. Jadi, ya... kalau itu yang kamu maksud 'bentuk sesi', berarti sudah benar.\n\nEmangnya kenapa, Anda Siapa? Ada masalah atau apa?"
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778051750774
     }
   },
   "sticker_pattern": {
@@ -119,9 +140,9 @@
       "last_sent": 1777992895
     },
     "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp": {
-      "total_sent": 24,
+      "total_sent": 25,
       "moods": {},
-      "last_sent": 1777995776
+      "last_sent": 1778051746
     },
     "https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef2153a-HONOLULU.webp": {
       "total_sent": 1,
@@ -526,6 +547,15 @@
         "context": "H-hei, kamu serius mau dijelasin? Ugh, ya sudah. Bukan karena aku mau bantu kamu paham ya. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] > Ini *sticker",
         "was_fallback": 0,
         "sent_at": 1777995776
+      }
+    ],
+    "6283134844523@s.whatsapp.net_120363383540766761@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, iya. Itu *struktur database SQLite* yang pakai *mode WAL* seperti yang aku maksud. 🖼️ Kalau yang kamu kirim itu, ada file `auth.db` sebagai database utamanya, `auth.db-shm` untuk shared memor",
+        "was_fallback": 0,
+        "sent_at": 1778051746
       }
     ]
   }
