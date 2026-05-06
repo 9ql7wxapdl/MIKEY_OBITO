@@ -653,6 +653,7 @@ async function buildSmartImageHistoryReply({ userQuestion, query, images = [], c
 
 const pendingPlayChoices = new Map();
 const pendingAlqDlChoices = new Map();
+const pendingAlqUpdateChoices = new Map();
 const aiReplyCooldown = new Map(); // sender → last reply timestamp
 const AI_COOLDOWN_MS = 3000; // 3 detik cooldown per user
 
@@ -2203,6 +2204,162 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 `⏱️ Singkatan: m=menit, j=jam, h=hari, p=permanent`
                                         );
                                         return;
+                                }
+                        }
+                }
+
+                // ── Handle pending alqupdate list choice ──
+                {
+                        const alqUpdKey = getJadibotChoiceKey(m);
+                        if (pendingAlqUpdateChoices.has(alqUpdKey)) {
+                                const pendingUpd = pendingAlqUpdateChoices.get(alqUpdKey);
+                                const quotedId   = getQuotedStanzaId(m);
+                                const isReplyToMenu = m.isQuoted && (!pendingUpd.botMsgId || quotedId === pendingUpd.botMsgId);
+                                const rawChoice  = String(m.text || '').trim();
+
+                                if (isReplyToMenu && rawChoice && !m.command) {
+                                        if (pendingUpd.expiresAt <= Date.now()) {
+                                                pendingAlqUpdateChoices.delete(alqUpdKey);
+                                                await tolak(hisoka, m, '⏳ Menu sudah kedaluwarsa. Ketik `.alqupdate` lagi.');
+                                                return;
+                                        }
+                                        if (/^(batal|cancel)$/i.test(rawChoice)) {
+                                                if (pendingUpd.timeout) clearTimeout(pendingUpd.timeout);
+                                                pendingAlqUpdateChoices.delete(alqUpdKey);
+                                                await tolak(hisoka, m, '✅ Dibatalkan.');
+                                                return;
+                                        }
+
+                                        const updMatch = rawChoice.match(/^(\d+)(?:\s+(360p|480p|720p|1080p))?$/i);
+                                        if (updMatch) {
+                                                if (pendingUpd.timeout) clearTimeout(pendingUpd.timeout);
+                                                pendingAlqUpdateChoices.delete(alqUpdKey);
+
+                                                const chosenIdx = parseInt(updMatch[1], 10) - 1;
+                                                const prefRes   = (updMatch[2] || '').toLowerCase() || null;
+                                                const items     = pendingUpd.items;
+
+                                                if (chosenIdx < 0 || chosenIdx >= items.length) {
+                                                        await tolak(hisoka, m, `❌ Nomor tidak valid. Pilih 1–${items.length}.`);
+                                                        return;
+                                                }
+
+                                                const chosen = items[chosenIdx];
+                                                await hisoka.sendMessage(m.from, { react: { text: '📡', key: m.key } });
+                                                await tolak(hisoka, m, `📡 Mengambil detail *${chosen.title}*...`);
+
+                                                try {
+                                                        const _alqPath = path.resolve('./src/scrape/alqanime.cjs');
+                                                        delete _require.cache[_alqPath];
+                                                        const { getDetailAlqanime } = _require(_alqPath);
+                                                        const detail = await getDetailAlqanime(chosen.url);
+                                                        const eps    = detail.episodes || [];
+
+                                                        if (!eps.length) {
+                                                                await tolak(hisoka, m, `❌ Tidak ada episode/link download ditemukan untuk *${detail.title}*.`);
+                                                                return;
+                                                        }
+
+                                                        // Jika ada resolusi pilihan dan hanya 1 episode terbaru → langsung download
+                                                        if (prefRes && eps.length === 1) {
+                                                                const ep   = eps[0];
+                                                                const link = pickBestAlqLink(ep.links, prefRes);
+                                                                if (!link) {
+                                                                        await tolak(hisoka, m, `❌ Resolusi *${prefRes.toUpperCase()}* tidak tersedia. Coba resolusi lain.`);
+                                                                        return;
+                                                                }
+
+                                                                const _dlPath = path.resolve('./src/scrape/alqanime-dl.cjs');
+                                                                delete _require.cache[_dlPath];
+                                                                const { resolveDirectLink: alqResolve, downloadToTmp: alqDownload, formatSize: alqSize } = _require(_dlPath);
+
+                                                                const progMsg = await tolak(hisoka, m,
+                                                                        `📥 *Mempersiapkan download...*\n🎌 ${detail.title}\n📺 Ep ${ep.episode} — ${link.res.toUpperCase()} (${link.host})`
+                                                                );
+                                                                const tmpDir  = path.join(process.cwd(), 'tmp');
+                                                                let resolved;
+                                                                try {
+                                                                        resolved = await alqResolve(link.url);
+                                                                } catch (re) {
+                                                                        await m.reply({ edit: progMsg.key, text: `❌ Gagal resolve link: ${re.message}` });
+                                                                        return;
+                                                                }
+                                                                const { directUrl, fileName, host, size } = resolved;
+                                                                const sizeStr = alqSize(size);
+                                                                const MAX_BYTES = 1.9 * 1024 * 1024 * 1024;
+                                                                if (size && size > MAX_BYTES) {
+                                                                        await m.reply({ edit: progMsg.key, text: `❌ File terlalu besar (${sizeStr}). Maks ~1.9 GB.` });
+                                                                        return;
+                                                                }
+                                                                await m.reply({ edit: progMsg.key, text: `📥 *Download Ep ${ep.episode}*\n📄 ${fileName}\n💾 ${sizeStr} | 🏠 ${host}\n[░░░░░░░░░░] 0%` });
+                                                                const tmpFile = path.join(tmpDir, `alqupd_${Date.now()}_${fileName}`);
+                                                                try {
+                                                                        await alqDownload(directUrl, tmpFile, async (done, total, pct) => {
+                                                                                const bar = '█'.repeat(Math.round(pct / 10)) + '░'.repeat(10 - Math.round(pct / 10));
+                                                                                try { await m.reply({ edit: progMsg.key, text: `📥 *Download Ep ${ep.episode}*\n📄 ${fileName}\n💾 ${sizeStr} | 🏠 ${host}\n[${bar}] ${pct}% (${alqSize(done)})` }); } catch (_) {}
+                                                                        });
+                                                                        await m.reply({ edit: progMsg.key, text: `📤 Mengirim file...` });
+                                                                        const fileBuf = fs.readFileSync(tmpFile);
+                                                                        const ext     = path.extname(fileName).toLowerCase();
+                                                                        const isVid   = ['.mp4', '.mkv', '.avi', '.webm'].includes(ext);
+                                                                        if (isVid) {
+                                                                                await hisoka.sendMessage(m.from, { video: fileBuf, mimetype: 'video/mp4', fileName, caption: `🎬 *${detail.title}*\n📺 Episode ${ep.episode}\n💾 ${sizeStr} | 🏠 ${host}` }, { quoted: m });
+                                                                        } else {
+                                                                                await hisoka.sendMessage(m.from, { document: fileBuf, mimetype: 'application/octet-stream', fileName, caption: `📄 *${fileName}*\n💾 ${sizeStr}` }, { quoted: m });
+                                                                        }
+                                                                        await m.reply({ edit: progMsg.key, text: `✅ *Selesai!*\n📄 ${fileName}\n💾 ${sizeStr} | 🏠 ${host}` });
+                                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                                } finally {
+                                                                        try { if (fs.existsSync(tmpFile)) fs.unlinkSync(tmpFile); } catch (_) {}
+                                                                }
+                                                                return;
+                                                        }
+
+                                                        // Tampilkan episode menu & daftarkan ke pendingAlqDlChoices
+                                                        const allRes = new Set();
+                                                        for (const ep of eps) for (const r of Object.keys(ep.links)) if (r !== 'batch') allRes.add(r);
+                                                        const resList = ['360p','480p','720p','1080p'].filter(r => allRes.has(r));
+
+                                                        let dlMenu = `📥 *PILIH EPISODE & RESOLUSI*\n`;
+                                                        dlMenu += `━━━━━━━━━━━━━━━━━━━\n`;
+                                                        dlMenu += `🎌 *${detail.title}*\n\n`;
+                                                        dlMenu += `*Daftar Episode (${eps.length}):*\n`;
+                                                        const maxShow = Math.min(eps.length, 15);
+                                                        eps.slice(0, maxShow).forEach((ep, i) => {
+                                                                const epRes = Object.keys(ep.links).filter(r => r !== 'batch');
+                                                                dlMenu += `${i + 1}. Ep ${ep.episode}`;
+                                                                if (epRes.length) dlMenu += ` _(${epRes.join('/')})_`;
+                                                                dlMenu += `\n`;
+                                                        });
+                                                        if (eps.length > maxShow) dlMenu += `_...dan ${eps.length - maxShow} episode lainnya_\n`;
+                                                        dlMenu += `\n`;
+                                                        if (resList.length) dlMenu += `📺 Resolusi: *${resList.join(' | ')}*\n`;
+                                                        dlMenu += `\n━━━━━━━━━━━━━━━━━━━\n`;
+                                                        dlMenu += `📌 *Reply pesan ini:*\n`;
+                                                        dlMenu += `• *1 720p* — 1 episode, kirim video\n`;
+                                                        dlMenu += `• *1-3 480p* — batch ep 1-3 (ZIP)\n`;
+                                                        dlMenu += `• *all 360p* — semua episode (ZIP)\n`;
+                                                        dlMenu += `⏳ Menu berlaku *5 menit*`;
+
+                                                        const menuMsg = await hisoka.sendMessage(m.from, { text: dlMenu }, { quoted: m });
+                                                        const oldAlq  = pendingAlqDlChoices.get(alqUpdKey);
+                                                        if (oldAlq?.timeout) clearTimeout(oldAlq.timeout);
+                                                        const alqTimeout = setTimeout(() => pendingAlqDlChoices.delete(alqUpdKey), 5 * 60 * 1000);
+                                                        pendingAlqDlChoices.set(alqUpdKey, {
+                                                                animeTitle: detail.title,
+                                                                episodes: eps,
+                                                                botMsgId: menuMsg?.key?.id || '',
+                                                                expiresAt: Date.now() + 5 * 60 * 1000,
+                                                                timeout: alqTimeout,
+                                                        });
+                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                } catch (err) {
+                                                        console.error('[ALQUPDATE_CHOICE] Error:', err?.message);
+                                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'alqupdate_choice');
+                                                        await tolak(hisoka, m, `❌ Gagal ambil detail.\n💬 ${err?.message?.slice(0, 120) || 'Coba lagi nanti'}`);
+                                                }
+                                                return;
+                                        }
                                 }
                         }
                 }
@@ -4214,16 +4371,33 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 break;
                                         }
 
+                                        const showItems = items.slice(0, 15);
                                         let text = `🎌 *Rilisan Terbaru — Alqanime*\n`;
                                         text += `━━━━━━━━━━━━━━━━━━━\n`;
-                                        items.slice(0, 15).forEach((a, i) => {
-                                                text += `${i + 1}. ${a.title}\n    🔗 ${a.url}\n`;
+                                        showItems.forEach((a, i) => {
+                                                text += `${i + 1}. ${a.title}\n`;
                                         });
                                         text += `━━━━━━━━━━━━━━━━━━━\n`;
-                                        text += `🌐 alqanime.net`;
+                                        text += `🌐 alqanime.net\n\n`;
+                                        text += `📌 *Reply pesan ini:*\n`;
+                                        text += `• *1* — lihat episode & pilih resolusi\n`;
+                                        text += `• *1 720p* — langsung download ep terbaru 720p\n`;
+                                        text += `• *batal* — batalkan\n`;
+                                        text += `⏳ Menu berlaku *5 menit*`;
 
-                                        await tolak(hisoka, m, text);
+                                        const updMenuMsg = await hisoka.sendMessage(m.from, { text }, { quoted: m });
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                        const alqUpdKey2 = getJadibotChoiceKey(m);
+                                        const oldUpd = pendingAlqUpdateChoices.get(alqUpdKey2);
+                                        if (oldUpd?.timeout) clearTimeout(oldUpd.timeout);
+                                        const updTimeout = setTimeout(() => pendingAlqUpdateChoices.delete(alqUpdKey2), 5 * 60 * 1000);
+                                        pendingAlqUpdateChoices.set(alqUpdKey2, {
+                                                items: showItems,
+                                                botMsgId: updMenuMsg?.key?.id || '',
+                                                expiresAt: Date.now() + 5 * 60 * 1000,
+                                                timeout: updTimeout,
+                                        });
 
                                 } catch (err) {
                                         console.error('[ALQUPDATE] Error:', err?.message);
