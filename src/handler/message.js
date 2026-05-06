@@ -465,6 +465,26 @@ function getJadibotChoiceKey(m) {
     return `${m.from}:${m.sender}`;
 }
 
+function pickBestAlqLink(links, preferredRes) {
+    const hostPriority = ['pixeldrain', 'mediafire'];
+    const resPriority = ['1080p', '720p', '480p', '360p'];
+    function getBestHost(hosts) {
+        if (!hosts?.length) return null;
+        return hosts.find(h => hostPriority.some(hp => h.host.toLowerCase().includes(hp))) || hosts[0];
+    }
+    if (preferredRes && links[preferredRes]?.length) {
+        const h = getBestHost(links[preferredRes]);
+        return h ? { url: h.url, host: h.host, res: preferredRes } : null;
+    }
+    for (const r of resPriority) {
+        if (links[r]?.length) {
+            const h = getBestHost(links[r]);
+            if (h) return { url: h.url, host: h.host, res: r };
+        }
+    }
+    return null;
+}
+
 function isNoSpaceError(error) {
     const message = String(error?.message || error || '').toLowerCase();
     return error?.code === 'ENOSPC' || message.includes('enospc') || message.includes('no space left on device');
@@ -632,6 +652,7 @@ async function buildSmartImageHistoryReply({ userQuestion, query, images = [], c
 }
 
 const pendingPlayChoices = new Map();
+const pendingAlqDlChoices = new Map();
 const aiReplyCooldown = new Map(); // sender → last reply timestamp
 const AI_COOLDOWN_MS = 3000; // 3 detik cooldown per user
 
@@ -2182,6 +2203,214 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 `⏱️ Singkatan: m=menit, j=jam, h=hari, p=permanent`
                                         );
                                         return;
+                                }
+                        }
+                }
+
+                // ── Handle pending alqanime download choice ──
+                {
+                        const alqKey = getJadibotChoiceKey(m);
+                        if (pendingAlqDlChoices.has(alqKey)) {
+                                const pendingAlq = pendingAlqDlChoices.get(alqKey);
+                                const quotedId   = getQuotedStanzaId(m);
+                                const isReplyToMenu = m.isQuoted && (!pendingAlq.botMsgId || quotedId === pendingAlq.botMsgId);
+                                const rawChoice  = String(m.text || '').trim();
+
+                                if (isReplyToMenu && rawChoice && !m.command) {
+                                        // Kedaluwarsa
+                                        if (pendingAlq.expiresAt <= Date.now()) {
+                                                pendingAlqDlChoices.delete(alqKey);
+                                                await tolak(hisoka, m, '⏳ Menu download sudah kedaluwarsa. Ketik `.alq` lagi.');
+                                                return;
+                                        }
+                                        // Batalkan
+                                        if (/^(batal|cancel)$/i.test(rawChoice)) {
+                                                if (pendingAlq.timeout) clearTimeout(pendingAlq.timeout);
+                                                pendingAlqDlChoices.delete(alqKey);
+                                                await tolak(hisoka, m, '✅ Download dibatalkan.');
+                                                return;
+                                        }
+                                        // Cegah double-process
+                                        if (pendingAlq.downloading) {
+                                                await tolak(hisoka, m, '⏳ Sedang memproses download sebelumnya, harap tunggu...');
+                                                return;
+                                        }
+
+                                        // Parse pilihan: "1 720p", "1-3 480p", "1,3,5 360p", "all 360p"
+                                        const choiceMatch = rawChoice.match(/^(all|\d[\d,\-\s]*)(?:\s+(360p|480p|720p|1080p))?$/i);
+                                        if (!choiceMatch) {
+                                                // Format tidak dikenali, biarkan lanjut normal
+                                        } else {
+                                                // Tandai sedang proses
+                                                pendingAlq.downloading = true;
+                                                if (pendingAlq.timeout) clearTimeout(pendingAlq.timeout);
+                                                pendingAlqDlChoices.delete(alqKey);
+
+                                                const episodes  = pendingAlq.episodes;
+                                                const prefRes   = (choiceMatch[2] || '').toLowerCase() || null;
+                                                const idxPart   = choiceMatch[1].trim().toLowerCase();
+                                                const isBatch_pre = idxPart === 'all';
+
+                                                // Kumpulkan indeks episode (0-based)
+                                                const epIndices = [];
+                                                if (isBatch_pre) {
+                                                        for (let i = 0; i < episodes.length; i++) epIndices.push(i);
+                                                } else if (idxPart.includes('-')) {
+                                                        const [a, b] = idxPart.split('-').map(n => parseInt(n.trim(), 10));
+                                                        for (let i = a; i <= b; i++) if (i >= 1 && i <= episodes.length) epIndices.push(i - 1);
+                                                } else {
+                                                        idxPart.split(',').forEach(n => {
+                                                                const idx = parseInt(n.trim(), 10) - 1;
+                                                                if (idx >= 0 && idx < episodes.length) epIndices.push(idx);
+                                                        });
+                                                }
+
+                                                // Deduplicate & cap
+                                                const uniqueIdx = [...new Set(epIndices)].slice(0, 10);
+                                                const isBatch   = uniqueIdx.length > 1;
+
+                                                if (!uniqueIdx.length) {
+                                                        await tolak(hisoka, m, `❌ Episode tidak ditemukan. Pilih angka 1-${episodes.length}.`);
+                                                        return;
+                                                }
+
+                                                const _dlPath2 = path.resolve('./src/scrape/alqanime-dl.cjs');
+                                                delete _require.cache[_dlPath2];
+                                                const { resolveDirectLink: alqResolve, downloadToTmp: alqDownload, formatSize: alqSize } = _require(_dlPath2);
+
+                                                await hisoka.sendMessage(m.from, { react: { text: '📥', key: m.key } });
+                                                const progMsg = await tolak(hisoka, m,
+                                                        `📥 *Mempersiapkan ${isBatch ? uniqueIdx.length + ' episode' : '1 episode'}...*\n` +
+                                                        `🎌 ${pendingAlq.animeTitle}\n` +
+                                                        `📺 Resolusi: ${prefRes ? prefRes.toUpperCase() : 'Auto'}`
+                                                );
+
+                                                const tmpFiles = [];
+                                                const MAX_BYTES = 1.9 * 1024 * 1024 * 1024;
+                                                const tmpDir    = path.join(process.cwd(), 'tmp');
+
+                                                try {
+                                                        for (let i = 0; i < uniqueIdx.length; i++) {
+                                                                const ep    = episodes[uniqueIdx[i]];
+                                                                const link  = pickBestAlqLink(ep.links, prefRes);
+                                                                const batchLbl = isBatch ? ` (${i + 1}/${uniqueIdx.length})` : '';
+
+                                                                if (!link) {
+                                                                        throw new Error(`Ep ${ep.episode}: tidak ada link untuk resolusi ${prefRes || 'apapun'}`);
+                                                                }
+
+                                                                // Resolve direct link
+                                                                await m.reply({ edit: progMsg.key, text: `🔍 Ep ${ep.episode}${batchLbl}: resolve link ${link.res.toUpperCase()} (${link.host})...` });
+                                                                let resolved;
+                                                                try {
+                                                                        resolved = await alqResolve(link.url);
+                                                                } catch (re) {
+                                                                        throw new Error(`Ep ${ep.episode}: gagal resolve → ${re.message}`);
+                                                                }
+
+                                                                const { directUrl, fileName, host, size } = resolved;
+                                                                const sizeStr = alqSize(size);
+
+                                                                if (size && size > MAX_BYTES) {
+                                                                        throw new Error(`Ep ${ep.episode} terlalu besar (${sizeStr}). Maks ~1.9 GB.`);
+                                                                }
+
+                                                                await m.reply({
+                                                                        edit: progMsg.key,
+                                                                        text: `📥 *Download Ep ${ep.episode}${batchLbl}*\n` +
+                                                                              `📄 ${fileName}\n💾 ${sizeStr} | 🏠 ${host}\n[░░░░░░░░░░] 0%`,
+                                                                });
+
+                                                                const tmpFile = path.join(tmpDir, `alqdl_${Date.now()}_${i}_${fileName}`);
+                                                                tmpFiles.push({ file: tmpFile, fileName, ep: ep.episode, host, sizeStr });
+
+                                                                await alqDownload(directUrl, tmpFile, async (done, total, pct) => {
+                                                                        const filled = Math.round(pct / 10);
+                                                                        const bar = '█'.repeat(filled) + '░'.repeat(10 - filled);
+                                                                        try {
+                                                                                await m.reply({
+                                                                                        edit: progMsg.key,
+                                                                                        text: `📥 *Download Ep ${ep.episode}${batchLbl}*\n` +
+                                                                                              `📄 ${fileName}\n💾 ${sizeStr} | 🏠 ${host}\n[${bar}] ${pct}% (${alqSize(done)})`,
+                                                                                });
+                                                                        } catch (_) {}
+                                                                });
+
+                                                                await m.reply({
+                                                                        edit: progMsg.key,
+                                                                        text: `✅ Ep ${ep.episode}${batchLbl} selesai!${isBatch && i < uniqueIdx.length - 1 ? ' Lanjut...' : ''}`,
+                                                                });
+                                                        }
+
+                                                        if (isBatch) {
+                                                                // Buat ZIP
+                                                                await m.reply({ edit: progMsg.key, text: `📦 Membuat ZIP dari ${uniqueIdx.length} episode...` });
+                                                                const archiver = _require('archiver');
+                                                                const { PassThrough } = _require('stream');
+                                                                const safeName = pendingAlq.animeTitle.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 30);
+                                                                const zipName  = `${safeName}_${uniqueIdx.length}eps.zip`;
+
+                                                                const zipBuf = await new Promise((res, rej) => {
+                                                                        const chunks  = [];
+                                                                        const archive = archiver('zip', { zlib: { level: 1 } });
+                                                                        const pass    = new PassThrough();
+                                                                        pass.on('data', c => chunks.push(c));
+                                                                        pass.on('end',  () => res(Buffer.concat(chunks)));
+                                                                        pass.on('error', rej);
+                                                                        archive.pipe(pass);
+                                                                        for (const { file, fileName: fn } of tmpFiles) {
+                                                                                if (fs.existsSync(file)) archive.append(fs.createReadStream(file), { name: fn });
+                                                                        }
+                                                                        archive.finalize();
+                                                                });
+
+                                                                await m.reply({ edit: progMsg.key, text: `📤 Mengirim ZIP (${alqSize(zipBuf.length)})...` });
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        document: zipBuf,
+                                                                        mimetype: 'application/zip',
+                                                                        fileName: zipName,
+                                                                        caption: `📦 *${pendingAlq.animeTitle}*\n🎬 ${uniqueIdx.length} episode | 💾 ${alqSize(zipBuf.length)}\n📺 Resolusi: ${prefRes ? prefRes.toUpperCase() : 'Auto'}`,
+                                                                }, { quoted: m });
+                                                                await m.reply({ edit: progMsg.key, text: `✅ *Selesai!*\n📦 ${zipName}\n💾 ${alqSize(zipBuf.length)} | 🎬 ${uniqueIdx.length} episode` });
+
+                                                        } else {
+                                                                // Single episode
+                                                                const { file: tmpFile, fileName: fn, ep: epLbl, host: fHost, sizeStr: fSize } = tmpFiles[0];
+                                                                const fileBuf = fs.readFileSync(tmpFile);
+                                                                const ext     = path.extname(fn).toLowerCase();
+                                                                const isVid   = ['.mp4', '.mkv', '.avi', '.webm'].includes(ext);
+
+                                                                await m.reply({ edit: progMsg.key, text: `📤 Mengirim file...` });
+
+                                                                if (isVid) {
+                                                                        await hisoka.sendMessage(m.from, {
+                                                                                video: fileBuf, mimetype: 'video/mp4', fileName: fn,
+                                                                                caption: `🎬 *${pendingAlq.animeTitle}*\n📺 Episode ${epLbl}\n💾 ${fSize} | 🏠 ${fHost}`,
+                                                                        }, { quoted: m });
+                                                                } else {
+                                                                        await hisoka.sendMessage(m.from, {
+                                                                                document: fileBuf, mimetype: 'application/octet-stream', fileName: fn,
+                                                                                caption: `📄 *${fn}*\n💾 ${fSize}`,
+                                                                        }, { quoted: m });
+                                                                }
+                                                                await m.reply({ edit: progMsg.key, text: `✅ *Selesai!*\n📄 ${fn}\n💾 ${fSize} | 🏠 ${fHost}` });
+                                                        }
+
+                                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                                } catch (dlErr) {
+                                                        console.error('[ALQDL_AUTO] Error:', dlErr?.message);
+                                                        logError(dlErr instanceof Error ? dlErr : new Error(String(dlErr?.message || dlErr)), 'alqdl_auto');
+                                                        try { await m.reply({ edit: progMsg.key, text: `❌ Gagal download.\n💬 ${dlErr?.message?.slice(0, 150) || 'Coba lagi nanti'}` }); } catch (_) {}
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                                } finally {
+                                                        for (const { file } of tmpFiles) {
+                                                                try { if (fs.existsSync(file)) fs.unlinkSync(file); } catch (_) {}
+                                                        }
+                                                }
+
+                                                return;
+                                        }
                                 }
                         }
                 }
@@ -3916,6 +4145,49 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         }
 
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                        // ── Kirim menu download episode ──
+                                        if (eps.length > 0) {
+                                                const allRes = new Set();
+                                                for (const ep of eps) for (const r of Object.keys(ep.links)) if (r !== 'batch') allRes.add(r);
+                                                const resList = ['360p','480p','720p','1080p'].filter(r => allRes.has(r));
+
+                                                let dlMenu = `📥 *PILIH EPISODE & RESOLUSI*\n`;
+                                                dlMenu += `━━━━━━━━━━━━━━━━━━━\n`;
+                                                dlMenu += `🎌 *${detail.title}*\n\n`;
+                                                dlMenu += `*Daftar Episode (${eps.length}):*\n`;
+                                                const maxShow = Math.min(eps.length, 15);
+                                                eps.slice(0, maxShow).forEach((ep, i) => {
+                                                        const epRes = Object.keys(ep.links).filter(r => r !== 'batch');
+                                                        dlMenu += `${i + 1}. Ep ${ep.episode}`;
+                                                        if (epRes.length) dlMenu += ` _(${epRes.join('/')})_`;
+                                                        dlMenu += `\n`;
+                                                });
+                                                if (eps.length > maxShow) dlMenu += `_...dan ${eps.length - maxShow} episode lainnya_\n`;
+                                                dlMenu += `\n`;
+                                                if (resList.length) dlMenu += `📺 Resolusi: *${resList.join(' | ')}*\n`;
+                                                dlMenu += `\n━━━━━━━━━━━━━━━━━━━\n`;
+                                                dlMenu += `📌 *Reply pesan ini:*\n`;
+                                                dlMenu += `• *1 720p* — 1 episode, kirim video\n`;
+                                                dlMenu += `• *1-3 480p* — batch ep 1-3 (ZIP)\n`;
+                                                dlMenu += `• *1,3,5 360p* — ep pilihan (ZIP)\n`;
+                                                dlMenu += `• *all 360p* — semua episode (ZIP)\n`;
+                                                dlMenu += `• Tanpa resolusi = otomatis terbaik\n\n`;
+                                                dlMenu += `⏳ Menu berlaku *5 menit*`;
+
+                                                const menuMsg = await hisoka.sendMessage(m.from, { text: dlMenu }, { quoted: m });
+                                                const alqKey = getJadibotChoiceKey(m);
+                                                const oldAlq = pendingAlqDlChoices.get(alqKey);
+                                                if (oldAlq?.timeout) clearTimeout(oldAlq.timeout);
+                                                const alqTimeout = setTimeout(() => pendingAlqDlChoices.delete(alqKey), 5 * 60 * 1000);
+                                                pendingAlqDlChoices.set(alqKey, {
+                                                        animeTitle: detail.title,
+                                                        episodes: eps,
+                                                        botMsgId: menuMsg?.key?.id || '',
+                                                        expiresAt: Date.now() + 5 * 60 * 1000,
+                                                        timeout: alqTimeout,
+                                                });
+                                        }
 
                                 } catch (err) {
                                         console.error('[ALQANIME] Error:', err?.message);
