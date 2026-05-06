@@ -8835,7 +8835,8 @@
     "name": "Hamdan",
     "lid": "239328697536578@lid",
     "jid": "6283134844523@s.whatsapp.net",
-    "notify": "Anda Siapa?"
+    "notify": "Anda Siapa?",
+    "verifiedName": "Anda Siapa?"
   },
   "6283873192689@s.whatsapp.net": {
     "isContact": true,
@@ -24706,7 +24707,9 @@
     "id": "6285188150676@s.whatsapp.net",
     "name": "γυς ρου [ NOKOS 2 ]",
     "lid": "3638558740716@lid",
-    "jid": "6285188150676@s.whatsapp.net"
+    "jid": "6285188150676@s.whatsapp.net",
+    "notify": "pou",
+    "verifiedName": "pou"
   },
   "6285750179446@s.whatsapp.net": {
     "isContact": true,
@@ -31508,5 +31511,20 @@
     "id": "28982489649336@lid",
     "lid": "28982489649336@lid",
     "imgUrl": "removed"
+  },
+  "239328697536578@lid": {
+    "id": "239328697536578@lid",
+    "lid": "239328697536578@lid",
+    "notify": "Anda Siapa?"
+  },
+  "3638558740716@lid": {
+    "id": "3638558740716@lid",
+    "lid": "3638558740716@lid",
+    "notify": "pou"
+  },
+  "174577888038922@lid": {
+    "id": "174577888038922@lid",
+    "lid": "174577888038922@lid",
+    "notify": "γυς ρου"
   }
 }
