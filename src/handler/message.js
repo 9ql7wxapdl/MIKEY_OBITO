@@ -507,6 +507,27 @@ function pickBestAlqLink(links, preferredRes) {
     return null;
 }
 
+function getAllAlqLinksByPriority(links, preferredRes) {
+    const hostPriority = ['pixeldrain', 'acefile', 'mediafire'];
+    const resPriority = ['1080p', '720p', '480p', '360p'];
+    function sortHosts(hosts) {
+        if (!hosts?.length) return [];
+        const ordered = [];
+        for (const hp of hostPriority) {
+            const match = hosts.find(h => h.host.toLowerCase().includes(hp));
+            if (match) ordered.push(match);
+        }
+        for (const h of hosts) {
+            if (!ordered.includes(h)) ordered.push(h);
+        }
+        return ordered;
+    }
+    const res = preferredRes && links[preferredRes]?.length ? preferredRes
+        : resPriority.find(r => links[r]?.length);
+    if (!res) return [];
+    return sortHosts(links[res]).map(h => ({ url: h.url, host: h.host, res }));
+}
+
 function isNoSpaceError(error) {
     const message = String(error?.message || error || '').toLowerCase();
     return error?.code === 'ENOSPC' || message.includes('enospc') || message.includes('no space left on device');
@@ -2295,15 +2316,24 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 delete _require.cache[_dlPath];
                                                                 const { resolveDirectLink: alqResolve, downloadToTmp: alqDownload, formatSize: alqSize } = _require(_dlPath);
 
+                                                                const allLinks = getAllAlqLinksByPriority(ep.links, prefRes);
                                                                 const progMsg = await tolak(hisoka, m,
                                                                         `📥 *Mempersiapkan download...*\n🎌 ${detail.title}\n📺 Ep ${ep.episode} — ${link.res.toUpperCase()} (${link.host})`
                                                                 );
                                                                 const tmpDir  = path.join(process.cwd(), 'tmp');
                                                                 let resolved;
-                                                                try {
-                                                                        resolved = await alqResolve(link.url);
-                                                                } catch (re) {
-                                                                        await m.reply({ edit: progMsg.key, text: `❌ Gagal resolve link: ${re.message}` });
+                                                                let lastErr = '';
+                                                                for (const candidate of allLinks) {
+                                                                        try {
+                                                                                await m.reply({ edit: progMsg.key, text: `🔍 Mencoba host *${candidate.host}*...` });
+                                                                                resolved = await alqResolve(candidate.url);
+                                                                                break;
+                                                                        } catch (re) {
+                                                                                lastErr = re.message;
+                                                                        }
+                                                                }
+                                                                if (!resolved) {
+                                                                        await m.reply({ edit: progMsg.key, text: `❌ Semua host gagal. Error terakhir: ${lastErr}` });
                                                                         return;
                                                                 }
                                                                 const { directUrl, fileName, host, size } = resolved;
@@ -2478,13 +2508,21 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                         throw new Error(`Ep ${ep.episode}: tidak ada link untuk resolusi ${prefRes || 'apapun'}`);
                                                                 }
 
-                                                                // Resolve direct link
-                                                                await m.reply({ edit: progMsg.key, text: `🔍 Ep ${ep.episode}${batchLbl}: resolve link ${link.res.toUpperCase()} (${link.host})...` });
+                                                                // Resolve direct link — coba semua host secara berurutan
+                                                                const allLinks = getAllAlqLinksByPriority(ep.links, prefRes);
                                                                 let resolved;
-                                                                try {
-                                                                        resolved = await alqResolve(link.url);
-                                                                } catch (re) {
-                                                                        throw new Error(`Ep ${ep.episode}: gagal resolve → ${re.message}`);
+                                                                let lastErr = '';
+                                                                for (const candidate of allLinks) {
+                                                                        try {
+                                                                                await m.reply({ edit: progMsg.key, text: `🔍 Ep ${ep.episode}${batchLbl}: mencoba *${candidate.host}* (${candidate.res.toUpperCase()})...` });
+                                                                                resolved = await alqResolve(candidate.url);
+                                                                                break;
+                                                                        } catch (re) {
+                                                                                lastErr = re.message;
+                                                                        }
+                                                                }
+                                                                if (!resolved) {
+                                                                        throw new Error(`Ep ${ep.episode}: semua host gagal → ${lastErr}`);
                                                                 }
 
                                                                 const { directUrl, fileName, host, size } = resolved;
