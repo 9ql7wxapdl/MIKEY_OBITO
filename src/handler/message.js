@@ -488,7 +488,7 @@ function formatAlqLinkMsg(animeTitle, ep, prefRes, resList) {
 }
 
 function pickBestAlqLink(links, preferredRes) {
-    const hostPriority = ['pixeldrain', 'mediafire'];
+    const hostPriority = ['acefile', 'pixeldrain', 'mediafire'];
     const resPriority = ['1080p', '720p', '480p', '360p'];
     function getBestHost(hosts) {
         if (!hosts?.length) return null;

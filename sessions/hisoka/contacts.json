@@ -8764,7 +8764,8 @@
     "id": "6285876248925@s.whatsapp.net",
     "name": "! Sakamoto suka loli ( Jadi Bot Read Sw )",
     "lid": "188716853289015@lid",
-    "jid": "6285876248925@s.whatsapp.net"
+    "jid": "6285876248925@s.whatsapp.net",
+    "notify": "Ryu Lagi Beed mood"
   },
   "6281538788325@s.whatsapp.net": {
     "isContact": true,
@@ -8835,8 +8836,7 @@
     "name": "Hamdan",
     "lid": "239328697536578@lid",
     "jid": "6283134844523@s.whatsapp.net",
-    "notify": "Anda Siapa?",
-    "verifiedName": "Anda Siapa?"
+    "notify": "Anda Siapa?"
   },
   "6283873192689@s.whatsapp.net": {
     "isContact": true,
@@ -16397,7 +16397,8 @@
     "id": "6282213720788@s.whatsapp.net",
     "name": "Fhandy",
     "lid": "56010702086266@lid",
-    "jid": "6282213720788@s.whatsapp.net"
+    "jid": "6282213720788@s.whatsapp.net",
+    "notify": "-unravel-"
   },
   "6281383097471@s.whatsapp.net": {
     "isContact": true,
@@ -31500,7 +31501,8 @@
   "188716853289015@lid": {
     "id": "188716853289015@lid",
     "lid": "188716853289015@lid",
-    "imgUrl": "changed"
+    "imgUrl": "changed",
+    "notify": "Ryu Lagi Beed mood"
   },
   "54327360094461@lid": {
     "id": "54327360094461@lid",
@@ -31526,5 +31528,10 @@
     "id": "174577888038922@lid",
     "lid": "174577888038922@lid",
     "notify": "γυς ρου"
+  },
+  "32560214179906@lid": {
+    "id": "32560214179906@lid",
+    "lid": "32560214179906@lid",
+    "notify": "Name"
   }
 }

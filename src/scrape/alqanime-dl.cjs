@@ -47,28 +47,55 @@ async function resolveMediaFire(url) {
     return { directUrl, fileName: dispName, host: 'MediaFire', size };
 }
 
-// ─── AceFile: AJAX endpoint ───────────────────────────────────────────────
+// ─── AceFile: AJAX endpoint + HTML fallback ───────────────────────────────
 async function resolveAceFile(url) {
     const fileId = url.match(/acefile\.co\/f\/(\d+)/)?.[1];
     if (!fileId) throw new Error('AceFile: ID tidak ditemukan');
-    const res = await axios.post(
-        'https://acefile.co/ajax.php',
-        new URLSearchParams({ ajax: 'download', id: fileId }),
-        {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-Requested-With': 'XMLHttpRequest',
-                'Referer': url,
-                'User-Agent': UA,
-            },
-            timeout: 15000,
-        }
-    );
-    const directUrl = res.data?.url || res.data?.link || res.data?.download_url;
-    if (!directUrl) throw new Error('AceFile: respons API tidak mengandung link download');
+
+    // Ekstrak nama file dari URL (slug setelah ID)
+    const slugRaw = url.match(/acefile\.co\/f\/\d+\/([^/?#]+)/)?.[1] || '';
+    const slugName = slugRaw
+        ? slugRaw.replace(/-mp4$/, '.mp4').replace(/-mkv$/, '.mkv').replace(/-(\w{2,4})$/, '.$1').replace(/-/g, '_')
+        : `acefile_${fileId}.mp4`;
+
+    let directUrl = null;
+
+    // Coba AJAX endpoint utama
+    try {
+        const res = await axios.post(
+            'https://acefile.co/ajax.php',
+            new URLSearchParams({ ajax: 'download', id: fileId }),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Referer': url,
+                    'User-Agent': UA,
+                },
+                timeout: 15000,
+            }
+        );
+        directUrl = res.data?.url || res.data?.link || res.data?.download_url || res.data?.file || null;
+        if (directUrl && typeof directUrl === 'object') directUrl = null;
+    } catch (_) {}
+
+    // Fallback: parse halaman HTML untuk ambil link download
+    if (!directUrl) {
+        const page = await axios.get(url, {
+            headers: { 'User-Agent': UA, 'Accept': 'text/html', 'Referer': 'https://alqanime.net/' },
+            timeout: 20000,
+        });
+        const html = typeof page.data === 'string' ? page.data : '';
+        const match = html.match(/href=["'](https?:\/\/[^"']+acefile[^"']*(?:download|dl)[^"']+)["']/i)
+                   || html.match(/["'](https?:\/\/(?:cdn|storage|dl|download)\.[^"']+\/[^"']+\.(?:mp4|mkv|avi))["']/i);
+        if (match) directUrl = match[1];
+    }
+
+    if (!directUrl) throw new Error('AceFile: link download tidak ditemukan. Coba beberapa saat lagi.');
+
     const info = await axios.head(directUrl, { headers: { 'User-Agent': UA }, timeout: 10000 }).catch(() => ({ headers: {} }));
     const size = parseInt(info.headers['content-length'] || '0');
-    const dispName = info.headers['content-disposition']?.match(/filename[^;=\n]*=["']?([^"'\n;]+)/)?.[1]?.trim() || `acefile_${fileId}.mp4`;
+    const dispName = info.headers['content-disposition']?.match(/filename[^;=\n]*=["']?([^"'\n;]+)/)?.[1]?.trim() || slugName;
     return { directUrl, fileName: dispName, host: 'AceFile', size };
 }
 
