@@ -465,6 +465,28 @@ function getJadibotChoiceKey(m) {
     return `${m.from}:${m.sender}`;
 }
 
+function isOuoLink(url) {
+    return typeof url === 'string' && (url.includes('ouo.io') || url.includes('ouo.press'));
+}
+
+function formatAlqLinkMsg(animeTitle, ep, prefRes, resList) {
+    let msg = `🔗 *LINK DOWNLOAD LANGSUNG*\n`;
+    msg += `━━━━━━━━━━━━━━━━━━━\n`;
+    msg += `🎌 *${animeTitle}*\n`;
+    msg += `📺 Episode *${ep.episode}*\n\n`;
+    msg += `📌 *Buka link berikut di browser:*\n`;
+
+    const targetRes = prefRes ? [prefRes, ...resList.filter(r => r !== prefRes)] : resList;
+    for (const res of targetRes) {
+        const hosts = ep.links[res] || [];
+        if (!hosts.length) continue;
+        msg += `\n🎞 *${res.toUpperCase()}*\n`;
+        hosts.forEach(h => { msg += `• ${h.host}: ${h.url}\n`; });
+    }
+    msg += `\n⚠️ _Link melalui ouo.io (ada iklan singkat, klik "I'm Human" lalu download)_`;
+    return msg;
+}
+
 function pickBestAlqLink(links, preferredRes) {
     const hostPriority = ['pixeldrain', 'mediafire'];
     const resPriority = ['1080p', '720p', '480p', '360p'];
@@ -2273,6 +2295,14 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 delete _require.cache[_dlPath];
                                                                 const { resolveDirectLink: alqResolve, downloadToTmp: alqDownload, formatSize: alqSize } = _require(_dlPath);
 
+                                                                // Deteksi ouo.io — tidak bisa di-bypass server-side, kirim link langsung
+                                                                if (isOuoLink(link.url)) {
+                                                                        const epResList = ['360p','480p','720p','1080p'].filter(r => ep.links[r]?.length);
+                                                                        await hisoka.sendMessage(m.from, { react: { text: '🔗', key: m.key } });
+                                                                        await hisoka.sendMessage(m.from, { text: formatAlqLinkMsg(detail.title, ep, prefRes, epResList) }, { quoted: m });
+                                                                        return;
+                                                                }
+
                                                                 const progMsg = await tolak(hisoka, m,
                                                                         `📥 *Mempersiapkan download...*\n🎌 ${detail.title}\n📺 Ep ${ep.episode} — ${link.res.toUpperCase()} (${link.host})`
                                                                 );
@@ -2456,6 +2486,15 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                         throw new Error(`Ep ${ep.episode}: tidak ada link untuk resolusi ${prefRes || 'apapun'}`);
                                                                 }
 
+                                                                // Deteksi ouo.io — tidak bisa di-bypass server-side, kirim link langsung
+                                                                if (isOuoLink(link.url)) {
+                                                                        const epResList = ['360p','480p','720p','1080p'].filter(r => ep.links[r]?.length);
+                                                                        await m.reply({ edit: progMsg.key, text: `🔗 *Link tersedia — ouo.io (buka di browser)*` });
+                                                                        await hisoka.sendMessage(m.from, { text: formatAlqLinkMsg(pendingAlq.animeTitle, ep, prefRes, epResList) }, { quoted: m });
+                                                                        tmpFiles.push({ file: null, fileName: 'link_only', ep: ep.episode, host: 'ouo.io', sizeStr: '-' });
+                                                                        continue;
+                                                                }
+
                                                                 // Resolve direct link
                                                                 await m.reply({ edit: progMsg.key, text: `🔍 Ep ${ep.episode}${batchLbl}: resolve link ${link.res.toUpperCase()} (${link.host})...` });
                                                                 let resolved;
@@ -2499,13 +2538,19 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 });
                                                         }
 
-                                                        if (isBatch) {
-                                                                // Buat ZIP
-                                                                await m.reply({ edit: progMsg.key, text: `📦 Membuat ZIP dari ${uniqueIdx.length} episode...` });
+                                                        // Cek apakah semua entri adalah ouo.io link-only (tidak ada file yang perlu di-ZIP/kirim)
+                                                        const realFiles = tmpFiles.filter(f => f.file !== null);
+
+                                                        if (realFiles.length === 0) {
+                                                                // Semua sudah dikirim sebagai link teks — tandai selesai
+                                                                await m.reply({ edit: progMsg.key, text: `✅ *Selesai!*\n🔗 ${tmpFiles.length} link berhasil dikirim` });
+                                                        } else if (isBatch && realFiles.length > 0) {
+                                                                // Buat ZIP dari file yang berhasil didownload
+                                                                await m.reply({ edit: progMsg.key, text: `📦 Membuat ZIP dari ${realFiles.length} episode...` });
                                                                 const archiver = _require('archiver');
                                                                 const { PassThrough } = _require('stream');
                                                                 const safeName = pendingAlq.animeTitle.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 30);
-                                                                const zipName  = `${safeName}_${uniqueIdx.length}eps.zip`;
+                                                                const zipName  = `${safeName}_${realFiles.length}eps.zip`;
 
                                                                 const zipBuf = await new Promise((res, rej) => {
                                                                         const chunks  = [];
@@ -2515,7 +2560,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                         pass.on('end',  () => res(Buffer.concat(chunks)));
                                                                         pass.on('error', rej);
                                                                         archive.pipe(pass);
-                                                                        for (const { file, fileName: fn } of tmpFiles) {
+                                                                        for (const { file, fileName: fn } of realFiles) {
                                                                                 if (fs.existsSync(file)) archive.append(fs.createReadStream(file), { name: fn });
                                                                         }
                                                                         archive.finalize();
@@ -2526,13 +2571,13 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                         document: zipBuf,
                                                                         mimetype: 'application/zip',
                                                                         fileName: zipName,
-                                                                        caption: `📦 *${pendingAlq.animeTitle}*\n🎬 ${uniqueIdx.length} episode | 💾 ${alqSize(zipBuf.length)}\n📺 Resolusi: ${prefRes ? prefRes.toUpperCase() : 'Auto'}`,
+                                                                        caption: `📦 *${pendingAlq.animeTitle}*\n🎬 ${realFiles.length} episode | 💾 ${alqSize(zipBuf.length)}\n📺 Resolusi: ${prefRes ? prefRes.toUpperCase() : 'Auto'}`,
                                                                 }, { quoted: m });
-                                                                await m.reply({ edit: progMsg.key, text: `✅ *Selesai!*\n📦 ${zipName}\n💾 ${alqSize(zipBuf.length)} | 🎬 ${uniqueIdx.length} episode` });
+                                                                await m.reply({ edit: progMsg.key, text: `✅ *Selesai!*\n📦 ${zipName}\n💾 ${alqSize(zipBuf.length)} | 🎬 ${realFiles.length} episode` });
 
                                                         } else {
-                                                                // Single episode
-                                                                const { file: tmpFile, fileName: fn, ep: epLbl, host: fHost, sizeStr: fSize } = tmpFiles[0];
+                                                                // Single episode — file real
+                                                                const { file: tmpFile, fileName: fn, ep: epLbl, host: fHost, sizeStr: fSize } = realFiles[0];
                                                                 const fileBuf = fs.readFileSync(tmpFile);
                                                                 const ext     = path.extname(fn).toLowerCase();
                                                                 const isVid   = ['.mp4', '.mkv', '.avi', '.webm'].includes(ext);
@@ -4445,6 +4490,18 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         const parts   = input.split(/\s+/);
                                         const rawUrl  = parts[0];
                                         const wantZip = parts.slice(1).some(p => p.toLowerCase() === 'zip');
+
+                                        // ouo.io tidak bisa di-resolve server-side dari Replit (diblok Cloudflare)
+                                        if (isOuoLink(rawUrl)) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '🔗', key: m.key } });
+                                                await tolak(hisoka, m,
+                                                        `🔗 *Link ouo.io tidak bisa didownload otomatis*\n\n` +
+                                                        `❌ Server bot diblokir oleh ouo.io.\n\n` +
+                                                        `📌 *Buka link ini di browser kamu:*\n${rawUrl}\n\n` +
+                                                        `⚠️ _Klik "I'm Human" lalu download manual_`
+                                                );
+                                                break;
+                                        }
 
                                         const _dlPath = path.resolve('./src/scrape/alqanime-dl.cjs');
                                         delete _require.cache[_dlPath];

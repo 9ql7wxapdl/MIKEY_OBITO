@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "alqdl_auto::Request failed with status code N",
+      "source": "alqdl_auto",
+      "message": "Request failed with status code 403",
+      "stack": "AxiosError: Request failed with status code 403\n    at settle (/home/runner/workspace/node_modules/axios/dist/node/axios.cjs:2049:12)\n    at RedirectableRequest.handleResponse (/home/runner/workspace/node_modules/axios/dist/node/axios.cjs:3550:9)\n    at RedirectableRequest.emit (node:events:524:28)\n    at RedirectableRequest._processResponse (/home/runner/workspace/node_modules/follow-redirects/index.js:424:10)\n    at RedirectableRequest._onNativeResponse (/home/runner/workspace/node_modules/follow-redirects/index.js:109:12)\n    at Object.onceWrapper (node:events:639:26)\n    at ClientRequest.emit (node:events:524:28)\n    at HTTPParser.parserOnIncomingClient [as onIncoming] (node:_http_client:702:27)\n    at HTTPParser.parserOnHeadersComplete (node:_http_common:118:17)\n    at TLSSocket.socketOnData (node:_http_client:544:22)\n    at Axios.request (/home/runner/workspace/node_modules/axios/dist/node/axios.cjs:4871:41)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async downloadToTmp (/home/runner/workspace/src/scrape/alqanime-dl.cjs:110:17)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778052096234:2484:65)",
+      "count": 2,
+      "firstSeen": "2026-05-06T07:24:40.496Z",
+      "lastSeen": "2026-05-06T07:26:42.105Z"
+    },
+    {
+      "fingerprint": "ALQDL_AUTO::[ALQDL_AUTO] Error: Request failed with status code N",
+      "source": "ALQDL_AUTO",
+      "message": "[ALQDL_AUTO] Error: Request failed with status code 403",
+      "stack": "Error: [ALQDL_AUTO] Error: Request failed with status code 403\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778052096234:2559:65)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 2,
+      "firstSeen": "2026-05-06T07:24:40.494Z",
+      "lastSeen": "2026-05-06T07:26:42.103Z"
+    },
+    {
       "fingerprint": "console.error::\u001b[Nm[CrashGuard] Message handler timed out (Ns), skipping.\u001b[Nm",
       "source": "console.error",
       "message": "\u001b[31m[CrashGuard] Message handler timed out (120s), skipping.\u001b[39m",
