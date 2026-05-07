@@ -12740,7 +12740,8 @@
     "id": "60172160495@s.whatsapp.net",
     "name": "pushkontak wa 26",
     "lid": "67066115670033@lid",
-    "jid": "60172160495@s.whatsapp.net"
+    "jid": "60172160495@s.whatsapp.net",
+    "notify": "aldysensei🍃"
   },
   "628896692651@s.whatsapp.net": {
     "isContact": true,
@@ -31501,8 +31502,7 @@
   "176549462564879@lid": {
     "id": "176549462564879@lid",
     "lid": "176549462564879@lid",
-    "notify": "Cosmouz",
-    "verifiedName": "Cosmouz"
+    "notify": "Cosmouz"
   },
   "91070889205806@lid": {
     "id": "91070889205806@lid",
@@ -31880,6 +31880,21 @@
   "23566519128119@lid": {
     "id": "23566519128119@lid",
     "lid": "23566519128119@lid",
+    "imgUrl": "removed"
+  },
+  "67066115670033@lid": {
+    "id": "67066115670033@lid",
+    "lid": "67066115670033@lid",
+    "notify": "aldysensei🍃"
+  },
+  "34862350217452@lid": {
+    "id": "34862350217452@lid",
+    "lid": "34862350217452@lid",
+    "imgUrl": "removed"
+  },
+  "14689106956406@lid": {
+    "id": "14689106956406@lid",
+    "lid": "14689106956406@lid",
     "imgUrl": "removed"
   }
 }

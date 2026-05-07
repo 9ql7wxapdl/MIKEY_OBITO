@@ -1147,6 +1147,7 @@ show_main_menu() {
   echo -e "  ${C_BLUE}5${C_RESET} ${C_BOLD}›${C_RESET} Cek token"
   echo -e "  ${C_BLUE}6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo    ${C_DIM}(${REPO})${C_RESET}"
   echo -e "  ${C_CYAN}7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
+  echo -e "  ${C_GREEN}8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
   echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
@@ -1163,6 +1164,7 @@ show_main_menu() {
     5) action_check_token ;;
     6) action_rename_repo ;;
     7) action_rename_branch ;;
+    8) action_list_branches ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
@@ -1462,6 +1464,228 @@ action_switch_default() {
 
   rm -f /tmp/_gh_switch.json
   prompt_back_or_exit
+}
+
+# ===== Helper: format waktu relatif =====
+_relative_time() {
+  local ts="$1"
+  local epoch_ts epoch_now diff
+  epoch_ts=$(date -d "$ts" +%s 2>/dev/null \
+    || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$ts" +%s 2>/dev/null \
+    || echo "0")
+  epoch_now=$(date +%s)
+  [ "$epoch_ts" = "0" ] && echo "?" && return
+  diff=$(( epoch_now - epoch_ts ))
+  if   [ "$diff" -lt 60 ];     then echo "${diff}d lalu"
+  elif [ "$diff" -lt 3600 ];   then echo "$(( diff / 60 ))m lalu"
+  elif [ "$diff" -lt 86400 ];  then echo "$(( diff / 3600 ))j lalu"
+  elif [ "$diff" -lt 172800 ]; then echo "kemarin"
+  elif [ "$diff" -lt 604800 ]; then echo "$(( diff / 86400 ))h lalu"
+  else echo "$(( diff / 604800 ))mg lalu"
+  fi
+}
+
+# ===== Action: status semua branch (mirip halaman GitHub Branches) =====
+action_list_branches() {
+  local PAGE=1
+  local PAGE_SIZE=5
+
+  # ── Fetch semua branch (satu kali) ─────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}▸ Mengambil daftar branch dari GitHub...${C_RESET}"
+
+  local http_code
+  http_code=$(curl -s -o /tmp/_gh_brlist.json -w "%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/branches?per_page=100" 2>/dev/null)
+
+  if [ "$http_code" != "200" ]; then
+    echo -e "  ${C_RED}❌ Gagal ambil branch list (HTTP ${http_code})${C_RESET}"
+    rm -f /tmp/_gh_brlist.json
+    prompt_back_or_exit
+    return
+  fi
+
+  # Ekstrak nama dan SHA (urutan konsisten di JSON)
+  local all_names=() all_shas=()
+  while IFS= read -r line; do all_names+=("$line"); done \
+    < <(grep -o '"name": *"[^"]*"' /tmp/_gh_brlist.json | sed 's/"name": *"//;s/"//')
+  while IFS= read -r line; do all_shas+=("$line"); done \
+    < <(grep -o '"sha": *"[^"]*"' /tmp/_gh_brlist.json | sed 's/"sha": *"//;s/"//')
+  rm -f /tmp/_gh_brlist.json
+
+  # Pisahkan default dari yang lain
+  local def_sha=""
+  local nd_names=() nd_shas=()
+  for (( i=0; i<${#all_names[@]}; i++ )); do
+    if [ "${all_names[$i]}" = "$DEFAULT_BRANCH" ]; then
+      def_sha="${all_shas[$i]}"
+    else
+      nd_names+=("${all_names[$i]}")
+      nd_shas+=("${all_shas[$i]}")
+    fi
+  done
+
+  local total_other=${#nd_names[@]}
+  local total_pages=$(( (total_other + PAGE_SIZE - 1) / PAGE_SIZE ))
+  [ "$total_pages" -eq 0 ] && total_pages=1
+
+  # Ambil tanggal default branch (1 call)
+  local def_rel="-"
+  if [ -n "$def_sha" ]; then
+    local def_date
+    def_date=$(curl -s \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/commits/${def_sha}" 2>/dev/null \
+      | grep -o '"date": *"[^"]*"' | head -1 | sed 's/"date": *"//;s/"//')
+    [ -n "$def_date" ] && def_rel=$(_relative_time "$def_date")
+  fi
+
+  # ── Loop tampilan ───────────────────────────────────────────────────────
+  while true; do
+    local start=$(( (PAGE - 1) * PAGE_SIZE ))
+    local end=$(( start + PAGE_SIZE ))
+    [ "$end" -gt "$total_other" ] && end="$total_other"
+    local pg_label="${PAGE}/${total_pages}"
+
+    # Loading screen
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+    echo ""
+    echo -e "${C_DIM}  ── Default ─────────────────────────${C_RESET}"
+    printf "  ${C_GREEN}★${C_RESET} ${C_BOLD}%-24s${C_RESET} ${C_DIM}%s${C_RESET}\n" "$DEFAULT_BRANCH" "$def_rel"
+    echo ""
+    echo -e "${C_DIM}  ── Branches ─────────── ${pg_label} ──────${C_RESET}"
+    echo -e "  ${C_DIM}▸ Memuat data... harap tunggu${C_RESET}"
+
+    # Fetch data halaman saat ini
+    local page_names=() page_dates=() page_behind=() page_ahead=()
+    for (( idx=start; idx<end; idx++ )); do
+      local b="${nd_names[$idx]}"
+      local sha="${nd_shas[$idx]}"
+      local b_enc
+      b_enc=$(printf '%s' "$b" | sed 's|/|%2F|g')
+      page_names+=("$b")
+
+      # 1) Compare → behind/ahead
+      local cmp_out
+      cmp_out=$(curl -s \
+        -H "Authorization: token ${TOKEN}" \
+        -H "Accept: application/vnd.github+json" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "https://api.github.com/repos/${USER}/${REPO}/compare/${DEFAULT_BRANCH}...${b_enc}" \
+        2>/dev/null)
+      local behind ahead
+      behind=$(printf '%s' "$cmp_out" | grep -o '"behind_by": *[0-9]*' | head -1 | grep -o '[0-9]*')
+      ahead=$(printf '%s' "$cmp_out"  | grep -o '"ahead_by": *[0-9]*'  | head -1 | grep -o '[0-9]*')
+
+      # Coba ambil tanggal dari commits[] di compare response (jika branch ahead)
+      local bdate=""
+      bdate=$(printf '%s' "$cmp_out" | grep -o '"date": *"[^"]*"' | tail -1 | sed 's/"date": *"//;s/"//')
+
+      # Fallback: git/commits/{sha} jika date masih kosong
+      if [ -z "$bdate" ] && [ -n "$sha" ]; then
+        bdate=$(curl -s \
+          -H "Authorization: token ${TOKEN}" \
+          -H "Accept: application/vnd.github+json" \
+          -H "X-GitHub-Api-Version: 2022-11-28" \
+          "https://api.github.com/repos/${USER}/${REPO}/git/commits/${sha}" 2>/dev/null \
+          | grep -o '"date": *"[^"]*"' | head -1 | sed 's/"date": *"//;s/"//')
+      fi
+
+      page_behind+=("${behind:-?}")
+      page_ahead+=("${ahead:-?}")
+      page_dates+=("$bdate")
+    done
+
+    # ── Render final ─────────────────────────────────────────────────────
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+    echo ""
+    echo -e "${C_DIM}  ── Default ─────────────────────────${C_RESET}"
+    printf "  ${C_GREEN}★${C_RESET} ${C_BOLD}%-24s${C_RESET} ${C_DIM}%s${C_RESET}\n" "$DEFAULT_BRANCH" "$def_rel"
+    echo ""
+    echo -e "${C_DIM}  ── Branches ─────────── ${pg_label} ──────${C_RESET}"
+
+    if [ "$total_other" -eq 0 ]; then
+      echo -e "  ${C_DIM}Tidak ada branch lain.${C_RESET}"
+    else
+      for (( pi=0; pi<${#page_names[@]}; pi++ )); do
+        local name="${page_names[$pi]}"
+        local bdate="${page_dates[$pi]}"
+        local behind="${page_behind[$pi]}"
+        local ahead="${page_ahead[$pi]}"
+
+        # Relative time
+        local rel="-"
+        [ -n "$bdate" ] && rel=$(_relative_time "$bdate")
+
+        # Truncate name
+        local disp="$name"
+        [ ${#disp} -gt 20 ] && disp="${disp:0:19}…"
+
+        # Status: ↓behind ↑ahead
+        local st=""
+        if [ "$behind" = "?" ]; then
+          st="${C_DIM}—${C_RESET}"
+        elif [ "$behind" = "0" ] && [ "$ahead" = "0" ]; then
+          st="${C_GREEN}✓${C_RESET}"
+        else
+          [ "$behind" != "0" ] && st="${st}${C_RED}↓${behind}${C_RESET}"
+          [ "$behind" != "0" ] && [ "$ahead"  != "0" ] && st="${st} "
+          [ "$ahead"  != "0" ] && st="${st}${C_CYAN}↑${ahead}${C_RESET}"
+        fi
+
+        printf "  ${C_CYAN}%-22s${C_RESET} ${C_DIM}%-10s${C_RESET} " "$disp" "$rel"
+        echo -e "$st"
+      done
+    fi
+
+    # Navigasi
+    echo ""
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    [ "$total_pages" -gt 1 ] && [ "$PAGE" -lt "$total_pages" ] && \
+      echo -e "  ${C_CYAN}n${C_RESET} ${C_BOLD}›${C_RESET} Halaman berikutnya  ${C_DIM}(atau ketik nomor hal.)${C_RESET}"
+    [ "$PAGE" -gt 1 ] && \
+      echo -e "  ${C_CYAN}p${C_RESET} ${C_BOLD}›${C_RESET} Halaman sebelumnya"
+    echo -e "  ${C_GREEN}r${C_RESET} ${C_BOLD}›${C_RESET} Refresh"
+    echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+
+    local nav
+    read -r nav
+    nav=$(echo "$nav" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+
+    case "$nav" in
+      n|next)    [ "$PAGE" -lt "$total_pages" ] && PAGE=$((PAGE + 1)) ;;
+      p|prev)    [ "$PAGE" -gt 1 ] && PAGE=$((PAGE - 1)) ;;
+      r|refresh) ;;
+      0|q|exit)  return ;;
+      [1-9]*)
+        if echo "$nav" | grep -qE '^[0-9]+$' && \
+           [ "$nav" -ge 1 ] && [ "$nav" -le "$total_pages" ]; then
+          PAGE="$nav"
+        fi
+        ;;
+    esac
+  done
 }
 
 # ===== Action: edit (rename) nama branch =====
