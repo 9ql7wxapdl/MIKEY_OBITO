@@ -16433,7 +16433,8 @@
     "id": "6282179339575@s.whatsapp.net",
     "name": "Ptr - putri",
     "lid": "207176471732426@lid",
-    "jid": "6282179339575@s.whatsapp.net"
+    "jid": "6282179339575@s.whatsapp.net",
+    "notify": "Ptr"
   },
   "6282393647472@s.whatsapp.net": {
     "isContact": true,
@@ -22542,7 +22543,8 @@
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
     "jid": "6285175463174@s.whatsapp.net",
-    "notify": "sunshine.jpeg"
+    "notify": "sunshine.jpeg",
+    "verifiedName": "sunshine.jpeg"
   },
   "6283138972115@s.whatsapp.net": {
     "isContact": true,
@@ -31789,7 +31791,8 @@
   "156182794784889@lid": {
     "id": "156182794784889@lid",
     "lid": "156182794784889@lid",
-    "notify": "sunshine.jpeg"
+    "notify": "sunshine.jpeg",
+    "verifiedName": "sunshine.jpeg"
   },
   "204672640020666@lid": {
     "id": "204672640020666@lid",

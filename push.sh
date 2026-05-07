@@ -1127,28 +1127,28 @@ fetch_branches() {
 # ===== Header banner =====
 banner() {
   clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}🚀 PUSH SCRIPT — BANG WILY${C_RESET}"
-  echo -e "${C_DIM}Auto Commit • Multi-Branch • Mobile Friendly${C_RESET}"
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🚀  PUSH SCRIPT — BANG WILY    │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-  echo -e "${C_DIM}Repo${C_RESET}    ${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo -e "${C_DIM}Default${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  echo -e "  ${C_DIM}repo   ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo -e "  ${C_DIM}branch ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
   echo ""
 }
 
 # ===== Menu utama =====
 show_main_menu() {
   banner
-  echo -e "${C_BOLD}🚀 GitHub:${C_RESET} ${C_CYAN}${USER}/${REPO}${C_RESET}"
-  echo ""
-  echo -e "  ${C_GREEN}1${C_RESET} upload script ${C_DIM}(pilih branch tujuan)${C_RESET}"
-  echo -e "  ${C_CYAN}2${C_RESET} buat branch baru"
-  echo -e "  ${C_YELLOW}3${C_RESET} hapus branch ${C_DIM}(default dilindungi)${C_RESET}"
-  echo -e "  ${C_MAGENTA}4${C_RESET} ganti default branch ${C_DIM}(sekarang: ${DEFAULT_BRANCH})${C_RESET}"
-  echo -e "  ${C_BLUE}5${C_RESET} cek status token ${C_DIM}(validasi token tersimpan)${C_RESET}"
-  echo -e "  ${C_BLUE}6${C_RESET} rename repository ${C_DIM}(sekarang: ${REPO})${C_RESET}"
-  echo -e "  ${C_RED}0${C_RESET} keluar"
-  echo ""
-  printf "${C_BOLD}Pilih [0/1/2/3/4/5/6] ▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Upload ke branch"
+  echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Buat branch baru"
+  echo -e "  ${C_YELLOW}3${C_RESET} ${C_BOLD}›${C_RESET} Hapus branch"
+  echo -e "  ${C_MAGENTA}4${C_RESET} ${C_BOLD}›${C_RESET} Ganti default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
+  echo -e "  ${C_BLUE}5${C_RESET} ${C_BOLD}›${C_RESET} Cek token"
+  echo -e "  ${C_BLUE}6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo    ${C_DIM}(${REPO})${C_RESET}"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local pick
   read -r pick
