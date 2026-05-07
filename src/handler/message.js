@@ -48,7 +48,7 @@ import { searchAndGetImage, searchAndGetImages, extractImagesFromText } from '..
 import { extractVoiceNotesFromText, extractSongsFromText, extractVideosFromText, extractStickersFromText, extractReplyStickersFromText, extractTikTokFromText, extractInstagramFromText, extractYouTubeAudioFromText, hasMediaDownloadMarker, hasSocialDLMarker, hasStickerMarker } from '../helper/aiTools.js';
 import { getHistory, addToHistory, clearHistory, clearAllHistory, countHistory, getSessionKey, buildHistoryMeta, wrapCurrentUserMessage } from '../db/aiHistory.js';
 import { sendAIReply } from '../helper/aiReact.js';
-import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt, buildIGDownloadCaptionPrompt } from '../helper/aiPrompt.js';
+import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt } from '../helper/aiPrompt.js';
 import { hashSticker, lookupSticker, saveSticker, incrementStickerSeen, buildStickerContextHint, getStickerMemoryStats } from '../helper/stickerMemory.js';
 import { getJadibotAntidel, getJadibotReadsw, setJadibotUserSetting, getJadibotNumber } from '../helper/jadibotSettings.js';
 
@@ -5203,6 +5203,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 const targetMessage = isQuotedAudio ? m.quoted : m;
                                                 const targetMime = isQuotedAudio ? quotedMime : currentMime;
                                                 const audioBuffer = await downloadMediaBuffer(hisoka, targetMessage);
+                                                console.log(`\x1b[36m[WhatsMusik] Buffer: ${audioBuffer?.length} bytes, mime: ${targetMime || 'unknown'}\x1b[39m`);
                                                 result = await identifyWhatsMusic(audioBuffer, { mimetype: targetMime });
                                         }
                                         const report = formatWhatsMusic(result);
@@ -5246,6 +5247,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         logCommand(m, hisoka, 'whatsmusik');
                                 } catch (error) {
                                         console.error('\x1b[31m[WhatsMusik] Error:\x1b[39m', error.message);
+                                        if (error.cause) console.error('\x1b[31m[WhatsMusik] Cause:\x1b[39m', error.cause?.message || error.cause);
                                         logError(error, 'command:whatsmusik');
                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
                                         await tolak(hisoka, m,
@@ -9282,13 +9284,13 @@ infoText += `╰═════════════════════�
 
                                         await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
 
-                                        // Generate AI caption detail Instagram (paralel)
-                                        const aiCaptionPromiseIG = gemini.ask(buildIGDownloadCaptionPrompt({
-                                                author: username || '',
+                                        // Generate AI caption (paralel)
+                                        const aiCaptionPromiseIG = gemini.ask(buildVideoDownloadCaptionPrompt({
+                                                platform: 'Instagram',
+                                                author: username || 'Instagram',
                                                 likes: likes ? likes.toLocaleString() : '',
                                                 comments: comments ? comments.toLocaleString() : '',
                                                 description: caption || '',
-                                                mediaType: mediaType || 'reel',
                                         })).catch(() => null);
 
                                         const aiCaptionIG = await aiCaptionPromiseIG;

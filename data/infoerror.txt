@@ -8,40 +8,76 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 07/05/2026, 13.29.58  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 07/05/2026, 13.51.45  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
-  Total Jenis Error (unik)  : 9
-  Total Kejadian Error       : 24
+  Total Jenis Error (unik)  : 11
+  Total Kejadian Error       : 27
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [9 jenis, 24 kejadian total]
+  DAFTAR ERROR LENGKAP  [11 jenis, 27 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
 │  #001  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
-│  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/aiPrompt.js' does not provide an export named 'buildIGDownloadCaptionPrompt'
+│  [31m[WhatsMusik] Cause:[39m Request failed with status code 429
 │
 │  DETAIL
 │  Sumber      : console.error
-│  Frekuensi   : 2x (duplikat digabung)
-│  Pertama     : 07/05/2026, 13.29.49
-│  Terakhir    : 07/05/2026, 13.29.58
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 07/05/2026, 13.51.45
+│  Terakhir    : 07/05/2026, 13.51.45
 │
 │  STACK TRACE (3 baris pertama)
-│  ▶  Error: [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/aiPrompt.js' does not provide an export named 'buildIGDownloadCaptionPrompt'
+│  ▶  Error: [31m[WhatsMusik] Cause:[39m Request failed with status code 429
 │     at console.error (file:///home/runner/workspace/index.js:352:27)
-│     at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778161888642:5250:66)
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #002  —  alqdl_auto
+│  #002  —  command:whatsmusik
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.
+│
+│  DETAIL
+│  Sumber      : command:whatsmusik
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 07/05/2026, 13.44.57
+│  Terakhir    : 07/05/2026, 13.51.45
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.
+│     at recognizeAudioFile (/home/runner/workspace/src/scrape/whatsmusik.cjs:701:17)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #003  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[WhatsMusik] Error:[39m Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 07/05/2026, 13.44.57
+│  Terakhir    : 07/05/2026, 13.51.45
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[WhatsMusik] Error:[39m Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778160991406:5248:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #004  —  alqdl_auto
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Ep 01: gagal resolve → Request failed with status code 404
@@ -59,7 +95,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #003  —  ALQDL_AUTO
+│  #005  —  ALQDL_AUTO
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404
@@ -77,7 +113,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #004  —  alqdl_auto
+│  #006  —  alqdl_auto
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Request failed with status code 403
@@ -95,7 +131,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #005  —  ALQDL_AUTO
+│  #007  —  ALQDL_AUTO
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [ALQDL_AUTO] Error: Request failed with status code 403
@@ -113,7 +149,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #006  —  console.error
+│  #008  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
@@ -131,7 +167,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #007  —  Backup
+│  #009  —  Backup
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Backup] Gagal kirim ke 628968100xxxx Timed Out
@@ -149,16 +185,16 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #008  —  console.error
+│  #010  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
 │
 │  DETAIL
 │  Sumber      : console.error
-│  Frekuensi   : 6x (duplikat digabung)
+│  Frekuensi   : 4x (duplikat digabung)
 │  Pertama     : 05/05/2026, 08.09.24
-│  Terakhir    : 07/05/2026, 13.29.58
+│  Terakhir    : 06/05/2026, 06.10.48
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
@@ -167,7 +203,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #009  —  console.error
+│  #011  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
@@ -185,6 +221,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 9 jenis, 24 kejadian
-  Terakhir diperbarui: 07/05/2026, 13.29.58
+  End of Report  —  Total: 11 jenis, 27 kejadian
+  Terakhir diperbarui: 07/05/2026, 13.51.45
 ════════════════════════════════════════════════════════════════════════

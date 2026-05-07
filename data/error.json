@@ -1,13 +1,31 @@
 {
   "errors": [
     {
-      "fingerprint": "console.error::\u001b[Nm[HotReload] Gagal load 'src/handler/message.js':\u001b[Nm The requested module '../helper/aiPrompt.js' does not provide a",
+      "fingerprint": "console.error::\u001b[Nm[WhatsMusik] Cause:\u001b[Nm Request failed with status code N",
       "source": "console.error",
-      "message": "\u001b[31m[HotReload] Gagal load 'src/handler/message.js':\u001b[39m The requested module '../helper/aiPrompt.js' does not provide an export named 'buildIGDownloadCaptionPrompt'",
-      "stack": "Error: \u001b[31m[HotReload] Gagal load 'src/handler/message.js':\u001b[39m The requested module '../helper/aiPrompt.js' does not provide an export named 'buildIGDownloadCaptionPrompt'\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)\n    at async Timeout._onTimeout (file:///home/runner/workspace/src/helper/hotReload.js:92:29)",
-      "count": 2,
-      "firstSeen": "2026-05-07T13:29:49.199Z",
-      "lastSeen": "2026-05-07T13:29:58.932Z"
+      "message": "\u001b[31m[WhatsMusik] Cause:\u001b[39m Request failed with status code 429",
+      "stack": "Error: \u001b[31m[WhatsMusik] Cause:\u001b[39m Request failed with status code 429\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778161888642:5250:66)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-07T13:51:45.166Z",
+      "lastSeen": "2026-05-07T13:51:45.166Z"
+    },
+    {
+      "fingerprint": "command:whatsmusik::Lagu tidak terdeteksi. Coba reply bagian reff/chorus N-N detik yang jelas, volume cukup, dan bukan voice noise.",
+      "source": "command:whatsmusik",
+      "message": "Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.",
+      "stack": "Error: Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.\n    at recognizeAudioFile (/home/runner/workspace/src/scrape/whatsmusik.cjs:701:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async identifyWhatsMusic (/home/runner/workspace/src/scrape/whatsmusik.cjs:719:24)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778160991406:5206:58)",
+      "count": 3,
+      "firstSeen": "2026-05-07T13:44:57.457Z",
+      "lastSeen": "2026-05-07T13:51:45.169Z"
+    },
+    {
+      "fingerprint": "console.error::\u001b[Nm[WhatsMusik] Error:\u001b[Nm Lagu tidak terdeteksi. Coba reply bagian reff/chorus N-N detik yang jelas, volume cukup, dan",
+      "source": "console.error",
+      "message": "\u001b[31m[WhatsMusik] Error:\u001b[39m Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.",
+      "stack": "Error: \u001b[31m[WhatsMusik] Error:\u001b[39m Lagu tidak terdeteksi. Coba reply bagian reff/chorus 10-35 detik yang jelas, volume cukup, dan bukan voice noise.\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778160991406:5248:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 3,
+      "firstSeen": "2026-05-07T13:44:57.454Z",
+      "lastSeen": "2026-05-07T13:51:45.162Z"
     },
     {
       "fingerprint": "alqdl_auto::Ep N: gagal resolve → Request failed with status code N",
@@ -68,9 +86,9 @@
       "source": "console.error",
       "message": "\u001b[31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.\u001b[39m",
       "stack": "Error: \u001b[31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.\u001b[39m\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at Timeout._onTimeout (file:///home/runner/workspace/src/helper/hotReload.js:102:29)",
-      "count": 6,
+      "count": 4,
       "firstSeen": "2026-05-05T08:09:24.667Z",
-      "lastSeen": "2026-05-07T13:29:58.935Z"
+      "lastSeen": "2026-05-06T06:10:48.566Z"
     },
     {
       "fingerprint": "console.error::\u001b[Nm[HotReload] Gagal load 'src/handler/message.js':\u001b[Nm The requested module '../helper/jadibot.js' does not provide an",
