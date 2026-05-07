@@ -31651,7 +31651,8 @@
   "239328697536578@lid": {
     "id": "239328697536578@lid",
     "lid": "239328697536578@lid",
-    "notify": "Anda Siapa?"
+    "notify": "Anda Siapa?",
+    "verifiedName": "Anda Siapa?"
   },
   "155297645613058@lid": {
     "id": "155297645613058@lid",
@@ -31787,7 +31788,8 @@
   "156182794784889@lid": {
     "id": "156182794784889@lid",
     "lid": "156182794784889@lid",
-    "notify": "sunshine.jpeg"
+    "notify": "sunshine.jpeg",
+    "verifiedName": "sunshine.jpeg"
   },
   "204672640020666@lid": {
     "id": "204672640020666@lid",
