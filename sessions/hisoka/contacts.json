@@ -8358,7 +8358,9 @@
     "id": "6282393354095@s.whatsapp.net",
     "name": "Feli",
     "lid": "263483945930926@lid",
-    "jid": "6282393354095@s.whatsapp.net"
+    "jid": "6282393354095@s.whatsapp.net",
+    "notify": "j",
+    "verifiedName": "j"
   },
   "6283844416544@s.whatsapp.net": {
     "isContact": true,
@@ -31688,5 +31690,10 @@
     "id": "105647689494768@lid",
     "lid": "105647689494768@lid",
     "imgUrl": "changed"
+  },
+  "16832111104056@lid": {
+    "id": "16832111104056@lid",
+    "lid": "16832111104056@lid",
+    "imgUrl": "removed"
   }
 }

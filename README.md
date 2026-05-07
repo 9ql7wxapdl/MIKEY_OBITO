@@ -1,26 +1,39 @@
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=220&section=header&text=WILY%20BOT&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=WhatsApp%20Multi-Fitur%20%7C%20Powered%20by%20Baileys%20%2B%20Node.js&descAlignY=58&descSize=18&descColor=d4f5e9" />
+
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=28&pause=1000&color=25D366&center=true&vCenter=true&width=600&lines=%F0%9F%A4%96+WILY+BOT;WhatsApp+Multi-Fitur+Bot;Powered+by+Baileys+%2B+Node.js" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=22&pause=900&color=25D366&center=true&vCenter=true&multiline=false&width=750&height=50&lines=%F0%9F%A4%96+Selamat+Datang+di+WILY+BOT!;%E2%9A%A1+Deploy+Sekali%2C+Jalan+Selamanya;%F0%9F%92%AC+185%2B+Command+Siap+Digunakan;%F0%9F%8E%B5+YouTube+%E2%80%A2+TikTok+%E2%80%A2+Instagram+Downloader;%F0%9F%A4%96+Jadibot+Multi-Session+%E2%80%94+Clone+Bot+ke+Nomor+Lain;%F0%9F%9B%A1%EF%B8%8F+Anti-Delete+%E2%80%A2+Anti-Call+%E2%80%A2+Crash+Guard;%F0%9F%94%92+Script+GRATIS+%E2%80%94+Tidak+untuk+Dijual!;%F0%9F%9F%A2+Status%3A+ONLINE+%26+Aktif+Dikembangkan" alt="Typing SVG" />
 
 <br/>
 
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=node.js&logoColor=white)](https://nodejs.org)
-[![WhatsApp](https://img.shields.io/badge/WhatsApp-Baileys-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://github.com/WhiskeySockets/Baileys)
-[![License](https://img.shields.io/badge/License-FREE-blue?style=for-the-badge)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen?style=for-the-badge)]()
+<img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+<img src="https://img.shields.io/badge/WhatsApp-Baileys-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+<img src="https://img.shields.io/badge/License-FREE-3498DB?style=for-the-badge&logo=opensourceinitiative&logoColor=white" />
+<img src="https://img.shields.io/badge/Status-ONLINE%20🟢-27AE60?style=for-the-badge" />
+<img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Node-1a1a2e?style=for-the-badge&logo=linux&logoColor=white" />
 
-<br/>
+<br/><br/>
 
-[![Stars](https://img.shields.io/github/stars/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=FFD700&labelColor=1a1a2e&label=⭐%20Stars)](https://github.com/hitlabmodv2/ReadSwDika_Version/stargazers)
-[![Forks](https://img.shields.io/github/forks/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=4A90D9&labelColor=1a1a2e&label=🍴%20Forks)](https://github.com/hitlabmodv2/ReadSwDika_Version/network/members)
-[![Issues](https://img.shields.io/github/issues/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=E74C3C&labelColor=1a1a2e&label=🐛%20Issues)](https://github.com/hitlabmodv2/ReadSwDika_Version/issues)
+[![Stars](https://img.shields.io/github/stars/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=starship&color=FFD700&labelColor=1a1a2e&label=⭐%20Stars)](https://github.com/hitlabmodv2/ReadSwDika_Version/stargazers)
+[![Forks](https://img.shields.io/github/forks/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=git&color=4A90D9&labelColor=1a1a2e&label=🍴%20Forks)](https://github.com/hitlabmodv2/ReadSwDika_Version/network/members)
+[![Issues](https://img.shields.io/github/issues/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=bugsnag&color=E74C3C&labelColor=1a1a2e&label=🐛%20Issues)](https://github.com/hitlabmodv2/ReadSwDika_Version/issues)
 [![Last Commit](https://img.shields.io/github/last-commit/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=2ECC71&labelColor=1a1a2e&label=🕒%20Updated)](https://github.com/hitlabmodv2/ReadSwDika_Version/commits)
-[![Repo Size](https://img.shields.io/github/repo-size/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=9B59B6&labelColor=1a1a2e&label=📦%20Size)](https://github.com/hitlabmodv2/ReadSwDika_Version)
+[![Repo Size](https://img.shields.io/github/repo-size/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=files&color=9B59B6&labelColor=1a1a2e&label=📦%20Size)](https://github.com/hitlabmodv2/ReadSwDika_Version)
 
 <br/>
 
-> **WhatsApp Bot multi-fitur berbasis [Baileys](https://github.com/WhiskeySockets/Baileys)**
-> Script ini **FREE** — tidak untuk diperjualbelikan!
+![Visitors](https://komarev.com/ghpvc/?username=hitlabmodv2&color=25D366&style=for-the-badge&label=👁️%20TOTAL%20VIEWS&abbreviated=true)
+[![Watchers](https://img.shields.io/github/watchers/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&color=17A589&labelColor=1a1a2e&label=👀%20Watchers)](https://github.com/hitlabmodv2/ReadSwDika_Version/watchers)
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0,128C7E,25D366&height=3&section=header" />
+
+<br/>
+
+> 🤖 **WhatsApp Bot multi-fitur berbasis [Baileys](https://github.com/WhiskeySockets/Baileys)**
+> &nbsp;
+> ⚠️ Script ini **GRATIS** — tidak untuk diperjualbelikan!
 
 <br/>
 
@@ -29,10 +42,14 @@
 <br/>
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/hitlabmodv2/ReadSwDika_Version)
-&nbsp;
+&nbsp;&nbsp;
 [![Deploy on Fly.io](https://img.shields.io/badge/Deploy%20ke-Fly.io-8B5CF6?style=for-the-badge&logo=fly.io&logoColor=white)](https://fly.io/docs/launch/)
 
+<br/>
+
 </div>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=80&section=footer&reversal=true" />
 
 ---
 
