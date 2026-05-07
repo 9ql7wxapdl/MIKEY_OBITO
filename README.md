@@ -11,6 +11,14 @@
 
 <br/>
 
+[![Stars](https://img.shields.io/github/stars/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=FFD700&labelColor=1a1a2e&label=⭐%20Stars)](https://github.com/hitlabmodv2/ReadSwDika_Version/stargazers)
+[![Forks](https://img.shields.io/github/forks/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=4A90D9&labelColor=1a1a2e&label=🍴%20Forks)](https://github.com/hitlabmodv2/ReadSwDika_Version/network/members)
+[![Issues](https://img.shields.io/github/issues/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=E74C3C&labelColor=1a1a2e&label=🐛%20Issues)](https://github.com/hitlabmodv2/ReadSwDika_Version/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=2ECC71&labelColor=1a1a2e&label=🕒%20Updated)](https://github.com/hitlabmodv2/ReadSwDika_Version/commits)
+[![Repo Size](https://img.shields.io/github/repo-size/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=9B59B6&labelColor=1a1a2e&label=📦%20Size)](https://github.com/hitlabmodv2/ReadSwDika_Version)
+
+<br/>
+
 > **WhatsApp Bot multi-fitur berbasis [Baileys](https://github.com/WhiskeySockets/Baileys)**
 > Script ini **FREE** — tidak untuk diperjualbelikan!
 
