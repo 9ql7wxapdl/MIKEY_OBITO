@@ -832,6 +832,26 @@ function msgLoggedOut(number, remainingList) {
   )
 }
 
+function msgLoggedOutDirect(number) {
+  const now = new Date().toLocaleString('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  })
+  return (
+    `╔══════════════════════╗\n` +
+    `║  ⚠️  *JADIBOT LOGOUT*  ║\n` +
+    `╚══════════════════════╝\n\n` +
+    `📱 *Nomor kamu:* +${number}\n` +
+    `🕐 *Waktu:* ${now} WIB\n\n` +
+    `🚨 *Jadibot kamu telah logout!*\n` +
+    `Nomor kamu dihapus dari Perangkat Tertaut\n` +
+    `atau melakukan logout dari sisi WhatsApp.\n\n` +
+    `🗑️ Sesi jadibot otomatis dihapus.\n\n` +
+    `💡 Hubungi owner untuk aktifkan kembali.`
+  )
+}
+
 /* ================= START JADIBOT ================= */
 async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, sendPairingMsg = null, durationMs = undefined, mainBotSock = null) {
   number = number.replace(/[^0-9]/g, '')
@@ -1173,6 +1193,18 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
           logError(err instanceof Error ? err : new Error(String(err?.message || err)), `jadibot-logout-notif:${number}`)
         }
 
+        // Kirim notif langsung ke WA user jadibot via main bot (realtime)
+        if (mainBotSock) {
+          try {
+            await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
+              text: msgLoggedOutDirect(number)
+            })
+            console.log(`[JADIBOT] ✅ Notif logout realtime terkirim ke +${number} via main bot`)
+          } catch (e) {
+            console.log(`[JADIBOT] ⚠️ Gagal kirim notif logout ke +${number}: ${e?.message}`)
+          }
+        }
+
         // BARU setelah notif terkirim: tutup socket & hapus sesi
         cleanupSocket()
         setTimeout(() => {
@@ -1403,6 +1435,18 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
         } catch (err) {
           console.error(`[JADIBOT QR] Gagal kirim notif logout ${number}:`, err?.message)
           logError(err instanceof Error ? err : new Error(String(err?.message || err)), `jadibot-qr-logout-notif:${number}`)
+        }
+
+        // Kirim notif langsung ke WA user jadibot via main bot (realtime)
+        if (mainBotSock) {
+          try {
+            await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
+              text: msgLoggedOutDirect(number)
+            })
+            console.log(`[JADIBOT QR] ✅ Notif logout realtime terkirim ke +${number} via main bot`)
+          } catch (e) {
+            console.log(`[JADIBOT QR] ⚠️ Gagal kirim notif logout ke +${number}: ${e?.message}`)
+          }
         }
 
         // BARU hapus sesi setelah notif terkirim

@@ -17671,7 +17671,8 @@
     "id": "6285778517902@s.whatsapp.net",
     "name": "* Stephanie Floriska",
     "lid": "178701056626923@lid",
-    "jid": "6285778517902@s.whatsapp.net"
+    "jid": "6285778517902@s.whatsapp.net",
+    "notify": "Stephanie Floriska"
   },
   "601114539804@s.whatsapp.net": {
     "isContact": true,
@@ -21613,7 +21614,8 @@
     "id": "6287768752790@s.whatsapp.net",
     "name": "¥ Andini",
     "lid": "105420123283659@lid",
-    "jid": "6287768752790@s.whatsapp.net"
+    "jid": "6287768752790@s.whatsapp.net",
+    "notify": "dinni."
   },
   "6283863612151@s.whatsapp.net": {
     "isContact": true,
@@ -29672,7 +29674,8 @@
     "id": "6289627505993@s.whatsapp.net",
     "name": "√ Rendy",
     "lid": "194562018529473@lid",
-    "jid": "6289627505993@s.whatsapp.net"
+    "jid": "6289627505993@s.whatsapp.net",
+    "notify": "Fiveteen"
   },
   "6289522530153@s.whatsapp.net": {
     "isContact": true,
@@ -31564,6 +31567,11 @@
   "106536814805225@lid": {
     "id": "106536814805225@lid",
     "lid": "106536814805225@lid",
+    "imgUrl": "changed"
+  },
+  "137482205151384@lid": {
+    "id": "137482205151384@lid",
+    "lid": "137482205151384@lid",
     "imgUrl": "changed"
   }
 }
