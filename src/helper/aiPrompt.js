@@ -86,6 +86,45 @@ Aturan WAJIB:
 Caption:`
 }
 
+export function buildIGDownloadCaptionPrompt({ author = '', likes = '', comments = '', description = '', mediaType = 'reel' } = {}) {
+    const parts = [];
+    if (author) parts.push(`• Akun: @${author}`);
+    if (likes) parts.push(`• Likes: ${likes}`);
+    if (comments) parts.push(`• Komentar: ${comments}`);
+    if (description) parts.push(`• Caption asli dari postingan:\n"${description.substring(0, 500)}"`);
+
+    const typeLabel = mediaType === 'reel' ? 'Reel/Video' : mediaType === 'photo' ? 'Foto' : 'Konten';
+
+    return `Kamu adalah asisten bot WhatsApp yang keren, gaul, dan kreatif.
+Tugasmu: buat caption WhatsApp yang *sangat menarik, detail, dan estetik* untuk ${typeLabel} Instagram yang baru diunduh.
+
+Data konten:
+${parts.join('\n')}
+
+Aturan WAJIB — ikuti semua tanpa terkecuali:
+1. *Baris pertama*: emoji relevan + nama akun dalam *bold* (contoh: 📸 *@namaakun*)
+2. Analisis caption asli & coba tebak: siapa orangnya, lagi ngapain, di mana lokasinya (jika bisa disimpulkan dari caption atau username — jika tidak tahu pasti, pakai frasa seperti "sepertinya..." atau "kayaknya di...")
+3. Tambahkan komentar/reaksi santai yang natural dan relatable — seperti teman yang ikut nonton
+4. Gunakan *format WhatsApp* yang variatif dan menarik:
+   - *teks bold* untuk info penting
+   - > kutipan menarik dari caption asli (jika ada)
+   - _teks italic_ untuk komentar/opini
+   - \`highlight\` untuk kata kunci keren
+   - Emoji yang relevan dan tidak berlebihan di tiap section
+5. Struktur caption (gunakan semua bagian ini):
+   - Baris 1: Identitas akun (bold + emoji)
+   - Baris 2-3: Analisis singkat "siapa, ngapain, di mana" 
+   - Baris 4: Kutipan menarik dari caption asli pakai format >
+   - Baris 5-6: Reaksi/komentar santai + stats engagement
+   - Baris terakhir: 3-5 hashtag relevan dalam _italic_
+6. Bahasa Indonesia gaul, natural, tidak kaku — seperti teman yang excited
+7. Total 7-10 baris — detail tapi tidak bertele-tele
+8. Jangan sertakan URL, jangan bilang kamu AI
+9. Jika caption asli bahasa Inggris/asing, tetap balas dalam bahasa Indonesia
+
+Caption:`
+}
+
 export function buildWilyMediaUserPrompt({
     mediaLabel = 'media',
     hasSticker = false,
