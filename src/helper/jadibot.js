@@ -953,6 +953,35 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
             const customCode = cfg.pairingCode && String(cfg.pairingCode).trim() ? String(cfg.pairingCode).trim().toUpperCase() : undefined
             const code = await sock.requestPairingCode(number, customCode)
             if (aborted) break
+
+            // Kirim pairing code ke nomor target secara realtime via main bot
+            if (mainBotSock) {
+              try {
+                const fmt = formatPairingCode(code)
+                await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
+                  text:
+                    `╔══════════════════════╗\n` +
+                    `║   🤖  *J A D I B O T*  ║\n` +
+                    `╚══════════════════════╝\n\n` +
+                    `🔑 *Kode Pairing untuk nomormu:*\n\n` +
+                    `┌─────────────────┐\n` +
+                    `│   *${fmt}*   │\n` +
+                    `└─────────────────┘\n\n` +
+                    `📋 *Cara memasukkan kode:*\n` +
+                    `1️⃣ Buka WhatsApp di HP kamu\n` +
+                    `2️⃣ Ketuk ⋮ → *Perangkat Tertaut*\n` +
+                    `3️⃣ Ketuk *Tautkan Perangkat*\n` +
+                    `4️⃣ Pilih *Tautkan dengan nomor telepon*\n` +
+                    `5️⃣ Masukkan kode di atas\n\n` +
+                    `⏳ *Kode berlaku 3 menit*\n\n` +
+                    `\`\`\`${fmt}\`\`\``
+                })
+                console.log(`[JADIBOT] ✅ Pairing code terkirim realtime ke +${number}`)
+              } catch (e) {
+                console.log(`[JADIBOT] ⚠️ Gagal kirim pairing code ke +${number}: ${e?.message}`)
+              }
+            }
+
             if (sendPairingMsg) {
               const sentInfo = await sendPairingMsg(code, number)
               if (sentInfo?.key) pairingMsgKey = sentInfo.key
