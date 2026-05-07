@@ -1171,8 +1171,10 @@ show_main_menu() {
 
 # ===== Action: cek status token =====
 action_check_token() {
-  banner
-  echo -e "${C_BOLD}🔍 Cek Status Token${C_RESET}"
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🔍  CEK STATUS TOKEN           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
 
   if [ ! -f .token.secret ]; then
@@ -1244,22 +1246,22 @@ action_check_token() {
 
     echo -e "  ${C_GREEN}✅ Token VALID${C_RESET}"
     echo ""
-    echo -e "${C_BOLD}  ─── Info Akun GitHub ───${C_RESET}"
-    echo -e "  ${C_DIM}Username :${C_RESET} ${C_BOLD}${gh_login}${C_RESET}"
-    [ -n "$gh_name" ] && echo -e "  ${C_DIM}Nama     :${C_RESET} ${gh_name}"
-    [ -n "$gh_type" ] && echo -e "  ${C_DIM}Tipe     :${C_RESET} ${gh_type}"
+    echo -e "${C_DIM}  ── Akun GitHub ────────────────────${C_RESET}"
+    echo -e "  ${C_DIM}Username ${C_RESET}${C_BOLD}${gh_login}${C_RESET}"
+    [ -n "$gh_name" ] && echo -e "  ${C_DIM}Nama     ${C_RESET}${gh_name}"
+    [ -n "$gh_type" ] && echo -e "  ${C_DIM}Tipe     ${C_RESET}${gh_type}"
     echo ""
-    echo -e "${C_BOLD}  ─── Info Token ───${C_RESET}"
+    echo -e "${C_DIM}  ── Token ──────────────────────────${C_RESET}"
     if [ -n "$scopes" ]; then
-      echo -e "  ${C_DIM}Scopes   :${C_RESET} ${C_GREEN}${scopes}${C_RESET}"
+      echo -e "  ${C_DIM}Scopes   ${C_RESET}${C_GREEN}${scopes}${C_RESET}"
     else
-      echo -e "  ${C_DIM}Scopes   :${C_RESET} ${C_DIM}(fine-grained / tidak tersedia via header)${C_RESET}"
+      echo -e "  ${C_DIM}Scopes   ${C_RESET}${C_DIM}fine-grained / tidak via header${C_RESET}"
     fi
     echo ""
-    echo -e "${C_BOLD}  ─── Rate Limit API ───${C_RESET}"
-    [ -n "$rate_limit" ]     && echo -e "  ${C_DIM}Limit    :${C_RESET} ${rate_limit} req/jam"
-    [ -n "$rate_remaining" ] && echo -e "  ${C_DIM}Sisa     :${C_RESET} ${C_CYAN}${rate_remaining}${C_RESET}"
-    [ -n "$rate_reset_fmt" ] && echo -e "  ${C_DIM}Reset    :${C_RESET} ${rate_reset_fmt}"
+    echo -e "${C_DIM}  ── Rate Limit API ─────────────────${C_RESET}"
+    [ -n "$rate_limit" ]     && echo -e "  ${C_DIM}Limit    ${C_RESET}${rate_limit} req/jam"
+    [ -n "$rate_remaining" ] && echo -e "  ${C_DIM}Sisa     ${C_RESET}${C_CYAN}${rate_remaining}${C_RESET}"
+    [ -n "$rate_reset_fmt" ] && echo -e "  ${C_DIM}Reset    ${C_RESET}${rate_reset_fmt}"
   else
     local api_msg
     api_msg=$(echo "$body" | grep -o '"message": *"[^"]*"' | head -1 | sed 's/"message": *"//;s/"//')
@@ -1275,13 +1277,17 @@ action_check_token() {
 
 # ===== Action: rename repository =====
 action_rename_repo() {
-  banner
-  echo -e "${C_BOLD}✏️  Rename Repository${C_RESET}"
-  echo -e "${C_DIM}Nama sekarang: ${C_CYAN}${USER}/${REPO}${C_RESET}"
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   ✏️   RENAME REPOSITORY         │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
+  echo -e "  ${C_DIM}sekarang  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
   echo ""
-  printf "${C_BOLD}Nama baru untuk repository ▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}Nama baru ▸ ${C_RESET}"
 
   local new_name
   read -r new_name
@@ -1308,13 +1314,15 @@ action_rename_repo() {
 
   # Konfirmasi
   echo ""
-  echo -e "${C_RED}⚠️  Yakin rename repository?${C_RESET}"
-  echo -e "     ${C_DIM}${USER}/${REPO}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${USER}/${new_name}${C_RESET}"
-  echo -e "  ${C_DIM}Remote URL akan otomatis diperbarui di lokal juga.${C_RESET}"
+  echo -e "  ${C_RED}⚠️  Yakin rename?${C_RESET}"
+  echo -e "  ${C_DIM}${USER}/${REPO}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${USER}/${new_name}${C_RESET}"
+  echo -e "  ${C_DIM}Remote URL lokal ikut diperbarui otomatis.${C_RESET}"
   echo ""
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}lanjut rename${C_RESET}"
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}batal${C_RESET}"
-  printf "${C_BOLD}Konfirmasi ▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Lanjut rename"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
   local confirm
   read -r confirm
   if [ "$confirm" != "1" ]; then
@@ -1367,9 +1375,12 @@ action_rename_repo() {
 
 # ===== Action: ganti default branch =====
 action_switch_default() {
-  banner
-  echo -e "${C_BOLD}🔀 Ganti Default Branch${C_RESET}"
-  echo -e "${C_DIM}Default sekarang: ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🔀  GANTI DEFAULT BRANCH       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}default   ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
   echo ""
 
   local branches=()
@@ -1379,22 +1390,20 @@ action_switch_default() {
 
   local total=${#branches[@]}
   if [ "$total" -eq 0 ]; then
-    echo -e "${C_YELLOW}ℹ️  Tidak ada branch lain yang tersedia.${C_RESET}"
+    echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch lain yang tersedia.${C_RESET}"
     prompt_back_or_exit
     return
   fi
 
-  echo -e "${C_DIM}Pilih branch yang akan jadi default baru:${C_RESET}"
-  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   local i=1
   for b in "${branches[@]}"; do
-    printf "  ${C_CYAN}%2d${C_RESET} %s\n" "$i" "$b"
+    printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
     i=$((i + 1))
   done
-  echo ""
-  echo -e "  ${C_RED} 0${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-  echo ""
-  printf "${C_BOLD}Pilih [1-${total}] ▸ ${C_RESET}"
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local pick
   read -r pick
@@ -1455,12 +1464,15 @@ action_switch_default() {
 
 # ===== Action: buat branch baru =====
 action_create_branch() {
-  banner
-  echo -e "${C_BOLD}🌱 Buat branch baru${C_RESET}"
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🌱  BUAT BRANCH BARU           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-  echo ""
-  printf "${C_BOLD}Nama branch baru ▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}Nama branch baru ▸ ${C_RESET}"
   local name
   read -r name
   name=$(echo "$name" | tr -d '[:space:]')
@@ -1551,8 +1563,12 @@ action_create_branch() {
 
 # ===== Action: hapus branch =====
 action_delete_branch() {
-  banner
-  echo -e "${C_BOLD}🗑️  Hapus branch${C_RESET} ${C_DIM}(default '${DEFAULT_BRANCH}' dilindungi)${C_RESET}"
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🗑️   HAPUS BRANCH              │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}default dilindungi: ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
   echo ""
 
   local branches=()
@@ -1562,25 +1578,23 @@ action_delete_branch() {
 
   local total=${#branches[@]}
   if [ "$total" -eq 0 ]; then
-    echo -e "${C_YELLOW}ℹ️  Tidak ada branch yang bisa dihapus${C_RESET}"
-    echo -e "${C_DIM}   (cuma branch default '${DEFAULT_BRANCH}' yang ada)${C_RESET}"
+    echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch yang bisa dihapus${C_RESET}"
+    echo -e "  ${C_DIM}   (hanya branch default '${DEFAULT_BRANCH}' yang ada)${C_RESET}"
     prompt_back_or_exit
     return
   fi
 
-  echo -e "${C_DIM}Branch yang bisa dihapus (${total}):${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   local i=1
   for b in "${branches[@]}"; do
-    printf "  ${C_YELLOW}%2d${C_RESET} %s\n" "$i" "$b"
+    printf "  ${C_YELLOW}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
     i=$((i + 1))
   done
-  echo ""
-  echo -e "  ${C_DIM}Multi-hapus: pisahkan nomor dengan koma/spasi${C_RESET}"
-  echo -e "  ${C_DIM}Contoh: ${C_BOLD}1,3${C_RESET}${C_DIM}  atau  ${C_BOLD}1 2 3${C_RESET}${C_DIM}  atau  ${C_BOLD}all${C_RESET}${C_DIM} (semua)${C_RESET}"
-  echo ""
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-  echo ""
-  printf "${C_BOLD}Pilih branch ▸ ${C_RESET}"
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}multi-hapus: pisahkan dengan koma/spasi  •  ${C_BOLD}all${C_RESET}${C_DIM} = semua${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local pick
   read -r pick
@@ -1639,14 +1653,16 @@ action_delete_branch() {
 
   # ===== Konfirmasi =====
   echo ""
-  echo -e "${C_RED}⚠️  Yakin hapus ${#targets[@]} branch berikut dari lokal & remote?${C_RESET}"
+  echo -e "  ${C_RED}⚠️  Yakin hapus ${#targets[@]} branch dari lokal & remote?${C_RESET}"
   for t in "${targets[@]}"; do
-    echo -e "    ${C_YELLOW}•${C_RESET} ${C_BOLD}${t}${C_RESET}"
+    echo -e "     ${C_YELLOW}›${C_RESET} ${C_BOLD}${t}${C_RESET}"
   done
   echo ""
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}lanjut hapus${C_RESET}"
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}batal & kembali ke menu${C_RESET}"
-  printf "${C_BOLD}Konfirmasi ▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Lanjut hapus"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
   local confirm
   read -r confirm
 
@@ -1695,7 +1711,7 @@ action_delete_branch() {
 
   # ===== Ringkasan =====
   echo ""
-  echo -e "${C_BOLD}─── Ringkasan ───${C_RESET}"
+  echo -e "${C_DIM}  ── Ringkasan ──────────────────────${C_RESET}"
   echo -e "  ${C_GREEN}✅ Sukses : ${ok}${C_RESET}"
   [ "$fail" -gt 0 ] && echo -e "  ${C_RED}❌ Gagal  : ${fail}${C_RESET}"
 
@@ -1704,7 +1720,13 @@ action_delete_branch() {
 
 # ===== Menu pemilih branch (sub-menu dari opsi 1) =====
 show_menu() {
-  banner
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📤  UPLOAD — PILIH BRANCH      │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo ""
 
   local branches=()
   while IFS= read -r b; do
@@ -1712,24 +1734,23 @@ show_menu() {
   done < <(fetch_branches)
 
   local total=${#branches[@]}
-  echo -e "${C_BOLD}Pilih branch tujuan upload${C_RESET} ${C_DIM}(${USER}/${REPO} • total ${total})${C_RESET}"
 
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   local i=1
   for b in "${branches[@]}"; do
     if [ "$b" = "$DEFAULT_BRANCH" ]; then
-      printf "  ${C_GREEN}%2d${C_RESET} %s ${C_DIM}(default)${C_RESET}\n" "$i" "$b"
+      printf "  ${C_GREEN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s  ${C_DIM}(default)${C_RESET}\n" "$i" "$b"
     else
-      printf "  ${C_CYAN}%2d${C_RESET} %s\n" "$i" "$b"
+      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
     fi
     i=$((i + 1))
   done
-
-  echo ""
-  echo -e "  ${C_YELLOW} A${C_RESET} upload ke ${C_BOLD}semua branch${C_RESET}"
-  echo -e "  ${C_GREEN} D${C_RESET} pakai default (${DEFAULT_BRANCH})"
-  echo -e "  ${C_RED} 0${C_RESET} kembali"
-  echo ""
-  printf "${C_BOLD}Pilihan ▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_YELLOW} A${C_RESET} ${C_BOLD}›${C_RESET} Semua branch"
+  echo -e "  ${C_GREEN} D${C_RESET} ${C_BOLD}›${C_RESET} Default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local choice
   read -r choice
@@ -1767,11 +1788,11 @@ show_menu() {
 # ===== Goodbye prompt (bisa balik cepat dengan ketik 1) =====
 goodbye_prompt() {
   echo ""
-  echo -e "${C_DIM}─────────────────────────────────────${C_RESET}"
-  echo -e "${C_BOLD}ℹ️  Keluar.${C_RESET}"
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}masuk lagi${C_RESET}"
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}benar-benar keluar${C_RESET}"
-  printf "${C_BOLD}▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
   local back
   read -r back
   back="${back:-1}"
@@ -1963,9 +1984,11 @@ run_upload() {
 # ===== Helper: prompt tunggal setelah setiap action =====
 prompt_back_or_exit() {
   echo ""
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_DIM}kembali ke menu${C_RESET}"
-  echo -e "  ${C_RED}0${C_RESET} ${C_DIM}keluar${C_RESET}"
-  printf "${C_BOLD}▸ ${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
   local _ans
   read -r _ans
   _ans="${_ans:-1}"
