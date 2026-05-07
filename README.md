@@ -40,6 +40,7 @@
 - [🎬 YouTube Downloader](#-youtube-downloader)
 - [🤖 Jadibot (Multi-Session)](#-jadibot-multi-session)
 - [🛡️ Fitur Keamanan](#️-fitur-keamanan)
+- [❓ Troubleshooting / FAQ](#-troubleshooting--faq)
 - [📝 Kredit](#-kredit)
 
 ---
@@ -811,6 +812,141 @@ Bot memantau penggunaan RAM secara berkala dan dapat auto-restart jika melebihi 
 
 ### Auto Cleaner
 File temporary (hasil download) dibersihkan otomatis setiap 6 jam.
+
+</details>
+
+---
+
+## ❓ Troubleshooting / FAQ
+
+<details>
+<summary><b>🔽 Klik untuk melihat solusi masalah umum</b></summary>
+
+<br/>
+
+### ❌ Pairing Code tidak muncul di log
+
+**Penyebab & solusi:**
+- Pastikan `BOT_NUMBER_PAIR` sudah diisi dengan nomor yang benar (format: `628xxxxxxx`, tanpa + atau spasi)
+- Nomor harus aktif di WhatsApp dan **belum** terhubung ke perangkat lain melebihi batas (max 4 perangkat tertaut)
+- Coba hapus folder sesi lama lalu restart bot:
+  ```bash
+  rm -rf sessions/hisoka/
+  npm start
+  ```
+- Pastikan koneksi internet stabil saat bot pertama kali dijalankan
+
+---
+
+### ❌ Sesi hilang / harus pairing ulang setiap restart
+
+**Penyebab & solusi:**
+- Di Railway: Volume belum dipasang — ikuti langkah pasang Volume di section Railway
+- Di Fly.io: Volume belum dibuat — jalankan `fly volumes create`
+- Di Replit: Gunakan **Replit Deployments** agar storage persistent; free tier bisa di-reset sewaktu-waktu
+- Di VPS/lokal: Pastikan folder `sessions/` tidak dihapus oleh skrip cleanup
+
+---
+
+### ❌ Bot tidak merespons command sama sekali
+
+**Penyebab & solusi:**
+- Cek apakah bot benar-benar online — lihat log, pastikan ada tulisan `ONLINE 🟢`
+- Pastikan command diawali dengan prefix yang benar (default: `.`) → contoh: `.menu`
+- Cek apakah nomor kamu masuk daftar owner di `config.json` untuk command yang membutuhkan akses owner
+- Jika bot baru saja pairing, tunggu 10–30 detik agar sesi stabil dulu
+- Coba kirim pesan dari private chat dulu, bukan grup
+
+---
+
+### ❌ Error saat `npm install`
+
+**Penyebab & solusi:**
+- Pastikan Node.js versi **18 atau lebih baru**:
+  ```bash
+  node -v
+  ```
+- Hapus folder `node_modules` dan file `package-lock.json` lalu install ulang:
+  ```bash
+  rm -rf node_modules package-lock.json
+  npm install
+  ```
+- Pastikan koneksi internet tidak terputus saat install
+
+---
+
+### ❌ Jadibot tidak bisa connect / pairing code jadibot tidak muncul
+
+**Penyebab & solusi:**
+- Nomor target jadibot harus aktif di WhatsApp dan belum melebihi batas 4 perangkat tertaut
+- Tunggu 60 detik sebelum coba lagi jika baru saja gagal (WhatsApp ada cooldown)
+- Pastikan nomor diisi lengkap dengan kode negara: `628xxxxxxx` (tanpa + dan tanpa spasi)
+- Jika pairing code sudah dapat tapi tidak bisa diinput: code expired dalam 60 detik, minta generate ulang dengan command yang sama
+
+---
+
+### ❌ Bot sering disconnect / auto-reconnect terus
+
+**Penyebab & solusi:**
+- Kemungkinan WhatsApp mendeteksi aktivitas tidak normal — kurangi frekuensi kirim pesan massal
+- Cek apakah ada lebih dari 4 perangkat tertaut di akun WA tersebut — hapus perangkat lama
+- Koneksi internet server tidak stabil — coba ganti provider hosting
+- Jika terjadi di Railway/Fly.io: cek memory usage, bot mungkin di-restart karena kehabisan RAM
+
+---
+
+### ❌ Download YouTube / TikTok / Instagram gagal
+
+**Penyebab & solusi:**
+- Pastikan `yt-dlp` ada di folder `tmp/` dan punya izin eksekusi:
+  ```bash
+  ls -la tmp/yt-dlp
+  chmod +x tmp/yt-dlp
+  ```
+- Update `yt-dlp` ke versi terbaru (YouTube sering memblokir versi lama):
+  ```bash
+  ./tmp/yt-dlp --update
+  ```
+- Untuk video privat atau berumur: tidak bisa didownload tanpa login cookies
+- Coba dengan URL yang berbeda atau versi pendek URL
+
+---
+
+### ❌ Memory terlalu tinggi / bot auto-restart karena RAM
+
+**Penyebab & solusi:**
+- Normal terjadi jika banyak file media di folder `tmp/` — bot akan auto-clean setiap 6 jam
+- Paksa bersihkan manual:
+  ```bash
+  rm -rf tmp/*.mp4 tmp/*.mp3 tmp/*.jpg tmp/*.png
+  ```
+- Kurangi `autoDetectPercentage` di `config.json` (default 90%) agar bot restart lebih awal sebelum crash:
+  ```json
+  "autoDetectPercentage": 80
+  ```
+- Di Railway/Fly.io: naikkan RAM allocation jika tersedia di plan kamu
+
+---
+
+### ❌ Fitur AI / Simi tidak merespons
+
+**Penyebab & solusi:**
+- Pastikan `autoSimi.enabled` di `config.json` di-set `true`
+- Isi `apiKey` yang valid di bagian `autoSimi` atau `wilyAI`
+- Cek koneksi server ke API eksternal (Groq, Simi, dll) tidak diblokir oleh firewall hosting
+
+---
+
+### 💡 Tips Umum
+
+| Masalah | Solusi Cepat |
+|---|---|
+| Bot lambat merespons | Cek ping server, pindah region lebih dekat |
+| Dapat error `ECONNRESET` | Koneksi internet putus, bot akan reconnect otomatis |
+| Dapat error `loggedOut` | WA session expired, perlu pairing ulang |
+| Dapat error `forbidden 403` | Bot reconnect otomatis tanpa hapus sesi (sudah dihandle) |
+| Command tidak dikenali | Cek prefix, cek ejaan command dengan `.menu` |
+| Bot kirim pesan double | Cek apakah ada dua instance bot berjalan bersamaan |
 
 </details>
 
