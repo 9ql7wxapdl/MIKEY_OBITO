@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=28&pause=1000&color=25D366&center=true&vCenter=true&width=600&lines=🤖+WILY+BOT;WhatsApp+Multi-Fitur+Bot;Powered+by+Baileys+%2B+Node.js" alt="Typing SVG" />
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=28&pause=1000&color=25D366&center=true&vCenter=true&width=600&lines=%F0%9F%A4%96+WILY+BOT;WhatsApp+Multi-Fitur+Bot;Powered+by+Baileys+%2B+Node.js" alt="Typing SVG" />
 
 <br/>
 
@@ -16,7 +16,7 @@
 
 <br/>
 
-[![Run on Replit](https://replit.com/badge/github/hitlabmodv2/ReadSwDika_Version)](https://replit.com/new/github/hitlabmodv2/ReadSwDika_Version)
+[![Run on Replit](https://img.shields.io/badge/▶%20Run%20on-Replit-F26207?style=for-the-badge&logo=replit&logoColor=white)](https://replit.com/new/github/hitlabmodv2/ReadSwDika_Version)
 
 <br/>
 
@@ -97,7 +97,7 @@
 
 <div align="center">
 
-[![Run on Replit](https://replit.com/badge/github/hitlabmodv2/ReadSwDika_Version)](https://replit.com/new/github/hitlabmodv2/ReadSwDika_Version)
+[![Run on Replit](https://img.shields.io/badge/▶%20Run%20on-Replit-F26207?style=for-the-badge&logo=replit&logoColor=white)](https://replit.com/new/github/hitlabmodv2/ReadSwDika_Version)
 
 </div>
 
