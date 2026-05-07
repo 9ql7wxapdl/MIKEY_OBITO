@@ -1491,21 +1491,28 @@ action_list_branches() {
   local PAGE_SIZE=5
   local TMP_LIST=/tmp/_gh_brlist_$$.json
   local TMP_CMP=/tmp/_gh_cmp_$$.json
-  local TMP_CMT=/tmp/_gh_cmt_$$.json
 
-  # ── helper: parse JSON string value by key ──────────────────────────────
-  _jval() { grep -o "\"$1\" *: *\"[^\"]*\"" "$2" | head -1 \
-              | sed 's/.*": *"//;s/".*//'; }
-  _jnum() { grep -o "\"$1\" *: *[0-9]*" "$2" | head -1 \
-              | grep -o '[0-9]*$'; }
+  # ── helper: ekstrak angka untuk field JSON ──────────────────────────────
+  # Gunakan -E (extended regex) dan [0-9]+ (1+ digit) supaya tidak pernah kosong
+  _jnum_f() { grep -oE "\"$1\":[[:space:]]*[0-9]+" "$2" | head -1 \
+                | grep -oE '[0-9]+$'; }
 
-  # ── Fetch semua branch (satu kali) ─────────────────────────────────────
-  clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
-  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  # ── _draw_header: cetak ulang header supaya DRY ─────────────────────────
+  _draw_header() {
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  }
+
+  # ════════════════════════════════════════════════════════════════════════
+  # FASE 1 — Ambil semua branch + date, lalu sort terbaru dulu
+  # ════════════════════════════════════════════════════════════════════════
+  _draw_header
   echo ""
-  echo -e "  ${C_DIM}▸ Mengambil daftar branch dari GitHub...${C_RESET}"
+  echo -e "  ${C_DIM}▸ [1/3] Mengambil daftar branch...${C_RESET}"
 
   local http_code
   http_code=$(curl -s -o "$TMP_LIST" -w "%{http_code}" \
@@ -1521,26 +1528,24 @@ action_list_branches() {
     return
   fi
 
-  # ── Ekstrak name+sha pasangan per branch ───────────────────────────────
-  # JSON format: [...{"name":"X","commit":{"sha":"Y","url":"..."},"protected":...},...]
-  # Strategi: split per object, ambil name dan commit.sha dari tiap block
+  # Parsing JSON pakai node (tersedia karena project ini Node.js).
+  # Hasilkan baris: "name<TAB>sha"  — dijamin benar meski JSON compact/minified.
   local all_names=() all_shas=()
-  local raw_names raw_shas
-  # name  muncul sebelum commit block, sha adalah field pertama di dalam commit{}
-  # Gunakan awk untuk pasangkan name dan sha secara sequential
   while IFS=$'\t' read -r _n _s; do
     all_names+=("$_n")
     all_shas+=("$_s")
-  done < <(awk '
-    /"name"/ { gsub(/.*"name": *"/, ""); gsub(/".*/, ""); name=$0 }
-    /"sha"/  {
-      gsub(/.*"sha": *"/, ""); gsub(/".*/, ""); sha=$0
-      if (name != "" && sha != "") { print name "\t" sha; name="" }
-    }
-  ' "$TMP_LIST")
+  done < <(node -e "
+    const d = require('fs').readFileSync('$TMP_LIST','utf8');
+    JSON.parse(d).forEach(b => console.log(b.name + '\t' + b.commit.sha));
+  " 2>/dev/null)
   rm -f "$TMP_LIST"
 
-  # ── Pisahkan default branch ─────────────────────────────────────────────
+  if [ ${#all_names[@]} -eq 0 ]; then
+    echo -e "  ${C_RED}❌ Tidak ada branch ditemukan.${C_RESET}"
+    prompt_back_or_exit; return
+  fi
+
+  # ── Pisahkan default ────────────────────────────────────────────────────
   local def_sha=""
   local nd_names=() nd_shas=()
   for (( i=0; i<${#all_names[@]}; i++ )); do
@@ -1552,58 +1557,106 @@ action_list_branches() {
     fi
   done
 
+  # ── [2/3] Ambil tanggal commit semua branch secara PARALEL ─────────────
+  echo -e "  ${C_DIM}▸ [2/3] Mengambil tanggal semua branch (paralel)...${C_RESET}"
+
+  local total_nd=${#nd_names[@]}
+  # Default branch date
+  local def_date="" def_rel="-"
+  if [ -n "$def_sha" ]; then
+    curl -s -o "/tmp/_gh_d_def_$$.json" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/commits/${def_sha}" 2>/dev/null &
+  fi
+  # Semua branch lain — paralel
+  for (( i=0; i<total_nd; i++ )); do
+    local sha="${nd_shas[$i]}"
+    [ -z "$sha" ] && continue
+    curl -s -o "/tmp/_gh_d_${i}_$$.json" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/commits/${sha}" 2>/dev/null &
+  done
+  wait  # tunggu semua curl selesai
+
+  # Baca hasil default
+  if [ -f "/tmp/_gh_d_def_$$.json" ]; then
+    def_date=$(grep -oE '"date":"[^"]*"' "/tmp/_gh_d_def_$$.json" | head -1 \
+               | sed 's/"date":"//;s/"//')
+    rm -f "/tmp/_gh_d_def_$$.json"
+    [ -n "$def_date" ] && def_rel=$(_relative_time "$def_date")
+  fi
+
+  # Baca hasil tiap branch, kumpulkan: "isodate<TAB>name<TAB>sha"
+  local all_dated=()
+  for (( i=0; i<total_nd; i++ )); do
+    local fname="/tmp/_gh_d_${i}_$$.json"
+    local bdate=""
+    if [ -f "$fname" ]; then
+      bdate=$(grep -oE '"date":"[^"]*"' "$fname" | head -1 \
+              | sed 's/"date":"//;s/"//')
+      rm -f "$fname"
+    fi
+    # Simpan "isodate<TAB>name<TAB>sha" — tanggal kosong jadi "0000"
+    all_dated+=("${bdate:-0000-00-00T00:00:00Z}"$'\t'"${nd_names[$i]}"$'\t'"${nd_shas[$i]}")
+  done
+
+  # ── Sort descending by ISO date (string sort bekerja untuk ISO 8601) ──
+  local sorted_dated=()
+  while IFS= read -r line; do
+    sorted_dated+=("$line")
+  done < <(printf '%s\n' "${all_dated[@]}" | sort -r)
+
+  # Rebuild array nd_names / nd_shas / nd_dates sudah terurut terbaru dulu
+  nd_names=(); nd_shas=(); local nd_dates=()
+  for entry in "${sorted_dated[@]}"; do
+    local _d _n _s
+    IFS=$'\t' read -r _d _n _s <<< "$entry"
+    nd_names+=("$_n")
+    nd_shas+=("$_s")
+    nd_dates+=("$_d")
+  done
+
   local total_other=${#nd_names[@]}
   local total_pages=$(( (total_other + PAGE_SIZE - 1) / PAGE_SIZE ))
   [ "$total_pages" -eq 0 ] && total_pages=1
 
-  # ── Tanggal default branch ──────────────────────────────────────────────
-  local def_rel="-"
-  if [ -n "$def_sha" ]; then
-    curl -s -o "$TMP_CMT" \
-      -H "Authorization: token ${TOKEN}" \
-      -H "Accept: application/vnd.github+json" \
-      -H "X-GitHub-Api-Version: 2022-11-28" \
-      "https://api.github.com/repos/${USER}/${REPO}/git/commits/${def_sha}" 2>/dev/null
-    local def_date
-    def_date=$(_jval date "$TMP_CMT")
-    rm -f "$TMP_CMT"
-    [ -n "$def_date" ] && def_rel=$(_relative_time "$def_date")
-  fi
+  echo -e "  ${C_DIM}▸ [3/3] Siap — ${total_other} branch ditemukan${C_RESET}"
+  sleep 0.4
 
-  # ── Loop tampilan ───────────────────────────────────────────────────────
+  # ════════════════════════════════════════════════════════════════════════
+  # FASE 2 — Loop tampilan dengan paginasi
+  # ════════════════════════════════════════════════════════════════════════
   while true; do
     local start=$(( (PAGE - 1) * PAGE_SIZE ))
     local end=$(( start + PAGE_SIZE ))
     [ "$end" -gt "$total_other" ] && end="$total_other"
     local pg_label="${PAGE}/${total_pages}"
 
-    # Loading header
-    clear >/dev/tty 2>/dev/null || true
-    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-    echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
-    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    # Loading header sementara API compare jalan
+    _draw_header
     echo ""
-    echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
-    echo ""
-    echo -e "${C_DIM}  ── Default ─────────────────────────${C_RESET}"
+    echo -e "${C_DIM}  ── Default ★ ─────────────────────────${C_RESET}"
     printf "  ${C_GREEN}★${C_RESET} ${C_BOLD}%-24s${C_RESET} ${C_DIM}%s${C_RESET}\n" "$DEFAULT_BRANCH" "$def_rel"
     echo ""
-    echo -e "${C_DIM}  ── Branches ─────────── ${pg_label} ──────${C_RESET}"
-    echo -e "  ${C_DIM}▸ Memuat... harap tunggu${C_RESET}"
+    echo -e "${C_DIM}  ── Branches (terbaru dulu) ── ${pg_label} ──${C_RESET}"
+    echo -e "  ${C_DIM}▸ Mengambil behind/ahead...${C_RESET}"
 
-    # ── Fetch data halaman ini ──────────────────────────────────────────
+    # ── Fetch compare per branch di halaman ini ─────────────────────────
     local page_names=() page_dates=() page_behind=() page_ahead=()
     for (( idx=start; idx<end; idx++ )); do
       local b="${nd_names[$idx]}"
-      local sha="${nd_shas[$idx]}"
-      # URL-encode slash dalam nama branch
+      local bdate="${nd_dates[$idx]}"
       local b_enc
       b_enc=$(printf '%s' "$b" | sed 's|/|%2F|g')
       page_names+=("$b")
+      page_dates+=("$bdate")
 
-      # ── Compare → behind_by, ahead_by ──────────────────────────────
-      # head -c 65536 : cukup untuk dapat behind_by/ahead_by di awal JSON
-      # (base_commit + merge_base_commit bisa 10-20KB, field muncul setelahnya)
+      # Compare: simpan ke file lalu ambil behind_by dan ahead_by
+      # head -c 131072 cukup karena field muncul setelah base+merge_base (~15KB)
       curl -s \
         -H "Authorization: token ${TOKEN}" \
         -H "Accept: application/vnd.github+json" \
@@ -1612,39 +1665,21 @@ action_list_branches() {
         2>/dev/null | head -c 131072 > "$TMP_CMP"
 
       local behind ahead
-      behind=$(_jnum behind_by "$TMP_CMP")
-      ahead=$(_jnum ahead_by  "$TMP_CMP")
+      behind=$(_jnum_f behind_by "$TMP_CMP")
+      ahead=$(_jnum_f ahead_by  "$TMP_CMP")
       rm -f "$TMP_CMP"
-
-      # ── Tanggal commit tip branch ────────────────────────────────────
-      local bdate=""
-      if [ -n "$sha" ]; then
-        curl -s -o "$TMP_CMT" \
-          -H "Authorization: token ${TOKEN}" \
-          -H "Accept: application/vnd.github+json" \
-          -H "X-GitHub-Api-Version: 2022-11-28" \
-          "https://api.github.com/repos/${USER}/${REPO}/git/commits/${sha}" 2>/dev/null
-        bdate=$(_jval date "$TMP_CMT")
-        rm -f "$TMP_CMT"
-      fi
 
       page_behind+=("${behind:-?}")
       page_ahead+=("${ahead:-?}")
-      page_dates+=("$bdate")
     done
 
     # ── Render final ─────────────────────────────────────────────────────
-    clear >/dev/tty 2>/dev/null || true
-    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-    echo -e "${C_BOLD}│   📊  STATUS BRANCH              │${C_RESET}"
-    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    _draw_header
     echo ""
-    echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
-    echo ""
-    echo -e "${C_DIM}  ── Default ─────────────────────────${C_RESET}"
+    echo -e "${C_DIM}  ── Default ★ ─────────────────────────${C_RESET}"
     printf "  ${C_GREEN}★${C_RESET} ${C_BOLD}%-24s${C_RESET} ${C_DIM}%s${C_RESET}\n" "$DEFAULT_BRANCH" "$def_rel"
     echo ""
-    echo -e "${C_DIM}  ── Branches ─────────── ${pg_label} ──────${C_RESET}"
+    echo -e "${C_DIM}  ── Branches (terbaru dulu) ── ${pg_label} ──${C_RESET}"
 
     if [ "$total_other" -eq 0 ]; then
       echo -e "  ${C_DIM}Tidak ada branch lain.${C_RESET}"
@@ -1657,18 +1692,18 @@ action_list_branches() {
 
         # Relative time
         local rel="-"
-        [ -n "$bdate" ] && rel=$(_relative_time "$bdate")
+        [[ "$bdate" != "0000"* ]] && [ -n "$bdate" ] && rel=$(_relative_time "$bdate")
 
-        # Truncate name jika terlalu panjang
+        # Truncate nama
         local disp="$name"
         [ ${#disp} -gt 20 ] && disp="${disp:0:19}…"
 
-        # Status string: ↓behind ↑ahead
+        # Status ↓behind ↑ahead
         local st=""
         if [ "$behind" = "?" ]; then
           st="${C_DIM}?${C_RESET}"
         elif [ "$behind" = "0" ] && [ "$ahead" = "0" ]; then
-          st="${C_GREEN}✓ up-to-date${C_RESET}"
+          st="${C_GREEN}✓${C_RESET}"
         else
           [ "$behind" != "0" ] && st="${st}${C_RED}↓${behind}${C_RESET}"
           [ "$behind" != "0" ] && [ "$ahead" != "0" ] && st="${st} "
@@ -1685,9 +1720,10 @@ action_list_branches() {
     echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
     if [ "$total_pages" -gt 1 ]; then
       [ "$PAGE" -lt "$total_pages" ] && \
-        echo -e "  ${C_CYAN}n${C_RESET} ${C_BOLD}›${C_RESET} Halaman berikutnya  ${C_DIM}(atau ketik nomor)${C_RESET}"
+        echo -e "  ${C_CYAN}n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya    ${C_DIM}l › Halaman terakhir (${total_pages})${C_RESET}"
       [ "$PAGE" -gt 1 ] && \
-        echo -e "  ${C_CYAN}p${C_RESET} ${C_BOLD}›${C_RESET} Halaman sebelumnya"
+        echo -e "  ${C_CYAN}p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya    ${C_DIM}f › Halaman pertama (1)${C_RESET}"
+      echo -e "  ${C_DIM}atau ketik nomor halaman langsung (1–${total_pages})${C_RESET}"
     fi
     echo -e "  ${C_GREEN}r${C_RESET} ${C_BOLD}›${C_RESET} Refresh"
     echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
@@ -1700,8 +1736,12 @@ action_list_branches() {
 
     case "$nav" in
       n|next)    [ "$PAGE" -lt "$total_pages" ] && PAGE=$((PAGE + 1)) ;;
-      p|prev)    [ "$PAGE" -gt 1 ] && PAGE=$((PAGE - 1)) ;;
-      r|refresh) ;;
+      p|prev)    [ "$PAGE" -gt 1 ]              && PAGE=$((PAGE - 1)) ;;
+      f|first)   PAGE=1 ;;
+      l|last)    PAGE=$total_pages ;;
+      r|refresh)
+        # Mulai ulang dari awal (re-fetch semua data)
+        action_list_branches; return ;;
       0|q|exit)  return ;;
       [1-9]*)
         if echo "$nav" | grep -qE '^[0-9]+$' && \
