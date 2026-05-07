@@ -7376,7 +7376,9 @@
     "id": "6285799241374@s.whatsapp.net",
     "name": "▫️Fadli",
     "lid": "162160936263906@lid",
-    "jid": "6285799241374@s.whatsapp.net"
+    "jid": "6285799241374@s.whatsapp.net",
+    "notify": "–𝐅𝕯𝖑𝖞",
+    "verifiedName": "–𝐅𝕯𝖑𝖞"
   },
   "6282146735453@s.whatsapp.net": {
     "isContact": true,
@@ -31707,6 +31709,11 @@
   "177519974207657@lid": {
     "id": "177519974207657@lid",
     "lid": "177519974207657@lid",
+    "imgUrl": "changed"
+  },
+  "242876843835549@lid": {
+    "id": "242876843835549@lid",
+    "lid": "242876843835549@lid",
     "imgUrl": "changed"
   }
 }
