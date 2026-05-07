@@ -9294,6 +9294,8 @@ infoText += `╰═════════════════════�
                                         const aiCaptionIG = await aiCaptionPromiseIG;
                                         const finalCaptionIG = aiCaptionIG?.trim() || infoText;
 
+                                        let firstVideoUrl = null;
+
                                         for (let i = 0; i < mediaItems.length; i++) {
                                                 const item = mediaItems[i];
                                                 const mediaUrl = typeof item === 'object' ? (item.url || item.src) : item;
@@ -9309,6 +9311,8 @@ infoText += `╰═════════════════════�
                                                         else if (urlStr.endsWith('.jpg') || urlStr.endsWith('.jpeg') || urlStr.endsWith('.png') || urlStr.endsWith('.webp')) itemIsVideo = false;
                                                 }
 
+                                                if (itemIsVideo && !firstVideoUrl) firstVideoUrl = mediaUrl;
+
                                                 try {
                                                         if (itemIsVideo) {
                                                                 await hisoka.sendMessage(m.from, {
@@ -9323,6 +9327,25 @@ infoText += `╰═════════════════════�
                                                         }
                                                 } catch (sendErr) {
                                                         console.error(`[IG] Failed to send media ${i + 1}:`, sendErr.message);
+                                                }
+                                        }
+
+                                        // Auto kirim audio jika ada video (reel)
+                                        if (firstVideoUrl) {
+                                                try {
+                                                        const execAsync = util.promisify(exec);
+                                                        const tmpAudio = `/tmp/ig_audio_${Date.now()}.mp3`;
+                                                        await execAsync(`ffmpeg -i "${firstVideoUrl}" -vn -acodec libmp3lame -q:a 4 "${tmpAudio}" -y`, { timeout: 60000 });
+                                                        const { readFile, unlink } = await import('fs/promises');
+                                                        const audioBuf = await readFile(tmpAudio);
+                                                        await hisoka.sendMessage(m.from, {
+                                                                audio: audioBuf,
+                                                                mimetype: 'audio/mpeg',
+                                                                ptt: false,
+                                                        }, { quoted: m });
+                                                        unlink(tmpAudio).catch(() => {});
+                                                } catch (audioErr) {
+                                                        console.error('[IG] Gagal ekstrak audio:', audioErr.message);
                                                 }
                                         }
 
