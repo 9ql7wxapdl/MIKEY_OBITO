@@ -29,6 +29,7 @@
 ## 📋 Daftar Isi
 
 - [✨ Fitur Unggulan](#-fitur-unggulan)
+- [⚡ Deploy ke Replit (Paling Cepat)](#-deploy-ke-replit-paling-cepat)
 - [🚀 Deploy ke Railway](#-deploy-ke-railway)
 - [✈️ Deploy ke Fly.io (Gratis + Volume)](#️-deploy-ke-flyio-gratis--volume)
 - [📦 Instalasi Manual](#-instalasi-manual)
@@ -85,6 +86,130 @@
     <td><b>Telegram Integration</b><br/>Forward story/log WhatsApp ke Telegram bot</td>
   </tr>
 </table>
+
+---
+
+## ⚡ Deploy ke Replit (Paling Cepat)
+
+> Replit adalah cara **tercepat** untuk menjalankan Wily Bot — tidak perlu install apapun, tidak perlu CLI, langsung dari browser. Cocok untuk pemula yang baru mulai.
+
+<div align="center">
+
+[![Run on Replit](https://replit.com/badge/github/Wilykun1994/wily-bot)](https://replit.com/new/github/Wilykun1994/wily-bot)
+
+</div>
+
+<details>
+<summary><b>🔽 Klik untuk panduan lengkap deploy ke Replit (Bahasa Indonesia)</b></summary>
+
+<br/>
+
+### Apa itu Replit?
+Replit adalah platform coding berbasis browser yang bisa menjalankan bot Node.js secara online. Kamu bisa deploy, edit kode, dan lihat log — semua dari browser tanpa install apapun di komputer.
+
+---
+
+### Persyaratan
+- Akun Replit (daftar gratis di [replit.com](https://replit.com))
+- Akun GitHub (untuk fork repo)
+
+---
+
+### Langkah-Langkah Deploy
+
+#### 1. Fork Repository ke GitHub Kamu
+Sebelum deploy ke Replit, fork dulu repo ini ke akun GitHub kamu:
+- Klik tombol **Fork** di pojok kanan atas halaman GitHub repo ini
+- Pilih akun GitHub kamu sebagai tujuan fork
+
+#### 2. Deploy ke Replit via Tombol
+- Klik tombol **"Run on Replit"** di atas, **ATAU**
+- Buka [replit.com/new/github](https://replit.com/new/github) dan paste URL repo GitHub kamu
+- Replit akan otomatis mendeteksi project Node.js dan menyiapkan lingkungan
+
+#### 3. Atur Environment Variables (Wajib!)
+Setelah project terbuka di Replit, pergi ke menu **Secrets** (ikon 🔒 di panel kiri) dan tambahkan:
+
+| Key | Value | Keterangan |
+|---|---|---|
+| `BOT_NUMBER_PAIR` | `6281234567890` | Nomor WA bot (tanpa +, pakai kode negara) |
+| `BOT_SESSION_NAME` | `hisoka` | Nama sesi bot (bebas, huruf kecil) |
+| `BOT_PREFIX` | `.` | Prefix command bot |
+| `BOT_MAX_RETRIES` | `5` | Maksimal reconnect otomatis |
+| `BOT_LOG_MESSAGE` | `true` | Log pesan masuk |
+| `BOT_LOGGER_LEVEL` | `silent` | Level log Baileys |
+
+> ⚠️ **`BOT_NUMBER_PAIR` wajib diisi** — ini nomor WhatsApp yang akan dipasangkan dengan bot.
+
+> 💡 Di Replit, Environment Variables disimpan di **Secrets** (bukan file `.env`) agar aman dan tidak ikut terupload ke GitHub.
+
+#### 4. Jalankan Bot
+- Klik tombol **▶ Run** di bagian atas Replit
+- Replit akan otomatis install dependencies (`npm install`) lalu menjalankan bot
+- Tunggu beberapa detik hingga muncul **Pairing Code** di panel Console
+
+#### 5. Ambil Pairing Code dari Console
+Perhatikan panel **Console** di Replit, akan muncul output seperti:
+```
+📌 Kode Pairing: ABCD-1234
+```
+
+#### 6. Pairing WhatsApp
+1. Buka **WhatsApp** di HP
+2. Ketuk **⋮** (titik tiga) → **Perangkat Tertaut**
+3. Pilih **Tautkan Perangkat** → **Tautkan dengan Nomor Telepon**
+4. Masukkan kode pairing dari Console Replit
+
+#### 7. Bot Siap Digunakan! 🎉
+Setelah pairing berhasil, bot akan online dan siap menerima command.
+
+---
+
+### Menjaga Sesi Agar Tidak Hilang (Penting!)
+
+> ⚠️ Replit pada free tier dapat **mematikan** project saat tidak aktif. Sesi WhatsApp bot yang tersimpan di folder `sessions/` bisa hilang jika container di-reset total.
+
+**Tips agar sesi tetap aman:**
+- Gunakan **Replit Deployments** (klik tombol **Deploy** di panel atas) untuk membuat bot berjalan 24/7 sebagai production app — sesi tersimpan permanen
+- Atau aktifkan **Always On** jika kamu menggunakan Replit Core/Teams
+- Sebagai alternatif, pertimbangkan Railway atau Fly.io untuk storage volume permanen gratis
+
+---
+
+### Deploy ke Production (Replit Deployments)
+
+Jika ingin bot berjalan **24/7 secara permanen** di Replit:
+
+1. Klik tombol **Deploy** (ikon roket 🚀) di bagian atas editor Replit
+2. Pilih tipe deployment **Reserved VM** (untuk Node.js bot)
+3. Ikuti langkah-langkah setup deployment
+4. Setelah deployed, bot akan berjalan terus meskipun browser ditutup
+5. Sesi WhatsApp tersimpan permanen di environment production
+
+> ✅ Replit Deployments memiliki storage persistent — sesi login WhatsApp **tidak hilang** meskipun bot restart.
+
+---
+
+### Perintah Berguna di Replit Shell
+
+Buka tab **Shell** di Replit untuk menjalankan perintah manual:
+
+| Perintah | Fungsi |
+|---|---|
+| `npm start` | Jalankan bot manual |
+| `npm install` | Install ulang dependencies |
+| `ls sessions/` | Cek apakah sesi tersimpan |
+| `cat config.json` | Lihat konfigurasi bot |
+
+---
+
+### Tips & Catatan
+- Replit adalah cara **termudah** untuk mencoba bot — tidak perlu VPS atau CLI
+- Untuk penggunaan jangka panjang, gunakan **Replit Deployments** agar bot jalan 24/7
+- Edit `config.json` langsung di editor Replit untuk konfigurasi bot
+- Lihat log bot di panel **Console** secara real-time
+
+</details>
 
 ---
 
