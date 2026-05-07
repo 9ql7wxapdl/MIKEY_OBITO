@@ -19087,7 +19087,8 @@
     "id": "62881025542877@s.whatsapp.net",
     "name": "! Rara",
     "lid": "74797375574209@lid",
-    "jid": "62881025542877@s.whatsapp.net"
+    "jid": "62881025542877@s.whatsapp.net",
+    "notify": "🫪"
   },
   "6283138135045@s.whatsapp.net": {
     "isContact": true,
@@ -31813,6 +31814,25 @@
   "40892501078123@lid": {
     "id": "40892501078123@lid",
     "lid": "40892501078123@lid",
+    "imgUrl": "changed"
+  },
+  "142932887740622@lid": {
+    "id": "142932887740622@lid",
+    "lid": "142932887740622@lid",
+    "notify": "L̶u̴v̶i̷l̷l̴i̷a̸s̵"
+  },
+  "6283168578686@s.whatsapp.net": {
+    "id": "6283168578686@s.whatsapp.net",
+    "notify": "L̶u̴v̶i̷l̷l̴i̷a̸s̵"
+  },
+  "260975114629354@lid": {
+    "id": "260975114629354@lid",
+    "lid": "260975114629354@lid",
+    "imgUrl": "changed"
+  },
+  "186036927905850@lid": {
+    "id": "186036927905850@lid",
+    "lid": "186036927905850@lid",
     "imgUrl": "changed"
   }
 }
