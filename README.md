@@ -1,4 +1,4 @@
-<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=WILY%20BOT&fontSize=80&fontColor=ffffff&animation=twinkling&fontAlignY=38&desc=WhatsApp%20Multi-Fitur%20%7C%20Powered%20by%20Baileys%20%2B%20Node.js&descAlignY=58&descSize=18&descColor=d4f5e9" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=WILY%20BOT&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=WhatsApp%20Multi-Fitur%20%7C%20Powered%20by%20Baileys%20%2B%20Node.js&descAlignY=58&descSize=18&descColor=d4f5e9" />
 
 <div align="center">
 
@@ -987,7 +987,7 @@ File temporary (hasil download) dibersihkan otomatis setiap 6 jam.
 
 ---
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=120&section=header&text=Kredit%20%26%20Tim&fontSize=36&fontColor=ffffff&animation=fadeIn&fontAlignY=65" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=120&section=header&text=Kredit%20%7C%20Tim&fontSize=36&fontColor=ffffff&animation=fadeIn&fontAlignY=65" />
 
 ## 📝 Kredit
 
