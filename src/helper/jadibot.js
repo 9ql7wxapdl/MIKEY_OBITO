@@ -1129,30 +1129,35 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
           await sendReply(connectedText)
         } catch {}
 
-        // Kirim notifikasi langsung ke nomor jadibot secara realtime
-        // 1. Dari main bot ke nomor jadibot (jika main bot sock tersedia)
+        // Kirim notifikasi langsung ke nomor jadibot via main bot
+        // Jika berhasil → skip self-notif (hindari duplikat ke target)
+        // Jika gagal → self-notif sebagai fallback
+        let directNotifSent = false
         if (mainBotSock) {
           try {
             await delay(800)
             await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
               text: msgDirectWelcome(number)
             })
+            directNotifSent = true
             console.log(`[JADIBOT] ✅ Notif realtime terkirim ke +${number} via main bot`)
           } catch (e) {
             console.log(`[JADIBOT] ⚠️ Gagal kirim notif ke +${number} via main bot: ${e?.message}`)
           }
         }
 
-        // 2. Self-notif: jadibot kirim pesan ke dirinya sendiri sebagai pengingat
-        try {
-          await delay(300)
-          await sendDirectJadibotNotice(sock, number,
-            `🤖 *Jadibot aktif!*\n\n` +
-            `Nomor ini (+${number}) kini berjalan sebagai bot.\n` +
-            `Semua fitur bot tersedia via bot utama.\n\n` +
-            `_Pesan ini dikirim otomatis saat jadibot terhubung._`
-          )
-        } catch {}
+        // Self-notif hanya jika main bot gagal kirim (fallback, cegah duplikat)
+        if (!directNotifSent) {
+          try {
+            await delay(300)
+            await sendDirectJadibotNotice(sock, number,
+              `🤖 *Jadibot aktif!*\n\n` +
+              `Nomor ini (+${number}) kini berjalan sebagai bot.\n` +
+              `Semua fitur bot tersedia via bot utama.\n\n` +
+              `_Pesan ini dikirim otomatis saat jadibot terhubung._`
+            )
+          } catch {}
+        }
       }
     }
 
@@ -1389,28 +1394,35 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
         await sendReply(connectedText)
       } catch {}
 
-      // Kirim notifikasi langsung ke nomor jadibot secara realtime
+      // Kirim notifikasi langsung ke nomor jadibot via main bot
+      // Jika berhasil → skip self-notif (hindari duplikat ke target)
+      // Jika gagal → self-notif sebagai fallback
+      let directNotifSentQR = false
       if (mainBotSock) {
         try {
           await delay(800)
           await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
             text: msgDirectWelcome(number)
           })
+          directNotifSentQR = true
           console.log(`[JADIBOT QR] ✅ Notif realtime terkirim ke +${number} via main bot`)
         } catch (e) {
           console.log(`[JADIBOT QR] ⚠️ Gagal kirim notif ke +${number} via main bot: ${e?.message}`)
         }
       }
 
-      try {
-        await delay(300)
-        await sendDirectJadibotNotice(sock, number,
-          `🤖 *Jadibot aktif!*\n\n` +
-          `Nomor ini (+${number}) kini berjalan sebagai bot.\n` +
-          `Semua fitur bot tersedia via bot utama.\n\n` +
-          `_Pesan ini dikirim otomatis saat jadibot terhubung._`
-        )
-      } catch {}
+      // Self-notif hanya jika main bot gagal kirim (fallback, cegah duplikat)
+      if (!directNotifSentQR) {
+        try {
+          await delay(300)
+          await sendDirectJadibotNotice(sock, number,
+            `🤖 *Jadibot aktif!*\n\n` +
+            `Nomor ini (+${number}) kini berjalan sebagai bot.\n` +
+            `Semua fitur bot tersedia via bot utama.\n\n` +
+            `_Pesan ini dikirim otomatis saat jadibot terhubung._`
+          )
+        } catch {}
+      }
     }
 
     /* ===== DISCONNECTED ===== */

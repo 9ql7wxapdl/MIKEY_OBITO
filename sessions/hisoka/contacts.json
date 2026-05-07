@@ -4700,7 +4700,8 @@
     "id": "6282265496001@s.whatsapp.net",
     "name": "! YZR| 𓆩YOZORA𓆪",
     "lid": "112460027719794@lid",
-    "jid": "6282265496001@s.whatsapp.net"
+    "jid": "6282265496001@s.whatsapp.net",
+    "notify": "𝙯𝙤𝙧𝙖"
   },
   "6285868536696@s.whatsapp.net": {
     "isContact": true,
@@ -8226,7 +8227,8 @@
     "id": "6285860196593@s.whatsapp.net",
     "name": "! Gibran V2 ( JADIBOT REACTIONSW )",
     "lid": "7465408147570@lid",
-    "jid": "6285860196593@s.whatsapp.net"
+    "jid": "6285860196593@s.whatsapp.net",
+    "notify": "Asmodarty"
   },
   "6285809691158@s.whatsapp.net": {
     "isContact": true,
@@ -12843,7 +12845,8 @@
     "id": "62895704334234@s.whatsapp.net",
     "name": "▫️Dinda",
     "lid": "142696211599405@lid",
-    "jid": "62895704334234@s.whatsapp.net"
+    "jid": "62895704334234@s.whatsapp.net",
+    "notify": "☁️"
   },
   "6282246327071@s.whatsapp.net": {
     "isContact": true,
@@ -25513,7 +25516,8 @@
     "id": "6282252134009@s.whatsapp.net",
     "name": "√ Elisa",
     "lid": "76790290767977@lid",
-    "jid": "6282252134009@s.whatsapp.net"
+    "jid": "6282252134009@s.whatsapp.net",
+    "notify": "NAKIRA || VON SARTSZAN"
   },
   "6282316131978@s.whatsapp.net": {
     "isContact": true,
@@ -29794,7 +29798,8 @@
     "id": "62882007454295@s.whatsapp.net",
     "name": "~Uss",
     "lid": "55701548314876@lid",
-    "jid": "62882007454295@s.whatsapp.net"
+    "jid": "62882007454295@s.whatsapp.net",
+    "notify": "usama"
   },
   "6285784734515@s.whatsapp.net": {
     "isContact": true,
@@ -31572,6 +31577,31 @@
   "137482205151384@lid": {
     "id": "137482205151384@lid",
     "lid": "137482205151384@lid",
+    "imgUrl": "changed"
+  },
+  "7465408147570@lid": {
+    "id": "7465408147570@lid",
+    "lid": "7465408147570@lid",
+    "notify": "Asmodarty"
+  },
+  "142696211599405@lid": {
+    "id": "142696211599405@lid",
+    "lid": "142696211599405@lid",
+    "notify": "☁️"
+  },
+  "133848394391686@lid": {
+    "id": "133848394391686@lid",
+    "lid": "133848394391686@lid",
+    "notify": "Zaen"
+  },
+  "37155829223630@lid": {
+    "id": "37155829223630@lid",
+    "lid": "37155829223630@lid",
+    "imgUrl": "changed"
+  },
+  "70648521089120@lid": {
+    "id": "70648521089120@lid",
+    "lid": "70648521089120@lid",
     "imgUrl": "changed"
   }
 }
