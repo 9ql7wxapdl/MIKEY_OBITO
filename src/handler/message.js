@@ -10205,7 +10205,8 @@ infoText += `╰═════════════════════�
 
                                                 return sentInfo
                                         },
-                                        durationInfo.ms
+                                        durationInfo.ms,
+                                        hisoka
                                 );
                         }
                                 break;

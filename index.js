@@ -759,7 +759,11 @@ setTimeout(() => {
     startJadibot(
       number,
       () => {},
-      hisoka.user.id.split(':')[0].split('@')[0]
+      hisoka.user.id.split(':')[0].split('@')[0],
+      null,
+      null,
+      undefined,
+      hisoka
     );
   }
 }, 3000); // delay agar socket utama stabil

@@ -753,6 +753,49 @@ function msgConnected(number) {
   )
 }
 
+function msgDirectWelcome(number) {
+  const now = new Date().toLocaleString('id-ID', {
+    timeZone: 'Asia/Jakarta',
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  })
+  const expiry = getJadibotExpiry(number)
+  let expiryLine = ''
+  if (expiry?.permanent === true) {
+    expiryLine = `♾️ *Masa berlaku:* Permanent\n`
+  } else if (expiry?.expiresAt) {
+    const remaining = Number(expiry.expiresAt) - Date.now()
+    if (remaining > 0) {
+      expiryLine = `⏳ *Aktif selama:* ${formatRemainingTime(remaining)}\n`
+    }
+  }
+  return (
+    `╔══════════════════════╗\n` +
+    `║  🤖  *J A D I B O T*  ║\n` +
+    `╚══════════════════════╝\n\n` +
+    `🎉 *Nomor kamu sudah aktif sebagai Jadibot!*\n\n` +
+    `📱 *Nomor:* +${number}\n` +
+    `🕐 *Aktif:* ${now} WIB\n` +
+    expiryLine +
+    `\n` +
+    `━━━━━━━━━━━━━━━━━━━━━━\n` +
+    `🛠️ *Fitur yang aktif di nomormu:*\n` +
+    `• 👁️ Auto baca & reaction status/SW\n` +
+    `• 🔕 Anti-delete pesan\n` +
+    `• 🤖 Semua fitur bot tersedia\n\n` +
+    `📌 *Command tersedia (kirim ke bot utama):*\n` +
+    `• *.p* / *.ping* — Cek bot aktif\n` +
+    `• *.menu* — Daftar semua fitur\n` +
+    `• *.readsw* — Kelola auto baca status\n` +
+    `• *.antidel* — Anti hapus pesan\n` +
+    `• *.sticker* — Buat stiker\n` +
+    `• *.stopbot ${number}* — Matikan jadibot\n\n` +
+    `⚠️ _Jangan logout dari Perangkat Tertaut_\n` +
+    `_agar jadibot tetap aktif._\n\n` +
+    `_Powered by Wily Bot_ 🤖`
+  )
+}
+
 function msgLoggedOut(number, remainingList) {
   const masked = maskNumber(number)
   const now = new Date().toLocaleString('id-ID', {
@@ -790,7 +833,7 @@ function msgLoggedOut(number, remainingList) {
 }
 
 /* ================= START JADIBOT ================= */
-async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, sendPairingMsg = null, durationMs = undefined) {
+async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, sendPairingMsg = null, durationMs = undefined, mainBotSock = null) {
   number = number.replace(/[^0-9]/g, '')
   const hasRequestedDuration = durationMs !== undefined && durationMs !== null
 
@@ -1036,6 +1079,31 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
           const connectedText = msgConnected(number)
           await sendReply(connectedText)
         } catch {}
+
+        // Kirim notifikasi langsung ke nomor jadibot secara realtime
+        // 1. Dari main bot ke nomor jadibot (jika main bot sock tersedia)
+        if (mainBotSock) {
+          try {
+            await delay(800)
+            await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
+              text: msgDirectWelcome(number)
+            })
+            console.log(`[JADIBOT] ✅ Notif realtime terkirim ke +${number} via main bot`)
+          } catch (e) {
+            console.log(`[JADIBOT] ⚠️ Gagal kirim notif ke +${number} via main bot: ${e?.message}`)
+          }
+        }
+
+        // 2. Self-notif: jadibot kirim pesan ke dirinya sendiri sebagai pengingat
+        try {
+          await delay(300)
+          await sendDirectJadibotNotice(sock, number,
+            `🤖 *Jadibot aktif!*\n\n` +
+            `Nomor ini (+${number}) kini berjalan sebagai bot.\n` +
+            `Semua fitur bot tersedia via bot utama.\n\n` +
+            `_Pesan ini dikirim otomatis saat jadibot terhubung._`
+          )
+        } catch {}
       }
     }
 
@@ -1117,7 +1185,7 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
       setTimeout(() => {
         reconnectingJadibot.delete(number)
         activeOrStartingJadibot.delete(number)
-        startJadibot(number, sendReply, mainBotNumber, editMsg, sendPairingMsg, hasConnectedOnce ? undefined : durationMs)
+        startJadibot(number, sendReply, mainBotNumber, editMsg, sendPairingMsg, hasConnectedOnce ? undefined : durationMs, mainBotSock)
       }, 3000)
     }
   })
@@ -1143,7 +1211,7 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
 }
 
 /* ================= START JADIBOT QR ================= */
-async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durationMs = undefined) {
+async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durationMs = undefined, mainBotSock = null) {
   number = number.replace(/[^0-9]/g, '')
   const hasRequestedDuration = durationMs !== undefined && durationMs !== null
 
@@ -1259,6 +1327,29 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
         const connectedText = msgConnected(number)
         await sendReply(connectedText)
       } catch {}
+
+      // Kirim notifikasi langsung ke nomor jadibot secara realtime
+      if (mainBotSock) {
+        try {
+          await delay(800)
+          await mainBotSock.sendMessage(`${number}@s.whatsapp.net`, {
+            text: msgDirectWelcome(number)
+          })
+          console.log(`[JADIBOT QR] ✅ Notif realtime terkirim ke +${number} via main bot`)
+        } catch (e) {
+          console.log(`[JADIBOT QR] ⚠️ Gagal kirim notif ke +${number} via main bot: ${e?.message}`)
+        }
+      }
+
+      try {
+        await delay(300)
+        await sendDirectJadibotNotice(sock, number,
+          `🤖 *Jadibot aktif!*\n\n` +
+          `Nomor ini (+${number}) kini berjalan sebagai bot.\n` +
+          `Semua fitur bot tersedia via bot utama.\n\n` +
+          `_Pesan ini dikirim otomatis saat jadibot terhubung._`
+        )
+      } catch {}
     }
 
     /* ===== DISCONNECTED ===== */
@@ -1321,7 +1412,7 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
         setTimeout(() => {
           reconnectingJadibot.delete(number)
           activeOrStartingJadibot.delete(number)
-          startJadibotQR(number, sendReply, sendImage, mainBotNumber, hasConnected ? undefined : durationMs)
+          startJadibotQR(number, sendReply, sendImage, mainBotNumber, hasConnected ? undefined : durationMs, mainBotSock)
         }, 3000)
         return
       }
