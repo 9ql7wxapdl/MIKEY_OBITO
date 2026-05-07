@@ -9200,7 +9200,7 @@ infoText += `╰═════════════════════�
                                                 break;
                                         }
                                         
-                                        // Clean URL: strip query params & trailing slash to get a clean link
+                                        // Clean URL: strip query params & trailing slash
                                         let igUrl = igRaw;
                                         try {
                                                 const parsed = new URL(igRaw);
@@ -9208,89 +9208,107 @@ infoText += `╰═════════════════════�
                                         } catch (_) {}
                                         
                                         const loadingMsg = await tolak(hisoka, m, '⏳ Sedang mengunduh dari Instagram...');
-                                        
-                                        // Try multiple APIs in order until one succeeds
-                                        const igApis = [
-                                                `https://archive.lick.eu.org/api/download/instagram?url=${encodeURIComponent(igUrl)}`,
-                                                `https://api.cenedril.net/api/dl/ig?url=${encodeURIComponent(igUrl)}`,
-                                                `https://api.agatz.xyz/api/instagram?url=${encodeURIComponent(igUrl)}`,
-                                        ];
-                                        
-                                        let data = null;
-                                        for (const apiUrl of igApis) {
-                                                try {
-                                                        const res = await fetch(apiUrl, { signal: AbortSignal.timeout(12000) });
-                                                        const json = await res.json();
-                                                        if (json.status && json.result) {
-                                                                data = json;
-                                                                break;
-                                                        }
-                                                } catch (_) {}
+
+                                        // Helper: fetch vdraw.ai API
+                                        async function fetchVdraw(url) {
+                                                const res = await fetch('https://vdraw.ai/api/v1/instagram/ins-info', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ url, type: 'video' }),
+                                                        signal: AbortSignal.timeout(15000),
+                                                });
+                                                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                                                const json = await res.json();
+                                                if (json.code === 100000 && json.data) return json.data;
+                                                throw new Error('No data from vdraw');
                                         }
-                                        
-                                        if (!data || !data.result) {
+
+                                        let igData = null;
+                                        // Primary: vdraw.ai
+                                        try { igData = await fetchVdraw(igUrl); } catch (_) {}
+
+                                        // Fallback APIs jika vdraw gagal
+                                        if (!igData) {
+                                                const fallbackApis = [
+                                                        `https://archive.lick.eu.org/api/download/instagram?url=${encodeURIComponent(igUrl)}`,
+                                                        `https://api.cenedril.net/api/dl/ig?url=${encodeURIComponent(igUrl)}`,
+                                                        `https://api.agatz.xyz/api/instagram?url=${encodeURIComponent(igUrl)}`,
+                                                ];
+                                                for (const apiUrl of fallbackApis) {
+                                                        try {
+                                                                const res = await fetch(apiUrl, { signal: AbortSignal.timeout(12000) });
+                                                                const json = await res.json();
+                                                                if (json.status && json.result) {
+                                                                        const r = json.result;
+                                                                        igData = {
+                                                                                media_type: r.isVideo ? 'video' : 'photo',
+                                                                                info: (r.url || []).map(u => ({
+                                                                                        url: typeof u === 'object' ? (u.url || u.src) : u,
+                                                                                        media_format: r.isVideo ? 'video' : 'image',
+                                                                                })),
+                                                                                _fallback: true,
+                                                                                _caption: r.caption || '',
+                                                                                _username: r.username || '',
+                                                                                _likes: r.like || 0,
+                                                                                _comments: r.comment || 0,
+                                                                        };
+                                                                        break;
+                                                                }
+                                                        } catch (_) {}
+                                                }
+                                        }
+
+                                        if (!igData || !igData.info || igData.info.length === 0) {
                                                 await m.reply({ edit: loadingMsg.key, text: '❌ Gagal mengunduh. Pastikan link benar dan akun tidak private, lalu coba lagi.' });
                                                 break;
                                         }
-                                        
-                                        const result = data.result;
-                                        const mediaUrls = result.url || [];
-                                        const caption = result.caption || '';
-                                        const username = result.username || 'Unknown';
-                                        const likes = result.like || 0;
-                                        const comments = result.comment || 0;
-                                        const isVideo = result.isVideo;
-                                        
+
+                                        const mediaItems = igData.info;
+                                        const mediaType = igData.media_type || 'video';
+                                        const caption = igData._caption || '';
+                                        const username = igData._username || '';
+                                        const likes = igData._likes || 0;
+                                        const comments = igData._comments || 0;
+
                                         let infoText = `╭═══ *INSTAGRAM DOWNLOADER* ═══╮\n`;
-infoText += `│ 👤 @${username}\n`;
-infoText += `│ ❤️ ${likes.toLocaleString()} likes\n`;
-infoText += `│ 💬 ${comments.toLocaleString()} comments\n`;
-if (caption) {
-    const shortCaption = caption.length > 200 ? caption.substring(0, 200) + '...' : caption;
-    infoText += `│\n│ 📝 ${shortCaption}\n`;
-}
-infoText += `╰════════════════════════╯`;
-                                        
-                                        if (mediaUrls.length === 0) {
-                                                await m.reply({ edit: loadingMsg.key, text: '❌ Media tidak ditemukan.' });
-                                                break;
+                                        if (username) infoText += `│ 👤 @${username}\n`;
+                                        if (likes) infoText += `│ ❤️ ${likes.toLocaleString()} likes\n`;
+                                        if (comments) infoText += `│ 💬 ${comments.toLocaleString()} comments\n`;
+                                        if (caption) {
+                                                const shortCaption = caption.length > 200 ? caption.substring(0, 200) + '...' : caption;
+                                                infoText += `│\n│ 📝 ${shortCaption}\n`;
                                         }
-                                        
+                                        infoText += `╰════════════════════════╯`;
+
                                         await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
 
-                                        // Generate AI caption untuk Instagram (paralel dengan pengiriman)
+                                        // Generate AI caption (paralel)
                                         const aiCaptionPromiseIG = gemini.ask(buildVideoDownloadCaptionPrompt({
-                                            platform: 'Instagram',
-                                            author: username,
-                                            likes: likes ? likes.toLocaleString() : '',
-                                            comments: comments ? comments.toLocaleString() : '',
-                                            description: caption || '',
+                                                platform: 'Instagram',
+                                                author: username || 'Instagram',
+                                                likes: likes ? likes.toLocaleString() : '',
+                                                comments: comments ? comments.toLocaleString() : '',
+                                                description: caption || '',
                                         })).catch(() => null);
 
-                                        // Tunggu AI caption
                                         const aiCaptionIG = await aiCaptionPromiseIG;
                                         const finalCaptionIG = aiCaptionIG?.trim() || infoText;
-                                        
-                                        for (let i = 0; i < mediaUrls.length; i++) {
-                                                const mediaItem = mediaUrls[i];
+
+                                        for (let i = 0; i < mediaItems.length; i++) {
+                                                const item = mediaItems[i];
+                                                const mediaUrl = typeof item === 'object' ? (item.url || item.src) : item;
                                                 const isFirstMedia = i === 0;
-                                                
-                                                // Support both string URLs and object items {url, type}
-                                                const mediaUrl = typeof mediaItem === 'object' ? (mediaItem.url || mediaItem.src || mediaItem) : mediaItem;
-                                                
-                                                // Detect per-item type: check object type property, else check URL extension, else fall back to global isVideo
-                                                let itemIsVideo = isVideo;
-                                                if (typeof mediaItem === 'object' && mediaItem.type) {
-                                                        itemIsVideo = mediaItem.type === 'video' || mediaItem.type === 'GraphVideo';
+
+                                                // Detect video/image dari media_format atau URL ekstensi
+                                                let itemIsVideo = mediaType === 'video' || mediaType === 'reel';
+                                                if (item.media_format) {
+                                                        itemIsVideo = item.media_format === 'video';
                                                 } else {
                                                         const urlStr = String(mediaUrl).toLowerCase().split('?')[0];
-                                                        if (urlStr.endsWith('.mp4') || urlStr.endsWith('.mov') || urlStr.endsWith('.webm')) {
-                                                                itemIsVideo = true;
-                                                        } else if (urlStr.endsWith('.jpg') || urlStr.endsWith('.jpeg') || urlStr.endsWith('.png') || urlStr.endsWith('.webp')) {
-                                                                itemIsVideo = false;
-                                                        }
+                                                        if (urlStr.endsWith('.mp4') || urlStr.endsWith('.mov') || urlStr.endsWith('.webm')) itemIsVideo = true;
+                                                        else if (urlStr.endsWith('.jpg') || urlStr.endsWith('.jpeg') || urlStr.endsWith('.png') || urlStr.endsWith('.webp')) itemIsVideo = false;
                                                 }
-                                                
+
                                                 try {
                                                         if (itemIsVideo) {
                                                                 await hisoka.sendMessage(m.from, {
@@ -9307,7 +9325,7 @@ infoText += `╰═════════════════════�
                                                         console.error(`[IG] Failed to send media ${i + 1}:`, sendErr.message);
                                                 }
                                         }
-                                        
+
                                         logCommand(m, hisoka, 'instagram');
                                 } catch (error) {
                                         console.error('\x1b[31m[Instagram] Error:\x1b[39m', error.message);
