@@ -779,8 +779,7 @@ setTimeout(() => {
                         const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode || 0;
 
                         switch (statusCode) {
-                                case DisconnectReason.loggedOut:
-                                case DisconnectReason.forbidden: {
+                                case DisconnectReason.loggedOut: {
                                         const C = '\x1b[36m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
                                         console.log('');
                                         console.log(`${C}════════════════════════════════════${R}`);
@@ -811,6 +810,29 @@ setTimeout(() => {
 
                                         // Jadibot tetap hidup — langsung reconnect bot utama
                                         await delay(2000);
+                                        await main();
+                                        break;
+                                }
+
+                                case DisconnectReason.forbidden: {
+                                        const C = '\x1b[36m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
+                                        reconnectCount++;
+                                        const waitForbidden = Math.min(10 * reconnectCount, 60);
+                                        console.log('');
+                                        console.log(`${C}════════════════════════════════════${R}`);
+                                        console.log(`${B}${Y}⚠️  FORBIDDEN (403) — RECONNECTING${R}`);
+                                        console.log(`${C}════════════════════════════════════${R}`);
+                                        console.log(`${Y}• Bukan logout — sesi TIDAK dihapus${R}`);
+                                        console.log(`${Y}• Mencoba reconnect dalam ${waitForbidden}s... (Attempt ${reconnectCount})${R}`);
+                                        console.log(`${C}════════════════════════════════════${R}`);
+                                        console.log('');
+                                        await delay(waitForbidden * 1000);
+                                        if (global.hisokaClient) {
+                                                try {
+                                                        global.hisokaClient.ev.removeAllListeners();
+                                                        global.hisokaClient.ws?.close();
+                                                } catch {}
+                                        }
                                         await main();
                                         break;
                                 }
