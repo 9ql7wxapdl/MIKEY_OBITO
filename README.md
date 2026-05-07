@@ -977,28 +977,83 @@ File temporary (hasil download) dibersihkan otomatis setiap 6 jam.
 
 ---
 
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=120&section=header&text=📝%20Kredit%20%26%20Tim&fontSize=36&fontColor=ffffff&animation=fadeIn&fontAlignY=65" />
+
 ## 📝 Kredit
 
 <div align="center">
 
-| Peran | Nama |
-|---|---|
-| 🛠️ Pengembang Utama | **Bang Wily (Wilykun)** |
-| 🙏 Base Script | **Bang Dika Ardnt** |
-| 📚 Library | [Baileys (WhiskeySockets)](https://github.com/WhiskeySockets/Baileys) |
-| 🎬 YouTube Engine | [yt-dlp](https://github.com/yt-dlp/yt-dlp) |
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=16&pause=1200&color=25D366&center=true&vCenter=true&width=600&height=35&lines=Terima+kasih+kepada+semua+yang+terlibat+%F0%9F%99%8F;Open+source+%E2%80%94+gratis+untuk+semua+%F0%9F%92%9A;Built+with+%E2%9D%A4%EF%B8%8F+by+Bang+Wily" alt="Credits Typing" />
+
+<br/><br/>
+
+<table>
+  <tr>
+    <td align="center" width="200">
+      <img src="https://img.shields.io/badge/🛠️-Pengembang%20Utama-25D366?style=for-the-badge&labelColor=1a1a2e" /><br/>
+      <b>Bang Wily</b><br/>
+      <sub>Wilykun</sub>
+    </td>
+    <td align="center" width="200">
+      <img src="https://img.shields.io/badge/🙏-Base%20Script-3498DB?style=for-the-badge&labelColor=1a1a2e" /><br/>
+      <b>Bang Dika Ardnt</b><br/>
+      <sub>Original Creator</sub>
+    </td>
+    <td align="center" width="200">
+      <img src="https://img.shields.io/badge/📚-Library-9B59B6?style=for-the-badge&labelColor=1a1a2e" /><br/>
+      <b>WhiskeySockets</b><br/>
+      <sub><a href="https://github.com/WhiskeySockets/Baileys">Baileys</a></sub>
+    </td>
+    <td align="center" width="200">
+      <img src="https://img.shields.io/badge/🎬-YouTube%20Engine-E74C3C?style=for-the-badge&labelColor=1a1a2e" /><br/>
+      <b>yt-dlp</b><br/>
+      <sub><a href="https://github.com/yt-dlp/yt-dlp">yt-dlp/yt-dlp</a></sub>
+    </td>
+  </tr>
+</table>
+
+<br/>
+
+**🧰 Tech Stack yang Digunakan**
+
+<br/>
+
+<img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+<img src="https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
+<img src="https://img.shields.io/badge/FFmpeg-007808?style=for-the-badge&logo=ffmpeg&logoColor=white" />
+<img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+<img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" />
+<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
+<img src="https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" />
+
+<br/><br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0,128C7E,25D366&height=3" />
 
 <br/>
 
 > ⚠️ **Script ini GRATIS dan tidak untuk diperjualbelikan!**
-> Jika kamu menemukannya dijual, itu adalah penipuan.
+> Jika kamu menemukannya dijual, lapor ke owner — itu **penipuan**.
 
 <br/>
 
-[![WhatsApp](https://img.shields.io/badge/Hubungi_Owner-WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/6289681008411)
+**Hubungi & Ikuti:**
 
 <br/>
 
-**Made with ❤️ by Bang Wily**
+[![WhatsApp Owner](https://img.shields.io/badge/Owner-WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://wa.me/6289681008411)
+&nbsp;
+[![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/hitlabmodv2/ReadSwDika_Version)
+&nbsp;
+[![Stars](https://img.shields.io/github/stars/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=FFD700&labelColor=1a1a2e&label=⭐%20Beri%20Bintang)](https://github.com/hitlabmodv2/ReadSwDika_Version/stargazers)
+
+<br/><br/>
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=700&size=18&pause=2000&color=25D366&center=true&vCenter=true&width=500&height=40&lines=Made+with+%E2%9D%A4%EF%B8%8F+by+Bang+Wily+%F0%9F%87%AE%F0%9F%87%A9" alt="Footer Typing" />
+
+<br/>
 
 </div>
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=120&section=footer" />

@@ -9236,7 +9236,8 @@
     "id": "6281973145146@s.whatsapp.net",
     "name": "√Salsaツ",
     "lid": "245023656403118@lid",
-    "jid": "6281973145146@s.whatsapp.net"
+    "jid": "6281973145146@s.whatsapp.net",
+    "notify": "𝘿𝙚𝙡𝙩𝙖 𝙍𝘼𝙂𝙀𝘽𝘼𝙄𝙏"
   },
   "6282218403779@s.whatsapp.net": {
     "isContact": true,
@@ -29310,7 +29311,8 @@
     "id": "62859106779529@s.whatsapp.net",
     "name": "𝐕𝐡𝐚𝐬𝐲𝐚 | 𝐍𝐨𝐚 𝐅𝐢𝐥𝐢𝐚𝐫𝐞𝐠𝐢𝐬",
     "lid": "250736164220991@lid",
-    "jid": "62859106779529@s.whatsapp.net"
+    "jid": "62859106779529@s.whatsapp.net",
+    "notify": "𝐕𝐡𝐚𝐬𝐲𝐚 | 𝐌𝐚𝐤𝐢𝐧𝐨𝐡𝐚𝐫𝐚"
   },
   "6287743430813@s.whatsapp.net": {
     "isContact": true,
@@ -31695,5 +31697,10 @@
     "id": "16832111104056@lid",
     "lid": "16832111104056@lid",
     "imgUrl": "removed"
+  },
+  "6282219052392@s.whatsapp.net": {
+    "id": "6282219052392@s.whatsapp.net",
+    "notify": "Rifqi Haidar",
+    "verifiedName": "Rifqi Haidar"
   }
 }
