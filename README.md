@@ -987,7 +987,7 @@ File temporary (hasil download) dibersihkan otomatis setiap 6 jam.
 
 ---
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=120&section=header&text=📝%20Kredit%20%26%20Tim&fontSize=36&fontColor=ffffff&animation=fadeIn&fontAlignY=65" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=120&section=header&text=Kredit%20%26%20Tim&fontSize=36&fontColor=ffffff&animation=fadeIn&fontAlignY=65" />
 
 ## 📝 Kredit
 
