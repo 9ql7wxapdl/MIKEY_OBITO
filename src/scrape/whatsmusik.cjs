@@ -644,7 +644,6 @@ async function recognizeAudioFile(inputPath, options = {}) {
   const tmpDir = ensureTmpDir();
   const duration = await getAudioDuration(inputPath);
   const windows = buildRecognitionWindows(duration);
-  console.log(`\x1b[36m[WhatsMusik] Durasi audio: ${duration}s, windows: ${windows.length}\x1b[39m`);
   const languages = [...new Set([options.language || 'id-ID', 'en-US'])];
   let lastError = null;
   const created = [];
@@ -655,8 +654,6 @@ async function recognizeAudioFile(inputPath, options = {}) {
     created.push(outputPath);
     try {
       await runFfmpeg(inputPath, outputPath, window);
-      const outSize = fs.existsSync(outputPath) ? fs.statSync(outputPath).size : 0;
-      console.log(`\x1b[36m[WhatsMusik] Window ${i} (start:${window.start}s) → ffmpeg OK, size: ${outSize} bytes\x1b[39m`);
 
       for (const language of languages) {
         try {
@@ -666,7 +663,6 @@ async function recognizeAudioFile(inputPath, options = {}) {
             'Pengenalan lagu terlalu lama. Coba audio yang lebih jelas/panjang.'
           );
           const normalized = normalizeResult(raw);
-          console.log(`\x1b[36m[WhatsMusik] Shazam [${language}] → ${normalized ? `MATCH: ${normalized.title}` : 'no match'}\x1b[39m`);
           if (normalized) {
             normalized.sample = {
               start: window.start,
@@ -676,18 +672,15 @@ async function recognizeAudioFile(inputPath, options = {}) {
             return { result: normalized, files: created };
           }
         } catch (err) {
-          console.log(`\x1b[33m[WhatsMusik] Shazam [${language}] error: ${err.message}\x1b[39m`);
           lastError = err;
         }
       }
     } catch (err) {
-      console.log(`\x1b[33m[WhatsMusik] ffmpeg window ${i} error: ${err.message}\x1b[39m`);
       lastError = err;
     }
   }
 
   if (options.useAiFallback !== false) {
-    console.log(`\x1b[36m[WhatsMusik] Shazam gagal semua window, coba Gemini AI fallback...\x1b[39m`);
     for (let i = 0; i < Math.min(created.length, 3); i++) {
       const file = created[i];
       if (!fs.existsSync(file)) continue;
@@ -698,10 +691,8 @@ async function recognizeAudioFile(inputPath, options = {}) {
           duration: window.duration || 30,
           audioDuration: duration || undefined
         }, options);
-        console.log(`\x1b[36m[WhatsMusik] Gemini AI fallback → ${aiResult ? `MATCH: ${aiResult.title}` : 'no match'}\x1b[39m`);
         if (aiResult) return { result: aiResult, files: created };
       } catch (err) {
-        console.log(`\x1b[33m[WhatsMusik] Gemini AI fallback error: ${err.message}\x1b[39m`);
         lastError = err;
       }
     }

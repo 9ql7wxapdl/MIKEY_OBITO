@@ -5203,7 +5203,6 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 const targetMessage = isQuotedAudio ? m.quoted : m;
                                                 const targetMime = isQuotedAudio ? quotedMime : currentMime;
                                                 const audioBuffer = await downloadMediaBuffer(hisoka, targetMessage);
-                                                console.log(`\x1b[36m[WhatsMusik] Buffer: ${audioBuffer?.length} bytes, mime: ${targetMime || 'unknown'}\x1b[39m`);
                                                 result = await identifyWhatsMusic(audioBuffer, { mimetype: targetMime });
                                         }
                                         const report = formatWhatsMusic(result);
@@ -5247,7 +5246,6 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         logCommand(m, hisoka, 'whatsmusik');
                                 } catch (error) {
                                         console.error('\x1b[31m[WhatsMusik] Error:\x1b[39m', error.message);
-                                        if (error.cause) console.error('\x1b[31m[WhatsMusik] Cause:\x1b[39m', error.cause?.message || error.cause);
                                         logError(error, 'command:whatsmusik');
                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
                                         await tolak(hisoka, m,

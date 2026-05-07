@@ -867,7 +867,8 @@
     "name": "! Fadli",
     "lid": "176549462564879@lid",
     "jid": "6285956660403@s.whatsapp.net",
-    "notify": "Cosmouz"
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6285641568690@s.whatsapp.net": {
     "isContact": true,
@@ -31837,35 +31838,6 @@
   "45922142662757@lid": {
     "id": "45922142662757@lid",
     "lid": "45922142662757@lid",
-    "imgUrl": "changed"
-  },
-  "70145607258122@lid": {
-    "id": "70145607258122@lid",
-    "lid": "70145607258122@lid",
-    "imgUrl": "removed"
-  },
-  "52965905834139@lid": {
-    "id": "52965905834139@lid",
-    "lid": "52965905834139@lid",
-    "imgUrl": "removed"
-  },
-  "23674618863@s.whatsapp.net": {
-    "id": "23674618863@s.whatsapp.net",
-    "notify": "mw sewa? chat owner"
-  },
-  "191981112307958@lid": {
-    "id": "191981112307958@lid",
-    "lid": "191981112307958@lid",
-    "notify": "Ryo V 1"
-  },
-  "269380499808481@lid": {
-    "id": "269380499808481@lid",
-    "lid": "269380499808481@lid",
-    "imgUrl": "changed"
-  },
-  "148460040937688@lid": {
-    "id": "148460040937688@lid",
-    "lid": "148460040937688@lid",
     "imgUrl": "changed"
   }
 }
