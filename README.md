@@ -1,4 +1,4 @@
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=220&section=header&text=WILY%20BOT&fontSize=80&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=WhatsApp%20Multi-Fitur%20%7C%20Powered%20by%20Baileys%20%2B%20Node.js&descAlignY=58&descSize=18&descColor=d4f5e9" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=220&section=header&text=WILY%20BOT&fontSize=80&fontColor=ffffff&animation=twinkling&fontAlignY=38&desc=WhatsApp%20Multi-Fitur%20%7C%20Powered%20by%20Baileys%20%2B%20Node.js&descAlignY=58&descSize=18&descColor=d4f5e9" />
 
 <div align="center">
 
@@ -6,28 +6,38 @@
 
 <br/>
 
-<img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=node.js&logoColor=white" />
+<img src="https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
 <img src="https://img.shields.io/badge/WhatsApp-Baileys-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
 <img src="https://img.shields.io/badge/License-FREE-3498DB?style=for-the-badge&logo=opensourceinitiative&logoColor=white" />
-<img src="https://img.shields.io/badge/Status-ONLINE%20🟢-27AE60?style=for-the-badge" />
+<img src="https://img.shields.io/badge/Status-ONLINE-27AE60?style=for-the-badge&logo=statuspal&logoColor=white" />
 <img src="https://img.shields.io/badge/Platform-Linux%20%7C%20Node-1a1a2e?style=for-the-badge&logo=linux&logoColor=white" />
 
 <br/><br/>
 
-[![Stars](https://img.shields.io/github/stars/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=starship&color=FFD700&labelColor=1a1a2e&label=⭐%20Stars)](https://github.com/hitlabmodv2/ReadSwDika_Version/stargazers)
-[![Forks](https://img.shields.io/github/forks/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=git&color=4A90D9&labelColor=1a1a2e&label=🍴%20Forks)](https://github.com/hitlabmodv2/ReadSwDika_Version/network/members)
-[![Issues](https://img.shields.io/github/issues/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=bugsnag&color=E74C3C&labelColor=1a1a2e&label=🐛%20Issues)](https://github.com/hitlabmodv2/ReadSwDika_Version/issues)
-[![Last Commit](https://img.shields.io/github/last-commit/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=2ECC71&labelColor=1a1a2e&label=🕒%20Updated)](https://github.com/hitlabmodv2/ReadSwDika_Version/commits)
-[![Repo Size](https://img.shields.io/github/repo-size/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=files&color=9B59B6&labelColor=1a1a2e&label=📦%20Size)](https://github.com/hitlabmodv2/ReadSwDika_Version)
+[![Stars](https://img.shields.io/github/stars/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=FFD700&labelColor=1a1a2e&label=Stars)](https://github.com/hitlabmodv2/ReadSwDika_Version/stargazers)
+[![Forks](https://img.shields.io/github/forks/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=4A90D9&labelColor=1a1a2e&label=Forks)](https://github.com/hitlabmodv2/ReadSwDika_Version/network/members)
+[![Issues](https://img.shields.io/github/issues/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=E74C3C&labelColor=1a1a2e&label=Issues)](https://github.com/hitlabmodv2/ReadSwDika_Version/issues)
+[![Last Commit](https://img.shields.io/github/last-commit/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=2ECC71&labelColor=1a1a2e&label=Updated)](https://github.com/hitlabmodv2/ReadSwDika_Version/commits)
+[![Repo Size](https://img.shields.io/github/repo-size/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=9B59B6&labelColor=1a1a2e&label=Size)](https://github.com/hitlabmodv2/ReadSwDika_Version)
 
 <br/>
 
-![Visitors](https://komarev.com/ghpvc/?username=hitlabmodv2&color=25D366&style=for-the-badge&label=👁️%20TOTAL%20VIEWS&abbreviated=true)
-[![Watchers](https://img.shields.io/github/watchers/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&color=17A589&labelColor=1a1a2e&label=👀%20Watchers)](https://github.com/hitlabmodv2/ReadSwDika_Version/watchers)
+![Visitors](https://komarev.com/ghpvc/?username=hitlabmodv2&color=25D366&style=for-the-badge&label=TOTAL+VIEWS&abbreviated=true)
+[![Watchers](https://img.shields.io/github/watchers/hitlabmodv2/ReadSwDika_Version?style=for-the-badge&logo=github&color=17A589&labelColor=1a1a2e&label=Watchers)](https://github.com/hitlabmodv2/ReadSwDika_Version/watchers)
 
 <br/>
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=0,128C7E,25D366&height=3&section=header" />
+<!-- Skill Icons - Tech Stack Visual 2026 -->
+<img src="https://skillicons.dev/icons?i=nodejs,javascript,git,linux,docker,github,vscode,bash&theme=dark&perline=8" />
+
+<br/><br/>
+
+<!-- GitHub Activity Graph -->
+<img src="https://github-readme-activity-graph.vercel.app/graph?username=hitlabmodv2&bg_color=0d1117&color=25D366&line=25D366&point=ffffff&area=true&area_color=128C7E&hide_border=true&radius=8&title_color=25D366" width="100%" />
+
+<br/>
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=6,11,20&height=3" />
 
 <br/>
 
@@ -37,19 +47,19 @@
 
 <br/>
 
-[![Run on Replit](https://img.shields.io/badge/▶%20Run%20on-Replit-F26207?style=for-the-badge&logo=replit&logoColor=white)](https://replit.com/new/github/hitlabmodv2/ReadSwDika_Version)
+[![Run on Replit](https://img.shields.io/badge/Run%20on-Replit-F26207?style=for-the-badge&logo=replit&logoColor=white)](https://replit.com/new/github/hitlabmodv2/ReadSwDika_Version)
 
 <br/>
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/hitlabmodv2/ReadSwDika_Version)
 &nbsp;&nbsp;
-[![Deploy on Fly.io](https://img.shields.io/badge/Deploy%20ke-Fly.io-8B5CF6?style=for-the-badge&logo=fly.io&logoColor=white)](https://fly.io/docs/launch/)
+[![Deploy on Fly.io](https://img.shields.io/badge/Deploy%20ke-Fly.io-8B5CF6?style=for-the-badge&logo=superfly&logoColor=white)](https://fly.io/docs/launch/)
 
 <br/>
 
 </div>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0,128C7E,25D366&height=80&section=footer&reversal=true" />
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=80&section=footer&reversal=true" />
 
 ---
 
@@ -1018,14 +1028,7 @@ File temporary (hasil download) dibersihkan otomatis setiap 6 jam.
 
 <br/>
 
-<img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=node.js&logoColor=white" />
-<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
-<img src="https://img.shields.io/badge/WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" />
-<img src="https://img.shields.io/badge/FFmpeg-007808?style=for-the-badge&logo=ffmpeg&logoColor=white" />
-<img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
-<img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" />
-<img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" />
-<img src="https://img.shields.io/badge/Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white" />
+<img src="https://skillicons.dev/icons?i=nodejs,javascript,git,linux,docker,github,vscode,bash&theme=dark&perline=8" />
 
 <br/><br/>
 
