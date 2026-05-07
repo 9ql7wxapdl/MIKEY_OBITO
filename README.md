@@ -27,13 +27,22 @@
 
 <br/>
 
-<!-- Skill Icons - Tech Stack Visual 2026 -->
-<img src="https://skillicons.dev/icons?i=nodejs,javascript,git,linux,docker,github,vscode,bash&theme=dark&perline=8" />
+<!-- Skill Icons - Tech Stack Visual 2026 (each icon clickable) -->
+<a href="https://nodejs.org" title="Node.js"><img src="https://skillicons.dev/icons?i=nodejs&theme=dark" /></a>
+<a href="https://developer.mozilla.org/docs/Web/JavaScript" title="JavaScript"><img src="https://skillicons.dev/icons?i=javascript&theme=dark" /></a>
+<a href="https://git-scm.com" title="Git"><img src="https://skillicons.dev/icons?i=git&theme=dark" /></a>
+<a href="https://kernel.org" title="Linux"><img src="https://skillicons.dev/icons?i=linux&theme=dark" /></a>
+<a href="https://docker.com" title="Docker"><img src="https://skillicons.dev/icons?i=docker&theme=dark" /></a>
+<a href="https://github.com/hitlabmodv2/ReadSwDika_Version" title="GitHub Repo"><img src="https://skillicons.dev/icons?i=github&theme=dark" /></a>
+<a href="https://code.visualstudio.com" title="VS Code"><img src="https://skillicons.dev/icons?i=vscode&theme=dark" /></a>
+<a href="https://www.gnu.org/software/bash" title="Bash"><img src="https://skillicons.dev/icons?i=bash&theme=dark" /></a>
 
 <br/><br/>
 
-<!-- GitHub Activity Graph -->
+<!-- GitHub Activity Graph (clickable ke profil GitHub) -->
+<a href="https://github.com/hitlabmodv2" title="GitHub Activity">
 <img src="https://github-readme-activity-graph.vercel.app/graph?username=hitlabmodv2&bg_color=0d1117&color=25D366&line=25D366&point=ffffff&area=true&area_color=128C7E&hide_border=true&radius=8&title_color=25D366" width="100%" />
+</a>
 
 <br/>
 
@@ -1028,7 +1037,14 @@ File temporary (hasil download) dibersihkan otomatis setiap 6 jam.
 
 <br/>
 
-<img src="https://skillicons.dev/icons?i=nodejs,javascript,git,linux,docker,github,vscode,bash&theme=dark&perline=8" />
+<a href="https://nodejs.org" title="Node.js"><img src="https://skillicons.dev/icons?i=nodejs&theme=dark" /></a>
+<a href="https://developer.mozilla.org/docs/Web/JavaScript" title="JavaScript"><img src="https://skillicons.dev/icons?i=javascript&theme=dark" /></a>
+<a href="https://git-scm.com" title="Git"><img src="https://skillicons.dev/icons?i=git&theme=dark" /></a>
+<a href="https://kernel.org" title="Linux"><img src="https://skillicons.dev/icons?i=linux&theme=dark" /></a>
+<a href="https://docker.com" title="Docker"><img src="https://skillicons.dev/icons?i=docker&theme=dark" /></a>
+<a href="https://github.com/hitlabmodv2/ReadSwDika_Version" title="GitHub Repo"><img src="https://skillicons.dev/icons?i=github&theme=dark" /></a>
+<a href="https://code.visualstudio.com" title="VS Code"><img src="https://skillicons.dev/icons?i=vscode&theme=dark" /></a>
+<a href="https://www.gnu.org/software/bash" title="Bash"><img src="https://skillicons.dev/icons?i=bash&theme=dark" /></a>
 
 <br/><br/>
 
