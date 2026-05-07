@@ -1146,6 +1146,7 @@ show_main_menu() {
   echo -e "  ${C_MAGENTA}4${C_RESET} ${C_BOLD}›${C_RESET} Ganti default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
   echo -e "  ${C_BLUE}5${C_RESET} ${C_BOLD}›${C_RESET} Cek token"
   echo -e "  ${C_BLUE}6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo    ${C_DIM}(${REPO})${C_RESET}"
+  echo -e "  ${C_CYAN}7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
   echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
@@ -1161,6 +1162,7 @@ show_main_menu() {
     4) action_switch_default ;;
     5) action_check_token ;;
     6) action_rename_repo ;;
+    7) action_rename_branch ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
@@ -1459,6 +1461,155 @@ action_switch_default() {
   fi
 
   rm -f /tmp/_gh_switch.json
+  prompt_back_or_exit
+}
+
+# ===== Action: edit (rename) nama branch =====
+action_rename_branch() {
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   ✏️   EDIT NAMA BRANCH          │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}repo    ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo ""
+
+  # Ambil daftar branch dari GitHub
+  local branches=()
+  while IFS= read -r b; do
+    [ -n "$b" ] && branches+=("$b")
+  done < <(fetch_branches)
+
+  local total=${#branches[@]}
+  if [ "$total" -eq 0 ]; then
+    echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch yang ditemukan.${C_RESET}"
+    prompt_back_or_exit
+    return
+  fi
+
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  local i=1
+  for b in "${branches[@]}"; do
+    if [ "$b" = "$DEFAULT_BRANCH" ]; then
+      printf "  ${C_GREEN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s  ${C_DIM}(default)${C_RESET}\n" "$i" "$b"
+    else
+      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
+    fi
+    i=$((i + 1))
+  done
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}Pilih branch ▸ ${C_RESET}"
+
+  local pick
+  read -r pick
+  pick="${pick:-0}"
+
+  if [ "$pick" = "0" ]; then
+    echo -e "  ${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  if ! echo "$pick" | grep -qE '^[0-9]+$' || [ "$pick" -lt 1 ] || [ "$pick" -gt "$total" ]; then
+    echo -e "  ${C_RED}✖ Pilihan tidak valid.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  local old_name="${branches[$((pick - 1))]}"
+
+  # ── Layar 2: input nama baru ──────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   ✏️   EDIT NAMA BRANCH          │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}branch dipilih  ${C_RESET}${C_BOLD}${old_name}${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}Nama baru ▸ ${C_RESET}"
+
+  local new_name
+  read -r new_name
+  new_name=$(echo "$new_name" | tr -d '[:space:]')
+
+  if [ -z "$new_name" ] || [ "$new_name" = "0" ]; then
+    echo -e "  ${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  # Validasi nama branch
+  if ! echo "$new_name" | grep -qE '^[a-zA-Z0-9._/-]+$'; then
+    echo -e "  ${C_RED}✖ Nama tidak valid${C_RESET} ${C_DIM}(hanya huruf, angka, - _ / .)${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  if [ "$new_name" = "$old_name" ]; then
+    echo -e "  ${C_YELLOW}ℹ️  Nama sama seperti sekarang, tidak ada yang diubah.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  # ── Konfirmasi ────────────────────────────────────────────────────────
+  echo ""
+  echo -e "  ${C_RED}⚠️  Yakin rename branch?${C_RESET}"
+  echo -e "  ${C_DIM}${old_name}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${new_name}${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Lanjut rename"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+
+  local confirm
+  read -r confirm
+  if [ "$confirm" != "1" ]; then
+    echo -e "  ${C_YELLOW}↩ Dibatalkan.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  # ── Panggil GitHub API: POST /repos/{owner}/{repo}/branches/{branch}/rename ──
+  echo ""
+  echo -e "  ${C_CYAN}▸${C_RESET} Menghubungi GitHub API untuk rename branch..."
+
+  local api_http
+  api_http=$(curl -s -o /tmp/_gh_renbranch.json -w "%{http_code}" \
+    -X POST \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/branches/${old_name}/rename" \
+    -d "{\"new_name\":\"${new_name}\"}" 2>/dev/null)
+
+  if [ "$api_http" = "201" ]; then
+    echo ""
+    echo -e "  ${C_GREEN}✅ Branch berhasil di-rename di GitHub!${C_RESET}"
+    echo -e "  ${C_DIM}${old_name}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${new_name}${C_RESET}"
+    echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${new_name}${C_RESET}"
+
+    # Kalau yang di-rename adalah default branch, update variabel & script
+    if [ "$old_name" = "$DEFAULT_BRANCH" ]; then
+      DEFAULT_BRANCH="$new_name"
+      sed -i "s|^DEFAULT_BRANCH=.*|DEFAULT_BRANCH=\"${new_name}\"|" "$0" 2>/dev/null || true
+      echo -e "  ${C_DIM}Default branch ikut diperbarui → ${C_GREEN}${new_name}${C_RESET}"
+    fi
+  else
+    local api_msg
+    api_msg=$(grep -o '"message": *"[^"]*"' /tmp/_gh_renbranch.json 2>/dev/null \
+      | head -1 | sed 's/"message": *"//;s/"//')
+    echo ""
+    echo -e "  ${C_RED}❌ Gagal rename branch (HTTP ${api_http})${C_RESET}"
+    [ -n "$api_msg" ] && echo -e "  ${C_DIM}   GitHub: ${api_msg}${C_RESET}"
+    echo -e "  ${C_DIM}   Pastikan token punya scope: repo (full control)${C_RESET}"
+  fi
+
+  rm -f /tmp/_gh_renbranch.json
   prompt_back_or_exit
 }
 

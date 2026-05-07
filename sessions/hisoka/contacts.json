@@ -22543,8 +22543,7 @@
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
     "jid": "6285175463174@s.whatsapp.net",
-    "notify": "sunshine.jpeg",
-    "verifiedName": "sunshine.jpeg"
+    "notify": "sunshine.jpeg"
   },
   "6283138972115@s.whatsapp.net": {
     "isContact": true,
@@ -31872,5 +31871,15 @@
     "id": "37430740693038@lid",
     "lid": "37430740693038@lid",
     "imgUrl": "changed"
+  },
+  "40557376237650@lid": {
+    "id": "40557376237650@lid",
+    "lid": "40557376237650@lid",
+    "imgUrl": "changed"
+  },
+  "23566519128119@lid": {
+    "id": "23566519128119@lid",
+    "lid": "23566519128119@lid",
+    "imgUrl": "removed"
   }
 }
