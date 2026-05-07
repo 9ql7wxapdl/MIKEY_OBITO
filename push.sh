@@ -246,16 +246,24 @@ setup_token() {
     if [ -f .token.secret ]; then
       echo -e "  ${C_RED}[4]${C_RESET} ${C_BOLD}Hapus token tersimpan${C_RESET} ${C_DIM}— reset .token.secret${C_RESET}" >&2
     fi
+    echo -e "  ${C_DIM}[0]${C_RESET} ${C_DIM}Keluar${C_RESET}" >&2
     echo "" >&2
     echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
     if [ -f .token.secret ]; then
-      printf "  ${C_BOLD}Pilih [1/2/3/4] ▸ ${C_RESET}" >&2
+      printf "  ${C_BOLD}Pilih [0/1/2/3/4] ▸ ${C_RESET}" >&2
     else
-      printf "  ${C_BOLD}Pilih [1/2/3] ▸ ${C_RESET}" >&2
+      printf "  ${C_BOLD}Pilih [0/1/2/3] ▸ ${C_RESET}" >&2
     fi
     local _tok_type=""
     read -r _tok_type </dev/tty
     _tok_type=$(echo "$_tok_type" | tr -d '\n\r ')
+
+    # ── Pilihan 0: keluar ────────────────────────────────────────────────────
+    if [ "$_tok_type" = "0" ]; then
+      echo "" >&2
+      echo -e "  ${C_DIM}Keluar dari script.${C_RESET}" >&2
+      exit 0
+    fi
 
     # ── Pilihan 4: hapus token tersimpan ────────────────────────────────────
     if [ "$_tok_type" = "4" ]; then
@@ -283,14 +291,20 @@ setup_token() {
       echo -e "${C_BOLD}╚══════════════════════════════════════════════════╝${C_RESET}" >&2
       echo "" >&2
       echo -e "  ${C_DIM}Paste token kamu di bawah (Classic / Fine-grained, keduanya diterima).${C_RESET}" >&2
+      echo -e "  ${C_DIM}Ketik ${C_RESET}${C_BOLD}0${C_RESET}${C_DIM} lalu Enter untuk kembali ke menu.${C_RESET}" >&2
       echo "" >&2
       echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
-      printf "  ${C_BOLD}Paste token ▸ ${C_RESET}" >&2
+      printf "  ${C_BOLD}Paste token  [0 = kembali] ▸ ${C_RESET}" >&2
 
       local input_tok3=""
       read -rs input_tok3 </dev/tty
       echo "" >&2
       input_tok3=$(echo "$input_tok3" | tr -d '\n\r ')
+
+      if [ "$input_tok3" = "0" ]; then
+        tok=""
+        continue
+      fi
 
       if [ -z "$input_tok3" ] || echo "$input_tok3" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; then
         echo -e "  ${C_RED}❌ Token kosong atau tidak valid. Coba lagi.${C_RESET}" >&2
@@ -370,13 +384,19 @@ setup_token() {
     fi
 
     echo "" >&2
+    echo -e "  ${C_DIM}Ketik ${C_RESET}${C_BOLD}0${C_RESET}${C_DIM} lalu Enter untuk kembali ke menu awal.${C_RESET}" >&2
     echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
-    printf "  ${C_BOLD}Paste token ▸ ${C_RESET}" >&2
+    printf "  ${C_BOLD}Paste token  [0 = kembali] ▸ ${C_RESET}" >&2
 
     local input_tok=""
     read -rs input_tok </dev/tty
     echo "" >&2
     input_tok=$(echo "$input_tok" | tr -d '\n\r ')
+
+    if [ "$input_tok" = "0" ]; then
+      tok=""
+      continue
+    fi
 
     if [ -z "$input_tok" ] || echo "$input_tok" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; then
       echo -e "  ${C_RED}❌ Token kosong atau tidak valid. Coba lagi.${C_RESET}" >&2
@@ -679,7 +699,8 @@ pick_repo() {
   local total=$(( i - 1 ))
   echo "" >&2
   echo -e "${C_DIM}  ─────────────────────────────────────────────────${C_RESET}" >&2
-  printf "  ${C_BOLD}Pilih nomor [1-%d] atau Enter = %s ▸ ${C_RESET}" "$total" "$cur_repo" >&2
+  echo -e "  ${C_DIM}[0] = pakai default (${cur_repo})${C_RESET}" >&2
+  printf "  ${C_BOLD}Pilih nomor [0-%d] atau Enter = %s ▸ ${C_RESET}" "$total" "$cur_repo" >&2
 
   local pick=""
   read -r pick </dev/tty
@@ -687,7 +708,7 @@ pick_repo() {
 
   local chosen_repo=""
 
-  if [ -z "$pick" ]; then
+  if [ -z "$pick" ] || [ "$pick" = "0" ]; then
     chosen_repo="$cur_repo"
   elif echo "$pick" | grep -qE '^[0-9]+$' && [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
     chosen_repo="${repo_arr[$(( pick - 1 ))]}"
