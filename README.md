@@ -16,6 +16,8 @@
 
 <br/>
 
+[![Run on Replit](https://replit.com/badge/github/Wilykun1994/wily-bot)](https://replit.com/new/github/Wilykun1994/wily-bot)
+&nbsp;
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template?template=https://github.com/Wilykun1994/wily-bot)
 &nbsp;
 [![Deploy on Fly.io](https://img.shields.io/badge/Deploy%20ke-Fly.io-8B5CF6?style=for-the-badge&logo=fly.io&logoColor=white)](https://fly.io/docs/launch/)
