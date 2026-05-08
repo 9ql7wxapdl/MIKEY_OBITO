@@ -1772,11 +1772,13 @@ action_create_repo() {
   # ── 1) Nama repository ─────────────────────────────────────────────────
   echo -e "${C_DIM}  ── Nama Repository ─────────────────${C_RESET}"
   echo -e "  ${C_DIM}(hanya huruf, angka, - dan _  — tanpa spasi)${C_RESET}"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   local new_repo_name=""
   while true; do
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r new_repo_name
     new_repo_name=$(echo "$new_repo_name" | tr -d '\n\r')
+    [ "$new_repo_name" = "0" ] && return
     if [ -z "$new_repo_name" ]; then
       echo -e "  ${C_RED}✖ Nama tidak boleh kosong.${C_RESET}"
     elif echo "$new_repo_name" | grep -qE '[^a-zA-Z0-9._-]'; then
@@ -1790,23 +1792,33 @@ action_create_repo() {
   echo ""
 
   # ── 2) Deskripsi ────────────────────────────────────────────────────────
-  echo -e "${C_DIM}  ── Deskripsi ${C_RESET}${C_DIM}(opsional, Enter untuk skip) ───${C_RESET}"
+  echo -e "${C_DIM}  ── Deskripsi ${C_RESET}${C_DIM}(opsional, Enter untuk skip • 0 = kembali) ─${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local new_desc=""
   read -r new_desc
   new_desc=$(echo "$new_desc" | tr -d '\n\r')
+  [ "$new_desc" = "0" ] && return
   echo ""
 
   # ── 3) Visibilitas ──────────────────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📦  BUAT REPOSITORY BARU       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}Nama: ${C_RESET}${C_BOLD}${new_repo_name}${C_RESET}"
+  echo ""
   echo -e "${C_DIM}  ── Visibilitas ──────────────────────${C_RESET}"
   echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Private  ${C_DIM}(hanya kamu yang bisa akses)${C_RESET}"
   echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Public   ${C_DIM}(semua orang bisa lihat)${C_RESET}"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   local vis_pick="" is_private=true vis_label="Private"
   while true; do
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r vis_pick
     vis_pick=$(echo "$vis_pick" | tr -d '\n\r ')
     case "$vis_pick" in
+      0) return ;;
       1|"") is_private=true;  vis_label="🔒 Private"; break ;;
       2)    is_private=false; vis_label="🌐 Public";  break ;;
       *) echo -e "  ${C_RED}✖ Ketik 1 atau 2.${C_RESET}" ;;
@@ -1818,12 +1830,14 @@ action_create_repo() {
   echo -e "${C_DIM}  ── Add README ───────────────────────${C_RESET}"
   echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Ya   ${C_DIM}(auto-init repo dengan README.md)${C_RESET}"
   echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Tidak"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   local readme_pick="" auto_init=false readme_label="Tidak"
   while true; do
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r readme_pick
     readme_pick=$(echo "$readme_pick" | tr -d '\n\r ')
     case "$readme_pick" in
+      0) return ;;
       1|"") auto_init=true;  readme_label="Ya"; break ;;
       2)    auto_init=false; readme_label="Tidak"; break ;;
       *) echo -e "  ${C_RED}✖ Ketik 1 atau 2.${C_RESET}" ;;
@@ -1832,9 +1846,17 @@ action_create_repo() {
   echo ""
 
   # ── 5) .gitignore template ──────────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📦  BUAT REPOSITORY BARU       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}Nama: ${C_RESET}${C_BOLD}${new_repo_name}${C_RESET}  ${C_DIM}│ README: ${readme_label}${C_RESET}"
+  echo ""
   echo -e "${C_DIM}  ── .gitignore Template ──────────────${C_RESET}"
   echo -e "  ${C_DIM}0${C_RESET} › Tidak  ${C_CYAN}1${C_RESET} › Node  ${C_CYAN}2${C_RESET} › Python  ${C_CYAN}3${C_RESET} › Java"
   echo -e "  ${C_CYAN}4${C_RESET} › Go     ${C_CYAN}5${C_RESET} › Ruby  ${C_CYAN}6${C_RESET} › C++     ${C_CYAN}7${C_RESET} › Rust"
+  echo -e "  ${C_DIM}b › Kembali ke menu${C_RESET}"
   local gi_pick="" gi_template="" gi_label="Tidak"
   # .gitignore hanya bisa dipakai jika auto_init=true
   if [ "$auto_init" = false ]; then
@@ -1846,6 +1868,7 @@ action_create_repo() {
       read -r gi_pick
       gi_pick=$(echo "$gi_pick" | tr -d '\n\r ')
       case "$gi_pick" in
+        b|B) return ;;
         0|"") gi_template="";       gi_label="Tidak";  break ;;
         1)    gi_template="Node";   gi_label="Node";   break ;;
         2)    gi_template="Python"; gi_label="Python"; break ;;
@@ -1864,6 +1887,7 @@ action_create_repo() {
   echo -e "${C_DIM}  ── License ──────────────────────────${C_RESET}"
   echo -e "  ${C_DIM}0${C_RESET} › Tidak  ${C_CYAN}1${C_RESET} › MIT  ${C_CYAN}2${C_RESET} › Apache-2.0"
   echo -e "  ${C_CYAN}3${C_RESET} › GPL-3.0  ${C_CYAN}4${C_RESET} › LGPL-2.1  ${C_CYAN}5${C_RESET} › AGPL-3.0"
+  echo -e "  ${C_DIM}b › Kembali ke menu${C_RESET}"
   local lic_pick="" lic_template="" lic_label="Tidak"
   if [ "$auto_init" = false ]; then
     echo -e "  ${C_DIM}(dilewati — README harus aktif untuk license)${C_RESET}"
@@ -1874,6 +1898,7 @@ action_create_repo() {
       read -r lic_pick
       lic_pick=$(echo "$lic_pick" | tr -d '\n\r ')
       case "$lic_pick" in
+        b|B) return ;;
         0|"") lic_template="";           lic_label="Tidak";    break ;;
         1)    lic_template="mit";        lic_label="MIT";      break ;;
         2)    lic_template="apache-2.0"; lic_label="Apache-2.0"; break ;;
@@ -1907,7 +1932,7 @@ action_create_repo() {
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   echo ""
   echo -e "  ${C_GREEN}y${C_RESET} ${C_BOLD}›${C_RESET} Buat sekarang"
-  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local confirm
@@ -1994,7 +2019,12 @@ action_create_repo() {
   fi
 
   echo ""
-  prompt_back_or_exit
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local _r; read -r _r
+  clear >/dev/tty 2>/dev/null || true
 }
 
 # ===== Action: import repository dari URL eksternal =====
@@ -2012,11 +2042,13 @@ action_import_repo() {
   echo -e "${C_DIM}  ── URL Sumber ${C_RESET}${C_DIM}* wajib ─────────────────${C_RESET}"
   echo -e "  ${C_DIM}Contoh: https://github.com/user/repo.git${C_RESET}"
   echo -e "  ${C_DIM}        https://gitlab.com/user/repo.git${C_RESET}"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   local src_url=""
   while true; do
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r src_url
     src_url=$(echo "$src_url" | tr -d '\n\r ')
+    [ "$src_url" = "0" ] && return
     if [ -z "$src_url" ]; then
       echo -e "  ${C_RED}✖ URL tidak boleh kosong.${C_RESET}"
     elif ! echo "$src_url" | grep -qE '^https?://'; then
@@ -2028,18 +2060,19 @@ action_import_repo() {
   echo ""
 
   # ── 2) Username sumber (opsional) ───────────────────────────────────────
-  echo -e "${C_DIM}  ── Username Sumber ${C_RESET}${C_DIM}(opsional, Enter = skip) ─${C_RESET}"
+  echo -e "${C_DIM}  ── Username Sumber ${C_RESET}${C_DIM}(opsional, Enter = skip • 0 = kembali) ─${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local src_user=""
   read -r src_user
   src_user=$(echo "$src_user" | tr -d '\n\r')
+  [ "$src_user" = "0" ] && return
   echo ""
 
   # ── 3) Password / Token sumber (opsional) ───────────────────────────────
   local src_pass=""
   if [ -n "$src_user" ]; then
     echo -e "${C_DIM}  ── Password / Token Sumber ──────────${C_RESET}"
-    echo -e "  ${C_DIM}(input tersembunyi)${C_RESET}"
+    echo -e "  ${C_DIM}(input tersembunyi • Enter kosong = skip)${C_RESET}"
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -rs src_pass
     src_pass=$(echo "$src_pass" | tr -d '\n\r')
@@ -2048,8 +2081,16 @@ action_import_repo() {
   fi
 
   # ── 4) Nama repository baru ─────────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📥  IMPORT REPOSITORY           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}Sumber: ${C_RESET}${C_CYAN}${src_url}${C_RESET}"
+  echo ""
   echo -e "${C_DIM}  ── Nama Repository Baru ${C_RESET}${C_DIM}* wajib ────────${C_RESET}"
   echo -e "  ${C_DIM}(hanya huruf, angka, - dan _)${C_RESET}"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   # Auto-suggest dari URL
   local url_guess
   url_guess=$(printf '%s' "$src_url" | sed 's|.*/||;s|\.git$||;s|[^a-zA-Z0-9._-]|-|g')
@@ -2059,6 +2100,7 @@ action_import_repo() {
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r imp_repo_name
     imp_repo_name=$(echo "$imp_repo_name" | tr -d '\n\r')
+    [ "$imp_repo_name" = "0" ] && return
     [ -z "$imp_repo_name" ] && [ -n "$url_guess" ] && imp_repo_name="$url_guess"
     if [ -z "$imp_repo_name" ]; then
       echo -e "  ${C_RED}✖ Nama tidak boleh kosong.${C_RESET}"
@@ -2076,12 +2118,14 @@ action_import_repo() {
   echo -e "${C_DIM}  ── Visibilitas ──────────────────────${C_RESET}"
   echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Public   ${C_DIM}(semua bisa lihat)${C_RESET}"
   echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Private  ${C_DIM}(hanya kamu)${C_RESET}"
+  echo -e "  ${C_DIM}0 › Kembali ke menu${C_RESET}"
   local imp_vis_pick="" imp_private=false imp_vis_label="🌐 Public"
   while true; do
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r imp_vis_pick
     imp_vis_pick=$(echo "$imp_vis_pick" | tr -d '\n\r ')
     case "$imp_vis_pick" in
+      0) return ;;
       1|"") imp_private=false; imp_vis_label="🌐 Public";  break ;;
       2)    imp_private=true;  imp_vis_label="🔒 Private"; break ;;
       *) echo -e "  ${C_RED}✖ Ketik 1 atau 2.${C_RESET}" ;;
@@ -2108,15 +2152,15 @@ action_import_repo() {
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   echo ""
   echo -e "  ${C_GREEN}y${C_RESET} ${C_BOLD}›${C_RESET} Mulai import"
-  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local imp_confirm
   read -r imp_confirm
   imp_confirm=$(echo "$imp_confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
   if [ "$imp_confirm" != "y" ]; then
-    echo -e "  ${C_YELLOW}⚠️  Dibatalkan.${C_RESET}"
-    sleep 1; return
+    clear >/dev/tty 2>/dev/null || true
+    return
   fi
 
   # ── Langkah 1: Buat repo kosong dulu ────────────────────────────────────
@@ -2149,7 +2193,11 @@ action_import_repo() {
     [ "$create_code" = "422" ] && \
       echo -e "  ${C_YELLOW}💡 Nama repo sudah dipakai di akun kamu.${C_RESET}"
     echo ""
-    prompt_back_or_exit; return
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"; local _r; read -r _r
+    clear >/dev/tty 2>/dev/null || true; return
   fi
 
   # ── Langkah 2: Mulai import ──────────────────────────────────────────────
@@ -2292,7 +2340,12 @@ action_import_repo() {
   fi
 
   echo ""
-  prompt_back_or_exit
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local _r; read -r _r
+  clear >/dev/tty 2>/dev/null || true
 }
 
 # ===== Action: hapus repository =====
@@ -2307,20 +2360,22 @@ action_delete_repo() {
   echo -e "  ${C_DIM}Repo aktif saat ini:${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
   echo ""
   echo -e "${C_DIM}  ── Nama owner (akun/org) ────────────${C_RESET}"
-  echo -e "  ${C_DIM}Enter = pakai akun kamu (${USER})${C_RESET}"
+  echo -e "  ${C_DIM}Enter = pakai akun kamu (${USER}) • 0 = kembali${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local del_owner
   read -r del_owner
   del_owner=$(echo "$del_owner" | tr -d '\n\r ')
+  [ "$del_owner" = "0" ] && return
   [ -z "$del_owner" ] && del_owner="$USER"
   echo ""
 
   echo -e "${C_DIM}  ── Nama repository yang ingin dihapus ─${C_RESET}"
-  echo -e "  ${C_DIM}Enter = pakai repo aktif (${REPO})${C_RESET}"
+  echo -e "  ${C_DIM}Enter = pakai repo aktif (${REPO}) • 0 = kembali${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local del_repo
   read -r del_repo
   del_repo=$(echo "$del_repo" | tr -d '\n\r ')
+  [ "$del_repo" = "0" ] && return
   [ -z "$del_repo" ] && del_repo="$REPO"
   echo ""
 
@@ -2339,12 +2394,20 @@ action_delete_repo() {
   if [ "$info_code" = "404" ]; then
     echo -e "  ${C_RED}❌ Repository '${del_owner}/${del_repo}' tidak ditemukan.${C_RESET}"
     echo ""
-    prompt_back_or_exit; return
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"; local _r1; read -r _r1
+    clear >/dev/tty 2>/dev/null || true; return
   fi
   if [ "$info_code" != "200" ]; then
     echo -e "  ${C_RED}❌ Gagal ambil info repo (HTTP ${info_code}).${C_RESET}"
     echo ""
-    prompt_back_or_exit; return
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"; local _r2; read -r _r2
+    clear >/dev/tty 2>/dev/null || true; return
   fi
 
   # Parse info repo
@@ -2388,6 +2451,7 @@ action_delete_repo() {
   # ── Konfirmasi ketat: ketik ulang nama repo ──────────────────────────────
   echo -e "  ${C_YELLOW}Untuk melanjutkan, ketik ulang nama repository:${C_RESET}"
   echo -e "  ${C_BOLD}${del_repo}${C_RESET}"
+  echo -e "  ${C_DIM}(ketik 0 untuk batal)${C_RESET}"
   echo ""
   local attempt=0 max_attempt=3
   local typed_name=""
@@ -2395,6 +2459,9 @@ action_delete_repo() {
     printf "  ${C_BOLD}▸ ${C_RESET}"
     read -r typed_name
     typed_name=$(echo "$typed_name" | tr -d '\n\r')
+    if [ "$typed_name" = "0" ]; then
+      clear >/dev/tty 2>/dev/null || true; return
+    fi
     if [ "$typed_name" = "$del_repo" ]; then
       break
     fi
@@ -2408,7 +2475,8 @@ action_delete_repo() {
   if [ "$typed_name" != "$del_repo" ]; then
     echo ""
     echo -e "  ${C_YELLOW}⚠️  3x salah — penghapusan dibatalkan.${C_RESET}"
-    sleep 1; return
+    sleep 1
+    clear >/dev/tty 2>/dev/null || true; return
   fi
 
   # ── Konfirmasi akhir y/n ─────────────────────────────────────────────────
@@ -2419,8 +2487,7 @@ action_delete_repo() {
   read -r final_confirm
   final_confirm=$(echo "$final_confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
   if [ "$final_confirm" != "y" ]; then
-    echo -e "  ${C_YELLOW}⚠️  Dibatalkan.${C_RESET}"
-    sleep 1; return
+    clear >/dev/tty 2>/dev/null || true; return
   fi
 
   # ── Eksekusi hapus via API ───────────────────────────────────────────────
@@ -2475,7 +2542,12 @@ action_delete_repo() {
   esac
 
   echo ""
-  prompt_back_or_exit
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local _r; read -r _r
+  clear >/dev/tty 2>/dev/null || true
 }
 
 # ===== Action: edit (rename) nama branch =====
