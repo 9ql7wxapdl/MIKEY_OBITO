@@ -1148,6 +1148,7 @@ show_main_menu() {
   echo -e "  ${C_BLUE}6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo    ${C_DIM}(${REPO})${C_RESET}"
   echo -e "  ${C_CYAN}7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
   echo -e "  ${C_GREEN}8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
+  echo -e "  ${C_YELLOW}9${C_RESET} ${C_BOLD}›${C_RESET} Buat repository baru"
   echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
@@ -1165,6 +1166,7 @@ show_main_menu() {
     6) action_rename_repo ;;
     7) action_rename_branch ;;
     8) action_list_branches ;;
+    9) action_create_repo ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
@@ -1751,6 +1753,244 @@ action_list_branches() {
         ;;
     esac
   done
+}
+
+# ===== Action: buat repository baru =====
+action_create_repo() {
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📦  BUAT REPOSITORY BARU       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}akun  ${C_RESET}${C_BOLD}${USER}${C_RESET}"
+  echo ""
+
+  # ── 1) Nama repository ─────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── Nama Repository ─────────────────${C_RESET}"
+  echo -e "  ${C_DIM}(hanya huruf, angka, - dan _  — tanpa spasi)${C_RESET}"
+  local new_repo_name=""
+  while true; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r new_repo_name
+    new_repo_name=$(echo "$new_repo_name" | tr -d '\n\r')
+    if [ -z "$new_repo_name" ]; then
+      echo -e "  ${C_RED}✖ Nama tidak boleh kosong.${C_RESET}"
+    elif echo "$new_repo_name" | grep -qE '[^a-zA-Z0-9._-]'; then
+      echo -e "  ${C_RED}✖ Nama mengandung karakter tidak valid.${C_RESET}"
+    elif [ "${#new_repo_name}" -gt 100 ]; then
+      echo -e "  ${C_RED}✖ Nama terlalu panjang (maks 100 karakter).${C_RESET}"
+    else
+      break
+    fi
+  done
+  echo ""
+
+  # ── 2) Deskripsi ────────────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── Deskripsi ${C_RESET}${C_DIM}(opsional, Enter untuk skip) ───${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local new_desc=""
+  read -r new_desc
+  new_desc=$(echo "$new_desc" | tr -d '\n\r')
+  echo ""
+
+  # ── 3) Visibilitas ──────────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── Visibilitas ──────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Private  ${C_DIM}(hanya kamu yang bisa akses)${C_RESET}"
+  echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Public   ${C_DIM}(semua orang bisa lihat)${C_RESET}"
+  local vis_pick="" is_private=true vis_label="Private"
+  while true; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r vis_pick
+    vis_pick=$(echo "$vis_pick" | tr -d '\n\r ')
+    case "$vis_pick" in
+      1|"") is_private=true;  vis_label="🔒 Private"; break ;;
+      2)    is_private=false; vis_label="🌐 Public";  break ;;
+      *) echo -e "  ${C_RED}✖ Ketik 1 atau 2.${C_RESET}" ;;
+    esac
+  done
+  echo ""
+
+  # ── 4) README ───────────────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── Add README ───────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Ya   ${C_DIM}(auto-init repo dengan README.md)${C_RESET}"
+  echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Tidak"
+  local readme_pick="" auto_init=false readme_label="Tidak"
+  while true; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r readme_pick
+    readme_pick=$(echo "$readme_pick" | tr -d '\n\r ')
+    case "$readme_pick" in
+      1|"") auto_init=true;  readme_label="Ya"; break ;;
+      2)    auto_init=false; readme_label="Tidak"; break ;;
+      *) echo -e "  ${C_RED}✖ Ketik 1 atau 2.${C_RESET}" ;;
+    esac
+  done
+  echo ""
+
+  # ── 5) .gitignore template ──────────────────────────────────────────────
+  echo -e "${C_DIM}  ── .gitignore Template ──────────────${C_RESET}"
+  echo -e "  ${C_DIM}0${C_RESET} › Tidak  ${C_CYAN}1${C_RESET} › Node  ${C_CYAN}2${C_RESET} › Python  ${C_CYAN}3${C_RESET} › Java"
+  echo -e "  ${C_CYAN}4${C_RESET} › Go     ${C_CYAN}5${C_RESET} › Ruby  ${C_CYAN}6${C_RESET} › C++     ${C_CYAN}7${C_RESET} › Rust"
+  local gi_pick="" gi_template="" gi_label="Tidak"
+  # .gitignore hanya bisa dipakai jika auto_init=true
+  if [ "$auto_init" = false ]; then
+    echo -e "  ${C_DIM}(dilewati — README harus aktif untuk gitignore)${C_RESET}"
+    gi_label="N/A"
+  else
+    while true; do
+      printf "  ${C_BOLD}▸ ${C_RESET}"
+      read -r gi_pick
+      gi_pick=$(echo "$gi_pick" | tr -d '\n\r ')
+      case "$gi_pick" in
+        0|"") gi_template="";       gi_label="Tidak";  break ;;
+        1)    gi_template="Node";   gi_label="Node";   break ;;
+        2)    gi_template="Python"; gi_label="Python"; break ;;
+        3)    gi_template="Java";   gi_label="Java";   break ;;
+        4)    gi_template="Go";     gi_label="Go";     break ;;
+        5)    gi_template="Ruby";   gi_label="Ruby";   break ;;
+        6)    gi_template="C++";    gi_label="C++";    break ;;
+        7)    gi_template="Rust";   gi_label="Rust";   break ;;
+        *) echo -e "  ${C_RED}✖ Pilih 0–7.${C_RESET}" ;;
+      esac
+    done
+  fi
+  echo ""
+
+  # ── 6) License ──────────────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── License ──────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}0${C_RESET} › Tidak  ${C_CYAN}1${C_RESET} › MIT  ${C_CYAN}2${C_RESET} › Apache-2.0"
+  echo -e "  ${C_CYAN}3${C_RESET} › GPL-3.0  ${C_CYAN}4${C_RESET} › LGPL-2.1  ${C_CYAN}5${C_RESET} › AGPL-3.0"
+  local lic_pick="" lic_template="" lic_label="Tidak"
+  if [ "$auto_init" = false ]; then
+    echo -e "  ${C_DIM}(dilewati — README harus aktif untuk license)${C_RESET}"
+    lic_label="N/A"
+  else
+    while true; do
+      printf "  ${C_BOLD}▸ ${C_RESET}"
+      read -r lic_pick
+      lic_pick=$(echo "$lic_pick" | tr -d '\n\r ')
+      case "$lic_pick" in
+        0|"") lic_template="";           lic_label="Tidak";    break ;;
+        1)    lic_template="mit";        lic_label="MIT";      break ;;
+        2)    lic_template="apache-2.0"; lic_label="Apache-2.0"; break ;;
+        3)    lic_template="gpl-3.0";   lic_label="GPL-3.0";  break ;;
+        4)    lic_template="lgpl-2.1";  lic_label="LGPL-2.1"; break ;;
+        5)    lic_template="agpl-3.0";  lic_label="AGPL-3.0"; break ;;
+        *) echo -e "  ${C_RED}✖ Pilih 0–5.${C_RESET}" ;;
+      esac
+    done
+  fi
+  echo ""
+
+  # ── Ringkasan konfirmasi ────────────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📦  KONFIRMASI BUAT REPO        │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_DIM}Nama        ${C_RESET}${C_BOLD}%s${C_RESET}\n" "$new_repo_name"
+  if [ -n "$new_desc" ]; then
+    printf "  ${C_DIM}Deskripsi   ${C_RESET}%s\n" "$new_desc"
+  else
+    printf "  ${C_DIM}Deskripsi   ${C_RESET}${C_DIM}(kosong)${C_RESET}\n"
+  fi
+  printf "  ${C_DIM}Visibilitas ${C_RESET}%s\n"  "$vis_label"
+  printf "  ${C_DIM}README      ${C_RESET}%s\n"  "$readme_label"
+  printf "  ${C_DIM}Gitignore   ${C_RESET}%s\n"  "$gi_label"
+  printf "  ${C_DIM}License     ${C_RESET}%s\n"  "$lic_label"
+  printf "  ${C_DIM}URL nanti   ${C_RESET}${C_CYAN}github.com/%s/%s${C_RESET}\n" "$USER" "$new_repo_name"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo ""
+  echo -e "  ${C_GREEN}y${C_RESET} ${C_BOLD}›${C_RESET} Buat sekarang"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local confirm
+  read -r confirm
+  confirm=$(echo "$confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+  if [ "$confirm" != "y" ]; then
+    echo -e "  ${C_YELLOW}⚠️  Dibatalkan.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  # ── Bangun JSON payload ─────────────────────────────────────────────────
+  # Escape karakter JSON-sensitive (backslash dulu, lalu kutip ganda)
+  local name_json desc_json
+  name_json=$(printf '%s' "$new_repo_name" | sed 's/\\/\\\\/g;s/"/\\"/g')
+  desc_json=$(printf '%s' "$new_desc"      | sed 's/\\/\\\\/g;s/"/\\"/g')
+  local payload="{\"name\":\"${name_json}\",\"description\":\"${desc_json}\",\"private\":${is_private},\"auto_init\":${auto_init}"
+  [ -n "$gi_template"  ] && payload="${payload},\"gitignore_template\":\"${gi_template}\""
+  [ -n "$lic_template" ] && payload="${payload},\"license_template\":\"${lic_template}\""
+  payload="${payload}}"
+
+  # ── Kirim ke GitHub API ─────────────────────────────────────────────────
+  echo ""
+  echo -e "  ${C_DIM}▸ Membuat repository di GitHub...${C_RESET}"
+
+  local resp http_code
+  resp=$(curl -s -w "\n%{http_code}" \
+    -X POST \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    -H "Content-Type: application/json" \
+    -d "$payload" \
+    "https://api.github.com/user/repos" 2>/dev/null)
+
+  http_code=$(printf '%s' "$resp" | tail -1)
+  local body
+  body=$(printf '%s' "$resp" | sed '$d')
+
+  # ── Tampilkan hasil ─────────────────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📦  BUAT REPOSITORY BARU       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+
+  if [ "$http_code" = "201" ]; then
+    # Ekstrak info dari response
+    local clone_url html_url full_name visibility
+    clone_url=$(printf '%s' "$body" | grep -oE '"clone_url"[[:space:]]*:[[:space:]]*"[^"]*"' \
+                | head -1 | sed 's/.*"clone_url"[[:space:]]*:[[:space:]]*"//;s/".*//')
+    html_url=$(printf '%s' "$body" | grep -oE '"html_url"[[:space:]]*:[[:space:]]*"https://github.com/[^"]*"' \
+               | head -1 | sed 's/.*"html_url"[[:space:]]*:[[:space:]]*"//;s/".*//')
+    full_name=$(printf '%s' "$body" | grep -oE '"full_name"[[:space:]]*:[[:space:]]*"[^"]*"' \
+                | head -1 | sed 's/.*"full_name"[[:space:]]*:[[:space:]]*"//;s/".*//')
+
+    echo -e "  ${C_GREEN}✅ Repository berhasil dibuat!${C_RESET}"
+    echo ""
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_DIM}Nama    ${C_RESET}${C_BOLD}%s${C_RESET}\n"       "${full_name:-${USER}/${new_repo_name}}"
+    printf "  ${C_DIM}Visib.  ${C_RESET}%s\n"                           "$vis_label"
+    printf "  ${C_DIM}URL     ${C_RESET}${C_CYAN}%s${C_RESET}\n"       "${html_url:-https://github.com/${USER}/${new_repo_name}}"
+    printf "  ${C_DIM}Clone   ${C_RESET}${C_DIM}%s${C_RESET}\n"        "${clone_url:-https://github.com/${USER}/${new_repo_name}.git}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}▸ Clone dengan:${C_RESET}"
+    echo -e "  ${C_BOLD}git clone ${clone_url:-https://github.com/${USER}/${new_repo_name}.git}${C_RESET}"
+  else
+    # Ekstrak pesan error dari GitHub
+    local err_msg
+    err_msg=$(printf '%s' "$body" | grep -oE '"message"[[:space:]]*:[[:space:]]*"[^"]*"' \
+              | head -1 | sed 's/.*"message"[[:space:]]*:[[:space:]]*"//;s/".*//')
+    echo -e "  ${C_RED}❌ Gagal membuat repository (HTTP ${http_code})${C_RESET}"
+    [ -n "$err_msg" ] && echo -e "  ${C_RED}   ${err_msg}${C_RESET}"
+    echo ""
+    if [ "$http_code" = "422" ]; then
+      echo -e "  ${C_YELLOW}💡 Kemungkinan nama repo sudah dipakai.${C_RESET}"
+    elif [ "$http_code" = "401" ]; then
+      echo -e "  ${C_YELLOW}💡 Token tidak valid atau sudah expired.${C_RESET}"
+    elif [ "$http_code" = "403" ]; then
+      echo -e "  ${C_YELLOW}💡 Token tidak punya izin membuat repo.${C_RESET}"
+      echo -e "  ${C_DIM}   Cek scope token: butuh 'repo' atau 'public_repo'.${C_RESET}"
+    fi
+  fi
+
+  echo ""
+  prompt_back_or_exit
 }
 
 # ===== Action: edit (rename) nama branch =====
