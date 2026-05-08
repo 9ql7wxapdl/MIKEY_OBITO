@@ -1151,6 +1151,7 @@ show_main_menu() {
   echo -e "  ${C_YELLOW}9${C_RESET} ${C_BOLD}›${C_RESET} Buat repository baru"
   echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repository"
   echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repository"
+  echo -e "  ${C_MAGENTA}12${C_RESET} ${C_BOLD}›${C_RESET} Semua repository"
   echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
@@ -1171,6 +1172,7 @@ show_main_menu() {
     9) action_create_repo ;;
     10) action_import_repo ;;
     11) action_delete_repo ;;
+    12) action_list_repos ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
@@ -2548,6 +2550,250 @@ action_delete_repo() {
   printf "  ${C_BOLD}▸ ${C_RESET}"
   local _r; read -r _r
   clear >/dev/tty 2>/dev/null || true
+}
+
+# ===== Action: lihat semua repository =====
+action_list_repos() {
+  # State paginasi + filter — persisten selama session opsi ini
+  local lr_page=1
+  local lr_per_page=10
+  local lr_filter="all"   # all | public | private
+  local lr_sort="updated" # updated | created | full_name | pushed
+
+  while true; do
+    # ── Fetch data dari GitHub API ───────────────────────────────────────
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│   📋  SEMUA REPOSITORY            │${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}▸ Mengambil data dari GitHub...${C_RESET}"
+
+    # Ambil total count dulu (per_page=1 untuk efisiensi)
+    local count_raw total_count=0
+    count_raw=$(curl -s \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/user/repos?type=${lr_filter}&per_page=1&page=1" \
+      -D - 2>/dev/null)
+    # Ambil total dari Link header — atau fallback hitung manual
+    local link_hdr
+    link_hdr=$(printf '%s' "$count_raw" | grep -i '^link:' | head -1)
+    if [ -n "$link_hdr" ]; then
+      # Cari angka halaman terakhir dari Link header
+      local last_page
+      last_page=$(printf '%s' "$link_hdr" \
+        | grep -oE 'page=[0-9]+>; rel="last"' \
+        | grep -oE '[0-9]+' | head -1)
+      [ -n "$last_page" ] && total_count="$last_page"
+    fi
+
+    # Fetch halaman aktual
+    local raw_resp http_code
+    raw_resp=$(curl -s -w "\n%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/user/repos?type=${lr_filter}&sort=${lr_sort}&direction=desc&per_page=${lr_per_page}&page=${lr_page}" \
+      2>/dev/null)
+    http_code=$(printf '%s' "$raw_resp" | tail -1)
+    local body
+    body=$(printf '%s' "$raw_resp" | sed '$d')
+
+    if [ "$http_code" != "200" ]; then
+      clear >/dev/tty 2>/dev/null || true
+      echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+      echo -e "${C_BOLD}│   📋  SEMUA REPOSITORY            │${C_RESET}"
+      echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+      echo ""
+      echo -e "  ${C_RED}❌ Gagal mengambil data (HTTP ${http_code}).${C_RESET}"
+      [ "$http_code" = "401" ] && echo -e "  ${C_YELLOW}💡 Token tidak valid atau expired.${C_RESET}"
+      echo ""
+      echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+      echo -e "  ${C_DIM}0 atau Enter › Kembali ke menu${C_RESET}"
+      echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+      printf "  ${C_BOLD}▸ ${C_RESET}"; local _re; read -r _re
+      clear >/dev/tty 2>/dev/null || true; return
+    fi
+
+    # ── Parse daftar repo dengan node ────────────────────────────────────
+    local repo_lines
+    repo_lines=$(printf '%s' "$body" | node -e "
+      let d='';
+      process.stdin.on('data',c=>d+=c).on('end',()=>{
+        try {
+          const repos = JSON.parse(d);
+          repos.forEach(r => {
+            const upd  = r.updated_at ? r.updated_at.slice(0,10) : '----';
+            const priv = r.private ? 'priv' : 'pub ';
+            const star = r.stargazers_count || 0;
+            const fork = r.forks_count || 0;
+            const lang = (r.language || '').slice(0,12).padEnd(12);
+            const name = (r.full_name || '').slice(0,40);
+            console.log(priv+'|'+upd+'|'+star+'|'+fork+'|'+lang+'|'+name);
+          });
+        } catch(e) { process.exit(1); }
+      });
+    " 2>/dev/null)
+
+    # Hitung total dari fetch single-per-page jika Link tidak ada
+    if [ "$total_count" = "0" ] || [ -z "$total_count" ]; then
+      # Fallback: hitung baris yang kembali
+      local cur_count
+      cur_count=$(printf '%s' "$repo_lines" | grep -c '|' 2>/dev/null || echo 0)
+      total_count="$cur_count"
+    fi
+
+    # Hitung total halaman
+    local total_pages=$(( (total_count + lr_per_page - 1) / lr_per_page ))
+    [ "$total_pages" -lt 1 ] && total_pages=1
+    [ "$lr_page" -gt "$total_pages" ] && lr_page="$total_pages"
+
+    # ── Tampilkan header ──────────────────────────────────────────────────
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│   📋  SEMUA REPOSITORY — ${USER}$(printf '%*s' $((27 - ${#USER})) '')│${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────────────────────────╯${C_RESET}"
+    echo ""
+
+    # Info baris status
+    local filter_label sort_label
+    case "$lr_filter" in
+      all)     filter_label="${C_DIM}Semua${C_RESET}" ;;
+      public)  filter_label="${C_GREEN}Public${C_RESET}" ;;
+      private) filter_label="${C_CYAN}Private${C_RESET}" ;;
+    esac
+    case "$lr_sort" in
+      updated)   sort_label="Update terbaru" ;;
+      created)   sort_label="Terbaru dibuat" ;;
+      pushed)    sort_label="Push terbaru"   ;;
+      full_name) sort_label="Nama A→Z"       ;;
+    esac
+    printf "  ${C_DIM}Filter: ${C_RESET}%b  ${C_DIM}Sort: ${C_RESET}${C_YELLOW}%s${C_RESET}  ${C_DIM}Hal: ${C_RESET}${C_BOLD}%s${C_RESET}${C_DIM}/%s${C_RESET}\n" \
+      "$filter_label" "$sort_label" "$lr_page" "$total_pages"
+    echo ""
+    echo -e "${C_DIM}  ──  Vis  ── Update ──── ⭐ 🍴 ── Bahasa ──── Nama ──────────────────${C_RESET}"
+
+    # ── Tampilkan baris repo ─────────────────────────────────────────────
+    if [ -z "$repo_lines" ]; then
+      echo -e "  ${C_DIM}(Tidak ada repository di halaman ini)${C_RESET}"
+    else
+      local idx=1
+      while IFS='|' read -r vis upd star fork lang name; do
+        # Warna badge visibilitas
+        local vis_badge
+        if [ "$vis" = "priv" ]; then
+          vis_badge="${C_CYAN}🔒 priv${C_RESET}"
+        else
+          vis_badge="${C_GREEN}🌐 pub ${C_RESET}"
+        fi
+        # Truncate nama repo supaya rapi
+        local short_name="${name##*/}"
+        local owner_name="${name%%/*}"
+        # Warna nomor urut
+        printf "  ${C_DIM}%2d${C_RESET}  %b  ${C_DIM}%s${C_RESET}  ${C_YELLOW}%-2s${C_RESET} ${C_DIM}%-2s${C_RESET}  ${C_DIM}%-10s${C_RESET}  ${C_BOLD}%s${C_RESET}${C_DIM}/%s${C_RESET}\n" \
+          "$idx" "$vis_badge" "$upd" "$star" "$fork" "$lang" "$owner_name" "$short_name"
+        idx=$(( idx + 1 ))
+      done <<< "$repo_lines"
+    fi
+
+    echo ""
+    echo -e "${C_DIM}  ──────────────────────────────────────────────────────${C_RESET}"
+
+    # ── Navigasi ─────────────────────────────────────────────────────────
+    echo -e "  ${C_BOLD}Navigasi halaman:${C_RESET}"
+    # Tampilkan tombol sesuai posisi
+    [ "$lr_page" -gt 1 ] && \
+      echo -e "  ${C_GREEN}p${C_RESET} › Sebelumnya   ${C_GREEN}f${C_RESET} › Halaman pertama"
+    [ "$lr_page" -lt "$total_pages" ] && \
+      echo -e "  ${C_GREEN}n${C_RESET} › Berikutnya   ${C_GREEN}l${C_RESET} › Halaman terakhir"
+    echo -e "  ${C_YELLOW}g${C_RESET} › Loncat ke halaman..."
+    echo ""
+    echo -e "  ${C_BOLD}Filter & Sort:${C_RESET}"
+    echo -e "  ${C_CYAN}fa${C_RESET} › Semua   ${C_CYAN}fp${C_RESET} › Public   ${C_CYAN}fv${C_RESET} › Private"
+    echo -e "  ${C_CYAN}su${C_RESET} › Sort: Update   ${C_CYAN}sc${C_RESET} › Dibuat   ${C_CYAN}sp${C_RESET} › Push   ${C_CYAN}sn${C_RESET} › Nama"
+    echo ""
+    echo -e "  ${C_MAGENTA}r${C_RESET} › Refresh   ${C_RED}0${C_RESET} › Kembali ke menu"
+    echo -e "${C_DIM}  ──────────────────────────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+
+    local nav_pick
+    read -r nav_pick
+    nav_pick=$(echo "$nav_pick" | tr -d '\n\r' | tr '[:upper:]' '[:lower:]')
+
+    case "$nav_pick" in
+      # ── Navigasi halaman ──────────────────────────────────────────────
+      n|"")
+        if [ "$lr_page" -lt "$total_pages" ]; then
+          lr_page=$(( lr_page + 1 ))
+        else
+          # Sudah halaman terakhir — tetap di tempat
+          true
+        fi
+        ;;
+      p)
+        [ "$lr_page" -gt 1 ] && lr_page=$(( lr_page - 1 ))
+        ;;
+      f)
+        lr_page=1
+        ;;
+      l)
+        lr_page="$total_pages"
+        ;;
+      g)
+        # Loncat ke halaman
+        printf "  Halaman (1-%s): " "$total_pages"
+        local jump_to
+        read -r jump_to
+        jump_to=$(echo "$jump_to" | tr -d '\n\r ')
+        if echo "$jump_to" | grep -qE '^[0-9]+$'; then
+          if [ "$jump_to" -ge 1 ] && [ "$jump_to" -le "$total_pages" ]; then
+            lr_page="$jump_to"
+          else
+            echo -e "  ${C_RED}✖ Halaman harus antara 1 dan ${total_pages}.${C_RESET}"
+            sleep 1
+          fi
+        fi
+        ;;
+      # ── Filter ────────────────────────────────────────────────────────
+      fa)
+        lr_filter="all"; lr_page=1
+        ;;
+      fp)
+        lr_filter="public"; lr_page=1
+        ;;
+      fv)
+        lr_filter="private"; lr_page=1
+        ;;
+      # ── Sort ──────────────────────────────────────────────────────────
+      su)
+        lr_sort="updated"; lr_page=1
+        ;;
+      sc)
+        lr_sort="created"; lr_page=1
+        ;;
+      sp)
+        lr_sort="pushed"; lr_page=1
+        ;;
+      sn)
+        lr_sort="full_name"; lr_page=1
+        ;;
+      # ── Refresh ───────────────────────────────────────────────────────
+      r)
+        true  # loop ulang = fetch ulang otomatis
+        ;;
+      # ── Kembali ───────────────────────────────────────────────────────
+      0|q)
+        clear >/dev/tty 2>/dev/null || true
+        return
+        ;;
+      *)
+        # Abaikan input tidak dikenal
+        true
+        ;;
+    esac
+  done
 }
 
 # ===== Action: edit (rename) nama branch =====
