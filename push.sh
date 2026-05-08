@@ -2350,6 +2350,94 @@ action_import_repo() {
   clear >/dev/tty 2>/dev/null || true
 }
 
+# ── Helper: format ISO date → tanggal Indonesia ──────────────────────────
+_del_fmt_date() {
+  local iso="$1"
+  [ -z "$iso" ] && echo "-" && return
+  local dt="${iso%T*}"
+  local yr="${dt%%-*}"; local rest="${dt#*-}"; local mo="${rest%%-*}"; local dy="${rest##*-}"
+  local bulan
+  case "$mo" in
+    01) bulan="Januari";;   02) bulan="Februari";; 03) bulan="Maret";;
+    04) bulan="April";;     05) bulan="Mei";;       06) bulan="Juni";;
+    07) bulan="Juli";;      08) bulan="Agustus";;   09) bulan="September";;
+    10) bulan="Oktober";;   11) bulan="November";; 12) bulan="Desember";;
+    *)  bulan="$mo";;
+  esac
+  local timep="${iso#*T}"; local hh="${timep%%:*}"; local timep2="${timep#*:}"; local mm="${timep2%%:*}"
+  echo "${dy} ${bulan} ${yr}, ${hh}:${mm} WIB"
+}
+
+# ── Helper: format ukuran KB → human readable ────────────────────────────
+_del_fmt_size() {
+  local sz="$1"
+  ( [ -z "$sz" ] || [ "$sz" = "0" ] ) && echo "< 1 KB" && return
+  if [ "$sz" -ge 1024 ]; then
+    echo "$(( sz / 1024 )) MB"
+  else
+    echo "${sz} KB"
+  fi
+}
+
+# ── Helper: gambar layar peringatan hapus (dipanggil tiap detik) ──────────
+_draw_del_warn() {
+  # Args: del_repo repo_full vis_label repo_private repo_lang repo_branch
+  #       repo_desc repo_stars repo_forks repo_issues repo_watch repo_size
+  #       repo_created repo_updated repo_pushed attempt max_attempt
+  local _dr="$1" _rf="$2" _vl="$3" _rpr="$4" _rl="$5" _rb="$6"
+  local _rd="$7" _rst="$8" _rfk="$9" _ri="${10}" _rw="${11}" _rsz="${12}"
+  local _rcr="${13}" _rup="${14}" _rpu="${15}" _att="${16}" _max="${17}"
+
+  # Real-time clock
+  local _HARI=("" "Minggu" "Senin" "Selasa" "Rabu" "Kamis" "Jumat" "Sabtu")
+  local _BULAN=("" "Januari" "Februari" "Maret" "April" "Mei" "Juni"
+                "Juli" "Agustus" "September" "Oktober" "November" "Desember")
+  local _dow; _dow=$(date +%u)                   # 1=Mon..7=Sun
+  local _hname="${_HARI[$(( _dow % 7 + 1 ))]}"
+  local _mo_idx; _mo_idx=$(( 10#$(date +%m) ))
+  local _mname="${_BULAN[$_mo_idx]}"
+  local _clock; _clock=$(date '+%H:%M:%S')
+  local _datef; _datef=$(date '+%d')
+  local _yr; _yr=$(date '+%Y')
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭────────────────────────────────────────────────╮${C_RESET}"
+  echo -e "${C_RED}${C_BOLD}│   ⚠️   PERINGATAN HAPUS REPOSITORY             │${C_RESET}"
+  echo -e "${C_BOLD}╰────────────────────────────────────────────────╯${C_RESET}"
+  echo ""
+  # Real-time clock
+  echo -e "  🕐 ${C_BOLD}${_hname}, ${_datef} ${_mname} ${_yr} — ${_clock} WIB${C_RESET}"
+  echo ""
+  echo -e "  ${C_RED}${C_BOLD}Tindakan ini PERMANEN dan tidak bisa dibatalkan!${C_RESET}"
+  echo -e "  ${C_RED}Semua kode, branch, history, issue & PR akan hilang.${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ────────────────────────────────────────────────${C_RESET}"
+  printf "  ${C_DIM}Repository   ${C_RESET}${C_BOLD}${C_RED}%s${C_RESET}\n"     "${_rf}"
+  printf "  ${C_DIM}Visibilitas  ${C_RESET}%s\n"                                "${_vl}"
+  [ -n "$_rl"  ] && printf "  ${C_DIM}Bahasa       ${C_RESET}%s\n"             "${_rl}"
+  [ -n "$_rb"  ] && printf "  ${C_DIM}Branch utama ${C_RESET}%s\n"             "${_rb}"
+  [ -n "$_rd"  ] && printf "  ${C_DIM}Deskripsi    ${C_RESET}%s\n"             "${_rd}"
+  echo ""
+  printf "  ${C_DIM}⭐ Bintang    ${C_RESET}${C_YELLOW}%s${C_RESET}\n"         "${_rst:-0}"
+  printf "  ${C_DIM}🍴 Fork       ${C_RESET}%s\n"                              "${_rfk:-0}"
+  printf "  ${C_DIM}🐛 Issue buka ${C_RESET}%s\n"                              "${_ri:-0}"
+  printf "  ${C_DIM}👁️  Watcher   ${C_RESET}%s\n"                              "${_rw:-0}"
+  printf "  ${C_DIM}💾 Ukuran     ${C_RESET}%s\n"                              "$(_del_fmt_size "$_rsz")"
+  echo ""
+  printf "  ${C_DIM}📅 Dibuat     ${C_RESET}%s\n"  "$(_del_fmt_date "$_rcr")"
+  printf "  ${C_DIM}🔄 Diupdate   ${C_RESET}%s\n"  "$(_del_fmt_date "$_rup")"
+  printf "  ${C_DIM}🚀 Dipush     ${C_RESET}%s\n"  "$(_del_fmt_date "$_rpu")"
+  echo -e "${C_DIM}  ────────────────────────────────────────────────${C_RESET}"
+  echo ""
+  # Status percobaan
+  local _left=$(( _max - _att ))
+  echo -e "  ${C_YELLOW}Ketik ulang nama repository untuk menghapus:${C_RESET}"
+  echo -e "  ${C_BOLD}${_dr}${C_RESET}"
+  echo -e "  ${C_DIM}(ketik 0 untuk batal — sisa percobaan: ${_left}/${_max})${C_RESET}"
+  echo ""
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+}
+
 # ===== Action: hapus repository =====
 action_delete_repo() {
   clear >/dev/tty 2>/dev/null || true
@@ -2412,8 +2500,10 @@ action_delete_repo() {
     clear >/dev/tty 2>/dev/null || true; return
   fi
 
-  # Parse info repo
-  local repo_full repo_private repo_desc repo_stars repo_forks
+  # ── Parse info repo (lengkap) ───────────────────────────────────────────
+  local repo_full repo_private repo_desc repo_lang repo_branch
+  local repo_stars repo_forks repo_issues repo_watch repo_size
+  local repo_created repo_updated repo_pushed
   repo_full=$(printf '%s' "$info_body" \
     | grep -oE '"full_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
     | sed 's/.*"full_name"[[:space:]]*:[[:space:]]*"//;s/".*//')
@@ -2423,74 +2513,108 @@ action_delete_repo() {
   repo_desc=$(printf '%s' "$info_body" \
     | grep -oE '"description"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
     | sed 's/.*"description"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  repo_lang=$(printf '%s' "$info_body" \
+    | grep -oE '"language"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"language"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  repo_branch=$(printf '%s' "$info_body" \
+    | grep -oE '"default_branch"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"default_branch"[[:space:]]*:[[:space:]]*"//;s/".*//')
   repo_stars=$(printf '%s' "$info_body" \
     | grep -oE '"stargazers_count"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
     | grep -oE '[0-9]+$')
   repo_forks=$(printf '%s' "$info_body" \
     | grep -oE '"forks_count"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
     | grep -oE '[0-9]+$')
+  repo_issues=$(printf '%s' "$info_body" \
+    | grep -oE '"open_issues_count"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
+    | grep -oE '[0-9]+$')
+  repo_watch=$(printf '%s' "$info_body" \
+    | grep -oE '"watchers_count"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
+    | grep -oE '[0-9]+$')
+  repo_size=$(printf '%s' "$info_body" \
+    | grep -oE '"size"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
+    | grep -oE '[0-9]+$')
+  repo_created=$(printf '%s' "$info_body" \
+    | grep -oE '"created_at"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"created_at"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  repo_updated=$(printf '%s' "$info_body" \
+    | grep -oE '"updated_at"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"updated_at"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  repo_pushed=$(printf '%s' "$info_body" \
+    | grep -oE '"pushed_at"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"pushed_at"[[:space:]]*:[[:space:]]*"//;s/".*//')
   local vis_label="🌐 Public"
   [ "$repo_private" = "true" ] && vis_label="🔒 Private"
 
-  # ── Tampilkan info repo yang akan dihapus ───────────────────────────────
-  clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_RED}${C_BOLD}│   ⚠️   PERINGATAN HAPUS REPO      │${C_RESET}"
-  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
-  echo -e "  ${C_RED}Tindakan ini PERMANEN dan tidak bisa dibatalkan!${C_RESET}"
-  echo -e "  ${C_RED}Semua kode, branch, history, issue, dan PR akan hilang.${C_RESET}"
-  echo ""
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  printf "  ${C_DIM}Repository  ${C_RESET}${C_BOLD}${C_RED}%s${C_RESET}\n"  "${repo_full}"
-  printf "  ${C_DIM}Visibilitas ${C_RESET}%s\n"                              "${vis_label}"
-  [ -n "$repo_desc"  ] && printf "  ${C_DIM}Deskripsi   ${C_RESET}%s\n"    "${repo_desc}"
-  [ -n "$repo_stars" ] && printf "  ${C_DIM}Bintang     ${C_RESET}⭐ %s\n" "${repo_stars}"
-  [ -n "$repo_forks" ] && printf "  ${C_DIM}Fork        ${C_RESET}🍴 %s\n" "${repo_forks}"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo ""
-
-  # ── Konfirmasi ketat: ketik ulang nama repo ──────────────────────────────
-  echo -e "  ${C_YELLOW}Untuk melanjutkan, ketik ulang nama repository:${C_RESET}"
-  echo -e "  ${C_BOLD}${del_repo}${C_RESET}"
-  echo -e "  ${C_DIM}(ketik 0 untuk batal)${C_RESET}"
-  echo ""
-  local attempt=0 max_attempt=3
-  local typed_name=""
+  # ── Konfirmasi ketat: ketik ulang nama — layar refresh tiap detik ────────
+  local attempt=0 max_attempt=3 typed_name=""
   while [ "$attempt" -lt "$max_attempt" ]; do
-    printf "  ${C_BOLD}▸ ${C_RESET}"
-    read -r typed_name
-    typed_name=$(echo "$typed_name" | tr -d '\n\r')
-    if [ "$typed_name" = "0" ]; then
-      clear >/dev/tty 2>/dev/null || true; return
+    # Gambar ulang layar peringatan + jam real-time
+    _draw_del_warn \
+      "$del_repo" "$repo_full" "$vis_label" "$repo_private" \
+      "$repo_lang" "$repo_branch" "$repo_desc" \
+      "${repo_stars:-0}" "${repo_forks:-0}" "${repo_issues:-0}" \
+      "${repo_watch:-0}" "${repo_size:-0}" \
+      "$repo_created" "$repo_updated" "$repo_pushed" \
+      "$attempt" "$max_attempt"
+
+    # read -t 1: tunggu max 1 detik → jika timeout, gambar ulang (clock tick)
+    typed_name=""
+    if IFS= read -r -t 1 typed_name 2>/dev/null; then
+      typed_name=$(printf '%s' "$typed_name" | tr -d '\n\r')
+      # User menekan Enter tanpa input → biarkan loop refresh
+      [ -z "$typed_name" ] && continue
+      if [ "$typed_name" = "0" ]; then
+        clear >/dev/tty 2>/dev/null || true; return
+      fi
+      if [ "$typed_name" = "$del_repo" ]; then
+        break
+      fi
+      # Salah ketik
+      attempt=$(( attempt + 1 ))
+      if [ "$attempt" -lt "$max_attempt" ]; then
+        # Flash pesan error sebentar sebelum refresh
+        echo -e "\n  ${C_RED}✖ Nama tidak cocok! Sisa: $(( max_attempt - attempt ))x${C_RESET}"
+        sleep 1
+      fi
     fi
-    if [ "$typed_name" = "$del_repo" ]; then
-      break
-    fi
-    attempt=$(( attempt + 1 ))
-    local left=$(( max_attempt - attempt ))
-    if [ "$left" -gt 0 ]; then
-      echo -e "  ${C_RED}✖ Nama tidak cocok. Sisa percobaan: ${left}${C_RESET}"
-    fi
+    # Timeout read → loop lagi (refresh clock, tidak tambah attempt)
   done
 
   if [ "$typed_name" != "$del_repo" ]; then
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭────────────────────────────────────────────────╮${C_RESET}"
+    echo -e "${C_RED}${C_BOLD}│   ⚠️   PERINGATAN HAPUS REPOSITORY             │${C_RESET}"
+    echo -e "${C_BOLD}╰────────────────────────────────────────────────╯${C_RESET}"
     echo ""
     echo -e "  ${C_YELLOW}⚠️  3x salah — penghapusan dibatalkan.${C_RESET}"
-    sleep 1
-    clear >/dev/tty 2>/dev/null || true; return
+    sleep 1; clear >/dev/tty 2>/dev/null || true; return
   fi
 
-  # ── Konfirmasi akhir y/n ─────────────────────────────────────────────────
-  echo ""
-  echo -e "  ${C_RED}Ketik ${C_BOLD}y${C_RESET}${C_RED} untuk benar-benar menghapus, atau 0 untuk batal:${C_RESET}"
-  printf "  ${C_BOLD}▸ ${C_RESET}"
-  local final_confirm
-  read -r final_confirm
-  final_confirm=$(echo "$final_confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
-  if [ "$final_confirm" != "y" ]; then
-    clear >/dev/tty 2>/dev/null || true; return
-  fi
+  # ── Konfirmasi akhir y/n dengan clock ────────────────────────────────────
+  local final_confirm=""
+  while true; do
+    # Gambar ulang header + detail + jam untuk konfirmasi akhir
+    _draw_del_warn \
+      "$del_repo" "$repo_full" "$vis_label" "$repo_private" \
+      "$repo_lang" "$repo_branch" "$repo_desc" \
+      "${repo_stars:-0}" "${repo_forks:-0}" "${repo_issues:-0}" \
+      "${repo_watch:-0}" "${repo_size:-0}" \
+      "$repo_created" "$repo_updated" "$repo_pushed" \
+      "$max_attempt" "$max_attempt"
+    echo -e "  ${C_GREEN}✔ Nama cocok — satu langkah terakhir:${C_RESET}"
+    echo ""
+    echo -e "  ${C_RED}Ketik ${C_BOLD}y${C_RESET}${C_RED} untuk HAPUS PERMANEN, atau 0 untuk batal:${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    if IFS= read -r -t 1 final_confirm 2>/dev/null; then
+      final_confirm=$(printf '%s' "$final_confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+      [ "$final_confirm" = "y" ] && break
+      if [ "$final_confirm" = "0" ] || [ "$final_confirm" = "q" ]; then
+        clear >/dev/tty 2>/dev/null || true; return
+      fi
+      [ -n "$final_confirm" ] && { echo -e "  ${C_RED}✖ Ketik y atau 0.${C_RESET}"; sleep 1; }
+    fi
+  done
 
   # ── Eksekusi hapus via API ───────────────────────────────────────────────
   echo ""
