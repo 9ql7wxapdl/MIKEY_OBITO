@@ -1490,12 +1490,6 @@ action_list_branches() {
   local PAGE=1
   local PAGE_SIZE=5
   local TMP_LIST=/tmp/_gh_brlist_$$.json
-  local TMP_CMP=/tmp/_gh_cmp_$$.json
-
-  # ── helper: ekstrak angka untuk field JSON ──────────────────────────────
-  # Gunakan -E (extended regex) dan [0-9]+ (1+ digit) supaya tidak pernah kosong
-  _jnum_f() { grep -oE "\"$1\":[[:space:]]*[0-9]+" "$2" | head -1 \
-                | grep -oE '[0-9]+$'; }
 
   # ── _draw_header: cetak ulang header supaya DRY ─────────────────────────
   _draw_header() {
@@ -1582,10 +1576,15 @@ action_list_branches() {
   done
   wait  # tunggu semua curl selesai
 
+  # ── helper ekstrak date dari file git/commits — handle spasi opsional ──
+  _parse_date() {
+    grep -oE '"date"[[:space:]]*:[[:space:]]*"[^"]*"' "$1" | head -1 \
+      | grep -oE '"[0-9]{4}-[^"]*"' | tr -d '"'
+  }
+
   # Baca hasil default
   if [ -f "/tmp/_gh_d_def_$$.json" ]; then
-    def_date=$(grep -oE '"date":"[^"]*"' "/tmp/_gh_d_def_$$.json" | head -1 \
-               | sed 's/"date":"//;s/"//')
+    def_date=$(_parse_date "/tmp/_gh_d_def_$$.json")
     rm -f "/tmp/_gh_d_def_$$.json"
     [ -n "$def_date" ] && def_rel=$(_relative_time "$def_date")
   fi
@@ -1596,8 +1595,7 @@ action_list_branches() {
     local fname="/tmp/_gh_d_${i}_$$.json"
     local bdate=""
     if [ -f "$fname" ]; then
-      bdate=$(grep -oE '"date":"[^"]*"' "$fname" | head -1 \
-              | sed 's/"date":"//;s/"//')
+      bdate=$(_parse_date "$fname")
       rm -f "$fname"
     fi
     # Simpan "isodate<TAB>name<TAB>sha" — tanggal kosong jadi "0000"
@@ -1655,19 +1653,21 @@ action_list_branches() {
       page_names+=("$b")
       page_dates+=("$bdate")
 
-      # Compare: simpan ke file lalu ambil behind_by dan ahead_by
-      # head -c 131072 cukup karena field muncul setelah base+merge_base (~15KB)
-      curl -s \
+      # Compare: pakai ?per_page=1 agar commits[] kecil, simpan ke variabel
+      # (tidak ada head -c sehingga tidak ada risiko potong di tengah JSON)
+      local cmp_raw
+      cmp_raw=$(curl -s \
         -H "Authorization: token ${TOKEN}" \
         -H "Accept: application/vnd.github+json" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
-        "https://api.github.com/repos/${USER}/${REPO}/compare/${DEFAULT_BRANCH}...${b_enc}" \
-        2>/dev/null | head -c 131072 > "$TMP_CMP"
+        "https://api.github.com/repos/${USER}/${REPO}/compare/${DEFAULT_BRANCH}...${b_enc}?per_page=1" \
+        2>/dev/null)
 
       local behind ahead
-      behind=$(_jnum_f behind_by "$TMP_CMP")
-      ahead=$(_jnum_f ahead_by  "$TMP_CMP")
-      rm -f "$TMP_CMP"
+      behind=$(printf '%s' "$cmp_raw" | grep -oE '"behind_by":[[:space:]]*[0-9]+' \
+               | head -1 | grep -oE '[0-9]+$')
+      ahead=$(printf '%s' "$cmp_raw"  | grep -oE '"ahead_by":[[:space:]]*[0-9]+'  \
+               | head -1 | grep -oE '[0-9]+$')
 
       page_behind+=("${behind:-?}")
       page_ahead+=("${ahead:-?}")
