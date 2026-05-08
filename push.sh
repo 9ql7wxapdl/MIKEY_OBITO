@@ -1150,6 +1150,7 @@ show_main_menu() {
   echo -e "  ${C_GREEN}8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
   echo -e "  ${C_YELLOW}9${C_RESET} ${C_BOLD}›${C_RESET} Buat repository baru"
   echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repository"
+  echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repository"
   echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
@@ -1169,6 +1170,7 @@ show_main_menu() {
     8) action_list_branches ;;
     9) action_create_repo ;;
     10) action_import_repo ;;
+    11) action_delete_repo ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
@@ -2288,6 +2290,189 @@ action_import_repo() {
     echo -e "  ${C_DIM}Repo ${USER}/${imp_repo_name} sudah dibuat tapi kosong.${C_RESET}"
     echo -e "  ${C_DIM}Kamu bisa hapus manual di GitHub atau coba import lagi.${C_RESET}"
   fi
+
+  echo ""
+  prompt_back_or_exit
+}
+
+# ===== Action: hapus repository =====
+action_delete_repo() {
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🗑️   HAPUS REPOSITORY           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+
+  # ── Tanya repo mana yang mau dihapus ────────────────────────────────────
+  echo -e "  ${C_DIM}Repo aktif saat ini:${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ── Nama owner (akun/org) ────────────${C_RESET}"
+  echo -e "  ${C_DIM}Enter = pakai akun kamu (${USER})${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local del_owner
+  read -r del_owner
+  del_owner=$(echo "$del_owner" | tr -d '\n\r ')
+  [ -z "$del_owner" ] && del_owner="$USER"
+  echo ""
+
+  echo -e "${C_DIM}  ── Nama repository yang ingin dihapus ─${C_RESET}"
+  echo -e "  ${C_DIM}Enter = pakai repo aktif (${REPO})${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local del_repo
+  read -r del_repo
+  del_repo=$(echo "$del_repo" | tr -d '\n\r ')
+  [ -z "$del_repo" ] && del_repo="$REPO"
+  echo ""
+
+  # ── Ambil info repo dulu dari API ───────────────────────────────────────
+  echo -e "  ${C_DIM}▸ Mengambil info repository...${C_RESET}"
+  local info_raw info_code
+  info_raw=$(curl -s -w "\n%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${del_owner}/${del_repo}" 2>/dev/null)
+  info_code=$(printf '%s' "$info_raw" | tail -1)
+  local info_body
+  info_body=$(printf '%s' "$info_raw" | sed '$d')
+
+  if [ "$info_code" = "404" ]; then
+    echo -e "  ${C_RED}❌ Repository '${del_owner}/${del_repo}' tidak ditemukan.${C_RESET}"
+    echo ""
+    prompt_back_or_exit; return
+  fi
+  if [ "$info_code" != "200" ]; then
+    echo -e "  ${C_RED}❌ Gagal ambil info repo (HTTP ${info_code}).${C_RESET}"
+    echo ""
+    prompt_back_or_exit; return
+  fi
+
+  # Parse info repo
+  local repo_full repo_private repo_desc repo_stars repo_forks
+  repo_full=$(printf '%s' "$info_body" \
+    | grep -oE '"full_name"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"full_name"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  repo_private=$(printf '%s' "$info_body" \
+    | grep -oE '"private"[[:space:]]*:[[:space:]]*(true|false)' | head -1 \
+    | grep -oE '(true|false)')
+  repo_desc=$(printf '%s' "$info_body" \
+    | grep -oE '"description"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+    | sed 's/.*"description"[[:space:]]*:[[:space:]]*"//;s/".*//')
+  repo_stars=$(printf '%s' "$info_body" \
+    | grep -oE '"stargazers_count"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
+    | grep -oE '[0-9]+$')
+  repo_forks=$(printf '%s' "$info_body" \
+    | grep -oE '"forks_count"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
+    | grep -oE '[0-9]+$')
+  local vis_label="🌐 Public"
+  [ "$repo_private" = "true" ] && vis_label="🔒 Private"
+
+  # ── Tampilkan info repo yang akan dihapus ───────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_RED}${C_BOLD}│   ⚠️   PERINGATAN HAPUS REPO      │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_RED}Tindakan ini PERMANEN dan tidak bisa dibatalkan!${C_RESET}"
+  echo -e "  ${C_RED}Semua kode, branch, history, issue, dan PR akan hilang.${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_DIM}Repository  ${C_RESET}${C_BOLD}${C_RED}%s${C_RESET}\n"  "${repo_full}"
+  printf "  ${C_DIM}Visibilitas ${C_RESET}%s\n"                              "${vis_label}"
+  [ -n "$repo_desc"  ] && printf "  ${C_DIM}Deskripsi   ${C_RESET}%s\n"    "${repo_desc}"
+  [ -n "$repo_stars" ] && printf "  ${C_DIM}Bintang     ${C_RESET}⭐ %s\n" "${repo_stars}"
+  [ -n "$repo_forks" ] && printf "  ${C_DIM}Fork        ${C_RESET}🍴 %s\n" "${repo_forks}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo ""
+
+  # ── Konfirmasi ketat: ketik ulang nama repo ──────────────────────────────
+  echo -e "  ${C_YELLOW}Untuk melanjutkan, ketik ulang nama repository:${C_RESET}"
+  echo -e "  ${C_BOLD}${del_repo}${C_RESET}"
+  echo ""
+  local attempt=0 max_attempt=3
+  local typed_name=""
+  while [ "$attempt" -lt "$max_attempt" ]; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r typed_name
+    typed_name=$(echo "$typed_name" | tr -d '\n\r')
+    if [ "$typed_name" = "$del_repo" ]; then
+      break
+    fi
+    attempt=$(( attempt + 1 ))
+    local left=$(( max_attempt - attempt ))
+    if [ "$left" -gt 0 ]; then
+      echo -e "  ${C_RED}✖ Nama tidak cocok. Sisa percobaan: ${left}${C_RESET}"
+    fi
+  done
+
+  if [ "$typed_name" != "$del_repo" ]; then
+    echo ""
+    echo -e "  ${C_YELLOW}⚠️  3x salah — penghapusan dibatalkan.${C_RESET}"
+    sleep 1; return
+  fi
+
+  # ── Konfirmasi akhir y/n ─────────────────────────────────────────────────
+  echo ""
+  echo -e "  ${C_RED}Ketik ${C_BOLD}y${C_RESET}${C_RED} untuk benar-benar menghapus, atau 0 untuk batal:${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local final_confirm
+  read -r final_confirm
+  final_confirm=$(echo "$final_confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+  if [ "$final_confirm" != "y" ]; then
+    echo -e "  ${C_YELLOW}⚠️  Dibatalkan.${C_RESET}"
+    sleep 1; return
+  fi
+
+  # ── Eksekusi hapus via API ───────────────────────────────────────────────
+  echo ""
+  echo -e "  ${C_DIM}▸ Menghapus ${del_owner}/${del_repo}...${C_RESET}"
+  local del_resp del_code
+  del_resp=$(curl -s -w "\n%{http_code}" \
+    -X DELETE \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${del_owner}/${del_repo}" 2>/dev/null)
+  del_code=$(printf '%s' "$del_resp" | tail -1)
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🗑️   HAPUS REPOSITORY           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+
+  case "$del_code" in
+    204)
+      echo -e "  ${C_GREEN}✅ Repository berhasil dihapus.${C_RESET}"
+      echo ""
+      printf "  ${C_DIM}%s${C_RESET} sudah tidak ada di GitHub.\n" "${del_owner}/${del_repo}"
+      # Kalau yang dihapus adalah repo aktif, kasih info
+      if [ "$del_repo" = "$REPO" ] && [ "$del_owner" = "$USER" ]; then
+        echo ""
+        echo -e "  ${C_YELLOW}💡 Repo aktif script ini ikut dihapus.${C_RESET}"
+        echo -e "  ${C_YELLOW}   Ubah variabel REPO di atas script sebelum push berikutnya.${C_RESET}"
+      fi
+      ;;
+    403)
+      echo -e "  ${C_RED}❌ Tidak punya izin hapus repo ini (HTTP 403).${C_RESET}"
+      echo -e "  ${C_YELLOW}💡 Token butuh scope: delete_repo${C_RESET}"
+      echo -e "  ${C_DIM}   Pergi ke: github.com/settings/tokens → edit token kamu.${C_RESET}"
+      ;;
+    404)
+      echo -e "  ${C_RED}❌ Repository tidak ditemukan (sudah dihapus sebelumnya?).${C_RESET}"
+      ;;
+    401)
+      echo -e "  ${C_RED}❌ Token tidak valid atau sudah expired (HTTP 401).${C_RESET}"
+      ;;
+    *)
+      local derr
+      derr=$(printf '%s' "$del_resp" | sed '$d' \
+        | grep -oE '"message"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+        | sed 's/.*"message"[[:space:]]*:[[:space:]]*"//;s/".*//')
+      echo -e "  ${C_RED}❌ Gagal menghapus (HTTP ${del_code}).${C_RESET}"
+      [ -n "$derr" ] && echo -e "  ${C_RED}   ${derr}${C_RESET}"
+      ;;
+  esac
 
   echo ""
   prompt_back_or_exit
