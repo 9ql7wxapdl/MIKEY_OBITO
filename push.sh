@@ -1149,6 +1149,7 @@ show_main_menu() {
   echo -e "  ${C_CYAN}7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
   echo -e "  ${C_GREEN}8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
   echo -e "  ${C_YELLOW}9${C_RESET} ${C_BOLD}›${C_RESET} Buat repository baru"
+  echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repository"
   echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
@@ -1167,6 +1168,7 @@ show_main_menu() {
     7) action_rename_branch ;;
     8) action_list_branches ;;
     9) action_create_repo ;;
+    10) action_import_repo ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
@@ -1987,6 +1989,304 @@ action_create_repo() {
       echo -e "  ${C_YELLOW}💡 Token tidak punya izin membuat repo.${C_RESET}"
       echo -e "  ${C_DIM}   Cek scope token: butuh 'repo' atau 'public_repo'.${C_RESET}"
     fi
+  fi
+
+  echo ""
+  prompt_back_or_exit
+}
+
+# ===== Action: import repository dari URL eksternal =====
+action_import_repo() {
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📥  IMPORT REPOSITORY           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}Impor project dari Git URL ke GitHub.${C_RESET}"
+  echo -e "  ${C_DIM}(Support: Git • SVN/TFVC tidak didukung lagi)${C_RESET}"
+  echo ""
+
+  # ── 1) Source URL ───────────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── URL Sumber ${C_RESET}${C_DIM}* wajib ─────────────────${C_RESET}"
+  echo -e "  ${C_DIM}Contoh: https://github.com/user/repo.git${C_RESET}"
+  echo -e "  ${C_DIM}        https://gitlab.com/user/repo.git${C_RESET}"
+  local src_url=""
+  while true; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r src_url
+    src_url=$(echo "$src_url" | tr -d '\n\r ')
+    if [ -z "$src_url" ]; then
+      echo -e "  ${C_RED}✖ URL tidak boleh kosong.${C_RESET}"
+    elif ! echo "$src_url" | grep -qE '^https?://'; then
+      echo -e "  ${C_RED}✖ URL harus diawali http:// atau https://${C_RESET}"
+    else
+      break
+    fi
+  done
+  echo ""
+
+  # ── 2) Username sumber (opsional) ───────────────────────────────────────
+  echo -e "${C_DIM}  ── Username Sumber ${C_RESET}${C_DIM}(opsional, Enter = skip) ─${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local src_user=""
+  read -r src_user
+  src_user=$(echo "$src_user" | tr -d '\n\r')
+  echo ""
+
+  # ── 3) Password / Token sumber (opsional) ───────────────────────────────
+  local src_pass=""
+  if [ -n "$src_user" ]; then
+    echo -e "${C_DIM}  ── Password / Token Sumber ──────────${C_RESET}"
+    echo -e "  ${C_DIM}(input tersembunyi)${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -rs src_pass
+    src_pass=$(echo "$src_pass" | tr -d '\n\r')
+    echo ""
+    echo ""
+  fi
+
+  # ── 4) Nama repository baru ─────────────────────────────────────────────
+  echo -e "${C_DIM}  ── Nama Repository Baru ${C_RESET}${C_DIM}* wajib ────────${C_RESET}"
+  echo -e "  ${C_DIM}(hanya huruf, angka, - dan _)${C_RESET}"
+  # Auto-suggest dari URL
+  local url_guess
+  url_guess=$(printf '%s' "$src_url" | sed 's|.*/||;s|\.git$||;s|[^a-zA-Z0-9._-]|-|g')
+  [ -n "$url_guess" ] && echo -e "  ${C_DIM}Saran: ${url_guess}${C_RESET}"
+  local imp_repo_name=""
+  while true; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r imp_repo_name
+    imp_repo_name=$(echo "$imp_repo_name" | tr -d '\n\r')
+    [ -z "$imp_repo_name" ] && [ -n "$url_guess" ] && imp_repo_name="$url_guess"
+    if [ -z "$imp_repo_name" ]; then
+      echo -e "  ${C_RED}✖ Nama tidak boleh kosong.${C_RESET}"
+    elif echo "$imp_repo_name" | grep -qE '[^a-zA-Z0-9._-]'; then
+      echo -e "  ${C_RED}✖ Karakter tidak valid (hanya huruf/angka/-/_).${C_RESET}"
+    elif [ "${#imp_repo_name}" -gt 100 ]; then
+      echo -e "  ${C_RED}✖ Nama terlalu panjang.${C_RESET}"
+    else
+      break
+    fi
+  done
+  echo ""
+
+  # ── 5) Visibilitas ──────────────────────────────────────────────────────
+  echo -e "${C_DIM}  ── Visibilitas ──────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Public   ${C_DIM}(semua bisa lihat)${C_RESET}"
+  echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Private  ${C_DIM}(hanya kamu)${C_RESET}"
+  local imp_vis_pick="" imp_private=false imp_vis_label="🌐 Public"
+  while true; do
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    read -r imp_vis_pick
+    imp_vis_pick=$(echo "$imp_vis_pick" | tr -d '\n\r ')
+    case "$imp_vis_pick" in
+      1|"") imp_private=false; imp_vis_label="🌐 Public";  break ;;
+      2)    imp_private=true;  imp_vis_label="🔒 Private"; break ;;
+      *) echo -e "  ${C_RED}✖ Ketik 1 atau 2.${C_RESET}" ;;
+    esac
+  done
+  echo ""
+
+  # ── Konfirmasi ──────────────────────────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📥  KONFIRMASI IMPORT           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_DIM}Sumber      ${C_RESET}${C_CYAN}%s${C_RESET}\n"  "$src_url"
+  if [ -n "$src_user" ]; then
+    printf "  ${C_DIM}Username    ${C_RESET}%s\n"                   "$src_user"
+    printf "  ${C_DIM}Password    ${C_RESET}${C_DIM}%s${C_RESET}\n" "(tersembunyi)"
+  else
+    printf "  ${C_DIM}Kredensial  ${C_RESET}${C_DIM}tidak dipakai${C_RESET}\n"
+  fi
+  printf "  ${C_DIM}Repo baru   ${C_RESET}${C_BOLD}%s/%s${C_RESET}\n" "$USER" "$imp_repo_name"
+  printf "  ${C_DIM}Visibilitas ${C_RESET}%s\n"                        "$imp_vis_label"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo ""
+  echo -e "  ${C_GREEN}y${C_RESET} ${C_BOLD}›${C_RESET} Mulai import"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local imp_confirm
+  read -r imp_confirm
+  imp_confirm=$(echo "$imp_confirm" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
+  if [ "$imp_confirm" != "y" ]; then
+    echo -e "  ${C_YELLOW}⚠️  Dibatalkan.${C_RESET}"
+    sleep 1; return
+  fi
+
+  # ── Langkah 1: Buat repo kosong dulu ────────────────────────────────────
+  echo ""
+  echo -e "  ${C_DIM}▸ [1/2] Membuat repository kosong...${C_RESET}"
+  local create_resp create_code
+  local name_esc
+  name_esc=$(printf '%s' "$imp_repo_name" | sed 's/\\/\\\\/g;s/"/\\"/g')
+  local create_payload="{\"name\":\"${name_esc}\",\"private\":${imp_private},\"auto_init\":false}"
+
+  create_resp=$(curl -s -w "\n%{http_code}" \
+    -X POST \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    -H "Content-Type: application/json" \
+    -d "$create_payload" \
+    "https://api.github.com/user/repos" 2>/dev/null)
+  create_code=$(printf '%s' "$create_resp" | tail -1)
+  local create_body
+  create_body=$(printf '%s' "$create_resp" | sed '$d')
+
+  if [ "$create_code" != "201" ]; then
+    local cerr
+    cerr=$(printf '%s' "$create_body" \
+      | grep -oE '"message"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+      | sed 's/.*"message"[[:space:]]*:[[:space:]]*"//;s/".*//')
+    echo -e "  ${C_RED}❌ Gagal buat repo (HTTP ${create_code})${C_RESET}"
+    [ -n "$cerr" ] && echo -e "  ${C_RED}   ${cerr}${C_RESET}"
+    [ "$create_code" = "422" ] && \
+      echo -e "  ${C_YELLOW}💡 Nama repo sudah dipakai di akun kamu.${C_RESET}"
+    echo ""
+    prompt_back_or_exit; return
+  fi
+
+  # ── Langkah 2: Mulai import ──────────────────────────────────────────────
+  echo -e "  ${C_DIM}▸ [2/2] Memulai import dari sumber...${C_RESET}"
+
+  # Bangun payload import
+  local src_url_esc
+  src_url_esc=$(printf '%s' "$src_url" | sed 's/\\/\\\\/g;s/"/\\"/g')
+  local imp_payload="{\"vcs\":\"git\",\"vcs_url\":\"${src_url_esc}\""
+  if [ -n "$src_user" ]; then
+    local su_esc sp_esc
+    su_esc=$(printf '%s' "$src_user" | sed 's/\\/\\\\/g;s/"/\\"/g')
+    sp_esc=$(printf '%s' "$src_pass" | sed 's/\\/\\\\/g;s/"/\\"/g')
+    imp_payload="${imp_payload},\"vcs_username\":\"${su_esc}\",\"vcs_password\":\"${sp_esc}\""
+  fi
+  imp_payload="${imp_payload}}"
+
+  local imp_resp imp_code
+  imp_resp=$(curl -s -w "\n%{http_code}" \
+    -X PUT \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    -H "Content-Type: application/json" \
+    -d "$imp_payload" \
+    "https://api.github.com/repos/${USER}/${imp_repo_name}/import" 2>/dev/null)
+  imp_code=$(printf '%s' "$imp_resp" | tail -1)
+  local imp_body
+  imp_body=$(printf '%s' "$imp_resp" | sed '$d')
+
+  # ── Tampilkan status awal + polling ─────────────────────────────────────
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📥  IMPORT REPOSITORY           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+
+  if [ "$imp_code" = "201" ]; then
+    local imp_status imp_text
+    imp_status=$(printf '%s' "$imp_body" \
+      | grep -oE '"status"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+      | sed 's/.*"status"[[:space:]]*:[[:space:]]*"//;s/".*//')
+    imp_text=$(printf '%s' "$imp_body" \
+      | grep -oE '"status_text"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+      | sed 's/.*"status_text"[[:space:]]*:[[:space:]]*"//;s/".*//')
+
+    echo -e "  ${C_GREEN}✅ Import dimulai!${C_RESET}"
+    echo ""
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_DIM}Repo     ${C_RESET}${C_BOLD}%s/%s${C_RESET}\n"  "$USER" "$imp_repo_name"
+    printf "  ${C_DIM}Sumber   ${C_RESET}${C_CYAN}%s${C_RESET}\n"      "$src_url"
+    printf "  ${C_DIM}Status   ${C_RESET}${C_YELLOW}%s${C_RESET}\n"    "${imp_status:-importing}"
+    [ -n "$imp_text" ] && \
+      printf "  ${C_DIM}Info     ${C_RESET}%s\n" "$imp_text"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo ""
+    # ── Polling status sampai selesai atau error ─────────────────────────
+    echo -e "  ${C_DIM}▸ Memantau progress import...${C_RESET}"
+    echo -e "  ${C_DIM}  (Ctrl+C untuk berhenti pantau, import tetap berjalan)${C_RESET}"
+    echo ""
+    local poll_count=0 poll_max=30
+    while [ "$poll_count" -lt "$poll_max" ]; do
+      sleep 4
+      poll_count=$(( poll_count + 1 ))
+      local poll_raw poll_status poll_text poll_pct
+      poll_raw=$(curl -s \
+        -H "Authorization: token ${TOKEN}" \
+        -H "Accept: application/vnd.github+json" \
+        -H "X-GitHub-Api-Version: 2022-11-28" \
+        "https://api.github.com/repos/${USER}/${imp_repo_name}/import" 2>/dev/null)
+      poll_status=$(printf '%s' "$poll_raw" \
+        | grep -oE '"status"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+        | sed 's/.*"status"[[:space:]]*:[[:space:]]*"//;s/".*//')
+      poll_text=$(printf '%s' "$poll_raw" \
+        | grep -oE '"status_text"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+        | sed 's/.*"status_text"[[:space:]]*:[[:space:]]*"//;s/".*//')
+      poll_pct=$(printf '%s' "$poll_raw" \
+        | grep -oE '"percent"[[:space:]]*:[[:space:]]*[0-9]+' | head -1 \
+        | grep -oE '[0-9]+$')
+
+      # Tampilkan baris status
+      local bar=""
+      if [ -n "$poll_pct" ] && [ "$poll_pct" -ge 0 ] 2>/dev/null; then
+        local filled=$(( poll_pct / 5 ))   # bar 20 karakter
+        local empty=$(( 20 - filled ))
+        bar="["
+        for (( _i=0; _i<filled; _i++ )); do bar="${bar}█"; done
+        for (( _i=0; _i<empty;  _i++ )); do bar="${bar}░"; done
+        bar="${bar}] ${poll_pct}%"
+      fi
+
+      case "$poll_status" in
+        complete)
+          echo -e "  ${C_GREEN}✅ Import selesai!${C_RESET}"
+          echo ""
+          printf "  ${C_DIM}URL    ${C_RESET}${C_CYAN}https://github.com/%s/%s${C_RESET}\n" \
+            "$USER" "$imp_repo_name"
+          echo ""
+          break
+          ;;
+        error|authentication_failed|error_stash_import)
+          echo -e "  ${C_RED}❌ Import gagal: ${poll_status}${C_RESET}"
+          [ -n "$poll_text" ] && echo -e "  ${C_RED}   ${poll_text}${C_RESET}"
+          echo ""
+          break
+          ;;
+        auth_failed)
+          echo -e "  ${C_RED}❌ Autentikasi sumber gagal.${C_RESET}"
+          echo -e "  ${C_YELLOW}💡 Coba lagi dengan username/password yang benar.${C_RESET}"
+          echo ""
+          break
+          ;;
+        *)
+          # Masih berjalan — tampilkan satu baris progress
+          local st_disp="${poll_status:-importing}"
+          [ -n "$poll_text" ] && st_disp="$poll_text"
+          if [ -n "$bar" ]; then
+            printf "  ${C_CYAN}%s${C_RESET}  %s\n" "$bar" "$st_disp"
+          else
+            printf "  ${C_DIM}[%2d]${C_RESET} ${C_CYAN}%s${C_RESET}\n" "$poll_count" "$st_disp"
+          fi
+          ;;
+      esac
+    done
+    if [ "$poll_count" -ge "$poll_max" ]; then
+      echo -e "  ${C_YELLOW}⚠️  Import masih berjalan di background.${C_RESET}"
+      printf "  ${C_DIM}Cek di  ${C_RESET}${C_CYAN}https://github.com/%s/%s${C_RESET}\n" \
+        "$USER" "$imp_repo_name"
+    fi
+  else
+    local ierr
+    ierr=$(printf '%s' "$imp_body" \
+      | grep -oE '"message"[[:space:]]*:[[:space:]]*"[^"]*"' | head -1 \
+      | sed 's/.*"message"[[:space:]]*:[[:space:]]*"//;s/".*//')
+    echo -e "  ${C_RED}❌ Gagal memulai import (HTTP ${imp_code})${C_RESET}"
+    [ -n "$ierr" ] && echo -e "  ${C_RED}   ${ierr}${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}Repo ${USER}/${imp_repo_name} sudah dibuat tapi kosong.${C_RESET}"
+    echo -e "  ${C_DIM}Kamu bisa hapus manual di GitHub atau coba import lagi.${C_RESET}"
   fi
 
   echo ""
