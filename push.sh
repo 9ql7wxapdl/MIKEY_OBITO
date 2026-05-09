@@ -1425,6 +1425,59 @@ send_telegram_photo() {
   fi
 }
 
+# ===== Build detail file/folder yang berubah untuk notif push =====
+# Output: string multi-line siap pakai di caption Telegram
+_build_push_detail() {
+  local _diff
+  _diff=$(git diff --name-status HEAD~1 HEAD 2>/dev/null)
+  [ -z "$_diff" ] && _diff=$(git show --name-status --format="" HEAD 2>/dev/null | grep -E '^[AMDRC]')
+  [ -z "$_diff" ] && return 0
+
+  local _added=0 _modified=0 _deleted=0 _renamed=0
+  local _files_add=() _files_mod=() _files_del=()
+
+  while IFS=$'\t' read -r _s _f1 _f2; do
+    case "${_s:0:1}" in
+      A) _added=$((_added+1));   _files_add+=("$_f1") ;;
+      M) _modified=$((_modified+1)); _files_mod+=("$_f1") ;;
+      D) _deleted=$((_deleted+1));  _files_del+=("$_f1") ;;
+      R|C) _renamed=$((_renamed+1)); _files_mod+=("${_f2:-$_f1}") ;;
+    esac
+  done <<< "$_diff"
+
+  local _total=$((_added+_modified+_deleted+_renamed))
+  [ "$_total" -eq 0 ] && return 0
+
+  # Baris statistik
+  local _stat=""
+  [ "$_added"    -gt 0 ] && _stat="${_stat}➕ ${_added} baru  "
+  [ "$_modified" -gt 0 ] && _stat="${_stat}✏️ ${_modified} ubah  "
+  [ "$_renamed"  -gt 0 ] && _stat="${_stat}🔀 ${_renamed} rename  "
+  [ "$_deleted"  -gt 0 ] && _stat="${_stat}🗑 ${_deleted} hapus"
+  _stat="${_stat%  }"
+
+  # Folder-folder terdampak (max 5, unik)
+  local _all_names=("${_files_add[@]}" "${_files_mod[@]}" "${_files_del[@]}")
+  local _folders
+  _folders=$(printf '%s\n' "${_all_names[@]}" | grep '/' | sed 's|/[^/]*$||' | sort -u | head -5 | paste -sd ' • ')
+  [ -z "$_folders" ] && _folders="(root)"
+
+  # Daftar file (max 6, prioritas: baru → ubah → hapus)
+  local _list="" _shown=0 _max=6
+  for _f in "${_files_add[@]}";  do [ "$_shown" -ge "$_max" ] && break; _list="${_list}📄 <code>${_f}</code> ‹baru›\n"; _shown=$((_shown+1)); done
+  for _f in "${_files_mod[@]}";  do [ "$_shown" -ge "$_max" ] && break; _list="${_list}📝 <code>${_f}</code>\n";         _shown=$((_shown+1)); done
+  for _f in "${_files_del[@]}";  do [ "$_shown" -ge "$_max" ] && break; _list="${_list}🗑 <code>${_f}</code> ‹hapus›\n"; _shown=$((_shown+1)); done
+
+  local _sisa=$((_total-_shown))
+
+  printf '━━━━━━━━━━━━━━━━━━━━\n'
+  printf '%s\n' "$_stat"
+  printf '📂 %s\n' "$_folders"
+  printf '━━━━━━━━━━━━━━━━━━━━\n'
+  printf '%b' "$_list"
+  [ "$_sisa" -gt 0 ] && printf '   ... +%d file lainnya\n' "$_sisa"
+}
+
 # ===== Catat event push ke log file =====
 # Usage: log_push_event "<branch>" "<status: OK|FAIL>" "<commit_msg>" "<jumlah_file>"
 log_push_event() {
@@ -1575,12 +1628,13 @@ action_quick_push() {
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${DEFAULT_BRANCH}${C_RESET}"
     log_push_event "$DEFAULT_BRANCH" "OK" "$_msg" "$_changed"
     local _btn_pushok='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${DEFAULT_BRANCH}"'"}],[{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"}]]}'
+    local _qp_detail; _qp_detail=$(_build_push_detail 2>/dev/null || true)
     send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "✅ <b>PUSH BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${DEFAULT_BRANCH}</code>
 📝 ${_msg}
-📦 ${_changed} file diubah
+${_qp_detail}
 🕐 ${_ts_now}" "$_btn_pushok"
   else
     echo -e "  ${C_RED}❌ Push gagal.${C_RESET}"
@@ -3997,6 +4051,9 @@ push_head_to_branch() {
   _log_msg=$(git log -1 --format='%s' 2>/dev/null | cut -c1-40 || echo "-")
   _log_files=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | wc -l | tr -d ' ')
 
+  # Build detail file/folder (real-time dari last commit)
+  local _push_detail; _push_detail=$(_build_push_detail 2>/dev/null || true)
+
   # Coba normal push dulu (fast-forward).
   local _tg_ts; _tg_ts=$(date '+%H:%M:%S %d %b %Y')
   if git push origin "HEAD:refs/heads/${branch}" >"$push_log" 2>&1; then
@@ -4010,7 +4067,7 @@ push_head_to_branch() {
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
 📝 ${_log_msg}
-📦 ${_log_files} file diubah
+${_push_detail}
 🕐 ${_tg_ts}" "$_btn_pbr"
     return 0
   fi
@@ -4028,7 +4085,7 @@ push_head_to_branch() {
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
 📝 ${_log_msg}
-📦 ${_log_files} file diubah
+${_push_detail}
 ⚠️ Force push — history lama ditimpa
 🕐 ${_tg_ts}" "$_btn_pforce"
     return 0
