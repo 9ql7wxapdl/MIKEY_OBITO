@@ -7378,7 +7378,9 @@
     "id": "6285799241374@s.whatsapp.net",
     "name": "▫️Fadli",
     "lid": "162160936263906@lid",
-    "jid": "6285799241374@s.whatsapp.net"
+    "jid": "6285799241374@s.whatsapp.net",
+    "notify": "–𝐅𝕯𝖑𝖞",
+    "verifiedName": "–𝐅𝕯𝖑𝖞"
   },
   "6282146735453@s.whatsapp.net": {
     "isContact": true,
@@ -20546,7 +20548,8 @@
     "id": "62895365483845@s.whatsapp.net",
     "name": "!poetra ardnsyh ( Donasi Jadi Bot )",
     "lid": "269655310643411@lid",
-    "jid": "62895365483845@s.whatsapp.net"
+    "jid": "62895365483845@s.whatsapp.net",
+    "notify": "Poetra"
   },
   "6285216842384@s.whatsapp.net": {
     "isContact": true,
@@ -31445,5 +31448,19 @@
     "id": "107628206284815@lid",
     "lid": "107628206284815@lid",
     "imgUrl": "changed"
+  },
+  "145213196607622@lid": {
+    "id": "145213196607622@lid",
+    "lid": "145213196607622@lid",
+    "imgUrl": "removed"
+  },
+  "277618347761837@lid": {
+    "id": "277618347761837@lid",
+    "lid": "277618347761837@lid",
+    "imgUrl": "changed"
+  },
+  "23674618863@s.whatsapp.net": {
+    "id": "23674618863@s.whatsapp.net",
+    "notify": "mw sewa? chat owner"
   }
 }
