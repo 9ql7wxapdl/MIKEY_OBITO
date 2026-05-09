@@ -4076,7 +4076,7 @@ ${_push_detail}
   echo -e "  ${C_YELLOW}⚠️  Push normal gagal (kemungkinan branch divergent), force push...${C_RESET}"
   local _tg_ts_conflict; _tg_ts_conflict=$(date '+%H:%M:%S %d %b %Y')
   local _btn_conflict='{"inline_keyboard":[[{"text":"🔀 Compare Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"}],[{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"},{"text":"🔧 Resolve Conflict","url":"https://github.com/'"${USER}"'/'"${REPO}"'/network"}]]}'
-  send_telegram_photo "https://i.imgur.com/oBPXx0D.jpg" "⚠️ <b>KONFLIK BRANCH TERDETEKSI</b>
+  send_telegram_photo "https://w.wallhaven.cc/full/nk/wallhaven-nkwpqd.jpg" "⚠️ <b>KONFLIK BRANCH TERDETEKSI</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
@@ -4120,7 +4120,7 @@ ${_push_detail}
     local _tg_ts_secret; _tg_ts_secret=$(date '+%H:%M:%S %d %b %Y')
     local _unblock_btn_url="${unblock_url:-https://github.com/${USER}/${REPO}/security/secret-scanning}"
     local _btn_secret='{"inline_keyboard":[[{"text":"🔓 Allow Secret","url":"'"${_unblock_btn_url}"'"},{"text":"🔒 Secret Scanning","url":"https://github.com/'"${USER}"'/'"${REPO}"'/security/secret-scanning"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-    send_telegram_photo "https://i.imgur.com/YQ3qFKq.jpg" "🔐 <b>PUSH DITOLAK — SECRET SCANNING</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/9d/wallhaven-9dmx18.png" "🔐 <b>PUSH DITOLAK — SECRET SCANNING</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
@@ -4137,7 +4137,7 @@ ${_push_detail}
     local _tg_ts_reject; _tg_ts_reject=$(date '+%H:%M:%S %d %b %Y')
     local _err_snippet; _err_snippet=$(tail -3 "$push_log" 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g')
     local _btn_reject='{"inline_keyboard":[[{"text":"📋 Action Logs","url":"https://github.com/'"${USER}"'/'"${REPO}"'/actions"},{"text":"🐛 Issues","url":"https://github.com/'"${USER}"'/'"${REPO}"'/issues"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-    send_telegram_photo "https://i.imgur.com/xqRqBfY.jpg" "🚫 <b>PUSH DITOLAK GITHUB</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/ex/wallhaven-ex89x8.png" "🚫 <b>PUSH DITOLAK GITHUB</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
