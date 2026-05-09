@@ -2756,6 +2756,34 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                         logCommand(m, hisoka, 'cosplay');
+
+                                        // ── Tampilkan ulang menu agar bisa pilih lagi ──
+                                        const _reResults = pendingCos.results;
+                                        const _reListText =
+                                                `╭─「 👘 *COSPLAYTELE* 」\n` +
+                                                `│ ✅ Selesai! Mau lihat yang lain?\n` +
+                                                `│\n` +
+                                                _reResults.map((r, i) => {
+                                                        const match = r.title.match(/(\d+\s*photos?\s*(?:and\s*\d+\s*videos?)?)/i);
+                                                        const count = match ? ` [${match[1]}]` : '';
+                                                        const cleanTitle = r.title.replace(/"[^"]*"/g, '').replace(/\s{2,}/g, ' ').trim();
+                                                        return `│ *${i + 1}.* ${cleanTitle.slice(0, 65)}${count}`;
+                                                }).join('\n') + '\n' +
+                                                `│\n` +
+                                                `│ 📩 *Balas pesan ini* dengan angka\n` +
+                                                `│    pilihan kamu (1–${_reResults.length})\n` +
+                                                `│ ⏳ Menu berlaku 3 menit\n` +
+                                                `╰──────────────────────`;
+                                        const _reMenuMsg = await tolak(hisoka, m, _reListText);
+                                        const _reKey = m.sender;
+                                        const _reTimeout = setTimeout(() => pendingCosplayChoices.delete(_reKey), 3 * 60 * 1000);
+                                        pendingCosplayChoices.set(_reKey, {
+                                                results: _reResults,
+                                                botMsgId: _reMenuMsg?.key?.id || null,
+                                                expiresAt: Date.now() + 3 * 60 * 1000,
+                                                timeout: _reTimeout,
+                                                loading: false,
+                                        });
                                 } catch (err) {
                                         console.error('[Cosplay] Error fetch post:', err.message);
                                         logError(err, 'cosplay:fetch');
