@@ -225,7 +225,7 @@ screen_generate_token() {
   local _ts_tok; _ts_tok=$(date '+%H:%M:%S %d %b %Y')
   local _masked_tok="${input_tok:0:10}****${input_tok: -4}"
   local _btn_tok1='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
-  send_telegram_photo "https://w.wallhaven.cc/full/6q/wallhaven-6qw6x6.jpg" "🔐 <b>TOKEN BARU DISIMPAN</b>
+  send_telegram_photo "https://w.wallhaven.cc/full/0q/wallhaven-0qe5er.png" "🔐 <b>TOKEN BARU DISIMPAN</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -270,7 +270,7 @@ screen_manual_token() {
   local _ts_tok2; _ts_tok2=$(date '+%H:%M:%S %d %b %Y')
   local _masked_tok2="${input_tok:0:10}****${input_tok: -4}"
   local _btn_tok2='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
-  send_telegram_photo "https://w.wallhaven.cc/full/vm/wallhaven-vm5r75.jpg" "🔐 <b>TOKEN MANUAL DISIMPAN</b>
+  send_telegram_photo "https://w.wallhaven.cc/full/0q/wallhaven-0qe5yl.jpg" "🔐 <b>TOKEN MANUAL DISIMPAN</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -377,7 +377,7 @@ setup_token() {
         echo "" >&2
         local _ts_del; _ts_del=$(date '+%H:%M:%S %d %b %Y')
         local _btn_tokdel='{"inline_keyboard":[[{"text":"🔑 Buat Token Baru","url":"https://github.com/settings/tokens/new"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"⚙️ Settings GitHub","url":"https://github.com/settings"},{"text":"🔒 Security","url":"https://github.com/settings/security"}]]}'
-        send_telegram_photo "https://w.wallhaven.cc/full/r2/wallhaven-r2qqlj.jpg" "🗑 <b>TOKEN DIHAPUS</b>
+        send_telegram_photo "https://w.wallhaven.cc/full/28/wallhaven-28mlj9.jpg" "🗑 <b>TOKEN DIHAPUS</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -448,7 +448,7 @@ setup_token() {
       local _masked_tok3="${input_tok3:0:10}****${input_tok3: -4}"
       _save_token_backup "$input_tok3"
       local _btn_tok3='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
-      send_telegram_photo "https://w.wallhaven.cc/full/28/wallhaven-28j5dm.jpg" "🔐 <b>TOKEN DISIMPAN (PASTE)</b>
+      send_telegram_photo "https://w.wallhaven.cc/full/8x/wallhaven-8x9er2.jpg" "🔐 <b>TOKEN DISIMPAN (PASTE)</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -596,7 +596,7 @@ setup_token() {
     local _ts_t12; _ts_t12=$(date '+%H:%M:%S %d %b %Y')
     local _masked_t12="${input_tok:0:10}****${input_tok: -4}"
     local _btn_t12='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/6q/wallhaven-6qxdwl.jpg" "🔐 <b>TOKEN DISIMPAN (INSTRUKSI)</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/8x/wallhaven-8xejz2.jpg" "🔐 <b>TOKEN DISIMPAN (INSTRUKSI)</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -885,7 +885,7 @@ sleep 1
 # Notif login berhasil ke Telegram
 _ts_login=$(date '+%H:%M:%S %d %b %Y')
 _btn_login='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${REPO}"'/settings"}]]}'
-send_telegram_photo "https://w.wallhaven.cc/full/8o/wallhaven-8oy372.jpg" "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
+send_telegram_photo "https://w.wallhaven.cc/full/j3/wallhaven-j3k2eq.png" "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -1629,7 +1629,7 @@ action_quick_push() {
     log_push_event "$DEFAULT_BRANCH" "OK" "$_msg" "$_changed"
     local _btn_pushok='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${DEFAULT_BRANCH}"'"}],[{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"}]]}'
     local _qp_detail; _qp_detail=$(_build_push_detail 2>/dev/null || true)
-    send_telegram_photo "https://w.wallhaven.cc/full/x6/wallhaven-x6yrez.jpg" "✅ <b>PUSH BERHASIL</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/je/wallhaven-je9x7y.jpg" "✅ <b>PUSH BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${DEFAULT_BRANCH}</code>
@@ -1641,7 +1641,7 @@ ${_qp_detail}
     echo "$_push_out" | tail -5 | sed 's/^/     /'
     log_push_event "$DEFAULT_BRANCH" "FAIL" "$_msg" "$_changed"
     local _btn_pushfail='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"}],[{"text":"🐛 Issues","url":"https://github.com/'"${USER}"'/'"${REPO}"'/issues"},{"text":"📋 Action Logs","url":"https://github.com/'"${USER}"'/'"${REPO}"'/actions"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/lm/wallhaven-lmw21r.jpg" "❌ <b>PUSH GAGAL</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/l3/wallhaven-l3g62l.jpg" "❌ <b>PUSH GAGAL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${DEFAULT_BRANCH}</code>
@@ -1847,7 +1847,7 @@ action_rename_repo() {
     echo -e "  ${C_DIM}Perubahan nama disimpan permanen di push.sh${C_RESET}"
     local _ts_rr; _ts_rr=$(date '+%H:%M:%S %d %b %Y')
     local _btn_rr='{"inline_keyboard":[[{"text":"📁 Buka Repo Baru","url":"https://github.com/'"${USER}"'/'"${new_name}"'"},{"text":"⚙️ Settings Repo","url":"https://github.com/'"${USER}"'/'"${new_name}"'/settings"}],[{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${new_name}"'/branches"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${new_name}"'/commits"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/vq/wallhaven-vqwxd8.jpg" "✏️ <b>REPO DI-RENAME</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/l3/wallhaven-l3q6eq.png" "✏️ <b>REPO DI-RENAME</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 🔄 <code>${old_repo}</code> → <code>${new_name}</code>
@@ -1943,7 +1943,7 @@ action_switch_default() {
     echo -e "  ${C_DIM}Perubahan juga disimpan permanen di push.sh${C_RESET}"
     local _ts_sd; _ts_sd=$(date '+%H:%M:%S %d %b %Y')
     local _btn_sd='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"🔀 New PR","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📊 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${old_default}"'...'"${new_default}"'"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/9o/wallhaven-9oxme1.jpg" "🔀 <b>DEFAULT BRANCH DIUBAH</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/pk/wallhaven-pkgq8e.png" "🔀 <b>DEFAULT BRANCH DIUBAH</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🔄 <code>${old_default}</code> → <code>${new_default}</code>
@@ -2493,7 +2493,7 @@ action_create_repo() {
     echo -e "  ${C_BOLD}git clone ${clone_url:-https://github.com/${USER}/${new_repo_name}.git}${C_RESET}"
     local _ts_cr; _ts_cr=$(date '+%H:%M:%S %d %b %Y')
     local _btn_cr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/settings"}],[{"text":"📋 Issues","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/issues"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/branches"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/0w/wallhaven-0wel8r.jpg" "📦 <b>REPO BARU DIBUAT</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/rd/wallhaven-rd5vz1.jpg" "📦 <b>REPO BARU DIBUAT</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${full_name:-${USER}/${new_repo_name}}</code>
@@ -2755,7 +2755,7 @@ action_import_repo() {
     echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
     local _ts_ir; _ts_ir=$(date '+%H:%M:%S %d %b %Y')
     local _btn_ir='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"},{"text":"📊 Status Import","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"}],[{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'/settings"},{"text":"📋 Issues","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'/issues"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/yq/wallhaven-yq5mlk.jpg" "📥 <b>IMPORT REPO DIMULAI</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/rd/wallhaven-rdxk2j.jpg" "📥 <b>IMPORT REPO DIMULAI</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 Repo baru: <code>${USER}/${imp_repo_name}</code>
@@ -3154,7 +3154,7 @@ action_delete_repo() {
       fi
       local _ts_dr; _ts_dr=$(date '+%H:%M:%S %d %b %Y')
       local _btn_dr='{"inline_keyboard":[[{"text":"👤 Lihat Profile","url":"https://github.com/'"${del_owner}"'"},{"text":"📦 Semua Repo","url":"https://github.com/'"${del_owner}"'?tab=repositories"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"➕ Buat Repo Baru","url":"https://github.com/new"}]]}'
-      send_telegram_photo "https://w.wallhaven.cc/full/2y/wallhaven-2yw6q6.jpg" "🗑 <b>REPO DIHAPUS</b>
+      send_telegram_photo "https://w.wallhaven.cc/full/v9/wallhaven-v9jz53.png" "🗑 <b>REPO DIHAPUS</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${del_owner}</code>
 📁 <code>${del_owner}/${del_repo}</code>
@@ -3565,7 +3565,7 @@ action_rename_branch() {
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${new_name}${C_RESET}"
     local _ts_rb; _ts_rb=$(date '+%H:%M:%S %d %b %Y')
     local _btn_rb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch Baru","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${new_name}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"🔀 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${new_name}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${new_name}"'"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/gw/wallhaven-gw5ypd.jpg" "✏️ <b>BRANCH DI-RENAME</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/vp/wallhaven-vpxgk5.png" "✏️ <b>BRANCH DI-RENAME</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🔄 <code>${old_name}</code> → <code>${new_name}</code>
@@ -3682,7 +3682,7 @@ action_create_branch() {
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${name}${C_RESET}"
     local _ts_cb; _ts_cb=$(date '+%H:%M:%S %d %b %Y')
     local _btn_cb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${name}"'"},{"text":"🔀 Buat PR","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${name}"'"}],[{"text":"📁 Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${name}"'"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/5g/wallhaven-5g8335.jpg" "🌱 <b>BRANCH BARU DIBUAT</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/x1/wallhaven-x1ppvz.jpg" "🌱 <b>BRANCH BARU DIBUAT</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch baru: <code>${name}</code>
@@ -3841,7 +3841,7 @@ action_delete_branch() {
       ok=$((ok + 1))
       local _ts_db; _ts_db=$(date '+%H:%M:%S %d %b %Y')
       local _btn_db='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits"},{"text":"🌿 Default Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"}]]}'
-      send_telegram_photo "https://w.wallhaven.cc/full/ly/wallhaven-lyk5gp.jpg" "🗑 <b>BRANCH DIHAPUS</b>
+      send_telegram_photo "https://w.wallhaven.cc/full/y8/wallhaven-y8d1lg.png" "🗑 <b>BRANCH DIHAPUS</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${target}</code>
@@ -4062,7 +4062,7 @@ push_head_to_branch() {
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${branch}${C_RESET}"
     log_push_event "$branch" "OK" "$_log_msg" "$_log_files"
     local _btn_pbr='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}],[{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/e7/wallhaven-e781gr.jpg" "✅ <b>PUSH BERHASIL</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/yj/wallhaven-yje2lk.png" "✅ <b>PUSH BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
@@ -4076,7 +4076,7 @@ ${_push_detail}
   echo -e "  ${C_YELLOW}⚠️  Push normal gagal (kemungkinan branch divergent), force push...${C_RESET}"
   local _tg_ts_conflict; _tg_ts_conflict=$(date '+%H:%M:%S %d %b %Y')
   local _btn_conflict='{"inline_keyboard":[[{"text":"🔀 Compare Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"}],[{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"},{"text":"🔧 Resolve Conflict","url":"https://github.com/'"${USER}"'/'"${REPO}"'/network"}]]}'
-  send_telegram_photo "https://w.wallhaven.cc/full/nk/wallhaven-nkwpqd.jpg" "⚠️ <b>KONFLIK BRANCH TERDETEKSI</b>
+  send_telegram_photo "https://w.wallhaven.cc/full/d5/wallhaven-d5g66j.jpg" "⚠️ <b>KONFLIK BRANCH TERDETEKSI</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
@@ -4090,7 +4090,7 @@ ${_push_detail}
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${branch}${C_RESET}"
     log_push_event "$branch" "OK(force)" "$_log_msg" "$_log_files"
     local _btn_pforce='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}],[{"text":"⚠️ Security","url":"https://github.com/'"${USER}"'/'"${REPO}"'/security"},{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/w5/wallhaven-w56337.jpg" "⚡ <b>PUSH BERHASIL (FORCE)</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/yj/wallhaven-yjr3kk.png" "⚡ <b>PUSH BERHASIL (FORCE)</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
@@ -4120,7 +4120,7 @@ ${_push_detail}
     local _tg_ts_secret; _tg_ts_secret=$(date '+%H:%M:%S %d %b %Y')
     local _unblock_btn_url="${unblock_url:-https://github.com/${USER}/${REPO}/security/secret-scanning}"
     local _btn_secret='{"inline_keyboard":[[{"text":"🔓 Allow Secret","url":"'"${_unblock_btn_url}"'"},{"text":"🔒 Secret Scanning","url":"https://github.com/'"${USER}"'/'"${REPO}"'/security/secret-scanning"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/9d/wallhaven-9dmx18.png" "🔐 <b>PUSH DITOLAK — SECRET SCANNING</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/e7/wallhaven-e7k68k.jpg" "🔐 <b>PUSH DITOLAK — SECRET SCANNING</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
@@ -4137,7 +4137,7 @@ ${_push_detail}
     local _tg_ts_reject; _tg_ts_reject=$(date '+%H:%M:%S %d %b %Y')
     local _err_snippet; _err_snippet=$(tail -3 "$push_log" 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g')
     local _btn_reject='{"inline_keyboard":[[{"text":"📋 Action Logs","url":"https://github.com/'"${USER}"'/'"${REPO}"'/actions"},{"text":"🐛 Issues","url":"https://github.com/'"${USER}"'/'"${REPO}"'/issues"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-    send_telegram_photo "https://w.wallhaven.cc/full/ex/wallhaven-ex89x8.png" "🚫 <b>PUSH DITOLAK GITHUB</b>
+    send_telegram_photo "https://w.wallhaven.cc/full/x8/wallhaven-x81dxo.jpg" "🚫 <b>PUSH DITOLAK GITHUB</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
