@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "cosplay:fetch::Tidak ada media ditemukan di post ini.",
+      "source": "cosplay:fetch",
+      "message": "Tidak ada media ditemukan di post ini.",
+      "stack": "Error: Tidak ada media ditemukan di post ini.\n    at cosplayteleGetPost (/home/runner/workspace/src/scrape/cosplaytele.cjs:98:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778318255149:2699:54)",
+      "count": 1,
+      "firstSeen": "2026-05-09T09:18:22.937Z",
+      "lastSeen": "2026-05-09T09:18:22.937Z"
+    },
+    {
+      "fingerprint": "Cosplay::[Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.",
+      "source": "Cosplay",
+      "message": "[Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.",
+      "stack": "Error: [Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778318255149:2775:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-09T09:18:22.931Z",
+      "lastSeen": "2026-05-09T09:18:22.931Z"
+    },
+    {
       "fingerprint": "alqdl_auto::Ep N: gagal resolve → Request failed with status code N",
       "source": "alqdl_auto",
       "message": "Ep 01: gagal resolve → Request failed with status code 404",

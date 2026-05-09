@@ -697,6 +697,7 @@ async function buildSmartImageHistoryReply({ userQuestion, query, images = [], c
 const pendingPlayChoices = new Map();
 const pendingAlqDlChoices = new Map();
 const pendingAlqUpdateChoices = new Map();
+const pendingCosplayChoices = new Map();
 const aiReplyCooldown = new Map(); // sender → last reply timestamp
 const AI_COOLDOWN_MS = 3000; // 3 detik cooldown per user
 
@@ -2650,6 +2651,121 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 return;
                                         }
                                 }
+                        }
+                }
+
+                // ── Handle pending cosplaytele search choice ──
+                if (pendingCosplayChoices.has(m.sender)) {
+                        const pendingCos = pendingCosplayChoices.get(m.sender);
+                        const rawChoice  = String(m.text || '').trim();
+                        const isReply    = m.isQuoted && pendingCos.botMsgId && getQuotedStanzaId(m) === pendingCos.botMsgId;
+                        const isValid    = isReply && /^\d+$/.test(rawChoice);
+
+                        if (isValid) {
+                                if (pendingCos.expiresAt <= Date.now()) {
+                                        pendingCosplayChoices.delete(m.sender);
+                                        await tolak(hisoka, m, '⏳ Menu sudah kedaluwarsa. Ketik `.cosplay <keyword>` lagi.');
+                                        return;
+                                }
+                                if (/^(batal|cancel)$/i.test(rawChoice)) {
+                                        if (pendingCos.timeout) clearTimeout(pendingCos.timeout);
+                                        pendingCosplayChoices.delete(m.sender);
+                                        await tolak(hisoka, m, '✅ Dibatalkan.');
+                                        return;
+                                }
+                                if (pendingCos.loading) {
+                                        await tolak(hisoka, m, '⏳ Sedang memproses pilihan sebelumnya...');
+                                        return;
+                                }
+
+                                const idx = parseInt(rawChoice) - 1;
+                                if (idx < 0 || idx >= pendingCos.results.length) {
+                                        await tolak(hisoka, m, `❌ Pilih angka 1–${pendingCos.results.length}.`);
+                                        return;
+                                }
+
+                                pendingCos.loading = true;
+                                if (pendingCos.timeout) clearTimeout(pendingCos.timeout);
+                                pendingCosplayChoices.delete(m.sender);
+
+                                const chosen = pendingCos.results[idx];
+                                await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                const loadMsg = await tolak(hisoka, m,
+                                        `⏳ Mengambil media dari *${chosen.title.slice(0, 60)}*...\nMohon tunggu ✨`
+                                );
+
+                                try {
+                                        const { cosplayteleGetPost, downloadBuffer, formatCosplayteleCaption } = _require(path.resolve('./src/scrape/cosplaytele.cjs'));
+                                        const post = await cosplayteleGetPost(chosen.id);
+
+                                        if (loadMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                        }
+
+                                        const vidInfo = post.hasVideos ? ` | 🎬 ada video` : '';
+                                        const caption0 = `╭─「 👘 *COSPLAYTELE* 」\n` +
+                                                `│ 📌 *${post.title.slice(0, 80)}*\n` +
+                                                `│ 🖼️ ${post.totalImages} foto${vidInfo}\n` +
+                                                `│ 🔗 ${post.link}\n` +
+                                                `│\n` +
+                                                `│ ℹ️ Mengirim ${post.images.length} foto...\n` +
+                                                `╰──────────────────────`;
+
+                                        await tolak(hisoka, m, caption0);
+                                        await hisoka.sendMessage(m.from, { react: { text: '📸', key: m.key } });
+
+                                        if (post.images.length > 0) {
+                                                const BATCH = 10;
+                                                for (let b = 0; b < post.images.length; b += BATCH) {
+                                                        const batch = post.images.slice(b, b + BATCH);
+                                                        const albumItems = [];
+                                                        for (let i = 0; i < batch.length; i++) {
+                                                                try {
+                                                                        const buf = await downloadBuffer(batch[i]);
+                                                                        const globalIdx = b + i;
+                                                                        albumItems.push({
+                                                                                image: buf,
+                                                                                caption: formatCosplayteleCaption(post, {
+                                                                                        imgIndex: globalIdx,
+                                                                                        imgTotal: post.images.length,
+                                                                                }),
+                                                                        });
+                                                                } catch (e) {
+                                                                        console.error('[Cosplay] Gagal unduh gambar:', batch[i], e.message);
+                                                                }
+                                                        }
+                                                        if (albumItems.length === 0) continue;
+                                                        try {
+                                                                await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: b === 0 ? m : undefined });
+                                                        } catch (_) {
+                                                                for (const item of albumItems) {
+                                                                        try {
+                                                                                await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m });
+                                                                        } catch (_2) {}
+                                                                }
+                                                        }
+                                                }
+                                        }
+
+                                        if (post.hasVideos && post.cossoraIds?.length > 0) {
+                                                const vidLinks = post.cossoraIds.map((u, i) => `🎬 Video ${i + 1}: ${u}`).join('\n');
+                                                await hisoka.sendMessage(m.from, {
+                                                        text: `╭─「 🎬 *VIDEO COSPLAY* 」\n│ Tonton video dari post ini:\n│\n${post.cossoraIds.map((u, i) => `│ ${i + 1}. ${u}`).join('\n')}\n╰──────────────────────`,
+                                                }, { quoted: m });
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'cosplay');
+                                } catch (err) {
+                                        console.error('[Cosplay] Error fetch post:', err.message);
+                                        logError(err, 'cosplay:fetch');
+                                        if (loadMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                        }
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m, `❌ Gagal mengambil media.\n_${err.message}_`);
+                                }
+                                return;
                         }
                 }
 
@@ -4647,6 +4763,92 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'alqdl');
                                         await tolak(hisoka, m, `❌ Gagal download.\n💬 ${err?.message?.slice(0, 150) || 'Coba lagi nanti'}`);
                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                }
+                                break;
+                        }
+
+                        case 'cosplay':
+                        case 'ctele': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 👘 *COSPLAYTELE SEARCH* 」\n` +
+                                                        `│\n` +
+                                                        `│ Cari foto & video cosplay dari\n` +
+                                                        `│ cosplaytele.com secara realtime.\n` +
+                                                        `│\n` +
+                                                        `│ *Format:*\n` +
+                                                        `│ • ${pfx}cosplay <keyword>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • ${pfx}cosplay mitsuri\n` +
+                                                        `│ • ${pfx}cosplay rem re:zero\n` +
+                                                        `│ • ${pfx}cosplay velma\n` +
+                                                        `│\n` +
+                                                        `│ ℹ️ Hasil dikirim sebagai album\n` +
+                                                        `│    (foto + video terpisah).\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { cosplayteleSearch, formatCosplayteleSearchList } = _require(path.resolve('./src/scrape/cosplaytele.cjs'));
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+
+                                        const loadMsg = await tolak(hisoka, m, `🔍 Mencari cosplay *"${input}"* di cosplaytele.com...`);
+
+                                        const results = await cosplayteleSearch(input, { perPage: 8 });
+
+                                        if (loadMsg?.key) {
+                                                try { await hisoka.sendMessage(m.from, { delete: loadMsg.key }); } catch (_) {}
+                                        }
+
+                                        const listText =
+                                                `╭─「 👘 *COSPLAYTELE* 」\n` +
+                                                `│ 🔍 Hasil: *"${input}"*\n` +
+                                                `│ Ditemukan ${results.length} post\n` +
+                                                `│\n` +
+                                                results.map((r, i) => {
+                                                        const match = r.title.match(/(\d+\s*photos?\s*(?:and\s*\d+\s*videos?)?)/i);
+                                                        const count = match ? ` [${match[1]}]` : '';
+                                                        const cleanTitle = r.title.replace(/"[^"]*"/g, '').replace(/\s{2,}/g, ' ').trim();
+                                                        return `│ *${i + 1}.* ${cleanTitle.slice(0, 65)}${count}`;
+                                                }).join('\n') + '\n' +
+                                                `│\n` +
+                                                `│ 📩 *Balas pesan ini* dengan angka\n` +
+                                                `│    pilihan kamu (1–${results.length})\n` +
+                                                `│ ⏳ Menu berlaku 3 menit\n` +
+                                                `╰──────────────────────`;
+
+                                        const menuMsg = await tolak(hisoka, m, listText);
+                                        await hisoka.sendMessage(m.from, { react: { text: '👘', key: m.key } });
+
+                                        const cosKey = m.sender;
+                                        const cosTimeout = setTimeout(() => pendingCosplayChoices.delete(cosKey), 3 * 60 * 1000);
+
+                                        const old = pendingCosplayChoices.get(cosKey);
+                                        if (old?.timeout) clearTimeout(old.timeout);
+                                        pendingCosplayChoices.set(cosKey, {
+                                                results,
+                                                botMsgId: menuMsg?.key?.id || null,
+                                                expiresAt: Date.now() + 3 * 60 * 1000,
+                                                timeout: cosTimeout,
+                                                loading: false,
+                                        });
+
+                                        logCommand(m, hisoka, 'cosplay');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Cosplay] Error:\x1b[39m', error.message);
+                                        logError(error, 'command:cosplay');
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } }).catch(() => {});
+                                        await tolak(hisoka, m,
+                                                `❌ *Gagal mencari di Cosplaytele.*\n\n` +
+                                                `_${error.message}_\n\n` +
+                                                `Contoh: *.cosplay mitsuri*`
+                                        );
                                 }
                                 break;
                         }

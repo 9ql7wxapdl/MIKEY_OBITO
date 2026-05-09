@@ -8,22 +8,58 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 06/05/2026, 08.22.55  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 09/05/2026, 09.18.22  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
-  Total Jenis Error (unik)  : 8
-  Total Kejadian Error       : 20
+  Total Jenis Error (unik)  : 10
+  Total Kejadian Error       : 22
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [8 jenis, 20 kejadian total]
+  DAFTAR ERROR LENGKAP  [10 jenis, 22 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #001  —  alqdl_auto
+│  #001  —  cosplay:fetch
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Tidak ada media ditemukan di post ini.
+│
+│  DETAIL
+│  Sumber      : cosplay:fetch
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 09.18.22
+│  Terakhir    : 09/05/2026, 09.18.22
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Tidak ada media ditemukan di post ini.
+│     at cosplayteleGetPost (/home/runner/workspace/src/scrape/cosplaytele.cjs:98:15)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #002  —  Cosplay
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.
+│
+│  DETAIL
+│  Sumber      : Cosplay
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 09.18.22
+│  Terakhir    : 09/05/2026, 09.18.22
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778318255149:2775:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #003  —  alqdl_auto
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Ep 01: gagal resolve → Request failed with status code 404
@@ -41,7 +77,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #002  —  ALQDL_AUTO
+│  #004  —  ALQDL_AUTO
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404
@@ -59,7 +95,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #003  —  alqdl_auto
+│  #005  —  alqdl_auto
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Request failed with status code 403
@@ -77,7 +113,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #004  —  ALQDL_AUTO
+│  #006  —  ALQDL_AUTO
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [ALQDL_AUTO] Error: Request failed with status code 403
@@ -95,7 +131,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #005  —  console.error
+│  #007  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
@@ -113,7 +149,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #006  —  Backup
+│  #008  —  Backup
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Backup] Gagal kirim ke 628968100xxxx Timed Out
@@ -131,7 +167,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #007  —  console.error
+│  #009  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
@@ -149,7 +185,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #008  —  console.error
+│  #010  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
@@ -167,6 +203,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 8 jenis, 20 kejadian
-  Terakhir diperbarui: 06/05/2026, 08.22.55
+  End of Report  —  Total: 10 jenis, 22 kejadian
+  Terakhir diperbarui: 09/05/2026, 09.18.22
 ════════════════════════════════════════════════════════════════════════
