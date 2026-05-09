@@ -1433,20 +1433,32 @@ _build_push_detail() {
   [ -z "$_diff" ] && _diff=$(git show --name-status --format="" HEAD 2>/dev/null | grep -E '^[AMDRC]')
   [ -z "$_diff" ] && return 0
 
-  local _added=0 _modified=0 _deleted=0 _renamed=0
-  local _files_add=() _files_mod=() _files_del=()
+  # Gunakan file temp agar aman di semua lingkungan bash (subshell-safe)
+  local _tmp_add _tmp_mod _tmp_del
+  _tmp_add=$(mktemp)
+  _tmp_mod=$(mktemp)
+  _tmp_del=$(mktemp)
 
-  while IFS=$'\t' read -r _s _f1 _f2; do
-    case "${_s:0:1}" in
-      A) _added=$((_added+1));   _files_add+=("$_f1") ;;
-      M) _modified=$((_modified+1)); _files_mod+=("$_f1") ;;
-      D) _deleted=$((_deleted+1));  _files_del+=("$_f1") ;;
-      R|C) _renamed=$((_renamed+1)); _files_mod+=("${_f2:-$_f1}") ;;
-    esac
-  done <<< "$_diff"
+  # Parse diff ke file temp — pisahkan per status tanpa /dev/fd non-standar
+  echo "$_diff" | awk -F'\t' 'substr($1,1,1)=="A"             {print $2}' > "$_tmp_add"
+  echo "$_diff" | awk -F'\t' 'substr($1,1,1)=="M"             {print $2}' > "$_tmp_mod"
+  echo "$_diff" | awk -F'\t' 'substr($1,1,1)=="R"||substr($1,1,1)=="C" {print ($3==""?$2:$3)}' >> "$_tmp_mod"
+  echo "$_diff" | awk -F'\t' 'substr($1,1,1)=="D"             {print $2}' > "$_tmp_del"
 
-  local _total=$((_added+_modified+_deleted+_renamed))
-  [ "$_total" -eq 0 ] && return 0
+  local _added _modified _deleted _renamed
+  _added=$(wc -l < "$_tmp_add" 2>/dev/null | tr -d ' \n' || echo 0)
+  _modified=$(wc -l < "$_tmp_mod" 2>/dev/null | tr -d ' \n' || echo 0)
+  _deleted=$(wc -l < "$_tmp_del" 2>/dev/null | tr -d ' \n' || echo 0)
+  _added=${_added:-0}; _modified=${_modified:-0}; _deleted=${_deleted:-0}
+
+  # Hitung renamed terpisah untuk info statistik
+  _renamed=$(echo "$_diff" | awk -F'\t' 'substr($1,1,1)=="R"||substr($1,1,1)=="C"{c++} END{print c+0}')
+
+  local _total=$((_added+_modified+_deleted))
+  if [ "$_total" -eq 0 ]; then
+    rm -f "$_tmp_add" "$_tmp_mod" "$_tmp_del"
+    return 0
+  fi
 
   # Baris statistik
   local _stat=""
@@ -1456,19 +1468,38 @@ _build_push_detail() {
   [ "$_deleted"  -gt 0 ] && _stat="${_stat}🗑 ${_deleted} hapus"
   _stat="${_stat%  }"
 
-  # Folder-folder terdampak (max 5, unik)
-  local _all_names=("${_files_add[@]}" "${_files_mod[@]}" "${_files_del[@]}")
+  # Folder-folder terdampak (max 5, unik) — gabung semua file lalu ambil direktorinya
   local _folders
-  _folders=$(printf '%s\n' "${_all_names[@]}" | grep '/' | sed 's|/[^/]*$||' | sort -u | head -5 | paste -sd ' • ')
+  _folders=$(cat "$_tmp_add" "$_tmp_mod" "$_tmp_del" 2>/dev/null \
+    | grep '/' \
+    | sed 's|/[^/]*$||' \
+    | sort -u \
+    | head -5 \
+    | tr '\n' ' ' \
+    | sed 's/ *$//')
   [ -z "$_folders" ] && _folders="(root)"
 
-  # Daftar file (max 6, prioritas: baru → ubah → hapus)
-  local _list="" _shown=0 _max=6
-  for _f in "${_files_add[@]}";  do [ "$_shown" -ge "$_max" ] && break; _list="${_list}📄 <code>${_f}</code> ‹baru›\n"; _shown=$((_shown+1)); done
-  for _f in "${_files_mod[@]}";  do [ "$_shown" -ge "$_max" ] && break; _list="${_list}📝 <code>${_f}</code>\n";         _shown=$((_shown+1)); done
-  for _f in "${_files_del[@]}";  do [ "$_shown" -ge "$_max" ] && break; _list="${_list}🗑 <code>${_f}</code> ‹hapus›\n"; _shown=$((_shown+1)); done
+  # Daftar file (max 8, prioritas: baru → ubah → hapus)
+  local _shown=0 _max=8 _list=""
+  while IFS= read -r _f && [ "$_shown" -lt "$_max" ]; do
+    [ -z "$_f" ] && continue
+    _list="${_list}📄 <code>${_f}</code> ‹baru›\n"
+    _shown=$((_shown+1))
+  done < "$_tmp_add"
+  while IFS= read -r _f && [ "$_shown" -lt "$_max" ]; do
+    [ -z "$_f" ] && continue
+    _list="${_list}📝 <code>${_f}</code>\n"
+    _shown=$((_shown+1))
+  done < "$_tmp_mod"
+  while IFS= read -r _f && [ "$_shown" -lt "$_max" ]; do
+    [ -z "$_f" ] && continue
+    _list="${_list}🗑 <code>${_f}</code> ‹hapus›\n"
+    _shown=$((_shown+1))
+  done < "$_tmp_del"
 
   local _sisa=$((_total-_shown))
+
+  rm -f "$_tmp_add" "$_tmp_mod" "$_tmp_del"
 
   printf '━━━━━━━━━━━━━━━━━━━━\n'
   printf '%s\n' "$_stat"
