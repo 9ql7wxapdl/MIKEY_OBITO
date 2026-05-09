@@ -7792,7 +7792,7 @@
     "subjectOwner": "6283123405940@s.whatsapp.net",
     "subjectOwnerLid": "172838711480524@lid",
     "subjectTime": 1761452838,
-    "size": 1025,
+    "size": 1023,
     "creation": 1693096407,
     "owner": "6285807405071@s.whatsapp.net",
     "ownerLid": "88609721962527@lid",
@@ -9316,11 +9316,6 @@
         "admin": null
       },
       {
-        "id": "22093865447666@lid",
-        "jid": "6285283078292@s.whatsapp.net",
-        "admin": null
-      },
-      {
         "id": "221981576319018@lid",
         "jid": "6288271282585@s.whatsapp.net",
         "admin": null
@@ -9338,11 +9333,6 @@
       {
         "id": "41889285857462@lid",
         "jid": "628891983723@s.whatsapp.net",
-        "admin": null
-      },
-      {
-        "id": "163587402272786@lid",
-        "jid": "6285147492834@s.whatsapp.net",
         "admin": null
       },
       {
@@ -12929,8 +12919,7 @@
         "id": "274380311523546@lid",
         "jid": "62882022633535@s.whatsapp.net",
         "admin": null
-      },
-      "17566449852636@lid"
+      }
     ]
   },
   "120363288769564494@g.us": {
@@ -12940,7 +12929,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1967,
+    "size": 1965,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -19789,11 +19778,6 @@
         "admin": null
       },
       {
-        "id": "163587402272786@lid",
-        "jid": "163587402272786@lid",
-        "admin": null
-      },
-      {
         "id": "41889285857462@lid",
         "jid": "41889285857462@lid",
         "admin": null
@@ -19826,11 +19810,6 @@
       {
         "id": "166233051799727@lid",
         "jid": "166233051799727@lid",
-        "admin": null
-      },
-      {
-        "id": "22093865447666@lid",
-        "jid": "22093865447666@lid",
         "admin": null
       },
       {
@@ -22788,7 +22767,7 @@
         "jid": "254193512226986@lid",
         "admin": null
       },
-      "17566449852636@lid"
+      "207898479177842@lid"
     ]
   }
 }
