@@ -45,6 +45,48 @@ PUSH_LOG_FILE=".push_history.log"
 TG_TOKEN="7603636186:AAHBmh1otqBb-RX5bhARGj0r0CPpNzqzaF4"
 TG_CHAT_ID="5810736154"
 
+# ===== Kirim notifikasi Telegram (dengan opsional inline button) =====
+# Usage: send_telegram "teks" '{"inline_keyboard":[[...]]}'
+send_telegram() {
+  local _text="$1"
+  local _markup="${2:-}"
+  [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ] && return 0
+  if [ -n "$_markup" ]; then
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+      -H "Content-Type: application/json" \
+      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"parse_mode\":\"HTML\",\"text\":$(printf '%s' "$_text" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$_text"),\"reply_markup\":${_markup}}" \
+      >/dev/null 2>&1 &
+  else
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+      -d chat_id="${TG_CHAT_ID}" \
+      -d parse_mode="HTML" \
+      -d text="${_text}" \
+      >/dev/null 2>&1 &
+  fi
+}
+
+# ===== Kirim notifikasi Telegram dengan foto/thumbnail =====
+# Usage: send_telegram_photo "url_foto" "caption" '{"inline_keyboard":[[...]]}'
+send_telegram_photo() {
+  local _photo="$1"
+  local _caption="$2"
+  local _markup="${3:-}"
+  [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ] && return 0
+  local _cap_json
+  _cap_json=$(printf '%s' "$_caption" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$_caption")
+  if [ -n "$_markup" ]; then
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendPhoto" \
+      -H "Content-Type: application/json" \
+      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"photo\":\"${_photo}\",\"caption\":${_cap_json},\"parse_mode\":\"HTML\",\"reply_markup\":${_markup}}" \
+      >/dev/null 2>&1 &
+  else
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendPhoto" \
+      -H "Content-Type: application/json" \
+      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"photo\":\"${_photo}\",\"caption\":${_cap_json},\"parse_mode\":\"HTML\"}" \
+      >/dev/null 2>&1 &
+  fi
+}
+
 set -o pipefail
 # Catatan: sengaja TIDAK pakai `set -e` biar error per-branch nggak
 # langsung kill seluruh script — biar bisa kembali ke menu.
@@ -1381,48 +1423,6 @@ show_main_menu() {
       sleep 1
       ;;
   esac
-}
-
-# ===== Kirim notifikasi Telegram (dengan opsional inline button) =====
-# Usage: send_telegram "teks" '{"inline_keyboard":[[...]]}'
-send_telegram() {
-  local _text="$1"
-  local _markup="${2:-}"
-  [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ] && return 0
-  if [ -n "$_markup" ]; then
-    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-      -H "Content-Type: application/json" \
-      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"parse_mode\":\"HTML\",\"text\":$(printf '%s' "$_text" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$_text"),\"reply_markup\":${_markup}}" \
-      >/dev/null 2>&1 &
-  else
-    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
-      -d chat_id="${TG_CHAT_ID}" \
-      -d parse_mode="HTML" \
-      -d text="${_text}" \
-      >/dev/null 2>&1 &
-  fi
-}
-
-# ===== Kirim notifikasi Telegram dengan foto/thumbnail =====
-# Usage: send_telegram_photo "url_foto" "caption" '{"inline_keyboard":[[...]]}'
-send_telegram_photo() {
-  local _photo="$1"
-  local _caption="$2"
-  local _markup="${3:-}"
-  [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ] && return 0
-  local _cap_json
-  _cap_json=$(printf '%s' "$_caption" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$_caption")
-  if [ -n "$_markup" ]; then
-    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendPhoto" \
-      -H "Content-Type: application/json" \
-      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"photo\":\"${_photo}\",\"caption\":${_cap_json},\"parse_mode\":\"HTML\",\"reply_markup\":${_markup}}" \
-      >/dev/null 2>&1 &
-  else
-    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendPhoto" \
-      -H "Content-Type: application/json" \
-      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"photo\":\"${_photo}\",\"caption\":${_cap_json},\"parse_mode\":\"HTML\"}" \
-      >/dev/null 2>&1 &
-  fi
 }
 
 # ===== Build detail file/folder yang berubah untuk notif push =====
