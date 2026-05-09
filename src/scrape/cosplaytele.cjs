@@ -12,7 +12,7 @@ const HEADERS = {
     'Referer': BASE,
 };
 
-const MAX_IMAGES = 30;
+const MAX_IMAGES = 200;
 const MAX_VIDEOS = 5;
 
 function decodeEntities(str) {
@@ -127,6 +127,35 @@ async function cosplayteleGetPost(postId) {
     };
 }
 
+async function cosplayteleRandom() {
+    // Ambil total halaman dari header API
+    let totalPages = 50;
+    try {
+        const head = await axios.head(`${API}/posts`, {
+            params: { per_page: 10 },
+            headers: HEADERS,
+            timeout: 10000,
+        });
+        const tp = parseInt(head.headers['x-wp-totalpages'] || '0', 10);
+        if (tp > 0) totalPages = Math.min(tp, 200);
+    } catch (_) {}
+
+    const randPage = Math.floor(Math.random() * totalPages) + 1;
+
+    const { data } = await axios.get(`${API}/posts`, {
+        params: { per_page: 10, page: randPage, _fields: 'id,title,link,date' },
+        headers: HEADERS,
+        timeout: 15000,
+    });
+
+    if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('Gagal mengambil post random. Coba lagi.');
+    }
+
+    const randPost = data[Math.floor(Math.random() * data.length)];
+    return await cosplayteleGetPost(randPost.id);
+}
+
 async function downloadBuffer(url) {
     const { data } = await axios.get(url, {
         headers: {
@@ -163,6 +192,7 @@ function formatCosplayteleSearchList(results) {
 module.exports = {
     cosplayteleSearch,
     cosplayteleGetPost,
+    cosplayteleRandom,
     downloadBuffer,
     formatCosplayteleCaption,
     formatCosplayteleSearchList,

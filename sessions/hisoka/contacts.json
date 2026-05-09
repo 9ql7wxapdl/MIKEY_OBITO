@@ -7162,7 +7162,8 @@
     "id": "628995736876@s.whatsapp.net",
     "name": "Adrian ( Facebook )",
     "lid": "126942120571040@lid",
-    "jid": "628995736876@s.whatsapp.net"
+    "jid": "628995736876@s.whatsapp.net",
+    "notify": "Adrian"
   },
   "62895600335232@s.whatsapp.net": {
     "isContact": true,
@@ -31465,5 +31466,10 @@
   "23674618863@s.whatsapp.net": {
     "id": "23674618863@s.whatsapp.net",
     "notify": "mw sewa? chat owner"
+  },
+  "144495920332920@lid": {
+    "id": "144495920332920@lid",
+    "lid": "144495920332920@lid",
+    "imgUrl": "changed"
   }
 }
