@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "cosplay:fetch::Cannot access '_sendCosplayImages' before initialization",
+      "source": "cosplay:fetch",
+      "message": "Cannot access '_sendCosplayImages' before initialization",
+      "stack": "ReferenceError: Cannot access '_sendCosplayImages' before initialization\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778321315372:2718:49)",
+      "count": 1,
+      "firstSeen": "2026-05-09T10:08:57.674Z",
+      "lastSeen": "2026-05-09T10:08:57.674Z"
+    },
+    {
+      "fingerprint": "Cosplay::[Cosplay] Error fetch post: Cannot access '_sendCosplayImages' before initialization",
+      "source": "Cosplay",
+      "message": "[Cosplay] Error fetch post: Cannot access '_sendCosplayImages' before initialization",
+      "stack": "Error: [Cosplay] Error fetch post: Cannot access '_sendCosplayImages' before initialization\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778321315372:2759:49)",
+      "count": 1,
+      "firstSeen": "2026-05-09T10:08:57.668Z",
+      "lastSeen": "2026-05-09T10:08:57.668Z"
+    },
+    {
       "fingerprint": "Pixiv::[Pixiv] AI gagal: AI timeout",
       "source": "Pixiv",
       "message": "[Pixiv] AI gagal: AI timeout",
