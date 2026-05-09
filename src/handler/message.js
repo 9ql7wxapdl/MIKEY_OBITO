@@ -4802,7 +4802,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 try {
                                         const input = (query || '').trim();
                                         const pfx = m.prefix || '.';
-                                        const isRandom = cmd === 'cosplayrand' || cmd === 'cosplayrandom' || input.toLowerCase() === 'random';
+                                        const isRandom = m.command === 'cosplayrand' || m.command === 'cosplayrandom' || input.toLowerCase() === 'random';
 
                                         if (!input && !isRandom) {
                                                 await tolak(hisoka, m,

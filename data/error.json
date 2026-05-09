@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "command:cosplay::cmd is not defined",
+      "source": "command:cosplay",
+      "message": "cmd is not defined",
+      "stack": "ReferenceError: cmd is not defined\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778320910822:4805:58)",
+      "count": 2,
+      "firstSeen": "2026-05-09T10:02:53.611Z",
+      "lastSeen": "2026-05-09T10:03:31.833Z"
+    },
+    {
+      "fingerprint": "console.error::\u001b[Nm[Cosplay] Error:\u001b[Nm cmd is not defined",
+      "source": "console.error",
+      "message": "\u001b[31m[Cosplay] Error:\u001b[39m cmd is not defined",
+      "stack": "Error: \u001b[31m[Cosplay] Error:\u001b[39m cmd is not defined\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778320910822:4943:49)",
+      "count": 2,
+      "firstSeen": "2026-05-09T10:02:53.511Z",
+      "lastSeen": "2026-05-09T10:03:31.831Z"
+    },
+    {
       "fingerprint": "cosplay:fetch::Tidak ada media ditemukan di post ini.",
       "source": "cosplay:fetch",
       "message": "Tidak ada media ditemukan di post ini.",
