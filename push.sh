@@ -4074,6 +4074,16 @@ ${_push_detail}
 
   # Gagal — kemungkinan non-fast-forward. Coba force push.
   echo -e "  ${C_YELLOW}⚠️  Push normal gagal (kemungkinan branch divergent), force push...${C_RESET}"
+  local _tg_ts_conflict; _tg_ts_conflict=$(date '+%H:%M:%S %d %b %Y')
+  local _btn_conflict='{"inline_keyboard":[[{"text":"🔀 Compare Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"}],[{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"},{"text":"🔧 Resolve Conflict","url":"https://github.com/'"${USER}"'/'"${REPO}"'/network"}]]}'
+  send_telegram_photo "https://i.imgur.com/oBPXx0D.jpg" "⚠️ <b>KONFLIK BRANCH TERDETEKSI</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${branch}</code>
+🔄 Branch divergent — mencoba force push...
+📝 ${_log_msg}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_tg_ts_conflict}" "$_btn_conflict" 2>/dev/null &
   if git push --force origin "HEAD:refs/heads/${branch}" >"$push_log" 2>&1; then
     rm -f "$push_log"
     echo -e "  ${C_GREEN}🎉 Sukses (force)!${C_RESET} ${C_BOLD}${branch}${C_RESET} ${C_DIM}(${HEAD_SHA})${C_RESET}"
@@ -4107,11 +4117,35 @@ ${_push_detail}
     fi
     echo -e "  ${C_DIM}   Setelah allow → jalankan push.sh lagi, langsung bisa.${C_RESET}"
     echo ""
+    local _tg_ts_secret; _tg_ts_secret=$(date '+%H:%M:%S %d %b %Y')
+    local _unblock_btn_url="${unblock_url:-https://github.com/${USER}/${REPO}/security/secret-scanning}"
+    local _btn_secret='{"inline_keyboard":[[{"text":"🔓 Allow Secret","url":"'"${_unblock_btn_url}"'"},{"text":"🔒 Secret Scanning","url":"https://github.com/'"${USER}"'/'"${REPO}"'/security/secret-scanning"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+    send_telegram_photo "https://i.imgur.com/YQ3qFKq.jpg" "🔐 <b>PUSH DITOLAK — SECRET SCANNING</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${branch}</code>
+📝 ${_log_msg}
+⚠️ GitHub mendeteksi token/secret di commit
+━━━━━━━━━━━━━━━━━━━━
+✅ Klik <b>Allow Secret</b> lalu push ulang
+🕐 ${_tg_ts_secret}" "$_btn_secret" 2>/dev/null &
   else
     echo -e "  ${C_RED}❌ Gagal push ke ${branch}${C_RESET}"
     echo -e "  ${C_DIM}── error log ──${C_RESET}"
     sed 's/^/    /' "$push_log" | tail -10
     echo ""
+    local _tg_ts_reject; _tg_ts_reject=$(date '+%H:%M:%S %d %b %Y')
+    local _err_snippet; _err_snippet=$(tail -3 "$push_log" 2>/dev/null | tr '\n' ' ' | sed 's/  */ /g')
+    local _btn_reject='{"inline_keyboard":[[{"text":"📋 Action Logs","url":"https://github.com/'"${USER}"'/'"${REPO}"'/actions"},{"text":"🐛 Issues","url":"https://github.com/'"${USER}"'/'"${REPO}"'/issues"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+    send_telegram_photo "https://i.imgur.com/xqRqBfY.jpg" "🚫 <b>PUSH DITOLAK GITHUB</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${branch}</code>
+📝 ${_log_msg}
+━━━━━━━━━━━━━━━━━━━━
+⚠️ Error: <code>${_err_snippet}</code>
+💡 Cek token / izin repo / proteksi branch
+🕐 ${_tg_ts_reject}" "$_btn_reject" 2>/dev/null &
   fi
   log_push_event "$branch" "FAIL" "$_log_msg" "$_log_files"
   rm -f "$push_log"
