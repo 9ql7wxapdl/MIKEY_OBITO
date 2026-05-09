@@ -12,7 +12,6 @@ const HEADERS = {
     'Referer': BASE,
 };
 
-const MAX_IMAGES = 200;
 const MAX_VIDEOS = 5;
 
 function decodeEntities(str) {
@@ -120,7 +119,7 @@ async function cosplayteleGetPost(postId) {
         id: data.id,
         title: decodeEntities(data.title?.rendered || ''),
         link: data.link || '',
-        images: images.slice(0, MAX_IMAGES),
+        images: images,
         cossoraIds,
         totalImages: images.length,
         hasVideos: cossoraIds.length > 0,
