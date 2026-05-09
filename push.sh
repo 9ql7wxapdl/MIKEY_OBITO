@@ -32,7 +32,7 @@ USER="hitlabmodv2"
 REPO="ReadSwDika_Version"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
-DEFAULT_BRANCH="ReadswDika-V16.1"
+DEFAULT_BRANCH="ReadswDika-V16.2"
 
 # Branch yang disembunyikan dari menu (system / internal).
 # Pisahkan dengan spasi. Contoh: "replit-agent gh-pages backup"
@@ -175,14 +175,15 @@ screen_generate_token() {
   fi
 
   printf '%s' "$input_tok" > .token.secret
+  _save_token_backup "$input_tok"
   echo "" >&2
   echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
   echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
   echo "" >&2
   local _ts_tok; _ts_tok=$(date '+%H:%M:%S %d %b %Y')
   local _masked_tok="${input_tok:0:10}****${input_tok: -4}"
-  local _btn_tok1='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-  send_telegram "🔐 <b>TOKEN BARU DISIMPAN</b>
+  local _btn_tok1='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
+  send_telegram_photo "https://github.com/${USER}.png" "🔐 <b>TOKEN BARU DISIMPAN</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -219,14 +220,15 @@ screen_manual_token() {
   fi
 
   printf '%s' "$input_tok" > .token.secret
+  _save_token_backup "$input_tok"
   echo "" >&2
   echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
   echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
   echo "" >&2
   local _ts_tok2; _ts_tok2=$(date '+%H:%M:%S %d %b %Y')
   local _masked_tok2="${input_tok:0:10}****${input_tok: -4}"
-  local _btn_tok2='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-  send_telegram "🔐 <b>TOKEN MANUAL DISIMPAN</b>
+  local _btn_tok2='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
+  send_telegram_photo "https://github.com/${USER}.png" "🔐 <b>TOKEN MANUAL DISIMPAN</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -241,13 +243,37 @@ screen_manual_token() {
 # ===== Baca token =====
 # Urutan prioritas:
 #   1. .token.secret  → file token asli (GITIGNORED, aman)
-#   2. Belum ada / tidak valid → langsung minta paste token
+#   2. ~/.wily_token_backup → backup di home dir (persist di Replit)
+#   3. Belum ada / tidak valid → langsung minta paste token
+_TOKEN_BACKUP="$HOME/.wily_token_backup"
+
+_save_token_backup() {
+  local _t="$1"
+  [ -n "$_t" ] && printf '%s' "$_t" > "$_TOKEN_BACKUP" 2>/dev/null
+  chmod 600 "$_TOKEN_BACKUP" 2>/dev/null || true
+}
+
+_delete_token_backup() {
+  rm -f "$_TOKEN_BACKUP" 2>/dev/null
+}
+
 setup_token() {
   local tok=""
 
   # Coba baca dari .token.secret
   if [ -f .token.secret ]; then
     tok=$(tr -d '\n\r ' < .token.secret)
+  fi
+
+  # Fallback: baca dari backup di home dir (jika .token.secret hilang di Replit)
+  if [ -z "$tok" ] && [ -f "$_TOKEN_BACKUP" ]; then
+    tok=$(tr -d '\n\r ' < "$_TOKEN_BACKUP")
+    if [ -n "$tok" ] && ! echo "$tok" | grep -qE '^(#|TOKEN_KAMU|ISI_TOKEN|CONTOH|<|your_)'; then
+      printf '%s' "$tok" > .token.secret 2>/dev/null
+      echo -e "  ${C_GREEN}✅ Token dipulihkan dari backup${C_RESET}" >&2
+    else
+      tok=""
+    fi
   fi
 
   # Kalau masih kosong atau placeholder, langsung minta input token
@@ -298,6 +324,7 @@ setup_token() {
     if [ "$_tok_type" = "4" ]; then
       if [ -f .token.secret ]; then
         rm -f .token.secret
+        _delete_token_backup
         clear >/dev/tty 2>/dev/null || true
         echo -e "${C_BOLD}╔══════════════════════════════════════════════════╗${C_RESET}" >&2
         echo -e "${C_BOLD}║        🔐  TOKEN GITHUB — BANG WILY              ║${C_RESET}" >&2
@@ -307,8 +334,8 @@ setup_token() {
         echo -e "  ${C_DIM}   Silakan pilih opsi 1, 2, atau 3 untuk memasukkan token baru.${C_RESET}" >&2
         echo "" >&2
         local _ts_del; _ts_del=$(date '+%H:%M:%S %d %b %Y')
-        local _btn_tokdel='{"inline_keyboard":[[{"text":"🔑 Buat Token Baru","url":"https://github.com/settings/tokens/new"},{"text":"⚙️ Settings GitHub","url":"https://github.com/settings"}]]}'
-        send_telegram "🗑 <b>TOKEN DIHAPUS</b>
+        local _btn_tokdel='{"inline_keyboard":[[{"text":"🔑 Buat Token Baru","url":"https://github.com/settings/tokens/new"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"⚙️ Settings GitHub","url":"https://github.com/settings"},{"text":"🔒 Security","url":"https://github.com/settings/security"}]]}'
+        send_telegram_photo "https://github.com/${USER}.png" "🗑 <b>TOKEN DIHAPUS</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -377,8 +404,9 @@ setup_token() {
       echo "" >&2
       local _ts_tok3; _ts_tok3=$(date '+%H:%M:%S %d %b %Y')
       local _masked_tok3="${input_tok3:0:10}****${input_tok3: -4}"
-      local _btn_tok3='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-      send_telegram "🔐 <b>TOKEN DISIMPAN (PASTE)</b>
+      _save_token_backup "$input_tok3"
+      local _btn_tok3='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
+      send_telegram_photo "https://github.com/${USER}.png" "🔐 <b>TOKEN DISIMPAN (PASTE)</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -519,13 +547,14 @@ setup_token() {
     fi
 
     printf '%s' "$input_tok" > .token.secret
+    _save_token_backup "$input_tok"
     echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
     echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
     echo "" >&2
     local _ts_t12; _ts_t12=$(date '+%H:%M:%S %d %b %Y')
     local _masked_t12="${input_tok:0:10}****${input_tok: -4}"
-    local _btn_t12='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
-    send_telegram "🔐 <b>TOKEN DISIMPAN (INSTRUKSI)</b>
+    local _btn_t12='{"inline_keyboard":[[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}],[{"text":"🔒 Security","url":"https://github.com/settings/security"},{"text":"⚙️ Settings","url":"https://github.com/settings/profile"}]]}'
+    send_telegram_photo "https://github.com/${USER}.png" "🔐 <b>TOKEN DISIMPAN (INSTRUKSI)</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
@@ -635,6 +664,7 @@ validate_token() {
       _retry_pick=$(echo "$_retry_pick" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
       if [ "$_retry_pick" = "baru" ]; then
         rm -f .token.secret 2>/dev/null
+        _delete_token_backup
         return 1
       fi
       # Coba lagi dengan token yang sama (jangan hapus file)
@@ -652,6 +682,7 @@ validate_token() {
       _retry_pick403=$(echo "$_retry_pick403" | tr -d '\n\r ' | tr '[:upper:]' '[:lower:]')
       if [ "$_retry_pick403" = "baru" ]; then
         rm -f .token.secret 2>/dev/null
+        _delete_token_backup
       fi
       return 1
       ;;
@@ -811,14 +842,15 @@ sleep 1
 
 # Notif login berhasil ke Telegram
 _ts_login=$(date '+%H:%M:%S %d %b %Y')
-_btn_login='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Lihat Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
-send_telegram "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
+_btn_login='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${REPO}"'/settings"}]]}'
+send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${USER}/${REPO}</code>
 🌿 Default: <code>${DEFAULT_BRANCH}</code>
+🕐 ${_ts_login}
 ━━━━━━━━━━━━━━━━━━━━
-🕐 ${_ts_login}" "$_btn_login" 2>/dev/null &
+🔗 github.com/${USER}/${REPO}" "$_btn_login" 2>/dev/null &
 
 REMOTE_URL="https://${USER}:${TOKEN}@github.com/${USER}/${REPO}.git"
 
@@ -1371,6 +1403,28 @@ send_telegram() {
   fi
 }
 
+# ===== Kirim notifikasi Telegram dengan foto/thumbnail =====
+# Usage: send_telegram_photo "url_foto" "caption" '{"inline_keyboard":[[...]]}'
+send_telegram_photo() {
+  local _photo="$1"
+  local _caption="$2"
+  local _markup="${3:-}"
+  [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ] && return 0
+  local _cap_json
+  _cap_json=$(printf '%s' "$_caption" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$_caption")
+  if [ -n "$_markup" ]; then
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendPhoto" \
+      -H "Content-Type: application/json" \
+      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"photo\":\"${_photo}\",\"caption\":${_cap_json},\"parse_mode\":\"HTML\",\"reply_markup\":${_markup}}" \
+      >/dev/null 2>&1 &
+  else
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendPhoto" \
+      -H "Content-Type: application/json" \
+      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"photo\":\"${_photo}\",\"caption\":${_cap_json},\"parse_mode\":\"HTML\"}" \
+      >/dev/null 2>&1 &
+  fi
+}
+
 # ===== Catat event push ke log file =====
 # Usage: log_push_event "<branch>" "<status: OK|FAIL>" "<commit_msg>" "<jumlah_file>"
 log_push_event() {
@@ -1520,27 +1574,25 @@ action_quick_push() {
     echo -e "  ${C_GREEN}✅ Push berhasil!${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${DEFAULT_BRANCH}${C_RESET}"
     log_push_event "$DEFAULT_BRANCH" "OK" "$_msg" "$_changed"
-    local _btn_pushok='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${DEFAULT_BRANCH}"'"}]]}'
-    send_telegram "✅ <b>PUSH BERHASIL</b>
+    local _btn_pushok='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${DEFAULT_BRANCH}"'"}],[{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "✅ <b>PUSH BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${DEFAULT_BRANCH}</code>
 📝 ${_msg}
 📦 ${_changed} file diubah
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_now}" "$_btn_pushok"
   else
     echo -e "  ${C_RED}❌ Push gagal.${C_RESET}"
     echo "$_push_out" | tail -5 | sed 's/^/     /'
     log_push_event "$DEFAULT_BRANCH" "FAIL" "$_msg" "$_changed"
-    local _btn_pushfail='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"}]]}'
-    send_telegram "❌ <b>PUSH GAGAL</b>
+    local _btn_pushfail='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"}],[{"text":"🐛 Issues","url":"https://github.com/'"${USER}"'/'"${REPO}"'/issues"},{"text":"📋 Action Logs","url":"https://github.com/'"${USER}"'/'"${REPO}"'/actions"}]]}'
+    send_telegram_photo "https://github.com/${USER}.png" "❌ <b>PUSH GAGAL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${DEFAULT_BRANCH}</code>
 📝 ${_msg}
 ⚠️ Periksa koneksi / token / konflik branch
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_now}" "$_btn_pushfail"
   fi
 
@@ -1740,13 +1792,12 @@ action_rename_repo() {
     echo -e "  ${C_DIM}Remote URL lokal sudah diperbarui otomatis.${C_RESET}"
     echo -e "  ${C_DIM}Perubahan nama disimpan permanen di push.sh${C_RESET}"
     local _ts_rr; _ts_rr=$(date '+%H:%M:%S %d %b %Y')
-    local _btn_rr='{"inline_keyboard":[[{"text":"📁 Buka Repo Baru","url":"https://github.com/'"${USER}"'/'"${new_name}"'"},{"text":"⚙️ Settings Repo","url":"https://github.com/'"${USER}"'/'"${new_name}"'/settings"}]]}'
-    send_telegram "✏️ <b>REPO DI-RENAME</b>
+    local _btn_rr='{"inline_keyboard":[[{"text":"📁 Buka Repo Baru","url":"https://github.com/'"${USER}"'/'"${new_name}"'"},{"text":"⚙️ Settings Repo","url":"https://github.com/'"${USER}"'/'"${new_name}"'/settings"}],[{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${new_name}"'/branches"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${new_name}"'/commits"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "✏️ <b>REPO DI-RENAME</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 🔄 <code>${old_repo}</code> → <code>${new_name}</code>
 🔗 github.com/${USER}/${new_name}
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_rr}" "$_btn_rr" 2>/dev/null &
   else
     local api_msg
@@ -1837,13 +1888,12 @@ action_switch_default() {
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}${C_RESET}"
     echo -e "  ${C_DIM}Perubahan juga disimpan permanen di push.sh${C_RESET}"
     local _ts_sd; _ts_sd=$(date '+%H:%M:%S %d %b %Y')
-    local _btn_sd='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Lihat Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
-    send_telegram "🔀 <b>DEFAULT BRANCH DIUBAH</b>
+    local _btn_sd='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"🔀 New PR","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📊 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${old_default}"'...'"${new_default}"'"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "🔀 <b>DEFAULT BRANCH DIUBAH</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🔄 <code>${old_default}</code> → <code>${new_default}</code>
 🔗 github.com/${USER}/${REPO}
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_sd}" "$_btn_sd" 2>/dev/null &
   else
     # Gagal — tampilkan error dari API
@@ -2388,14 +2438,13 @@ action_create_repo() {
     echo -e "  ${C_DIM}▸ Clone dengan:${C_RESET}"
     echo -e "  ${C_BOLD}git clone ${clone_url:-https://github.com/${USER}/${new_repo_name}.git}${C_RESET}"
     local _ts_cr; _ts_cr=$(date '+%H:%M:%S %d %b %Y')
-    local _btn_cr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/settings"}]]}'
-    send_telegram "📦 <b>REPO BARU DIBUAT</b>
+    local _btn_cr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/settings"}],[{"text":"📋 Issues","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/issues"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/branches"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "📦 <b>REPO BARU DIBUAT</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 <code>${full_name:-${USER}/${new_repo_name}}</code>
 🔒 ${vis_label}
 🔗 ${html_url:-github.com/${USER}/${new_repo_name}}
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_cr}" "$_btn_cr" 2>/dev/null &
   else
     # Ekstrak pesan error dari GitHub
@@ -2651,14 +2700,13 @@ action_import_repo() {
       printf "  ${C_DIM}Info     ${C_RESET}%s\n" "$imp_text"
     echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
     local _ts_ir; _ts_ir=$(date '+%H:%M:%S %d %b %Y')
-    local _btn_ir='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"},{"text":"📊 Status Import","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"}]]}'
-    send_telegram "📥 <b>IMPORT REPO DIMULAI</b>
+    local _btn_ir='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"},{"text":"📊 Status Import","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"}],[{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'/settings"},{"text":"📋 Issues","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'/issues"}]]}'
+    send_telegram_photo "https://github.com/${USER}.png" "📥 <b>IMPORT REPO DIMULAI</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
 📁 Repo baru: <code>${USER}/${imp_repo_name}</code>
 🔗 Sumber: <code>${src_url}</code>
 ⏳ ${imp_status:-importing}
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_ir}" "$_btn_ir" 2>/dev/null &
     echo ""
     # ── Polling status sampai selesai atau error ─────────────────────────
@@ -3051,13 +3099,12 @@ action_delete_repo() {
         echo -e "  ${C_YELLOW}   Ubah variabel REPO di atas script sebelum push berikutnya.${C_RESET}"
       fi
       local _ts_dr; _ts_dr=$(date '+%H:%M:%S %d %b %Y')
-      local _btn_dr='{"inline_keyboard":[[{"text":"👤 Lihat Profile","url":"https://github.com/'"${del_owner}"'"},{"text":"📦 Semua Repo","url":"https://github.com/'"${del_owner}"'?tab=repositories"}]]}'
-      send_telegram "🗑 <b>REPO DIHAPUS</b>
+      local _btn_dr='{"inline_keyboard":[[{"text":"👤 Lihat Profile","url":"https://github.com/'"${del_owner}"'"},{"text":"📦 Semua Repo","url":"https://github.com/'"${del_owner}"'?tab=repositories"}],[{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"},{"text":"➕ Buat Repo Baru","url":"https://github.com/new"}]]}'
+      send_telegram_photo "https://github.com/${del_owner}.png" "🗑 <b>REPO DIHAPUS</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${del_owner}</code>
 📁 <code>${del_owner}/${del_repo}</code>
 ⚠️ Repo ini sudah TIDAK ADA di GitHub
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_dr}" "$_btn_dr" 2>/dev/null &
       ;;
     403)
@@ -3463,13 +3510,12 @@ action_rename_branch() {
     echo -e "  ${C_DIM}${old_name}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${new_name}${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${new_name}${C_RESET}"
     local _ts_rb; _ts_rb=$(date '+%H:%M:%S %d %b %Y')
-    local _btn_rb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch Baru","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${new_name}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
-    send_telegram "✏️ <b>BRANCH DI-RENAME</b>
+    local _btn_rb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch Baru","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${new_name}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"🔀 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${new_name}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${new_name}"'"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "✏️ <b>BRANCH DI-RENAME</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🔄 <code>${old_name}</code> → <code>${new_name}</code>
 🔗 github.com/${USER}/${REPO}/tree/${new_name}
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_rb}" "$_btn_rb" 2>/dev/null &
 
     # Kalau yang di-rename adalah default branch, update variabel & script
@@ -3581,8 +3627,8 @@ action_create_branch() {
     echo -e "  ${C_GREEN}🎉 Branch '${name}' berhasil dibuat di GitHub!${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${name}${C_RESET}"
     local _ts_cb; _ts_cb=$(date '+%H:%M:%S %d %b %Y')
-    local _btn_cb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${name}"'"},{"text":"🔀 Buat Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${name}"'"}]]}'
-    send_telegram "🌱 <b>BRANCH BARU DIBUAT</b>
+    local _btn_cb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${name}"'"},{"text":"🔀 Buat PR","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${name}"'"}],[{"text":"📁 Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${name}"'"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "🌱 <b>BRANCH BARU DIBUAT</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch baru: <code>${name}</code>
@@ -3740,12 +3786,11 @@ action_delete_branch() {
       echo -e "  ${C_GREEN}✅ remote terhapus${C_RESET}"
       ok=$((ok + 1))
       local _ts_db; _ts_db=$(date '+%H:%M:%S %d %b %Y')
-      local _btn_db='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
-      send_telegram "🗑 <b>BRANCH DIHAPUS</b>
+      local _btn_db='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits"},{"text":"🌿 Default Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"}]]}'
+      send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "🗑 <b>BRANCH DIHAPUS</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${target}</code>
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_db}" "$_btn_db" 2>/dev/null &
     else
       echo -e "  ${C_RED}❌ Gagal hapus remote${C_RESET}"
@@ -3959,14 +4004,13 @@ push_head_to_branch() {
     echo -e "  ${C_GREEN}🎉 Sukses!${C_RESET} ${C_BOLD}${branch}${C_RESET} ${C_DIM}(${HEAD_SHA})${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${branch}${C_RESET}"
     log_push_event "$branch" "OK" "$_log_msg" "$_log_files"
-    local _btn_pbr='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}]]}'
-    send_telegram "✅ <b>PUSH BERHASIL</b>
+    local _btn_pbr='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}],[{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"},{"text":"📥 Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulls"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "✅ <b>PUSH BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
 📝 ${_log_msg}
 📦 ${_log_files} file diubah
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_tg_ts}" "$_btn_pbr"
     return 0
   fi
@@ -3978,15 +4022,14 @@ push_head_to_branch() {
     echo -e "  ${C_GREEN}🎉 Sukses (force)!${C_RESET} ${C_BOLD}${branch}${C_RESET} ${C_DIM}(${HEAD_SHA})${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${branch}${C_RESET}"
     log_push_event "$branch" "OK(force)" "$_log_msg" "$_log_files"
-    local _btn_pforce='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}]]}'
-    send_telegram "⚡ <b>PUSH BERHASIL (FORCE)</b>
+    local _btn_pforce='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}],[{"text":"⚠️ Security","url":"https://github.com/'"${USER}"'/'"${REPO}"'/security"},{"text":"🔀 Compare","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare"}]]}'
+    send_telegram_photo "https://avatars.githubusercontent.com/${USER}" "⚡ <b>PUSH BERHASIL (FORCE)</b>
 ━━━━━━━━━━━━━━━━━━━━
 📁 <code>${USER}/${REPO}</code>
 🌿 Branch: <code>${branch}</code>
 📝 ${_log_msg}
 📦 ${_log_files} file diubah
 ⚠️ Force push — history lama ditimpa
-━━━━━━━━━━━━━━━━━━━━
 🕐 ${_tg_ts}" "$_btn_pforce"
     return 0
   fi
