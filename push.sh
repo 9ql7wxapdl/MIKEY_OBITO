@@ -38,6 +38,13 @@ DEFAULT_BRANCH="ReadswDika-V16.1"
 # Pisahkan dengan spasi. Contoh: "replit-agent gh-pages backup"
 IGNORE_BRANCHES="replit-agent HEAD"
 
+# File log riwayat push (disimpan lokal, tidak ke-upload ke GitHub)
+PUSH_LOG_FILE=".push_history.log"
+
+# Telegram notifikasi (push.sh only — tidak berhubungan dengan bot WA)
+TG_TOKEN="7603636186:AAHBmh1otqBb-RX5bhARGj0r0CPpNzqzaF4"
+TG_CHAT_ID="5810736154"
+
 set -o pipefail
 # Catatan: sengaja TIDAK pakai `set -e` biar error per-branch nggak
 # langsung kill seluruh script — biar bisa kembali ke menu.
@@ -172,6 +179,17 @@ screen_generate_token() {
   echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
   echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
   echo "" >&2
+  local _ts_tok; _ts_tok=$(date '+%H:%M:%S %d %b %Y')
+  local _masked_tok="${input_tok:0:10}****${input_tok: -4}"
+  local _btn_tok1='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+  send_telegram "🔐 <b>TOKEN BARU DISIMPAN</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${USER}/${REPO}</code>
+🏷 Generate Token Baru
+🔑 <code>${_masked_tok}</code>
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_tok}" "$_btn_tok1" 2>/dev/null &
   sleep 1
   echo "$input_tok"
 }
@@ -205,6 +223,17 @@ screen_manual_token() {
   echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
   echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
   echo "" >&2
+  local _ts_tok2; _ts_tok2=$(date '+%H:%M:%S %d %b %Y')
+  local _masked_tok2="${input_tok:0:10}****${input_tok: -4}"
+  local _btn_tok2='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+  send_telegram "🔐 <b>TOKEN MANUAL DISIMPAN</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${USER}/${REPO}</code>
+🏷 Input Manual
+🔑 <code>${_masked_tok2}</code>
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_tok2}" "$_btn_tok2" 2>/dev/null &
   sleep 1
   echo "$input_tok"
 }
@@ -277,6 +306,16 @@ setup_token() {
         echo -e "  ${C_GREEN}✅ .token.secret berhasil dihapus.${C_RESET}" >&2
         echo -e "  ${C_DIM}   Silakan pilih opsi 1, 2, atau 3 untuk memasukkan token baru.${C_RESET}" >&2
         echo "" >&2
+        local _ts_del; _ts_del=$(date '+%H:%M:%S %d %b %Y')
+        local _btn_tokdel='{"inline_keyboard":[[{"text":"🔑 Buat Token Baru","url":"https://github.com/settings/tokens/new"},{"text":"⚙️ Settings GitHub","url":"https://github.com/settings"}]]}'
+        send_telegram "🗑 <b>TOKEN DIHAPUS</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${USER}/${REPO}</code>
+⚠️ .token.secret dihapus dari perangkat
+🔓 Script butuh token baru untuk push
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_del}" "$_btn_tokdel" 2>/dev/null &
         sleep 2
       fi
       tok=""
@@ -336,6 +375,17 @@ setup_token() {
       echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
       echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
       echo "" >&2
+      local _ts_tok3; _ts_tok3=$(date '+%H:%M:%S %d %b %Y')
+      local _masked_tok3="${input_tok3:0:10}****${input_tok3: -4}"
+      local _btn_tok3='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+      send_telegram "🔐 <b>TOKEN DISIMPAN (PASTE)</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${USER}/${REPO}</code>
+🏷 ${_det3_label}
+🔑 <code>${_masked_tok3}</code>
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_tok3}" "$_btn_tok3" 2>/dev/null &
       sleep 1
       tok="$input_tok3"
       continue
@@ -472,6 +522,17 @@ setup_token() {
     echo -e "  ${C_GREEN}✅ Token disimpan ke .token.secret${C_RESET}" >&2
     echo -e "  ${C_DIM}   File ini gitignored — aman, tidak ke-upload ke GitHub${C_RESET}" >&2
     echo "" >&2
+    local _ts_t12; _ts_t12=$(date '+%H:%M:%S %d %b %Y')
+    local _masked_t12="${input_tok:0:10}****${input_tok: -4}"
+    local _btn_t12='{"inline_keyboard":[[{"text":"🔑 Kelola Token GitHub","url":"https://github.com/settings/tokens"},{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+    send_telegram "🔐 <b>TOKEN DISIMPAN (INSTRUKSI)</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${USER}/${REPO}</code>
+🏷 ${_detected_label:-Token}
+🔑 <code>${_masked_t12}</code>
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_t12}" "$_btn_t12" 2>/dev/null &
     sleep 1
     tok="$input_tok"
   done
@@ -747,6 +808,17 @@ echo "" >&2
 echo -e "  ${C_BOLD}📁 Repository tujuan: ${C_GREEN}${REPO}${C_RESET}" >&2
 echo "" >&2
 sleep 1
+
+# Notif login berhasil ke Telegram
+_ts_login=$(date '+%H:%M:%S %d %b %Y')
+_btn_login='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Lihat Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
+send_telegram "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${USER}/${REPO}</code>
+🌿 Default: <code>${DEFAULT_BRANCH}</code>
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_login}" "$_btn_login" 2>/dev/null &
 
 REMOTE_URL="https://${USER}:${TOKEN}@github.com/${USER}/${REPO}.git"
 
@@ -1127,33 +1199,129 @@ fetch_branches() {
 # ===== Header banner =====
 banner() {
   clear >/dev/tty 2>/dev/null || true
+
+  # ── Waktu & tanggal realtime ──
+  local _hari _tgl _bln _thn _jam
+  _hari=$(date '+%A' 2>/dev/null || echo "")
+  _tgl=$(date '+%d'  2>/dev/null || echo "")
+  _bln=$(date '+%B'  2>/dev/null || echo "")
+  _thn=$(date '+%Y'  2>/dev/null || echo "")
+  _jam=$(date '+%H:%M:%S' 2>/dev/null || echo "")
+
+  # ── Status branch realtime ──
+  local _ahead _behind _staged _modified _untracked _deleted
+  local _last_msg _last_time _last_author _total_commit _branch_local
+  _ahead=$(git rev-list --count "@{u}..HEAD" 2>/dev/null || echo "0")
+  _behind=$(git rev-list --count "HEAD..@{u}" 2>/dev/null || echo "0")
+
+  # Hitung staged / modified / untracked / deleted secara terpisah
+  local _st
+  _st=$(git status --porcelain 2>/dev/null)
+  _staged=$(echo "$_st"    | grep -E '^[ADMRC]'  2>/dev/null | wc -l | tr -d ' ')
+  _modified=$(echo "$_st"  | grep -E '^ M'        2>/dev/null | wc -l | tr -d ' ')
+  _untracked=$(echo "$_st" | grep -E '^\?\?'       2>/dev/null | wc -l | tr -d ' ')
+  _deleted=$(echo "$_st"   | grep -E '^ D|^D'      2>/dev/null | wc -l | tr -d ' ')
+
+  # Info commit terakhir
+  _last_msg=$(git log -1 --format='%s' 2>/dev/null | cut -c1-28 || echo "-")
+  _last_time=$(git log -1 --format='%ar' 2>/dev/null || echo "-")
+  _last_author=$(git log -1 --format='%an' 2>/dev/null | cut -c1-16 || echo "-")
+  _total_commit=$(git rev-list --count HEAD 2>/dev/null || echo "?")
+  _branch_local=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "-")
+
+  # Label sync status
+  local _sync_label _sync_color
+  if [ "$_ahead" -gt 0 ] 2>/dev/null && [ "$_behind" -gt 0 ] 2>/dev/null; then
+    _sync_label="↑${_ahead} belum push  ↓${_behind} belum pull"
+    _sync_color="$C_YELLOW"
+  elif [ "$_ahead" -gt 0 ] 2>/dev/null; then
+    _sync_label="↑ ${_ahead} commit belum di-push"
+    _sync_color="$C_GREEN"
+  elif [ "$_behind" -gt 0 ] 2>/dev/null; then
+    _sync_label="↓ ${_behind} commit belum di-pull"
+    _sync_color="$C_RED"
+  else
+    _sync_label="✓ sinkron dengan remote"
+    _sync_color="$C_DIM"
+  fi
+
+  # ── Notif push terakhir dari log (realtime) ──
+  local _notif_line _notif_status _notif_branch _notif_hash _notif_files _notif_msg _notif_ts
+  _notif_line=""
+  if [ -f "$PUSH_LOG_FILE" ] && [ -s "$PUSH_LOG_FILE" ]; then
+    _notif_line=$(tail -1 "$PUSH_LOG_FILE" 2>/dev/null)
+  fi
+
+  local _notif_icon _notif_color
+  if [ -n "$_notif_line" ]; then
+    # Format: [2026-05-08 14:44:32] OK     | branch: xxx | hash: yyy | file: z | msg
+    _notif_ts=$(echo "$_notif_line"     | grep -oE '^\[[^]]+\]' | tr -d '[]')
+    _notif_status=$(echo "$_notif_line" | grep -oE '\] [A-Z(a-z)]+\s' | tr -d '] ' | tr -d ' ')
+    _notif_branch=$(echo "$_notif_line" | grep -oE 'branch: [^|]+' | sed 's/branch: //;s/ *$//')
+    _notif_hash=$(echo "$_notif_line"   | grep -oE 'hash: [^|]+' | sed 's/hash: //;s/ *$//')
+    _notif_files=$(echo "$_notif_line"  | grep -oE 'file: [^|]+' | sed 's/file: //;s/ *$//')
+    _notif_msg=$(echo "$_notif_line"    | sed 's/.*file: [^|]* | //')
+    case "$_notif_status" in
+      OK*)   _notif_icon="✅"; _notif_color="$C_GREEN" ;;
+      FAIL*) _notif_icon="❌"; _notif_color="$C_RED"   ;;
+      *)     _notif_icon="❓"; _notif_color="$C_DIM"   ;;
+    esac
+  fi
+
   echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_BOLD}│   🚀  PUSH SCRIPT — BANG WILY    │${C_RESET}"
+  echo -e "${C_BOLD}│  🚀  PUSH SCRIPT — BANG WILY  🚀  │${C_RESET}"
   echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
-  echo -e "  ${C_DIM}repo   ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo -e "  ${C_DIM}branch ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
-  echo ""
+  echo -e "  📅 ${_tgl} ${_bln} ${_thn}  ${C_CYAN}${C_BOLD}🕐 ${_jam}${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  📁 ${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo -e "  🌿 ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}${C_DIM}  •  ${_total_commit} commit${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${_sync_color}${_sync_label}${C_RESET}"
+  echo -e "  ${C_YELLOW}📝${_staged}${C_RESET}  ${C_CYAN}✏️ ${_modified}${C_RESET}  ${C_DIM}❓${_untracked}${C_RESET}  ${C_RED}🗑 ${_deleted}${C_RESET}${C_DIM}  (staged/mod/baru/del)${C_RESET}"
+  echo -e "  ${C_DIM}💾 ${_last_msg}  •  ${_last_time}${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  # Notif push terakhir
+  if [ -n "$_notif_line" ]; then
+    echo -e "  ${C_BOLD}🔔 PUSH TERAKHIR${C_RESET}"
+    echo -e "  ${_notif_color}${_notif_icon} ${_notif_status}${C_RESET}${C_DIM}  •  ${_notif_ts}${C_RESET}"
+    echo -e "  ${C_DIM}🌿 ${_notif_branch}  •  #${_notif_hash}  •  ${_notif_files} file${C_RESET}"
+    echo -e "  ${C_DIM}💬 ${_notif_msg}${C_RESET}"
+  else
+    echo -e "  ${C_DIM}🔔 Belum ada riwayat push${C_RESET}"
+  fi
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
 }
 
 # ===== Menu utama =====
 show_main_menu() {
   banner
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Upload ke branch"
-  echo -e "  ${C_CYAN}2${C_RESET} ${C_BOLD}›${C_RESET} Buat branch baru"
-  echo -e "  ${C_YELLOW}3${C_RESET} ${C_BOLD}›${C_RESET} Hapus branch"
-  echo -e "  ${C_MAGENTA}4${C_RESET} ${C_BOLD}›${C_RESET} Ganti default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
-  echo -e "  ${C_BLUE}5${C_RESET} ${C_BOLD}›${C_RESET} Cek token"
-  echo -e "  ${C_BLUE}6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo    ${C_DIM}(${REPO})${C_RESET}"
-  echo -e "  ${C_CYAN}7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
-  echo -e "  ${C_GREEN}8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
-  echo -e "  ${C_YELLOW}9${C_RESET} ${C_BOLD}›${C_RESET} Buat repository baru"
-  echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repository"
-  echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repository"
-  echo -e "  ${C_MAGENTA}12${C_RESET} ${C_BOLD}›${C_RESET} Semua repository"
-  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  # ── Grup: Branch ──────────────────────
+  echo -e "  ${C_DIM}🌿 BRANCH${C_RESET}"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN} 1${C_RESET} ${C_BOLD}›${C_RESET} Upload ke branch"
+  echo -e "  ${C_CYAN} 2${C_RESET} ${C_BOLD}›${C_RESET} Buat branch baru"
+  echo -e "  ${C_CYAN} 7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
+  echo -e "  ${C_YELLOW} 3${C_RESET} ${C_BOLD}›${C_RESET} Hapus branch"
+  echo -e "  ${C_GREEN} 8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
+  echo -e "  ${C_MAGENTA} 4${C_RESET} ${C_BOLD}›${C_RESET} Ganti default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
+  echo ""
+  # ── Grup: Repository ──────────────────
+  echo -e "  ${C_DIM}📁 REPOSITORY${C_RESET}"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_BLUE} 6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo   ${C_DIM}(${REPO})${C_RESET}"
+  echo -e "  ${C_YELLOW} 9${C_RESET} ${C_BOLD}›${C_RESET} Buat repo baru"
+  echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repo"
+  echo -e "  ${C_MAGENTA}12${C_RESET} ${C_BOLD}›${C_RESET} Semua repo"
+  echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repo"
+  echo ""
+  # ── Grup: Tools ───────────────────────
+  echo -e "  ${C_DIM}🔧 LAINNYA${C_RESET}"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN} p${C_RESET} ${C_BOLD}›${C_RESET} ${C_BOLD}Quick Push${C_RESET} ${C_DIM}→ ${DEFAULT_BRANCH}${C_RESET}"
+  echo -e "  ${C_MAGENTA} l${C_RESET} ${C_BOLD}›${C_RESET} Riwayat push"
+  echo -e "  ${C_BLUE} 5${C_RESET} ${C_BOLD}›${C_RESET} Cek token"
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local pick
@@ -1173,12 +1341,211 @@ show_main_menu() {
     10) action_import_repo ;;
     11) action_delete_repo ;;
     12) action_list_repos ;;
+    p|P) action_quick_push ;;
+    l|L) action_view_push_log ;;
     0|q|Q|exit) goodbye_prompt ;;
     *)
       echo -e "${C_RED}✖ Pilihan tidak valid: '${pick}'${C_RESET}"
       sleep 1
       ;;
   esac
+}
+
+# ===== Kirim notifikasi Telegram (dengan opsional inline button) =====
+# Usage: send_telegram "teks" '{"inline_keyboard":[[...]]}'
+send_telegram() {
+  local _text="$1"
+  local _markup="${2:-}"
+  [ -z "$TG_TOKEN" ] || [ -z "$TG_CHAT_ID" ] && return 0
+  if [ -n "$_markup" ]; then
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+      -H "Content-Type: application/json" \
+      -d "{\"chat_id\":\"${TG_CHAT_ID}\",\"parse_mode\":\"HTML\",\"text\":$(printf '%s' "$_text" | python3 -c 'import json,sys; print(json.dumps(sys.stdin.read()))' 2>/dev/null || printf '"%s"' "$_text"),\"reply_markup\":${_markup}}" \
+      >/dev/null 2>&1 &
+  else
+    curl -s -X POST "https://api.telegram.org/bot${TG_TOKEN}/sendMessage" \
+      -d chat_id="${TG_CHAT_ID}" \
+      -d parse_mode="HTML" \
+      -d text="${_text}" \
+      >/dev/null 2>&1 &
+  fi
+}
+
+# ===== Catat event push ke log file =====
+# Usage: log_push_event "<branch>" "<status: OK|FAIL>" "<commit_msg>" "<jumlah_file>"
+log_push_event() {
+  local _branch="${1:-?}"
+  local _status="${2:-?}"
+  local _msg="${3:--}"
+  local _files="${4:-0}"
+  local _ts _commit_hash
+  _ts=$(date '+%Y-%m-%d %H:%M:%S')
+  _commit_hash=$(git rev-parse --short HEAD 2>/dev/null || echo "?")
+  printf '[%s] %-6s | branch: %-30s | hash: %s | file: %s | %s\n' \
+    "$_ts" "$_status" "$_branch" "$_commit_hash" "$_files" "$_msg" \
+    >> "${PUSH_LOG_FILE}" 2>/dev/null || true
+}
+
+# ===== Tampilkan riwayat push =====
+action_view_push_log() {
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│  📋  RIWAYAT PUSH — BANG WILY    │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+
+  if [ ! -f "$PUSH_LOG_FILE" ] || [ ! -s "$PUSH_LOG_FILE" ]; then
+    echo -e "  ${C_DIM}Belum ada riwayat push.${C_RESET}"
+    echo -e "  ${C_DIM}Log akan muncul setelah kamu push pertama kali.${C_RESET}"
+    echo ""
+    prompt_back_or_exit
+    return
+  fi
+
+  # Hitung total & sukses
+  local _total _ok _fail
+  _total=$(wc -l < "$PUSH_LOG_FILE" | tr -d ' ')
+  _ok=$(grep -c '| OK ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+  _fail=$(grep -c '| FAIL ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+
+  echo -e "  ${C_DIM}Total push : ${C_RESET}${C_BOLD}${_total}${C_RESET}  ${C_DIM}•  ${C_GREEN}✅ ${_ok} sukses${C_RESET}  ${C_DIM}•  ${C_RED}❌ ${_fail} gagal${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}(20 push terakhir)${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo ""
+
+  # Tampilkan 20 baris terakhir dengan warna status
+  local _line _status_part
+  while IFS= read -r _line; do
+    if echo "$_line" | grep -q '| OK '; then
+      echo -e "  ${C_GREEN}✅${C_RESET} ${C_DIM}${_line}${C_RESET}"
+    else
+      echo -e "  ${C_RED}❌${C_RESET} ${C_DIM}${_line}${C_RESET}"
+    fi
+  done < <(tail -20 "$PUSH_LOG_FILE")
+
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_YELLOW}h${C_RESET} ${C_BOLD}›${C_RESET} Hapus semua riwayat"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+
+  local _ans
+  read -r _ans </dev/tty
+  case "$_ans" in
+    h|H)
+      rm -f "$PUSH_LOG_FILE"
+      echo -e "  ${C_GREEN}✅ Riwayat dihapus.${C_RESET}"
+      sleep 1
+      ;;
+    0|q|Q) goodbye_prompt ;;
+  esac
+}
+
+# ===== Action: quick push ke default branch =====
+action_quick_push() {
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│  ⚡  QUICK PUSH — BANG WILY       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo -e "  ${C_DIM}target${C_RESET}  ${C_GREEN}${C_BOLD}${DEFAULT_BRANCH}${C_RESET}"
+  echo -e "  ${C_DIM}repo  ${C_RESET}  ${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo ""
+
+  # Cek ada perubahan tidak
+  local _st _changed
+  _st=$(git status --porcelain 2>/dev/null)
+  _changed=$(echo "$_st" | grep -v '^$' | wc -l | tr -d ' ')
+
+  # Cek ahead
+  local _ahead
+  _ahead=$(git rev-list --count "@{u}..HEAD" 2>/dev/null || echo "0")
+
+  if [ "$_changed" -eq 0 ] && [ "$_ahead" -eq 0 ]; then
+    echo -e "  ${C_DIM}✓ Tidak ada perubahan & sudah sinkron.${C_RESET}"
+    echo -e "  ${C_DIM}  Tidak perlu push.${C_RESET}"
+    echo ""
+    prompt_back_or_exit
+    return
+  fi
+
+  # Tampilkan ringkasan
+  if [ "$_changed" -gt 0 ]; then
+    echo -e "  ${C_YELLOW}📝 ${_changed} file berubah akan di-commit & push${C_RESET}"
+  fi
+  if [ "$_ahead" -gt 0 ]; then
+    echo -e "  ${C_GREEN}↑  ${_ahead} commit lokal belum di-push${C_RESET}"
+  fi
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Lanjut push sekarang"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+
+  local _confirm
+  read -r _confirm </dev/tty
+  if [ "$_confirm" != "1" ]; then
+    echo -e "  ${C_YELLOW}↩ Dibatalkan.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  echo ""
+  echo -e "  ${C_CYAN}▸ Staging semua perubahan...${C_RESET}"
+  if ! stage_changes; then
+    echo -e "  ${C_RED}❌ Gagal staging. Cek error di atas.${C_RESET}"
+    prompt_back_or_exit
+    return
+  fi
+
+  # Generate commit message otomatis
+  local _msg
+  _msg=$(generate_commit_msg 2>/dev/null || echo "chore: quick push via Bang Wily")
+  [ -z "$_msg" ] && _msg="chore: quick push via Bang Wily"
+
+  echo -e "  ${C_CYAN}▸ Commit: ${C_RESET}${C_DIM}${_msg}${C_RESET}"
+  git commit -m "$_msg" --allow-empty >/dev/null 2>&1 || true
+
+  echo -e "  ${C_CYAN}▸ Push ke ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}${C_CYAN}...${C_RESET}"
+  local _push_out _push_ok=0
+  _push_out=$(git push "${REMOTE_URL:-origin}" "HEAD:${DEFAULT_BRANCH}" 2>&1)
+  [ $? -eq 0 ] && _push_ok=1
+
+  echo ""
+  local _ts_now; _ts_now=$(date '+%H:%M:%S %d %b %Y')
+  if [ "$_push_ok" -eq 1 ]; then
+    echo -e "  ${C_GREEN}✅ Push berhasil!${C_RESET}"
+    echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${DEFAULT_BRANCH}${C_RESET}"
+    log_push_event "$DEFAULT_BRANCH" "OK" "$_msg" "$_changed"
+    local _btn_pushok='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${DEFAULT_BRANCH}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${DEFAULT_BRANCH}"'"}]]}'
+    send_telegram "✅ <b>PUSH BERHASIL</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${DEFAULT_BRANCH}</code>
+📝 ${_msg}
+📦 ${_changed} file diubah
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_now}" "$_btn_pushok"
+  else
+    echo -e "  ${C_RED}❌ Push gagal.${C_RESET}"
+    echo "$_push_out" | tail -5 | sed 's/^/     /'
+    log_push_event "$DEFAULT_BRANCH" "FAIL" "$_msg" "$_changed"
+    local _btn_pushfail='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🔑 Kelola Token","url":"https://github.com/settings/tokens"}]]}'
+    send_telegram "❌ <b>PUSH GAGAL</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${DEFAULT_BRANCH}</code>
+📝 ${_msg}
+⚠️ Periksa koneksi / token / konflik branch
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_now}" "$_btn_pushfail"
+  fi
+
+  echo ""
+  prompt_back_or_exit
 }
 
 # ===== Action: cek status token =====
@@ -1372,6 +1739,15 @@ action_rename_repo() {
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${new_name}${C_RESET}"
     echo -e "  ${C_DIM}Remote URL lokal sudah diperbarui otomatis.${C_RESET}"
     echo -e "  ${C_DIM}Perubahan nama disimpan permanen di push.sh${C_RESET}"
+    local _ts_rr; _ts_rr=$(date '+%H:%M:%S %d %b %Y')
+    local _btn_rr='{"inline_keyboard":[[{"text":"📁 Buka Repo Baru","url":"https://github.com/'"${USER}"'/'"${new_name}"'"},{"text":"⚙️ Settings Repo","url":"https://github.com/'"${USER}"'/'"${new_name}"'/settings"}]]}'
+    send_telegram "✏️ <b>REPO DI-RENAME</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+🔄 <code>${old_repo}</code> → <code>${new_name}</code>
+🔗 github.com/${USER}/${new_name}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_rr}" "$_btn_rr" 2>/dev/null &
   else
     local api_msg
     api_msg=$(grep -o '"message":"[^"]*"' /tmp/_gh_rename.json 2>/dev/null | head -1 | sed 's/"message":"//;s/"//')
@@ -1460,6 +1836,15 @@ action_switch_default() {
     echo -e "     ${C_DIM}${old_default}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${new_default}${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}${C_RESET}"
     echo -e "  ${C_DIM}Perubahan juga disimpan permanen di push.sh${C_RESET}"
+    local _ts_sd; _ts_sd=$(date '+%H:%M:%S %d %b %Y')
+    local _btn_sd='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Lihat Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
+    send_telegram "🔀 <b>DEFAULT BRANCH DIUBAH</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🔄 <code>${old_default}</code> → <code>${new_default}</code>
+🔗 github.com/${USER}/${REPO}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_sd}" "$_btn_sd" 2>/dev/null &
   else
     # Gagal — tampilkan error dari API
     local api_msg
@@ -2002,6 +2387,16 @@ action_create_repo() {
     echo ""
     echo -e "  ${C_DIM}▸ Clone dengan:${C_RESET}"
     echo -e "  ${C_BOLD}git clone ${clone_url:-https://github.com/${USER}/${new_repo_name}.git}${C_RESET}"
+    local _ts_cr; _ts_cr=$(date '+%H:%M:%S %d %b %Y')
+    local _btn_cr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${new_repo_name}"'/settings"}]]}'
+    send_telegram "📦 <b>REPO BARU DIBUAT</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 <code>${full_name:-${USER}/${new_repo_name}}</code>
+🔒 ${vis_label}
+🔗 ${html_url:-github.com/${USER}/${new_repo_name}}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_cr}" "$_btn_cr" 2>/dev/null &
   else
     # Ekstrak pesan error dari GitHub
     local err_msg
@@ -2255,6 +2650,16 @@ action_import_repo() {
     [ -n "$imp_text" ] && \
       printf "  ${C_DIM}Info     ${C_RESET}%s\n" "$imp_text"
     echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    local _ts_ir; _ts_ir=$(date '+%H:%M:%S %d %b %Y')
+    local _btn_ir='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"},{"text":"📊 Status Import","url":"https://github.com/'"${USER}"'/'"${imp_repo_name}"'"}]]}'
+    send_telegram "📥 <b>IMPORT REPO DIMULAI</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${USER}</code>
+📁 Repo baru: <code>${USER}/${imp_repo_name}</code>
+🔗 Sumber: <code>${src_url}</code>
+⏳ ${imp_status:-importing}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_ir}" "$_btn_ir" 2>/dev/null &
     echo ""
     # ── Polling status sampai selesai atau error ─────────────────────────
     echo -e "  ${C_DIM}▸ Memantau progress import...${C_RESET}"
@@ -2645,6 +3050,15 @@ action_delete_repo() {
         echo -e "  ${C_YELLOW}💡 Repo aktif script ini ikut dihapus.${C_RESET}"
         echo -e "  ${C_YELLOW}   Ubah variabel REPO di atas script sebelum push berikutnya.${C_RESET}"
       fi
+      local _ts_dr; _ts_dr=$(date '+%H:%M:%S %d %b %Y')
+      local _btn_dr='{"inline_keyboard":[[{"text":"👤 Lihat Profile","url":"https://github.com/'"${del_owner}"'"},{"text":"📦 Semua Repo","url":"https://github.com/'"${del_owner}"'?tab=repositories"}]]}'
+      send_telegram "🗑 <b>REPO DIHAPUS</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${del_owner}</code>
+📁 <code>${del_owner}/${del_repo}</code>
+⚠️ Repo ini sudah TIDAK ADA di GitHub
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_dr}" "$_btn_dr" 2>/dev/null &
       ;;
     403)
       echo -e "  ${C_RED}❌ Tidak punya izin hapus repo ini (HTTP 403).${C_RESET}"
@@ -3048,6 +3462,15 @@ action_rename_branch() {
     echo -e "  ${C_GREEN}✅ Branch berhasil di-rename di GitHub!${C_RESET}"
     echo -e "  ${C_DIM}${old_name}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${new_name}${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${new_name}${C_RESET}"
+    local _ts_rb; _ts_rb=$(date '+%H:%M:%S %d %b %Y')
+    local _btn_rb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch Baru","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${new_name}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
+    send_telegram "✏️ <b>BRANCH DI-RENAME</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🔄 <code>${old_name}</code> → <code>${new_name}</code>
+🔗 github.com/${USER}/${REPO}/tree/${new_name}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_rb}" "$_btn_rb" 2>/dev/null &
 
     # Kalau yang di-rename adalah default branch, update variabel & script
     if [ "$old_name" = "$DEFAULT_BRANCH" ]; then
@@ -3157,6 +3580,15 @@ action_create_branch() {
     echo ""
     echo -e "  ${C_GREEN}🎉 Branch '${name}' berhasil dibuat di GitHub!${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${name}${C_RESET}"
+    local _ts_cb; _ts_cb=$(date '+%H:%M:%S %d %b %Y')
+    local _btn_cb='{"inline_keyboard":[[{"text":"🌿 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${name}"'"},{"text":"🔀 Buat Pull Request","url":"https://github.com/'"${USER}"'/'"${REPO}"'/compare/'"${name}"'"}]]}'
+    send_telegram "🌱 <b>BRANCH BARU DIBUAT</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch baru: <code>${name}</code>
+🔗 github.com/${USER}/${REPO}/tree/${name}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_cb}" "$_btn_cb" 2>/dev/null &
   else
     local api_msg
     api_msg=$(grep -o '"message": *"[^"]*"' /tmp/_gh_create.json 2>/dev/null | head -1 | sed 's/"message": *"//;s/"//')
@@ -3307,6 +3739,14 @@ action_delete_branch() {
     if git push origin --delete "$target" >"$del_log" 2>&1; then
       echo -e "  ${C_GREEN}✅ remote terhapus${C_RESET}"
       ok=$((ok + 1))
+      local _ts_db; _ts_db=$(date '+%H:%M:%S %d %b %Y')
+      local _btn_db='{"inline_keyboard":[[{"text":"📁 Lihat Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📋 Semua Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}]]}'
+      send_telegram "🗑 <b>BRANCH DIHAPUS</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${target}</code>
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_db}" "$_btn_db" 2>/dev/null &
     else
       echo -e "  ${C_RED}❌ Gagal hapus remote${C_RESET}"
       echo -e "  ${C_DIM}── error log ──${C_RESET}"
@@ -3507,11 +3947,27 @@ push_head_to_branch() {
   local push_log
   push_log=$(mktemp)
 
+  # Ambil info commit untuk log
+  local _log_msg _log_files
+  _log_msg=$(git log -1 --format='%s' 2>/dev/null | cut -c1-40 || echo "-")
+  _log_files=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | wc -l | tr -d ' ')
+
   # Coba normal push dulu (fast-forward).
+  local _tg_ts; _tg_ts=$(date '+%H:%M:%S %d %b %Y')
   if git push origin "HEAD:refs/heads/${branch}" >"$push_log" 2>&1; then
     rm -f "$push_log"
     echo -e "  ${C_GREEN}🎉 Sukses!${C_RESET} ${C_BOLD}${branch}${C_RESET} ${C_DIM}(${HEAD_SHA})${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${branch}${C_RESET}"
+    log_push_event "$branch" "OK" "$_log_msg" "$_log_files"
+    local _btn_pbr='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}]]}'
+    send_telegram "✅ <b>PUSH BERHASIL</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${branch}</code>
+📝 ${_log_msg}
+📦 ${_log_files} file diubah
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_tg_ts}" "$_btn_pbr"
     return 0
   fi
 
@@ -3521,6 +3977,17 @@ push_head_to_branch() {
     rm -f "$push_log"
     echo -e "  ${C_GREEN}🎉 Sukses (force)!${C_RESET} ${C_BOLD}${branch}${C_RESET} ${C_DIM}(${HEAD_SHA})${C_RESET}"
     echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/tree/${branch}${C_RESET}"
+    log_push_event "$branch" "OK(force)" "$_log_msg" "$_log_files"
+    local _btn_pforce='{"inline_keyboard":[[{"text":"🔗 Lihat Branch","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tree/'"${branch}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${branch}"'"}]]}'
+    send_telegram "⚡ <b>PUSH BERHASIL (FORCE)</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🌿 Branch: <code>${branch}</code>
+📝 ${_log_msg}
+📦 ${_log_files} file diubah
+⚠️ Force push — history lama ditimpa
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_tg_ts}" "$_btn_pforce"
     return 0
   fi
 
@@ -3546,6 +4013,7 @@ push_head_to_branch() {
     sed 's/^/    /' "$push_log" | tail -10
     echo ""
   fi
+  log_push_event "$branch" "FAIL" "$_log_msg" "$_log_files"
   rm -f "$push_log"
   return 1
 }
