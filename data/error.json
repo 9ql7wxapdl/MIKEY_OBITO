@@ -1,6 +1,33 @@
 {
   "errors": [
     {
+      "fingerprint": "Pixiv::[Pixiv] AI gagal: AI timeout",
+      "source": "Pixiv",
+      "message": "[Pixiv] AI gagal: AI timeout",
+      "stack": "Error: [Pixiv] AI gagal: AI timeout\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at analyzeIllustration (/home/runner/workspace/src/scrape/pixiv.cjs:24:17)\n    at async Promise.all (index 0)\n    at async pixivFetchMultiple (/home/runner/workspace/src/scrape/pixiv.cjs:163:23)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778321215538:3942:64)",
+      "count": 1,
+      "firstSeen": "2026-05-09T10:07:18.356Z",
+      "lastSeen": "2026-05-09T10:07:18.356Z"
+    },
+    {
+      "fingerprint": "command:pixiv::Tidak ada hasil ditemukan untuk query tersebut.",
+      "source": "command:pixiv",
+      "message": "Tidak ada hasil ditemukan untuk query tersebut.",
+      "stack": "Error: Tidak ada hasil ditemukan untuk query tersebut.\n    at pixivSearch (/home/runner/workspace/src/scrape/pixiv.cjs:60:32)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async pixivFetch (/home/runner/workspace/src/scrape/pixiv.cjs:141:21)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778321026441:3993:62)",
+      "count": 1,
+      "firstSeen": "2026-05-09T10:06:28.588Z",
+      "lastSeen": "2026-05-09T10:06:28.588Z"
+    },
+    {
+      "fingerprint": "console.error::\u001b[Nm[Pixiv] Error:\u001b[Nm Tidak ada hasil ditemukan untuk query tersebut.",
+      "source": "console.error",
+      "message": "\u001b[31m[Pixiv] Error:\u001b[39m Tidak ada hasil ditemukan untuk query tersebut.",
+      "stack": "Error: \u001b[31m[Pixiv] Error:\u001b[39m Tidak ada hasil ditemukan untuk query tersebut.\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778321026441:4006:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-09T10:06:28.585Z",
+      "lastSeen": "2026-05-09T10:06:28.585Z"
+    },
+    {
       "fingerprint": "command:cosplay::cmd is not defined",
       "source": "command:cosplay",
       "message": "cmd is not defined",

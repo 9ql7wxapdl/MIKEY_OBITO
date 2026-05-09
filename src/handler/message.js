@@ -2715,36 +2715,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         await hisoka.sendMessage(m.from, { react: { text: '📸', key: m.key } });
 
                                         if (post.images.length > 0) {
-                                                const BATCH = 10;
-                                                for (let b = 0; b < post.images.length; b += BATCH) {
-                                                        const batch = post.images.slice(b, b + BATCH);
-                                                        const albumItems = [];
-                                                        for (let i = 0; i < batch.length; i++) {
-                                                                try {
-                                                                        const buf = await downloadBuffer(batch[i]);
-                                                                        const globalIdx = b + i;
-                                                                        albumItems.push({
-                                                                                image: buf,
-                                                                                caption: formatCosplayteleCaption(post, {
-                                                                                        imgIndex: globalIdx,
-                                                                                        imgTotal: post.images.length,
-                                                                                }),
-                                                                        });
-                                                                } catch (e) {
-                                                                        console.error('[Cosplay] Gagal unduh gambar:', batch[i], e.message);
-                                                                }
-                                                        }
-                                                        if (albumItems.length === 0) continue;
-                                                        try {
-                                                                await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: b === 0 ? m : undefined });
-                                                        } catch (_) {
-                                                                for (const item of albumItems) {
-                                                                        try {
-                                                                                await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m });
-                                                                        } catch (_2) {}
-                                                                }
-                                                        }
-                                                }
+                                                await _sendCosplayImages(hisoka, m, post, downloadBuffer, formatCosplayteleCaption, '[Cosplay]');
                                         }
 
                                         if (post.hasVideos && post.cossoraIds?.length > 0) {
@@ -2908,6 +2879,43 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         // Pending ada tapi bukan pilihan 1/2 — abaikan (biarkan lanjut ke switch)
                 }
+
+                // ── Helper: kirim semua gambar cosplay dalam 1 album (fallback batch 10) ──
+                const _sendCosplayImages = async (sock, msg, post, dlFn, capFn, tag) => {
+                        const total = post.images.length;
+                        // Download semua gambar dulu secara paralel (max 5 concurrent)
+                        const CONCUR = 5;
+                        const allItems = [];
+                        for (let i = 0; i < total; i += CONCUR) {
+                                const chunk = post.images.slice(i, i + CONCUR);
+                                const results = await Promise.allSettled(chunk.map(async (url, ci) => {
+                                        const buf = await dlFn(url);
+                                        return { image: buf, caption: capFn(post, { imgIndex: i + ci, imgTotal: total }) };
+                                }));
+                                for (const r of results) {
+                                        if (r.status === 'fulfilled') allItems.push(r.value);
+                                        else console.error(`${tag} Gagal unduh gambar:`, r.reason?.message);
+                                }
+                        }
+                        if (allItems.length === 0) return;
+                        // Coba kirim semua sekaligus dalam 1 albumMessage
+                        try {
+                                await sock.sendMessage(msg.from, { albumMessage: allItems }, { quoted: msg });
+                        } catch (_) {
+                                // Fallback: batch per 10
+                                const BATCH = 10;
+                                for (let b = 0; b < allItems.length; b += BATCH) {
+                                        const batch = allItems.slice(b, b + BATCH);
+                                        try {
+                                                await sock.sendMessage(msg.from, { albumMessage: batch }, { quoted: b === 0 ? msg : undefined });
+                                        } catch (_2) {
+                                                for (const item of batch) {
+                                                        try { await sock.sendMessage(msg.from, { image: item.image, caption: item.caption }, { quoted: msg }); } catch (_3) {}
+                                                }
+                                        }
+                                }
+                        }
+                };
 
                 switch (m.command) {
 
@@ -4849,31 +4857,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                         await tolak(hisoka, m, caption0);
                                                         await hisoka.sendMessage(m.from, { react: { text: '📸', key: m.key } });
                                                         if (post.images.length > 0) {
-                                                                const BATCH = 10;
-                                                                for (let b = 0; b < post.images.length; b += BATCH) {
-                                                                        const batch = post.images.slice(b, b + BATCH);
-                                                                        const albumItems = [];
-                                                                        for (let i = 0; i < batch.length; i++) {
-                                                                                try {
-                                                                                        const buf = await downloadBuffer(batch[i]);
-                                                                                        const globalIdx = b + i;
-                                                                                        albumItems.push({
-                                                                                                image: buf,
-                                                                                                caption: formatCosplayteleCaption(post, { imgIndex: globalIdx, imgTotal: post.images.length }),
-                                                                                        });
-                                                                                } catch (e) {
-                                                                                        console.error('[CosplayRandom] Gagal unduh gambar:', batch[i], e.message);
-                                                                                }
-                                                                        }
-                                                                        if (albumItems.length === 0) continue;
-                                                                        try {
-                                                                                await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: b === 0 ? m : undefined });
-                                                                        } catch (_) {
-                                                                                for (const item of albumItems) {
-                                                                                        try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m }); } catch (_2) {}
-                                                                                }
-                                                                        }
-                                                                }
+                                                                await _sendCosplayImages(hisoka, m, post, downloadBuffer, formatCosplayteleCaption, '[CosplayRandom]');
                                                         }
                                                         if (post.hasVideos && post.cossoraIds?.length > 0) {
                                                                 await hisoka.sendMessage(m.from, {
