@@ -18,6 +18,23 @@
 > `.wily` `.ai` `.tanya` kini hanya direspons *main bot*
 > Cegah konflik dan respons ganda antara main & jadibot
 
+*📋 AKSES USER JADIBOT*
+
+> ◈ *Command yang Bisa Diakses User Jadibot*
+> `.ping` / `.p` — cek status & ping bot
+> `.menu` — lihat menu jadibot + sisa masa aktif
+> `.rvo` / `.vo` / `.viewonce` — buka pesan view once
+> `.antidel` / `.ad` — anti delete on/off
+> `.readsw` — auto read story on/off
+> `.tt` — download TikTok
+> `.ig` — download Instagram
+> `.fb` — download Facebook
+> `.ytmp3` — download YouTube audio
+> `.ytmp4` — download YouTube video
+> `.play` — cari & download lagu
+> `.sticker` / `.s` — buat sticker dari gambar/video
+> `.toimg` — konversi sticker ke gambar
+
 *✨ FITUR BARU*
 
 > ◈ *Cosplay — Foto & Video Cosplay*
