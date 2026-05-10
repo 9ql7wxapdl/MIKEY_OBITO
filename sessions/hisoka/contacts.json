@@ -29413,7 +29413,8 @@
     "id": "6282126269135@s.whatsapp.net",
     "name": "Resha",
     "lid": "155297645613058@lid",
-    "jid": "6282126269135@s.whatsapp.net"
+    "jid": "6282126269135@s.whatsapp.net",
+    "notify": "harisss"
   },
   "6283121471949@s.whatsapp.net": {
     "isContact": true,
@@ -31411,5 +31412,10 @@
     "id": "39256051445935@lid",
     "lid": "39256051445935@lid",
     "imgUrl": "changed"
+  },
+  "155297645613058@lid": {
+    "id": "155297645613058@lid",
+    "lid": "155297645613058@lid",
+    "notify": "harisss"
   }
 }

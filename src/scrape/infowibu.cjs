@@ -1,91 +1,102 @@
 'use strict';
 
+/**
+ * ─────────────────────────────────────────
+ *  FITUR  : Info Wibu Otomatis
+ *  Fungsi : Ambil info anime trending dari
+ *           AniList lalu kirim ke grup WA
+ *           secara otomatis & realtime
+ * ─────────────────────────────────────────
+ */
+
 const axios = require('axios');
 const fs    = require('fs');
 const path  = require('path');
 
-const DATA_FILE = path.join(process.cwd(), 'data', 'infowibu.json');
+// Lokasi file penyimpanan data infowibu (grup aktif, anime sudah terkirim, dll)
+const FILE_DATA = path.join(process.cwd(), 'data', 'infowibu.json');
 
-const JIKAN_BASE  = 'https://api.jikan.moe/v4';
-const ANILIST_URL = 'https://graphql.anilist.co';
+// Alamat API AniList (GraphQL) — sumber data anime trending
+const URL_ANILIST = 'https://graphql.anilist.co';
 
-const HEADERS = {
+// Header standar untuk request HTTP
+const HEADER_STANDAR = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    'Accept': 'application/json',
+    'Accept'    : 'application/json',
 };
 
-// ── Data helpers ──────────────────────────────────────────────────────────────
+// ── FUNGSI BACA & SIMPAN DATA ─────────────────────────────────────────────────
 
-function loadData() {
+// Baca data dari file JSON lokal
+function bacaData() {
     try {
-        if (fs.existsSync(DATA_FILE)) {
-            return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+        if (fs.existsSync(FILE_DATA)) {
+            return JSON.parse(fs.readFileSync(FILE_DATA, 'utf-8'));
         }
     } catch (_) {}
-    return { groups: {}, sentIds: [], lastFetch: 0 };
+    // Kalau belum ada file, kembalikan data kosong
+    return { grup: {}, idTerkirim: [], waktuAmbilTerakhir: 0 };
 }
 
-function saveData(data) {
+// Simpan data ke file JSON lokal
+function simpanData(data) {
     try {
-        fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+        fs.writeFileSync(FILE_DATA, JSON.stringify(data, null, 2), 'utf-8');
     } catch (_) {}
 }
 
-// ── Group settings ────────────────────────────────────────────────────────────
+// ── PENGATURAN GRUP ───────────────────────────────────────────────────────────
 
-function setGroupEnabled(groupJid, enabled) {
-    const data = loadData();
-    if (!data.groups) data.groups = {};
-    data.groups[groupJid] = { enabled, updatedAt: Date.now() };
-    saveData(data);
+// Aktifkan atau nonaktifkan infowibu di sebuah grup
+function aturGrup(jidGrup, aktif) {
+    const data = bacaData();
+    if (!data.grup) data.grup = {};
+    data.grup[jidGrup] = { aktif, diubahPada: Date.now() };
+    simpanData(data);
 }
 
-function isGroupEnabled(groupJid) {
-    const data = loadData();
-    return !!(data.groups?.[groupJid]?.enabled);
+// Cek apakah infowibu aktif di grup tertentu
+function cekGrupAktif(jidGrup) {
+    const data = bacaData();
+    return !!(data.grup?.[jidGrup]?.aktif);
 }
 
-function getEnabledGroups() {
-    const data = loadData();
-    return Object.entries(data.groups || {})
-        .filter(([, v]) => v.enabled)
+// Ambil daftar semua grup yang sudah diaktifkan
+function daftarGrupAktif() {
+    const data = bacaData();
+    return Object.entries(data.grup || {})
+        .filter(([, v]) => v.aktif)
         .map(([jid]) => jid);
 }
 
-function getAllGroupSettings() {
-    return loadData().groups || {};
+// Ambil semua pengaturan grup (aktif maupun tidak)
+function semuaPengaturanGrup() {
+    return bacaData().grup || {};
 }
 
-// ── Sent-ID dedup ─────────────────────────────────────────────────────────────
+// ── PENCEGAH KIRIMAN DUPLIKAT ─────────────────────────────────────────────────
 
-function markSent(id) {
-    const data = loadData();
-    if (!data.sentIds) data.sentIds = [];
-    data.sentIds = [String(id), ...data.sentIds].slice(0, 200);
-    saveData(data);
+// Tandai sebuah anime sudah pernah dikirim (supaya tidak dikirim dua kali)
+function tandaiSudahKirim(id) {
+    const data = bacaData();
+    if (!data.idTerkirim) data.idTerkirim = [];
+    // Simpan maksimal 200 ID terakhir supaya file tidak membengkak
+    data.idTerkirim = [String(id), ...data.idTerkirim].slice(0, 200);
+    simpanData(data);
 }
 
-function alreadySent(id) {
-    const data = loadData();
-    return (data.sentIds || []).includes(String(id));
+// Cek apakah anime sudah pernah dikirim sebelumnya
+function sudahPernahKirim(id) {
+    const data = bacaData();
+    return (data.idTerkirim || []).includes(String(id));
 }
 
-// ── Jikan news ────────────────────────────────────────────────────────────────
+// ── QUERY GRAPHQL KE ANILIST ──────────────────────────────────────────────────
 
-async function fetchJikanNews() {
-    const { data } = await axios.get(`${JIKAN_BASE}/anime/news`, {
-        params: { limit: 5 },
-        headers: HEADERS,
-        timeout: 12000,
-    }).catch(() => ({ data: null }));
-    return data?.data || [];
-}
-
-// ── AniList trending (with cover images) ──────────────────────────────────────
-
-const ANILIST_QUERY = `
-query ($page: Int, $perPage: Int) {
-  Page(page: $page, perPage: $perPage) {
+// Query ini mengambil daftar anime yang sedang tayang & paling trending
+const QUERY_ANIME_TRENDING = `
+query ($halaman: Int, $jumlah: Int) {
+  Page(page: $halaman, perPage: $jumlah) {
     media(sort: TRENDING_DESC, type: ANIME, status: RELEASING) {
       id
       title { romaji native english }
@@ -106,115 +117,146 @@ query ($page: Int, $perPage: Int) {
   }
 }`;
 
-async function fetchTrendingAnime(page = 1, perPage = 10) {
+// Ambil daftar anime trending dari AniList
+async function ambilAnimeTrending(halaman = 1, jumlah = 10) {
     const { data } = await axios.post(
-        ANILIST_URL,
-        { query: ANILIST_QUERY, variables: { page, perPage } },
-        { headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }, timeout: 15000 }
+        URL_ANILIST,
+        { query: QUERY_ANIME_TRENDING, variables: { halaman, jumlah } },
+        {
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            timeout: 15000,
+        }
     );
     return data?.data?.Page?.media || [];
 }
 
-// ── Fetch one fresh post (not already sent) ───────────────────────────────────
+// ── AMBIL ANIME BARU YANG BELUM PERNAH DIKIRIM ───────────────────────────────
 
-async function fetchFreshPost() {
-    const list = await fetchTrendingAnime(1, 20);
-    for (const anime of list) {
-        const uid = `al-${anime.id}`;
-        if (alreadySent(uid)) continue;
-        return { source: 'anilist', anime, uid };
+async function ambilAnimeBaru() {
+    // Coba halaman pertama dulu
+    const daftar1 = await ambilAnimeTrending(1, 20);
+    for (const anime of daftar1) {
+        const idUnik = `al-${anime.id}`;
+        if (sudahPernahKirim(idUnik)) continue; // Lewati yang sudah dikirim
+        return { sumber: 'anilist', anime, idUnik };
     }
-    // Fallback: second page
-    const list2 = await fetchTrendingAnime(2, 20);
-    for (const anime of list2) {
-        const uid = `al-${anime.id}`;
-        if (alreadySent(uid)) continue;
-        return { source: 'anilist', anime, uid };
+
+    // Kalau halaman pertama sudah habis semua, coba halaman kedua
+    const daftar2 = await ambilAnimeTrending(2, 20);
+    for (const anime of daftar2) {
+        const idUnik = `al-${anime.id}`;
+        if (sudahPernahKirim(idUnik)) continue;
+        return { sumber: 'anilist', anime, idUnik };
     }
+
+    // Tidak ada anime baru yang belum dikirim
     return null;
 }
 
-// ── Caption formatter ─────────────────────────────────────────────────────────
+// ── FORMAT TEKS CAPTION ───────────────────────────────────────────────────────
 
-function formatCaption(post, opts = {}) {
-    const { realtime = true } = opts;
+function buatCaption(post, opsi = {}) {
+    const { realtime = true } = opsi;
     const a = post.anime;
 
-    const title  = a.title?.romaji || a.title?.english || a.title?.native || '?';
-    const native = a.title?.native ? ` _(${a.title.native})_` : '';
-    const score  = a.averageScore ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
-    const genres = (a.genres || []).slice(0, 4).join(', ') || '-';
-    const studio = a.studios?.nodes?.[0]?.name || '-';
-    const eps    = a.episodes ? `${a.episodes} eps` : 'Ongoing';
+    // Judul: utamakan romaji, lalu inggris, lalu native
+    const judul       = a.title?.romaji || a.title?.english || a.title?.native || '?';
+    const judulNative = a.title?.native ? ` _(${a.title.native})_` : '';
 
-    let desc = (a.description || '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/\n{3,}/g, '\n\n')
+    // Skor dari AniList (skala 0–100 diubah jadi 0–10)
+    const skor   = a.averageScore ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
+    const genre  = (a.genres || []).slice(0, 4).join(', ') || '-';
+    const studio = a.studios?.nodes?.[0]?.name || '-';
+    const eps    = a.episodes ? `${a.episodes} eps` : 'Belum selesai';
+
+    // Potong deskripsi maksimal 200 karakter supaya tidak terlalu panjang
+    let deskripsi = (a.description || '')
+        .replace(/<[^>]+>/g, '')      // Hapus tag HTML
+        .replace(/\n{3,}/g, '\n\n')   // Rapikan baris kosong berlebihan
         .trim()
         .slice(0, 200);
-    if ((a.description || '').length > 200) desc += '...';
+    if ((a.description || '').length > 200) deskripsi += '...';
 
-    let nextEp = '';
+    // Info episode berikutnya (kalau ada)
+    let infoEpSelanjutnya = '';
     if (a.nextAiringEpisode) {
-        const epNum = a.nextAiringEpisode.episode;
-        const airsAt = new Date(a.nextAiringEpisode.airingAt * 1000);
-        const dateStr = airsAt.toLocaleDateString('id-ID', {
+        const nomorEp  = a.nextAiringEpisode.episode;
+        const waktuTayang = new Date(a.nextAiringEpisode.airingAt * 1000);
+        const tanggal = waktuTayang.toLocaleDateString('id-ID', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
         });
-        nextEp = `\n📅 *Ep ${epNum} tayang:* ${dateStr}`;
+        infoEpSelanjutnya = `\n📅 *Ep ${nomorEp} tayang:* ${tanggal}`;
     }
 
-    const badge = realtime ? '🔴 *REALTIME INFO WIBU*' : '📢 *INFO WIBU*';
-    const now   = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+    // Badge atas: realtime atau biasa
+    const badge      = realtime ? '🔴 *REALTIME INFO WIBU*' : '📢 *INFO WIBU*';
+    const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
     return (
         `${badge}\n` +
         `${'─'.repeat(28)}\n` +
-        `🎌 *${title}*${native}\n\n` +
-        `📖 ${desc}\n\n` +
-        `${score}  |  🎭 ${genres}\n` +
+        `🎌 *${judul}*${judulNative}\n\n` +
+        `📖 ${deskripsi}\n\n` +
+        `${skor}  |  🎭 ${genre}\n` +
         `🏢 Studio: *${studio}*\n` +
-        `📺 Episode: *${eps}*${nextEp}\n\n` +
+        `📺 Episode: *${eps}*${infoEpSelanjutnya}\n\n` +
         `🔗 ${a.siteUrl || 'https://anilist.co'}\n` +
         `${'─'.repeat(28)}\n` +
-        `🕐 _${now} WIB_`
+        `🕐 _${waktuKirim} WIB_`
     );
 }
 
-// ── Image URL helper ──────────────────────────────────────────────────────────
+// ── AMBIL URL GAMBAR COVER / BANNER ──────────────────────────────────────────
 
-function getCoverUrl(post) {
+function ambilUrlGambar(post) {
     const a = post.anime;
+    // Utamakan banner (lebih lebar), lalu cover ukuran besar, lalu medium
     return a.bannerImage || a.coverImage?.extraLarge || a.coverImage?.large || null;
 }
 
-// ── Simulate (for testing) ────────────────────────────────────────────────────
+// ── SIMULASI / TES KIRIM ──────────────────────────────────────────────────────
 
-async function simulate() {
-    const list = await fetchTrendingAnime(1, 5);
-    if (!list.length) throw new Error('Tidak ada data dari AniList.');
-    const anime = list[0];
-    const post  = { source: 'anilist', anime, uid: `al-${anime.id}` };
+// Digunakan oleh perintah `.infowibu test` untuk tes tanpa menunggu jadwal
+async function simulasi() {
+    const daftar = await ambilAnimeTrending(1, 5);
+    if (!daftar.length) throw new Error('Tidak ada data anime dari AniList. Coba lagi nanti.');
+    const anime  = daftar[0];
+    const post   = { sumber: 'anilist', anime, idUnik: `al-${anime.id}` };
     return {
-        caption  : formatCaption(post, { realtime: true }),
-        imageUrl : getCoverUrl(post),
-        title    : anime.title?.romaji || anime.title?.english || '?',
-        uid      : post.uid,
+        caption  : buatCaption(post, { realtime: true }),
+        urlGambar: ambilUrlGambar(post),
+        judul    : anime.title?.romaji || anime.title?.english || '?',
+        idUnik   : post.idUnik,
     };
 }
 
+// ── EKSPOR FUNGSI ─────────────────────────────────────────────────────────────
+
 module.exports = {
-    loadData,
-    saveData,
-    setGroupEnabled,
-    isGroupEnabled,
-    getEnabledGroups,
-    getAllGroupSettings,
-    markSent,
-    alreadySent,
-    fetchTrendingAnime,
-    fetchFreshPost,
-    formatCaption,
-    getCoverUrl,
-    simulate,
+    bacaData,
+    simpanData,
+    aturGrup,
+    cekGrupAktif,
+    daftarGrupAktif,
+    semuaPengaturanGrup,
+    tandaiSudahKirim,
+    sudahPernahKirim,
+    ambilAnimeTrending,
+    ambilAnimeBaru,
+    buatCaption,
+    ambilUrlGambar,
+    simulasi,
+
+    // Alias nama lama supaya tidak error di tempat lain yang sudah pakai
+    setGroupEnabled    : aturGrup,
+    isGroupEnabled     : cekGrupAktif,
+    getEnabledGroups   : daftarGrupAktif,
+    getAllGroupSettings : semuaPengaturanGrup,
+    markSent           : tandaiSudahKirim,
+    alreadySent        : sudahPernahKirim,
+    fetchTrendingAnime : ambilAnimeTrending,
+    fetchFreshPost     : ambilAnimeBaru,
+    formatCaption      : buatCaption,
+    getCoverUrl        : ambilUrlGambar,
+    simulate           : simulasi,
 };
