@@ -2,8 +2,8 @@
 ║     🤖  W I L Y  B O T  —  V 1 5   ║
 ╚══════════════════════════════════╝
 📅 Updated  : Sabtu, 10 Mei 2026
-📦 Total    : 3 Update
-🔧 Bug Fix  : 2  |  ✨ Fitur Baru : 1
+📦 Total    : 6 Update
+🔧 Bug Fix  : 2  |  ✨ Fitur Baru : 4
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔧 BUG FIX
@@ -24,14 +24,32 @@
 ✨ FITUR BARU
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-◈ .cosplay / .cosplayrand / .cosplayrandom / .ctele
-  ✦ Cari foto & video cosplay dari cosplaytele.com
-  ✦ Mode random: .cosplay random atau .cosplayrand
-    → ambil 1 post cosplay acak langsung dikirim
-  ✦ Mode search: .cosplay <keyword>
-    → tampil daftar hasil, balas angka untuk pilih
-  ✦ Hasil dikirim sebagai album foto
-  ✦ Video cosplay dikirim sebagai link terpisah
+◈ .nhentai / .nh / .nhrand / .nhget / .nhdl — NHentai
+  ✦ Cari doujin berdasarkan judul atau tag
+  ✦ .nh random / .nhrand — ambil doujin acak + cover
+  ✦ .nhget <id> — download doujin sebagai PDF
+  ✦ .nhdl random — download PDF doujin random
+  ✦ Khusus grup NSFW
+
+◈ .kusonime / .kuso / .anime — Kusonime
+  ✦ Cari anime sub indo dari kusonime.com
+  ✦ .anime <judul> — info + semua link download
+  ✦ .anime winter/spring/summer/fall <tahun>
+    → kirim daftar anime per musim dalam format TXT & PDF
+  ✦ PDF desain keren dengan poster anime
+
+◈ .alqanime / .alq / .alqdl — AlqAnime
+  ✦ Cari anime sub indo dari alqanime.net
+  ✦ .alq <judul> — info lengkap + link download per resolusi
+  ✦ .alqdl — download episode langsung dari bot
+  ✦ Tampil sinopsis, genre, studio, score, status
+
+◈ .whatsmusik / .wmusik / .tebaklagu / .shazam — WhatsMusik
+  ✦ Kenali judul lagu dari audio / voice note / video
+  ✦ Reply audio lalu ketik .whatsmusik
+  ✦ Bisa juga pakai link YouTube: .whatsmusik <url yt>
+  ✦ Hasil dikirim dengan cover lagu + detail artis
+  ✦ Audio lagu otomatis dikirim sebagai voice note
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🤖 Wily-Bot  |  Versi V15  |  10 Mei 2026
