@@ -4383,6 +4383,7 @@ action_releases_tags() {
       "https://api.github.com/repos/${USER}/${REPO}/releases" \
       -d "$payload" 2>/dev/null)
 
+    local _rt_ts; _rt_ts=$(TZ=Asia/Jakarta date '+%d %b %Y • %H:%M WIB' 2>/dev/null || date '+%d %b %Y • %H:%M')
     if [ "$http" = "201" ]; then
       local rel_url
       rel_url=$(node -e "
@@ -4391,6 +4392,18 @@ action_releases_tags() {
       " 2>/dev/null)
       echo -e "  ${C_GREEN}✅ Release ${C_BOLD}${rtag}${C_RESET}${C_GREEN} berhasil dibuat!${C_RESET}"
       [ -n "$rel_url" ] && echo -e "  ${C_BLUE}🔗 ${rel_url}${C_RESET}"
+      local _tipe_label="Stable"
+      [ "$is_pre" = "true" ] && _tipe_label="Pre-release"
+      [ "$is_draft" = "true" ] && _tipe_label="Draft"
+      local _btn_rel='{"inline_keyboard":[[{"text":"🚀 Lihat Release","url":"https://github.com/'"${USER}"'/'"${REPO}"'/releases/tag/'"${rtag}"'"},{"text":"🏷️ Semua Tags","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tags"}],[{"text":"📦 Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits/'"${DEFAULT_BRANCH}"'"}]]}'
+      send_telegram_photo "https://w.wallhaven.cc/full/96/wallhaven-96k7j8.jpg" "🚀 <b>RELEASE BARU DIBUAT</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🏷️ Tag: <code>${rtag}</code>
+📝 ${rname}
+📋 ${rbody:-—}
+🔖 Tipe: ${_tipe_label}
+🕐 ${_rt_ts}" "$_btn_rel"
     else
       local errmsg
       errmsg=$(node -e "
@@ -4470,9 +4483,17 @@ action_releases_tags() {
       -H "X-GitHub-Api-Version: 2022-11-28" \
       "https://api.github.com/repos/${USER}/${REPO}/releases/${sel_id}" 2>/dev/null)
 
+    local _rt_ts; _rt_ts=$(TZ=Asia/Jakarta date '+%d %b %Y • %H:%M WIB' 2>/dev/null || date '+%d %b %Y • %H:%M')
     if [ "$del_http" = "204" ]; then
       echo -e "  ${C_GREEN}✅ Release ${C_BOLD}${sel_tag}${C_RESET}${C_GREEN} berhasil dihapus.${C_RESET}"
       echo -e "  ${C_DIM}   (Tag-nya masih ada — hapus dari submenu Tag jika perlu)${C_RESET}"
+      local _btn_delrel='{"inline_keyboard":[[{"text":"🚀 Semua Releases","url":"https://github.com/'"${USER}"'/'"${REPO}"'/releases"},{"text":"🏷️ Semua Tags","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tags"}]]}'
+      send_telegram_photo "https://w.wallhaven.cc/full/l3/wallhaven-l3q6eq.png" "🗑 <b>RELEASE DIHAPUS</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🏷️ Tag: <code>${sel_tag}</code>
+⚠️ Tag-nya masih ada di repo
+🕐 ${_rt_ts}" "$_btn_delrel"
     else
       echo -e "  ${C_RED}❌ Gagal hapus release (HTTP ${del_http})${C_RESET}"
     fi
@@ -4576,9 +4597,18 @@ action_releases_tags() {
       "https://api.github.com/repos/${USER}/${REPO}/git/refs" \
       -d "{\"ref\":\"refs/tags/${tname}\",\"sha\":\"${sha}\"}" 2>/dev/null)
 
+    local _rt_ts; _rt_ts=$(TZ=Asia/Jakarta date '+%d %b %Y • %H:%M WIB' 2>/dev/null || date '+%d %b %Y • %H:%M')
     if [ "$http" = "201" ]; then
       echo -e "  ${C_GREEN}✅ Tag ${C_BOLD}${tname}${C_RESET}${C_GREEN} berhasil dibuat!${C_RESET}"
       echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/releases/tag/${tname}${C_RESET}"
+      local _btn_tag='{"inline_keyboard":[[{"text":"🏷️ Lihat Tag","url":"https://github.com/'"${USER}"'/'"${REPO}"'/releases/tag/'"${tname}"'"},{"text":"📋 Semua Tags","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tags"}],[{"text":"🚀 Buat Release","url":"https://github.com/'"${USER}"'/'"${REPO}"'/releases/new"},{"text":"📦 Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"}]]}'
+      send_telegram_photo "https://w.wallhaven.cc/full/o5/wallhaven-o5l5j7.jpg" "🏷️ <b>TAG BARU DIBUAT</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🏷️ Tag: <code>${tname}</code>
+🌿 Dari branch: <code>${DEFAULT_BRANCH}</code>
+🔑 SHA: <code>${sha:0:10}...</code>
+🕐 ${_rt_ts}" "$_btn_tag"
     else
       local errmsg
       errmsg=$(node -e "
@@ -4656,8 +4686,15 @@ action_releases_tags() {
       -H "X-GitHub-Api-Version: 2022-11-28" \
       "https://api.github.com/repos/${USER}/${REPO}/git/refs/tags/${sel_tag}" 2>/dev/null)
 
+    local _rt_ts; _rt_ts=$(TZ=Asia/Jakarta date '+%d %b %Y • %H:%M WIB' 2>/dev/null || date '+%d %b %Y • %H:%M')
     if [ "$del_http" = "204" ]; then
       echo -e "  ${C_GREEN}✅ Tag ${C_BOLD}${sel_tag}${C_RESET}${C_GREEN} berhasil dihapus.${C_RESET}"
+      local _btn_deltag='{"inline_keyboard":[[{"text":"🏷️ Semua Tags","url":"https://github.com/'"${USER}"'/'"${REPO}"'/tags"},{"text":"🚀 Semua Releases","url":"https://github.com/'"${USER}"'/'"${REPO}"'/releases"}]]}'
+      send_telegram_photo "https://w.wallhaven.cc/full/28/wallhaven-28mlj9.jpg" "🗑 <b>TAG DIHAPUS</b>
+━━━━━━━━━━━━━━━━━━━━
+📁 <code>${USER}/${REPO}</code>
+🏷️ Tag: <code>${sel_tag}</code>
+🕐 ${_rt_ts}" "$_btn_deltag"
     else
       echo -e "  ${C_RED}❌ Gagal hapus tag (HTTP ${del_http})${C_RESET}"
     fi
