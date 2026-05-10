@@ -6727,7 +6727,8 @@
     "id": "6283185853963@s.whatsapp.net",
     "name": ". ! Haji",
     "lid": "225872833458193@lid",
-    "jid": "6283185853963@s.whatsapp.net"
+    "jid": "6283185853963@s.whatsapp.net",
+    "notify": "."
   },
   "6285352225648@s.whatsapp.net": {
     "isContact": true,
@@ -31695,5 +31696,29 @@
     "id": "32830813913177@lid",
     "lid": "32830813913177@lid",
     "notify": "...."
+  },
+  "6283852808614@s.whatsapp.net": {
+    "id": "6283852808614@s.whatsapp.net",
+    "notify": "FallZx Infinity CoderId",
+    "verifiedName": "FallZx Infinity CoderId"
+  },
+  "38642156306452@lid": {
+    "id": "38642156306452@lid",
+    "lid": "38642156306452@lid",
+    "notify": "Otaku Hakase"
+  },
+  "274255723921630@lid": {
+    "id": "274255723921630@lid",
+    "lid": "274255723921630@lid",
+    "notify": "Hen V1"
+  },
+  "225872833458193@lid": {
+    "id": "225872833458193@lid",
+    "lid": "225872833458193@lid",
+    "notify": "."
+  },
+  "212611350872@s.whatsapp.net": {
+    "id": "212611350872@s.whatsapp.net",
+    "notify": "— Fiora Sylvie"
   }
 }
