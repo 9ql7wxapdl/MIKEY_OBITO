@@ -176,9 +176,25 @@
               "text": "[⏰ 10 Mei, 14.24]\nUgh, Hen V2... *masih* nanya juga? Kan sudah kubilang, baru *diumumin*. Ya sudah, kalau maksa banget mau tahu, ini infonya: \n\n> Adaptasi *anime TV* untuk manga *Isshiki-san wa Koi wo Shiritai.* sudah *diumumkan*.\n\n• Judul aslinya: *Isshiki-san wa Koi wo Shiritai.* (一色さんは恋を語りたい。)\n• Manga ini dibuat oleh *Miyabi Fujisawa*.\n• Genre-nya itu *romantic comedy*. Ceritanya tentang dua orang yang kikuk soal cinta.\n\nTapi, ya, itu saja. Sampai sekarang *belum ada* detail lebih lanjut soal *tanggal rilis*, *studio animasinya*, atau *siapa pengisi suaranya*. Jadi, ya jelas belum tayang lah, Hen V2.\n\nPuas? Jangan nanya lagi yang aneh-aneh ya. Aku sibuk."
             }
           ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.25 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"Ugh, Hen V2... *masih* nanya juga? Kan sudah kubilang, baru *diumumin*. Ya sudah, kalau maksa banget mau tahu, ini infonya: > Adaptasi *anim...\" | 👤 Hen V2]\ncoba apakah ada vp nya kala uada kirirm vidoenay sini"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.25]\nH-hei, Hen V2! Kan sudah kubilang, *belum ada* detail lebih lanjut soal apapun. Kalau *tanggal rilis* atau *studio animasi* saja belum ada, ya jelas *belum ada video promo* atau semacamnya dong!\n\nItu baru *diumumkan*, bukan berarti langsung ada semuanya. Sabar sedikit, atau cari sendiri kalau nggak percaya. Aku nggak bisa ngirim video yang memang *belum ada*. Ugh."
+            }
+          ]
         }
       ],
-      "lastActivity": 1778397866652
+      "lastActivity": 1778397959444
     }
   },
   "sticker_pattern": {
