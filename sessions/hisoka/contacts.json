@@ -2883,7 +2883,8 @@
     "id": "6283182665936@s.whatsapp.net",
     "name": "ルトピ",
     "lid": "165536713416760@lid",
-    "jid": "6283182665936@s.whatsapp.net"
+    "jid": "6283182665936@s.whatsapp.net",
+    "notify": "Luthfi (Lui)"
   },
   "6289627114475@s.whatsapp.net": {
     "isContact": true,
@@ -12666,7 +12667,8 @@
     "id": "6285754553096@s.whatsapp.net",
     "name": "√ASI-125",
     "lid": "169797337784433@lid",
-    "jid": "6285754553096@s.whatsapp.net"
+    "jid": "6285754553096@s.whatsapp.net",
+    "notify": "Maury.Denver ƒт『𝐂.𝐈.𝐇』"
   },
   "6283143678959@s.whatsapp.net": {
     "isContact": true,
@@ -16901,7 +16903,8 @@
     "id": "6281326870686@s.whatsapp.net",
     "name": "RIESKEI",
     "lid": "191323814494236@lid",
-    "jid": "6281326870686@s.whatsapp.net"
+    "jid": "6281326870686@s.whatsapp.net",
+    "notify": "Reki1945"
   },
   "6287776247318@s.whatsapp.net": {
     "isContact": true,
@@ -21647,7 +21650,8 @@
     "id": "6287768752790@s.whatsapp.net",
     "name": "¥ Andini",
     "lid": "105420123283659@lid",
-    "jid": "6287768752790@s.whatsapp.net"
+    "jid": "6287768752790@s.whatsapp.net",
+    "notify": "dinni."
   },
   "6283863612151@s.whatsapp.net": {
     "isContact": true,
@@ -24882,8 +24886,7 @@
     "name": "-zpa-",
     "lid": "143396526112850@lid",
     "jid": "6282136282264@s.whatsapp.net",
-    "notify": "Z-pa",
-    "verifiedName": "Z-pa"
+    "notify": "Z-pa"
   },
   "6281246328872@s.whatsapp.net": {
     "isContact": true,
@@ -31518,5 +31521,25 @@
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
     "notify": "Wily"
+  },
+  "76012532543673@lid": {
+    "id": "76012532543673@lid",
+    "lid": "76012532543673@lid",
+    "imgUrl": "removed"
+  },
+  "4162024697903@lid": {
+    "id": "4162024697903@lid",
+    "lid": "4162024697903@lid",
+    "imgUrl": "changed"
+  },
+  "191323814494236@lid": {
+    "id": "191323814494236@lid",
+    "lid": "191323814494236@lid",
+    "notify": "Reki1945"
+  },
+  "143065461354558@lid": {
+    "id": "143065461354558@lid",
+    "lid": "143065461354558@lid",
+    "imgUrl": "changed"
   }
 }
