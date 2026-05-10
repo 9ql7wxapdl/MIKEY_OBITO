@@ -8,18 +8,18 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 10/05/2026, 08.08.21  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 10/05/2026, 08.55.21  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
   Total Jenis Error (unik)  : 19
-  Total Kejadian Error       : 35
+  Total Kejadian Error       : 37
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [19 jenis, 35 kejadian total]
+  DAFTAR ERROR LENGKAP  [19 jenis, 37 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
@@ -100,9 +100,9 @@
 │
 │  DETAIL
 │  Sumber      : Pixiv
-│  Frekuensi   : 1x (baru terjadi)
+│  Frekuensi   : 3x (duplikat digabung)
 │  Pertama     : 09/05/2026, 10.07.18
-│  Terakhir    : 09/05/2026, 10.07.18
+│  Terakhir    : 10/05/2026, 08.55.21
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [Pixiv] AI gagal: AI timeout
@@ -362,6 +362,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 19 jenis, 35 kejadian
-  Terakhir diperbarui: 10/05/2026, 08.08.21
+  End of Report  —  Total: 19 jenis, 37 kejadian
+  Terakhir diperbarui: 10/05/2026, 08.55.21
 ════════════════════════════════════════════════════════════════════════

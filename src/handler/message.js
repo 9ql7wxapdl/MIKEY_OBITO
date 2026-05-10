@@ -3021,11 +3021,17 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                         const totalAvail = images.length;
                                                         const dlCount = Math.min(totalAvail, 20);
 
-                                                        const loadingMsg = await m.reply(
-                                                                `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 0%\n` +
-                                                                `📥 *Downloading ${dlCount} halaman...*\n` +
-                                                                `📖 _${chapter.name}_`
-                                                        );
+                                                        const mangaTitle = savedDetail?.title || chapter.name;
+                                                        const _buildDlProgress = (bar, pct, done, total, status) =>
+                                                                `${bar} ${pct}%\n` +
+                                                                `╭─「 📥 *MENGUNDUH PDF* 」\n` +
+                                                                `│ 📖 ${mangaTitle}\n` +
+                                                                `│ 📑 ${chapter.name}\n` +
+                                                                `│ 📄 ${done}/${total} halaman\n` +
+                                                                `│ ${status}\n` +
+                                                                `╰──────────────────────`;
+
+                                                        const loadingMsg = await m.reply(_buildDlProgress('⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛', 0, 0, dlCount, '⏳ Memulai download...'));
 
                                                         let lastPct = 0;
                                                         const onProgress = async (done, total) => {
@@ -3033,25 +3039,34 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 if (pct - lastPct < 10 && pct < 100) return;
                                                                 lastPct = pct;
                                                                 try {
-                                                                        await m.reply({ edit: loadingMsg.key, text: `${bar} ${pct}%\n📥 *Downloading ${done}/${total} halaman...*\n📖 _${chapter.name}_` });
+                                                                        await m.reply({ edit: loadingMsg.key, text: _buildDlProgress(bar, pct, done, total, `⏳ Mengunduh halaman ${done}...`) });
                                                                 } catch (_) {}
                                                         };
 
                                                         const pdfBuf = await komiktapPdf(chapter.url, 20, onProgress);
 
                                                         try {
-                                                                await m.reply({ edit: loadingMsg.key, text: `██████████ 100%\n✅ *Selesai! Mengirim PDF...*\n📖 _${chapter.name}_` });
+                                                                await m.reply({ edit: loadingMsg.key, text: _buildDlProgress('██████████', 100, dlCount, dlCount, '📦 Mengemas & mengirim PDF...') });
                                                         } catch (_) {}
 
-                                                        const mangaTitle = savedDetail?.title || chapter.name;
                                                         const safeName = `${mangaTitle} - ${chapter.name}`.replace(/[^\w\s,!'-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
+                                                        const sizeMB = (pdfBuf.length / 1024 / 1024).toFixed(1);
+                                                        const pdfCaption =
+                                                                `╭─「 📚 *KOMIKTAP* 」\n│\n` +
+                                                                `│ 📖 *${mangaTitle}*\n` +
+                                                                `│ 📑 *${chapter.name}*\n` +
+                                                                `│ 📄 ${dlCount}/${totalAvail} halaman\n` +
+                                                                `│ 💾 ${sizeMB} MB\n` +
+                                                                `│ 🔗 ${chapter.url}\n│\n` +
+                                                                `│ 💡 _Ketik nomor chapter lain untuk download lagi_\n` +
+                                                                `╰──────────────────────`;
 
-                                                        await hisoka.sendMessage(m.from, {
+                                                        await m.reply({
                                                                 document: pdfBuf,
                                                                 mimetype: 'application/pdf',
                                                                 fileName: `${safeName}.pdf`,
-                                                                caption: `📖 *${mangaTitle}*\n📑 *${chapter.name}*\n📄 ${dlCount}/${totalAvail} halaman\n🔗 ${chapter.url}\n\n💡 _Balas pesan ini dengan nomor chapter lain untuk download lagi_`,
-                                                        }, { quoted: m });
+                                                                caption: pdfCaption,
+                                                        });
 
                                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
 
@@ -4726,11 +4741,15 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                         const chapterName = chapterUrl.replace(/.*\/([^/]+)\/?$/, '$1').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
-                                        const loadingMsg = await m.reply(
-                                                `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 0%\n` +
-                                                `📥 *Downloading ${dlCount} halaman...*\n` +
-                                                `📖 _${chapterName}_`
-                                        );
+                                        const _buildDlProg = (bar, pct, done, total, status) =>
+                                                `${bar} ${pct}%\n` +
+                                                `╭─「 📥 *MENGUNDUH PDF* 」\n` +
+                                                `│ 📖 ${chapterName}\n` +
+                                                `│ 📄 ${done}/${total} halaman\n` +
+                                                `│ ${status}\n` +
+                                                `╰──────────────────────`;
+
+                                        const loadingMsg = await m.reply(_buildDlProg('⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛', 0, 0, dlCount, '⏳ Memulai download...'));
 
                                         let lastPct = 0;
                                         const onProgress = async (done, total) => {
@@ -4738,30 +4757,32 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 if (pct - lastPct < 10 && pct < 100) return;
                                                 lastPct = pct;
                                                 try {
-                                                        await m.reply({
-                                                                edit: loadingMsg.key,
-                                                                text: `${bar} ${pct}%\n📥 *Downloading ${done}/${total} halaman...*\n📖 _${chapterName}_`,
-                                                        });
+                                                        await m.reply({ edit: loadingMsg.key, text: _buildDlProg(bar, pct, done, total, `⏳ Mengunduh halaman ${done}...`) });
                                                 } catch (_) {}
                                         };
 
                                         const pdfBuf = await komiktapPdf(chapterUrl, maxPg, onProgress);
 
                                         try {
-                                                await m.reply({
-                                                        edit: loadingMsg.key,
-                                                        text: `██████████ 100%\n✅ *Selesai! Mengirim PDF...*\n📖 _${chapterName}_`,
-                                                });
+                                                await m.reply({ edit: loadingMsg.key, text: _buildDlProg('██████████', 100, dlCount, dlCount, '📦 Mengemas & mengirim PDF...') });
                                         } catch (_) {}
 
                                         const safeName = chapterName.slice(0, 60) || 'komiktap_chapter';
+                                        const sizeMB = (pdfBuf.length / 1024 / 1024).toFixed(1);
+                                        const pdfCaption =
+                                                `╭─「 📚 *KOMIKTAP* 」\n│\n` +
+                                                `│ 📖 *${chapterName}*\n` +
+                                                `│ 📄 ${dlCount}/${totalAvail} halaman\n` +
+                                                `│ 💾 ${sizeMB} MB\n` +
+                                                `│ 🔗 ${chapterUrl}\n` +
+                                                `╰──────────────────────`;
 
-                                        await hisoka.sendMessage(m.from, {
+                                        await m.reply({
                                                 document: pdfBuf,
                                                 mimetype: 'application/pdf',
                                                 fileName: `${safeName}.pdf`,
-                                                caption: `📖 *${chapterName}*\n📄 ${dlCount}/${totalAvail} halaman\n🔗 ${chapterUrl}`,
-                                        }, { quoted: m });
+                                                caption: pdfCaption,
+                                        });
 
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
 

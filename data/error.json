@@ -41,9 +41,9 @@
       "source": "Pixiv",
       "message": "[Pixiv] AI gagal: AI timeout",
       "stack": "Error: [Pixiv] AI gagal: AI timeout\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at analyzeIllustration (/home/runner/workspace/src/scrape/pixiv.cjs:24:17)\n    at async Promise.all (index 0)\n    at async pixivFetchMultiple (/home/runner/workspace/src/scrape/pixiv.cjs:163:23)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778321215538:3942:64)",
-      "count": 1,
+      "count": 3,
       "firstSeen": "2026-05-09T10:07:18.356Z",
-      "lastSeen": "2026-05-09T10:07:18.356Z"
+      "lastSeen": "2026-05-10T08:55:21.923Z"
     },
     {
       "fingerprint": "command:pixiv::Tidak ada hasil ditemukan untuk query tersebut.",
