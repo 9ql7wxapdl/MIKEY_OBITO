@@ -468,6 +468,32 @@ async function main() {
         const config = loadConfig();
         const autoOnlineConfig = config.autoOnline || {};
         
+        const cleanupSocket = () => {
+                if (global.hisokaClient) {
+                        try {
+                                global.hisokaClient.ev.removeAllListeners();
+                                global.hisokaClient.ws?.close();
+                        } catch {}
+                }
+                if (global.__connectWatchdog) {
+                        clearTimeout(global.__connectWatchdog);
+                        global.__connectWatchdog = null;
+                }
+        };
+
+        // Watchdog: kalau dalam 90 detik belum 'open', force reconnect
+        if (global.__connectWatchdog) clearTimeout(global.__connectWatchdog);
+        global.__connectWatchdog = setTimeout(async () => {
+                const state = global.hisokaClient?.ws?.readyState;
+                // 1 = OPEN, kalau bukan OPEN berarti stuck
+                if (state !== 1) {
+                        console.warn('\x1b[33m[Watchdog] Koneksi stuck > 90s, force reconnect...\x1b[39m');
+                        cleanupSocket();
+                        reconnectCount++;
+                        await main();
+                }
+        }, 90000);
+
         const hisoka = injectClient(
                 makeWASocket({
                         version,
@@ -478,9 +504,12 @@ async function main() {
                         },
                         browser: ['Ubuntu', 'Chrome', '136.0.7103.93'],
                         generateHighQualityLinkPreview: true,
-                        syncFullHistory: false, // diubah ke false agar reconnect cepat, tidak sync semua riwayat
-                        keepAliveIntervalMs: 30000, // ini baru
-                        retryRequestDelayMs: 2000, // ini opsional
+                        syncFullHistory: false,
+                        connectTimeoutMs: 60000,
+                        defaultQueryTimeoutMs: 60000,
+                        keepAliveIntervalMs: 25000,
+                        retryRequestDelayMs: 2000,
+                        maxMsgRetryCount: 5,
                         markOnlineOnConnect: autoOnlineConfig.enabled !== false,
                         cachedGroupMetadata: async jid => {
                                 const group = groups.read(jid);
@@ -769,6 +798,13 @@ setTimeout(() => {
 }, 3000); // delay agar socket utama stabil
 }
 
+                if (connection === 'open') {
+                        if (global.__connectWatchdog) {
+                                clearTimeout(global.__connectWatchdog);
+                                global.__connectWatchdog = null;
+                        }
+                }
+
                 if (connection === 'close') {
                         if (global.autoOnlineInterval) {
                                 clearInterval(global.autoOnlineInterval);
@@ -777,10 +813,10 @@ setTimeout(() => {
                         }
 
                         const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode || 0;
+                        const C = '\x1b[36m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
 
                         switch (statusCode) {
                                 case DisconnectReason.loggedOut: {
-                                        const C = '\x1b[36m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
                                         console.log('');
                                         console.log(`${C}════════════════════════════════════${R}`);
                                         console.log(`${B}${Y}⚠️  BOT UTAMA LOGOUT — RE-AUTH${R}`);
@@ -791,15 +827,8 @@ setTimeout(() => {
                                         console.log(`${C}════════════════════════════════════${R}`);
                                         console.log('');
 
-                                        // Tutup socket utama (tanpa membunuh proses)
-                                        if (global.hisokaClient) {
-                                                try {
-                                                        global.hisokaClient.ev.removeAllListeners();
-                                                        global.hisokaClient.ws?.close();
-                                                } catch {}
-                                        }
+                                        cleanupSocket();
 
-                                        // Hapus hanya session file bot utama (bukan jadibot)
                                         try {
                                                 const dirContents = await fs.promises.readdir(sessionDir);
                                                 for (const file of dirContents) {
@@ -808,14 +837,13 @@ setTimeout(() => {
                                                 }
                                         } catch {}
 
-                                        // Jadibot tetap hidup — langsung reconnect bot utama
                                         await delay(2000);
+                                        reconnectCount = 0;
                                         await main();
                                         break;
                                 }
 
                                 case DisconnectReason.forbidden: {
-                                        const C = '\x1b[36m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
                                         reconnectCount++;
                                         const waitForbidden = Math.min(10 * reconnectCount, 60);
                                         console.log('');
@@ -823,61 +851,56 @@ setTimeout(() => {
                                         console.log(`${B}${Y}⚠️  FORBIDDEN (403) — RECONNECTING${R}`);
                                         console.log(`${C}════════════════════════════════════${R}`);
                                         console.log(`${Y}• Bukan logout — sesi TIDAK dihapus${R}`);
-                                        console.log(`${Y}• Mencoba reconnect dalam ${waitForbidden}s... (Attempt ${reconnectCount})${R}`);
+                                        console.log(`${Y}• Reconnect dalam ${waitForbidden}s... (Attempt ${reconnectCount})${R}`);
                                         console.log(`${C}════════════════════════════════════${R}`);
                                         console.log('');
                                         await delay(waitForbidden * 1000);
-                                        if (global.hisokaClient) {
-                                                try {
-                                                        global.hisokaClient.ev.removeAllListeners();
-                                                        global.hisokaClient.ws?.close();
-                                                } catch {}
-                                        }
+                                        cleanupSocket();
                                         await main();
                                         break;
                                 }
 
                                 case DisconnectReason.restartRequired:
                                         console.info('\x1b[33mRestart required. Reconnecting...\x1b[39m');
-                                        // ini baru
-                                        if (global.hisokaClient) {
-                                               try {
-                                                      global.hisokaClient.ev.removeAllListeners(); // hapus semua event lama
-                                                      global.hisokaClient.ws?.close(); // tutup koneksi lama
-                                               } catch {}
-                                        }
-                                        await main(); // sampe sini
+                                        cleanupSocket();
+                                        await main();
                                         break;
 
                                 case 408:
                                         if (hisoka.authState.creds?.registered) {
-                                                console.info('\x1b[33mConnection timeout. Reconnecting...\x1b[39m');
-                                                await delay(3000);
+                                                console.info('\x1b[33mConnection timeout. Reconnecting in 5s...\x1b[39m');
+                                                await delay(5000);
                                         } else {
                                                 reconnectCount++;
                                                 console.info(`\x1b[33mPairing timeout. Reconnecting in ${Math.min(5 * reconnectCount, 60)}s... (Attempt ${reconnectCount})\x1b[39m`);
                                                 await delay(Math.min(5 * reconnectCount, 60) * 1000);
                                         }
-                                        if (global.hisokaClient) {
-                                               try {
-                                                      global.hisokaClient.ev.removeAllListeners();
-                                                      global.hisokaClient.ws?.close();
-                                               } catch {}
-                                        }
+                                        cleanupSocket();
+                                        await main();
+                                        break;
+
+                                case 515:
+                                        console.info('\x1b[33mStream error (515). Reconnecting in 5s...\x1b[39m');
+                                        await delay(5000);
+                                        cleanupSocket();
+                                        await main();
+                                        break;
+
+                                case 503:
+                                        reconnectCount++;
+                                        const waitSvc = Math.min(10 * reconnectCount, 60);
+                                        console.warn(`\x1b[33mService unavailable (503). Reconnecting in ${waitSvc}s... (Attempt ${reconnectCount})\x1b[39m`);
+                                        await delay(waitSvc * 1000);
+                                        cleanupSocket();
                                         await main();
                                         break;
 
                                 default:
                                         reconnectCount++;
                                         const waitSec = Math.min(5 * reconnectCount, 60);
-                                        console.error(`\x1b[31mConnection closed unexpectedly. Reconnecting in ${waitSec}s... (Attempt ${reconnectCount})\x1b[39m`);
+                                        console.error(`\x1b[31mConnection closed [${statusCode}]. Reconnecting in ${waitSec}s... (Attempt ${reconnectCount})\x1b[39m`);
                                         await delay(waitSec * 1000);
-                                        if (global.hisokaClient) {
-                                               try {
-                                                      global.hisokaClient.ev.removeAllListeners();
-                                                      global.hisokaClient.ws?.close();
-                                               } catch {}
-                                        }
+                                        cleanupSocket();
                                         await main();
                                         break;
                         }

@@ -9,10 +9,16 @@
 🔧 BUG FIX
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-◈ Fix Koneksi Bot — Reconnect Lebih Cepat
-  ✦ syncFullHistory diubah ke false
-  ✦ Bot tidak lagi sync seluruh riwayat saat reconnect
-  ✦ Proses reconnect jadi jauh lebih ringan & cepat
+◈ Fix & Update Koneksi Bot Utama — Maksimal, Jarang Stuck
+  ✦ Tambah connectTimeoutMs (60s) — koneksi tidak akan hanging selamanya
+  ✦ Tambah defaultQueryTimeoutMs (60s) — query tidak stuck tak terbatas
+  ✦ Tambah maxMsgRetryCount: 5 — batas retry pesan, cegah antrian numpuk
+  ✦ keepAliveIntervalMs diperketat ke 25s (dari 30s) — ping lebih sering
+  ✦ syncFullHistory false — reconnect tidak sync semua riwayat, lebih ringan
+  ✦ Watchdog timer 90s — kalau bot stuck di "connecting", otomatis force reconnect
+  ✦ cleanupSocket() terpusat — hapus semua event lama & tutup socket sebelum reconnect
+  ✦ Tambah handler case 515 (stream error) & 503 (service unavailable)
+  ✦ Semua case disconnect kini pakai cleanup yang konsisten & tidak bocor
 
 ◈ Fix AI Tidak Merespons di User Jadibot
   ✦ Command AI (.wily/.ai/.tanya) kini hanya direspons
