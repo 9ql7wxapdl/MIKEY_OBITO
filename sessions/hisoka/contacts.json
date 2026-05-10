@@ -1988,7 +1988,8 @@
     "id": "6283815424573@s.whatsapp.net",
     "name": "√ Istri Kei",
     "lid": "127393243132132@lid",
-    "jid": "6283815424573@s.whatsapp.net"
+    "jid": "6283815424573@s.whatsapp.net",
+    "notify": "(T)ipii kinetik"
   },
   "6283142117473@s.whatsapp.net": {
     "isContact": true,
@@ -19087,7 +19088,8 @@
     "id": "62881025542877@s.whatsapp.net",
     "name": "! Rara",
     "lid": "74797375574209@lid",
-    "jid": "62881025542877@s.whatsapp.net"
+    "jid": "62881025542877@s.whatsapp.net",
+    "notify": "🫪"
   },
   "6283138135045@s.whatsapp.net": {
     "isContact": true,
@@ -22581,7 +22583,8 @@
     "id": "6285175463174@s.whatsapp.net",
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
-    "jid": "6285175463174@s.whatsapp.net"
+    "jid": "6285175463174@s.whatsapp.net",
+    "notify": "sunshine.jpeg"
   },
   "6283138972115@s.whatsapp.net": {
     "isContact": true,
@@ -25459,7 +25462,8 @@
     "id": "62882007407746@s.whatsapp.net",
     "name": "√Afass",
     "lid": "69849254518919@lid",
-    "jid": "62882007407746@s.whatsapp.net"
+    "jid": "62882007407746@s.whatsapp.net",
+    "notify": "𝘼𝙛𝙖𝙨𝙨"
   },
   "6283896168985@s.whatsapp.net": {
     "isContact": true,
@@ -31720,5 +31724,19 @@
   "212611350872@s.whatsapp.net": {
     "id": "212611350872@s.whatsapp.net",
     "notify": "— Fiora Sylvie"
+  },
+  "127393243132132@lid": {
+    "id": "127393243132132@lid",
+    "lid": "127393243132132@lid",
+    "notify": "(T)ipii kinetik"
+  },
+  "249769729478801@lid": {
+    "id": "249769729478801@lid",
+    "lid": "249769729478801@lid",
+    "imgUrl": "changed"
+  },
+  "23674618863@s.whatsapp.net": {
+    "id": "23674618863@s.whatsapp.net",
+    "notify": "mw sewa? chat owner"
   }
 }
