@@ -23,12 +23,13 @@ function readAll() {
                 sessions:        parsed.sessions        || {},
                 sticker_pattern: parsed.sticker_pattern || {},
                 sticker_story:   parsed.sticker_story   || {},
+                sticker_memory:  parsed.sticker_memory  || {},
             };
         }
     } catch {}
 
     // Migrasi dari folder ai_history/*.json lama
-    const data = { sessions: {}, sticker_pattern: {}, sticker_story: {} };
+    const data = { sessions: {}, sticker_pattern: {}, sticker_story: {}, sticker_memory: {} };
     try {
         if (fs.existsSync(OLD_HISTORY_DIR) && fs.statSync(OLD_HISTORY_DIR).isDirectory()) {
             const files = fs.readdirSync(OLD_HISTORY_DIR).filter(f => f.endsWith('.json'));
@@ -49,6 +50,7 @@ function readAll() {
     try {
         const patternFile = path.join(DATA_DIR, 'ai_sticker_pattern.json');
         const storyFile   = path.join(DATA_DIR, 'ai_sticker_story.json');
+        const memoryFile  = path.join(DATA_DIR, 'sticker_memory.json');
         if (fs.existsSync(patternFile)) {
             data.sticker_pattern = JSON.parse(fs.readFileSync(patternFile, 'utf-8'));
             console.log(`\x1b[32m[AiHistory]\x1b[39m Migrasi ai_sticker_pattern.json → ai_history.json`);
@@ -56,6 +58,10 @@ function readAll() {
         if (fs.existsSync(storyFile)) {
             data.sticker_story = JSON.parse(fs.readFileSync(storyFile, 'utf-8'));
             console.log(`\x1b[32m[AiHistory]\x1b[39m Migrasi ai_sticker_story.json → ai_history.json`);
+        }
+        if (fs.existsSync(memoryFile)) {
+            data.sticker_memory = JSON.parse(fs.readFileSync(memoryFile, 'utf-8'));
+            console.log(`\x1b[32m[AiHistory]\x1b[39m Migrasi sticker_memory.json → ai_history.json`);
         }
     } catch {}
 

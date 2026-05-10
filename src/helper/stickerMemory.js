@@ -2,31 +2,26 @@
 
 /**
  * stickerMemory.js
- * Simpan dan ambil analisis stiker dari JSON
+ * Simpan dan ambil analisis stiker dari ai_history.json (key: sticker_memory)
  * — Bot makin cerdas setiap kali lihat stiker baru
  */
 
-import path from 'path';
-import fs from 'fs';
 import { createHash } from 'crypto';
-
-const DATA_DIR    = path.join(process.cwd(), 'data');
-const MEMORY_FILE = path.join(DATA_DIR, 'sticker_memory.json');
-
-if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+import { readAll, writeAll } from '../db/aiHistory.js';
 
 // ── File helpers ──
 
 function readMemory() {
     try {
-        if (!fs.existsSync(MEMORY_FILE)) return {};
-        return JSON.parse(fs.readFileSync(MEMORY_FILE, 'utf-8'));
+        return readAll().sticker_memory || {};
     } catch { return {}; }
 }
 
-function writeMemory(data) {
+function writeMemory(mem) {
     try {
-        fs.writeFileSync(MEMORY_FILE, JSON.stringify(data, null, 2), 'utf-8');
+        const all = readAll();
+        all.sticker_memory = mem;
+        writeAll(all);
     } catch {}
 }
 
