@@ -160,9 +160,25 @@
               "text": "[⏰ 10 Mei, 14.21]\nH-hei, Hen V2, bukannya kamu sendiri yang bilang kalau mereka baru *ngumumin* adaptasi *anime TV*? \n\nKalau baru diumumin, ya jelas *belum ada* animenya sekarang dong. Itu kan pengumuman buat *masa depan*. Masa sampai segitunya kamu nggak ngerti? Ugh, ya terserah deh."
             }
           ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.24 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, Hen V2, bukannya kamu sendiri yang bilang kalau mereka baru *ngumumin* adaptasi *anime TV*? Kalau baru diumumin, ya jelas *belum ada*...\" | 👤 Hen V2]\ninfo lenkapnay dong kasih sini"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.24]\nUgh, Hen V2... *masih* nanya juga? Kan sudah kubilang, baru *diumumin*. Ya sudah, kalau maksa banget mau tahu, ini infonya: \n\n> Adaptasi *anime TV* untuk manga *Isshiki-san wa Koi wo Shiritai.* sudah *diumumkan*.\n\n• Judul aslinya: *Isshiki-san wa Koi wo Shiritai.* (一色さんは恋を語りたい。)\n• Manga ini dibuat oleh *Miyabi Fujisawa*.\n• Genre-nya itu *romantic comedy*. Ceritanya tentang dua orang yang kikuk soal cinta.\n\nTapi, ya, itu saja. Sampai sekarang *belum ada* detail lebih lanjut soal *tanggal rilis*, *studio animasinya*, atau *siapa pengisi suaranya*. Jadi, ya jelas belum tayang lah, Hen V2.\n\nPuas? Jangan nanya lagi yang aneh-aneh ya. Aku sibuk."
+            }
+          ]
         }
       ],
-      "lastActivity": 1778397700746
+      "lastActivity": 1778397866652
     }
   },
   "sticker_pattern": {
@@ -177,9 +193,9 @@
       "last_sent": 1777992895
     },
     "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp": {
-      "total_sent": 26,
+      "total_sent": 27,
       "moods": {},
-      "last_sent": 1778397561
+      "last_sent": 1778397864
     },
     "https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef2153a-HONOLULU.webp": {
       "total_sent": 1,
@@ -376,6 +392,13 @@
         "context": "H-hei, Hen V2, bukannya kamu sendiri yang bilang kalau mereka baru *ngumumin* adaptasi *anime TV*? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86024fcd6049-HONOLULU.webp] Kalau b",
         "was_fallback": 1,
         "sent_at": 1778397699
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, Hen V2... *masih* nanya juga? Kan sudah kubilang, baru *diumumin*. Ya sudah, kalau maksa banget mau tahu, ini infonya: [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd604",
+        "was_fallback": 0,
+        "sent_at": 1778397864
       }
     ],
     "6289681008411@s.whatsapp.net_120363192554714254@g.us": [
