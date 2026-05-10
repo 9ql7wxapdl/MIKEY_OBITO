@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "komiktap-update::komiktapLatestUpdates is not a function",
+      "source": "komiktap-update",
+      "message": "komiktapLatestUpdates is not a function",
+      "stack": "TypeError: komiktapLatestUpdates is not a function\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778400479035:4688:61)",
+      "count": 2,
+      "firstSeen": "2026-05-10T08:08:10.949Z",
+      "lastSeen": "2026-05-10T08:08:21.724Z"
+    },
+    {
+      "fingerprint": "KOMIKUPDATE::[KOMIKUPDATE] Error: komiktapLatestUpdates is not a function",
+      "source": "KOMIKUPDATE",
+      "message": "[KOMIKUPDATE] Error: komiktapLatestUpdates is not a function",
+      "stack": "Error: [KOMIKUPDATE] Error: komiktapLatestUpdates is not a function\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778400479035:4741:49)",
+      "count": 2,
+      "firstSeen": "2026-05-10T08:08:10.943Z",
+      "lastSeen": "2026-05-10T08:08:21.718Z"
+    },
+    {
       "fingerprint": "cosplay:fetch::Cannot access '_sendCosplayImages' before initialization",
       "source": "cosplay:fetch",
       "message": "Cannot access '_sendCosplayImages' before initialization",

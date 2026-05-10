@@ -2849,35 +2849,42 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                         await tolak(hisoka, m, `📖 Mengambil detail *${results[idx - 1].title}*...`);
 
                                                         const detail = await komiktapDetail(results[idx - 1].url);
-
-                                                        // Format chapter list
                                                         const chapters = detail.chapters;
-                                                        let chapText = formatDetailText(detail, pfx) + '\n\n';
-                                                        chapText += `╭─「 📋 *DAFTAR CHAPTER* 」\n│\n`;
-                                                        const showMax = Math.min(chapters.length, 30);
-                                                        chapters.slice(0, showMax).forEach((ch, i) => {
-                                                                chapText += `│ *${i + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
-                                                        });
-                                                        if (chapters.length > showMax) {
-                                                                chapText += `│ _...dan ${chapters.length - showMax} chapter lainnya_\n`;
-                                                        }
-                                                        chapText += `│\n│ 💡 Balas dengan nomor chapter untuk download PDF\n`;
-                                                        chapText += `│ Contoh: balas *1* untuk chapter pertama\n`;
-                                                        chapText += `╰──────────────────────`;
 
-                                                        let menuMsg;
+                                                        // Pesan 1: cover + info manga
+                                                        const infoText = formatDetailText(detail, pfx);
                                                         if (detail.cover) {
                                                                 try {
                                                                         const imgRes = await _require('axios').get(detail.cover, {
                                                                                 responseType: 'arraybuffer', timeout: 10000,
                                                                                 headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://komiktap.info/' },
                                                                         });
-                                                                        menuMsg = await hisoka.sendMessage(m.from, { image: Buffer.from(imgRes.data), caption: chapText }, { quoted: m });
+                                                                        await hisoka.sendMessage(m.from, { image: Buffer.from(imgRes.data), caption: infoText }, { quoted: m });
                                                                 } catch {
-                                                                        menuMsg = await hisoka.sendMessage(m.from, { text: chapText }, { quoted: m });
+                                                                        await hisoka.sendMessage(m.from, { text: infoText }, { quoted: m });
                                                                 }
                                                         } else {
-                                                                menuMsg = await hisoka.sendMessage(m.from, { text: chapText }, { quoted: m });
+                                                                await hisoka.sendMessage(m.from, { text: infoText }, { quoted: m });
+                                                        }
+
+                                                        // Pesan 2: SEMUA chapter list → ini yang jadi botMsgId
+                                                        const CHUNK = 50;
+                                                        let lastChapMsg;
+                                                        for (let ci = 0; ci < chapters.length; ci += CHUNK) {
+                                                                const slice = chapters.slice(ci, ci + CHUNK);
+                                                                const isLast = ci + CHUNK >= chapters.length;
+                                                                let chapText = ci === 0
+                                                                        ? `╭─「 📋 *DAFTAR CHAPTER* (${chapters.length} total) 」\n│\n`
+                                                                        : `╭─「 📋 *CHAPTER LANJUTAN* 」\n│\n`;
+                                                                slice.forEach((ch, j) => {
+                                                                        chapText += `│ *${ci + j + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
+                                                                });
+                                                                if (isLast) {
+                                                                        chapText += `│\n│ 💡 *Balas pesan ini* dengan nomor chapter\n│ Contoh: balas *1* untuk chapter pertama\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
+                                                                } else {
+                                                                        chapText += `╰──────────────────────`;
+                                                                }
+                                                                lastChapMsg = await hisoka.sendMessage(m.from, { text: chapText }, { quoted: isLast ? m : undefined });
                                                         }
 
                                                         // Simpan phase 2
@@ -2887,7 +2894,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 phase: 'detail',
                                                                 detail,
                                                                 chapters,
-                                                                botMsgId: menuMsg?.key?.id || '',
+                                                                botMsgId: lastChapMsg?.key?.id || '',
                                                                 expiresAt: Date.now() + 10 * 60 * 1000,
                                                                 timeout: newTimeout,
                                                                 loading: false,
@@ -2914,9 +2921,11 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                                 pendingKomik.loading = true;
                                                 if (pendingKomik.timeout) clearTimeout(pendingKomik.timeout);
-                                                pendingKomikChoices.delete(komikKey);
 
                                                 const chapter = chapters[idx - 1];
+                                                const savedDetail = pendingKomik.detail;
+                                                const savedChapters = pendingKomik.chapters;
+
                                                 try {
                                                         await hisoka.sendMessage(m.from, { react: { text: '📥', key: m.key } });
 
@@ -2946,22 +2955,44 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 await m.reply({ edit: loadingMsg.key, text: `██████████ 100%\n✅ *Selesai! Mengirim PDF...*\n📖 _${chapter.name}_` });
                                                         } catch (_) {}
 
-                                                        const detail = pendingKomik.detail;
-                                                        const mangaTitle = detail?.title || chapter.name;
+                                                        const mangaTitle = savedDetail?.title || chapter.name;
                                                         const safeName = `${mangaTitle} - ${chapter.name}`.replace(/[^\w\s,!'-]/g, '').replace(/\s+/g, ' ').trim().slice(0, 60);
 
                                                         await hisoka.sendMessage(m.from, {
                                                                 document: pdfBuf,
                                                                 mimetype: 'application/pdf',
                                                                 fileName: `${safeName}.pdf`,
-                                                                caption: `📖 *${mangaTitle}*\n📑 *${chapter.name}*\n📄 ${dlCount}/${totalAvail} halaman\n🔗 ${chapter.url}`,
+                                                                caption: `📖 *${mangaTitle}*\n📑 *${chapter.name}*\n📄 ${dlCount}/${totalAvail} halaman\n🔗 ${chapter.url}\n\n💡 _Balas pesan ini dengan nomor chapter lain untuk download lagi_`,
                                                         }, { quoted: m });
 
                                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
 
+                                                        // Restore session — user bisa pilih chapter lain tanpa .komik lagi
+                                                        const restoreTimeout = setTimeout(() => pendingKomikChoices.delete(komikKey), 10 * 60 * 1000);
+                                                        pendingKomikChoices.set(komikKey, {
+                                                                phase: 'detail',
+                                                                detail: savedDetail,
+                                                                chapters: savedChapters,
+                                                                botMsgId: '', // allow any reply
+                                                                expiresAt: Date.now() + 10 * 60 * 1000,
+                                                                timeout: restoreTimeout,
+                                                                loading: false,
+                                                        });
+
                                                 } catch (err) {
                                                         console.error('[KOMIK] PDF error:', err?.message);
                                                         logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-interactive-pdf');
+                                                        // Restore session even on error
+                                                        const restoreTimeout = setTimeout(() => pendingKomikChoices.delete(komikKey), 10 * 60 * 1000);
+                                                        pendingKomikChoices.set(komikKey, {
+                                                                phase: 'detail',
+                                                                detail: savedDetail,
+                                                                chapters: savedChapters,
+                                                                botMsgId: '',
+                                                                expiresAt: Date.now() + 10 * 60 * 1000,
+                                                                timeout: restoreTimeout,
+                                                                loading: false,
+                                                        });
                                                         await tolak(hisoka, m, `❌ Gagal download chapter.\n💬 ${err?.message || 'Coba lagi nanti'}`);
                                                 }
                                                 return;
@@ -4430,31 +4461,56 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 break;
                                         }
 
-                                        // Build interactive search result text
-                                        let text = `╭─「 🔍 *KOMIKTAP SEARCH* 」\n│\n│ Hasil: _${input}_\n│\n`;
-                                        results.slice(0, 10).forEach((r, i) => {
+                                        const ax = _require('axios');
+                                        const topResults = results.slice(0, 10);
+
+                                        // Download semua cover secara paralel untuk album
+                                        const coverDownloads = await Promise.allSettled(
+                                                topResults.map((r, i) => {
+                                                        if (!r.cover) return Promise.reject(new Error('no cover'));
+                                                        return ax.get(r.cover, {
+                                                                responseType: 'arraybuffer', timeout: 12000,
+                                                                headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://komiktap.info/' },
+                                                        }).then(res => ({ idx: i, buf: Buffer.from(res.data) }));
+                                                })
+                                        );
+
+                                        // Bangun album items
+                                        const albumItems = [];
+                                        coverDownloads.forEach((res, i) => {
+                                                const r = topResults[i];
+                                                const statusTxt = r.status ? `[${r.status}]` : '';
+                                                const typeTxt = r.type ? ` • ${r.type}` : '';
+                                                const ratingTxt = r.rating ? ` ⭐${r.rating}` : '';
+                                                const cap = `*${i + 1}.* ${r.title}${statusTxt ? '\n' + statusTxt : ''}${typeTxt}${ratingTxt}`;
+                                                if (res.status === 'fulfilled') {
+                                                        albumItems.push({ image: res.value.buf, caption: cap });
+                                                }
+                                        });
+
+                                        // Kirim album cover (jika ada)
+                                        if (albumItems.length > 0) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: m });
+                                                } catch {
+                                                        for (const item of albumItems) {
+                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }); } catch (_) {}
+                                                        }
+                                                }
+                                        }
+
+                                        // Bangun text menu (ini yang dijadikan botMsgId untuk reply)
+                                        let menuText = `╭─「 🔍 *KOMIKTAP SEARCH* 」\n│\n│ Hasil: _${input}_\n│\n`;
+                                        topResults.forEach((r, i) => {
                                                 const status = r.status ? ` [${r.status}]` : '';
                                                 const type = r.type ? ` • ${r.type}` : '';
                                                 const rating = r.rating ? ` ⭐${r.rating}` : '';
-                                                text += `│ *${i + 1}.* ${r.title.slice(0, 55)}${r.title.length > 55 ? '…' : ''}\n`;
-                                                text += `│     ${status}${type}${rating}\n`;
+                                                menuText += `│ *${i + 1}.* ${r.title.slice(0, 55)}${r.title.length > 55 ? '…' : ''}\n`;
+                                                menuText += `│     ${status}${type}${rating}\n`;
                                         });
-                                        text += `│\n│ 💡 *Balas pesan ini* dengan nomor untuk lihat detail\n│ Contoh: balas *1* untuk manga pertama\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
+                                        menuText += `│\n│ 💡 *Balas pesan ini* dengan nomor\n│ Contoh: balas *1* untuk manga pertama\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
 
-                                        let menuMsg;
-                                        if (results[0].cover) {
-                                                try {
-                                                        const imgRes = await _require('axios').get(results[0].cover, {
-                                                                responseType: 'arraybuffer', timeout: 10000,
-                                                                headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://komiktap.info/' },
-                                                        });
-                                                        menuMsg = await hisoka.sendMessage(m.from, { image: Buffer.from(imgRes.data), caption: text }, { quoted: m });
-                                                } catch {
-                                                        menuMsg = await hisoka.sendMessage(m.from, { text }, { quoted: m });
-                                                }
-                                        } else {
-                                                menuMsg = await hisoka.sendMessage(m.from, { text }, { quoted: m });
-                                        }
+                                        const menuMsg = await hisoka.sendMessage(m.from, { text: menuText }, { quoted: m });
 
                                         // Simpan session untuk reply interaktif
                                         const komikKey = getJadibotChoiceKey(m);
@@ -4463,7 +4519,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         const komikTimeout = setTimeout(() => pendingKomikChoices.delete(komikKey), 5 * 60 * 1000);
                                         pendingKomikChoices.set(komikKey, {
                                                 phase: 'search',
-                                                results: results.slice(0, 10),
+                                                results: topResults,
                                                 botMsgId: menuMsg?.key?.id || '',
                                                 expiresAt: Date.now() + 5 * 60 * 1000,
                                                 timeout: komikTimeout,
@@ -4616,6 +4672,75 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         console.error('[KOMIKTAP] Download error:', err?.message);
                                         logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-download');
                                         await tolak(hisoka, m, `❌ Gagal download chapter.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'komikupdate':
+                        case 'komikup': {
+                                try {
+                                        const { komiktapLatestUpdates } = _require(path.resolve('./src/scrape/komiktap.cjs'));
+                                        const ax = _require('axios');
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔄', key: m.key } });
+                                        await tolak(hisoka, m, `🔄 Mengambil update terbaru dari Komiktap...`);
+
+                                        const items = await komiktapLatestUpdates();
+
+                                        if (!items.length) {
+                                                await tolak(hisoka, m, `❌ Tidak ada data update saat ini.`);
+                                                break;
+                                        }
+
+                                        // Download semua cover secara paralel untuk album
+                                        const coverDls = await Promise.allSettled(
+                                                items.map(r => {
+                                                        if (!r.cover) return Promise.reject(new Error('no cover'));
+                                                        return ax.get(r.cover, {
+                                                                responseType: 'arraybuffer', timeout: 12000,
+                                                                headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://komiktap.info/' },
+                                                        }).then(res => Buffer.from(res.data));
+                                                })
+                                        );
+
+                                        const albumUpd = [];
+                                        coverDls.forEach((res, i) => {
+                                                const r = items[i];
+                                                const typeTxt = r.type ? ` • ${r.type}` : '';
+                                                const statusTxt = r.status ? ` [${r.status}]` : '';
+                                                const lastTxt = r.lastChap ? `\n📖 ${r.lastChap}` : '';
+                                                const cap = `*${i + 1}.* ${r.title}${statusTxt}${typeTxt}${lastTxt}`;
+                                                if (res.status === 'fulfilled') {
+                                                        albumUpd.push({ image: res.value, caption: cap });
+                                                }
+                                        });
+
+                                        if (albumUpd.length > 0) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, { albumMessage: albumUpd }, { quoted: m });
+                                                } catch {
+                                                        for (const item of albumUpd) {
+                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }); } catch (_) {}
+                                                        }
+                                                }
+                                        }
+
+                                        // Text list update
+                                        let updText = `╭─「 🔄 *UPDATE TERBARU KOMIKTAP* 」\n│\n`;
+                                        items.forEach((r, i) => {
+                                                const typeTxt = r.type ? ` • ${r.type}` : '';
+                                                const lastTxt = r.lastChap ? `  _${r.lastChap}_` : '';
+                                                updText += `│ *${i + 1}.* ${r.title.slice(0, 50)}${typeTxt}${lastTxt}\n`;
+                                        });
+                                        updText += `│\n│ 🔗 ${m.prefix || '.'}komik <judul> untuk cari & download\n╰──────────────────────`;
+
+                                        await hisoka.sendMessage(m.from, { text: updText }, { quoted: m });
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[KOMIKUPDATE] Error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-update');
+                                        await tolak(hisoka, m, `❌ Gagal ambil update.\n💬 ${err?.message || 'Coba lagi nanti'}`);
                                 }
                                 break;
                         }

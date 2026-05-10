@@ -3758,7 +3758,7 @@
     "subjectOwner": "6285187063723@s.whatsapp.net",
     "subjectOwnerLid": "8014979436608@lid",
     "subjectTime": 1769434437,
-    "size": 787,
+    "size": 786,
     "creation": 1769433881,
     "owner": "6285809163320@s.whatsapp.net",
     "ownerLid": "44698278310084@lid",
@@ -4129,11 +4129,6 @@
       {
         "id": "271614369341564@lid",
         "jid": "271614369341564@lid",
-        "admin": null
-      },
-      {
-        "id": "93592186052808@lid",
-        "jid": "93592186052808@lid",
         "admin": null
       },
       {
@@ -7715,7 +7710,7 @@
     "subjectOwner": "6283123405940@s.whatsapp.net",
     "subjectOwnerLid": "172838711480524@lid",
     "subjectTime": 1761452838,
-    "size": 1024,
+    "size": 1025,
     "creation": 1693096407,
     "owner": "6285807405071@s.whatsapp.net",
     "ownerLid": "88609721962527@lid",
@@ -10344,6 +10339,11 @@
         "admin": null
       },
       {
+        "id": "273074842816614@lid",
+        "jid": "6285743716570@s.whatsapp.net",
+        "admin": null
+      },
+      {
         "id": "235682689728762@lid",
         "jid": "6287816249462@s.whatsapp.net",
         "admin": null
@@ -12847,8 +12847,7 @@
         "id": "274380311523546@lid",
         "jid": "62882022633535@s.whatsapp.net",
         "admin": null
-      },
-      "273074842816614@lid"
+      }
     ]
   },
   "120363288769564494@g.us": {
@@ -12858,7 +12857,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1969,
+    "size": 1970,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -17774,6 +17773,11 @@
       {
         "id": "235682689728762@lid",
         "jid": "235682689728762@lid",
+        "admin": null
+      },
+      {
+        "id": "273074842816614@lid",
+        "jid": "273074842816614@lid",
         "admin": null
       },
       {
@@ -22715,8 +22719,7 @@
         "id": "254193512226986@lid",
         "jid": "254193512226986@lid",
         "admin": null
-      },
-      "273074842816614@lid"
+      }
     ]
   }
 }

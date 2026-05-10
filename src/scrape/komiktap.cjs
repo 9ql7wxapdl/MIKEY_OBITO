@@ -248,11 +248,48 @@ function formatDetailText(detail, pfx = '.') {
     return text;
 }
 
+async function komiktapLatestUpdates() {
+    const html = await fetchHtml(`${BASE}/manga/?orderby=modified`);
+    const $ = cheerio.load(html);
+    const items = [];
+
+    // MangaReader theme: .listupd .bs .bsx
+    $('.listupd .bsx, .utao .uta').each((i, el) => {
+        if (items.length >= 20) return false;
+        const a = $(el).find('a').first();
+        const href = a.attr('href') || '';
+        const title = (a.attr('title') || $(el).find('.tt, h4, h3').first().text() || '').trim();
+        const cover = $(el).find('img').first().attr('src') || '';
+        const status = $(el).find('[class*="status"]').first().text().trim();
+        const type = $(el).find('[class*="type"]').first().text().trim();
+        const lastChap = $(el).find('.epxs, .lch a').first().text().trim();
+        if (href && title) items.push({ title, url: href, cover, status, type, lastChap });
+    });
+
+    // Fallback: homepage .bsx cards
+    if (!items.length) {
+        $('.bsx').each((i, el) => {
+            if (items.length >= 20) return false;
+            const a = $(el).find('a').first();
+            const href = a.attr('href') || '';
+            const title = (a.attr('title') || $(el).find('.tt').text() || '').trim();
+            const cover = $(el).find('img').first().attr('src') || '';
+            const status = $(el).find('[class*="status"]').first().text().trim();
+            const type = $(el).find('[class*="type"]').first().text().trim();
+            const lastChap = $(el).find('.epxs').first().text().trim();
+            if (href && title) items.push({ title, url: href, cover, status, type, lastChap });
+        });
+    }
+
+    return items;
+}
+
 module.exports = {
     komiktapSearch,
     komiktapDetail,
     komiktapChapterImages,
     komiktapPdf,
+    komiktapLatestUpdates,
     makeProgressBar,
     formatSearchResults,
     formatDetailText,
