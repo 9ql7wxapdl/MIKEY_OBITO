@@ -1,67 +1,59 @@
-> ╔══════════════════════════════════╗
-> ║     🤖  W I L Y  B O T  —  V 1 5   ║
-> ╚══════════════════════════════════╝
-> 📅 Updated  : Sabtu, 10 Mei 2026
-> 📦 Total    : 7 Update
-> 🔧 Bug Fix  : 2  |  ✨ Fitur Baru : 5
-> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+╔══════════════════════════════════╗
+║     🤖  W I L Y  B O T  —  V 1 5   ║
+╚══════════════════════════════════╝
+📅 Updated  : Sabtu, 10 Mei 2026
+📦 Total    : 7 Update
+🔧 Bug Fix  : 2  |  ✨ Fitur Baru : 5
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 > *🔧 BUG FIX*
-> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 > ◈ *Fix & Update Koneksi Bot Utama — Maksimal, Jarang Stuck*
->   ✦ Tambah `connectTimeoutMs` (60s) — koneksi tidak akan *hanging* selamanya
->   ✦ Tambah `defaultQueryTimeoutMs` (60s) — query tidak stuck tak terbatas
->   ✦ Tambah `maxMsgRetryCount: 5` — batas retry pesan, cegah antrian numpuk
->   ✦ `keepAliveIntervalMs` diperketat ke *25s* (dari 30s) — ping lebih sering
->   ✦ `syncFullHistory` false — reconnect tidak sync semua riwayat, lebih ringan
->   ✦ *Watchdog timer 90s* — kalau bot stuck di "connecting", otomatis force reconnect
->   ✦ `cleanupSocket()` terpusat — hapus semua event lama & tutup socket sebelum reconnect
->   ✦ Tambah handler case *515* (stream error) & *503* (service unavailable)
->   ✦ Semua case disconnect kini pakai cleanup yang konsisten & tidak bocor
+  ✦ Tambah `connectTimeoutMs` (60s) — koneksi tidak akan *hanging* selamanya
+  ✦ Tambah `defaultQueryTimeoutMs` (60s) — query tidak stuck tak terbatas
+  ✦ Tambah `maxMsgRetryCount: 5` — batas retry pesan, cegah antrian numpuk
+  ✦ `keepAliveIntervalMs` diperketat ke *25s* — ping lebih sering
+  ✦ *Watchdog timer 90s* — bot stuck di "connecting" → otomatis force reconnect
+  ✦ `cleanupSocket()` terpusat — bersihkan event lama & tutup socket sebelum reconnect
+  ✦ Tambah handler case *515* (stream error) & *503* (service unavailable)
+  ✦ Semua case disconnect kini konsisten & tidak bocor
 
 > ◈ *Fix AI Tidak Merespons di User Jadibot*
->   ✦ Command AI (`.wily` / `.ai` / `.tanya`) kini hanya direspons oleh *main bot*
->   ✦ Mencegah konflik & respons ganda antara main & jadibot
+  ✦ Command AI (`.wily` / `.ai` / `.tanya`) kini hanya direspons oleh *main bot*
+  ✦ Mencegah konflik & respons ganda antara main & jadibot
 
-> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 > *✨ FITUR BARU*
-> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 > ◈ *Tempmail — Email Sementara Instan*
->   ✦ `.tempmail` / `.tmail` — buat email sementara otomatis
->   ✦ `.tminbox` — cek inbox email tempmail kamu
->   ✦ `.tmread` — baca isi email masuk
->   ✦ `.tmwait` — tunggu email masuk secara realtime
->   ✦ `.tmdel` — hapus akun tempmail
+  ✦ `.tempmail` / `.tmail` — buat email sementara otomatis
+  ✦ `.tminbox` — cek inbox email tempmail kamu
+  ✦ `.tmread` — baca isi email masuk
+  ✦ `.tmwait` — tunggu email masuk secara realtime
+  ✦ `.tmdel` — hapus akun tempmail
 
 > ◈ *NHentai — Doujin Search & Download*
->   ✦ `.nhentai` / `.nh` — cari doujin berdasarkan judul atau tag
->   ✦ `.nh random` / `.nhrand` — ambil doujin acak + cover
->   ✦ `.nhget <id>` — download doujin sebagai *PDF*
->   ✦ `.nhdl random` — download PDF doujin random
->   ✦ Khusus grup *NSFW*
+  ✦ `.nh` / `.nhrand` — cari atau ambil doujin acak + cover
+  ✦ `.nhget <id>` — download doujin sebagai *PDF*
+  ✦ Khusus grup *NSFW*
 
 > ◈ *Kusonime — Anime Sub Indo*
->   ✦ `.kusonime` / `.kuso` / `.anime` — cari anime dari kusonime.com
->   ✦ `.anime <judul>` — info lengkap + semua link download
->   ✦ `.anime winter/spring/summer/fall <tahun>` → daftar anime per musim
->   ✦ Hasil dikirim dalam format *TXT* & *PDF* desain keren + poster
+  ✦ `.anime <judul>` — info lengkap + semua link download
+  ✦ `.anime winter/spring/summer/fall <tahun>` → daftar anime per musim
+  ✦ Hasil dikirim dalam format *TXT* & *PDF* desain keren + poster
 
 > ◈ *AlqAnime — Anime Sub Indo (alqanime.net)*
->   ✦ `.alqanime` / `.alq` — cari anime sub indo dari alqanime.net
->   ✦ `.alq <judul>` — info lengkap + link download per resolusi
->   ✦ `.alqdl` — download episode langsung dari bot
->   ✦ Tampil sinopsis, genre, studio, score, status
+  ✦ `.alq <judul>` — info lengkap + link download per resolusi
+  ✦ `.alqdl` — download episode langsung dari bot
+  ✦ Tampil sinopsis, genre, studio, score, status
 
 > ◈ *WhatsMusik — Tebak Judul Lagu*
->   ✦ `.whatsmusik` / `.wmusik` / `.tebaklagu` / `.shazam`
->   ✦ Reply audio / voice note / video lalu ketik perintah
->   ✦ Bisa juga pakai link YouTube: `.whatsmusik <url yt>`
->   ✦ Hasil dikirim dengan *cover lagu* + detail artis
->   ✦ Audio lagu otomatis dikirim sebagai *voice note*
+  ✦ `.whatsmusik` / `.wmusik` / `.tebaklagu` / `.shazam`
+  ✦ Reply audio / voice note / video lalu ketik perintah
+  ✦ Bisa juga pakai link YouTube: `.whatsmusik <url yt>`
+  ✦ Hasil dikirim dengan *cover lagu* + detail artis + *voice note*
 
-> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-> 🤖 *Wily-Bot*  |  Versi *V15*  |  10 Mei 2026
-> ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 *Wily-Bot*  |  Versi *V15*  |  10 Mei 2026
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
