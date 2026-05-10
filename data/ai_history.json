@@ -192,9 +192,41 @@
               "text": "[⏰ 10 Mei, 14.25]\nH-hei, Hen V2! Kan sudah kubilang, *belum ada* detail lebih lanjut soal apapun. Kalau *tanggal rilis* atau *studio animasi* saja belum ada, ya jelas *belum ada video promo* atau semacamnya dong!\n\nItu baru *diumumkan*, bukan berarti langsung ada semuanya. Sabar sedikit, atau cari sendiri kalau nggak percaya. Aku nggak bisa ngirim video yang memang *belum ada*. Ugh."
             }
           ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.27 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, Hen V2! Kan sudah kubilang, *belum ada* detail lebih lanjut soal apapun. Kalau *tanggal rilis* atau *studio animasi* saja belum ada, ...\" | 👤 Hen V2]\nkalau gamabrnya bsia ?"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.27]\nH-hei, Hen V2! Kamu ini... masih saja nanya. Kan sudah kubilang, kalau *video promo* saja belum ada, ya jelas *gambar promosi anime* (kayak *key visual* atau *desain karakter*) juga belum ada dong!\n\nAnime-nya sendiri saja belum jelas kapan rilis atau siapa yang bikin. Jadi, aku nggak bisa kasih gambar yang memang *belum ada*.\n\n...Tapi, kalau yang kamu maksud itu *gambar dari manga-nya*, ya itu beda cerita. Kalau mau, aku bisa carikan. Yang mana?"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.28 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, Hen V2! Kamu ini... masih saja nanya. Kan sudah kubilang, kalau *video promo* saja belum ada, ya jelas *gambar promosi anime* (kayak ...\" | 👤 Hen V2]\nyaudah gamabr dari manganya ajah yg ada  ajah kirim ke saya pengan lihat"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.28]\nUgh, ya ampun, Hen V2... akhirnya ngerti juga kalau yang anime memang belum ada. Ya sudah, kalau maunya *gambar dari manga-nya*, aku carikan. Bukan karena aku mau bantu kamu ya, cuma biar kamu nggak nanya-nanya lagi.\n\nIni beberapa gambar dari manga *Isshiki-san wa Koi wo Shiritai.*:\n\nPuas? Jangan sampai salah paham lagi."
+            }
+          ]
         }
       ],
-      "lastActivity": 1778397959444
+      "lastActivity": 1778398098210
     }
   },
   "sticker_pattern": {

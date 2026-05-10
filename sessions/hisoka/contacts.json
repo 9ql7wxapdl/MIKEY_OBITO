@@ -25693,7 +25693,8 @@
     "id": "6281346000596@s.whatsapp.net",
     "name": "Rafi",
     "lid": "173430896894091@lid",
-    "jid": "6281346000596@s.whatsapp.net"
+    "jid": "6281346000596@s.whatsapp.net",
+    "notify": "Rafi_ajah"
   },
   "6285771701759@s.whatsapp.net": {
     "isContact": true,
@@ -31564,5 +31565,10 @@
     "id": "242442397843533@lid",
     "lid": "242442397843533@lid",
     "imgUrl": "removed"
+  },
+  "227049553821873@lid": {
+    "id": "227049553821873@lid",
+    "lid": "227049553821873@lid",
+    "notify": "‎"
   }
 }
