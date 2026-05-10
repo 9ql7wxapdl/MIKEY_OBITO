@@ -1931,7 +1931,8 @@
     "id": "62895323007900@s.whatsapp.net",
     "name": "! Yuhiko Hoshino || オタク",
     "lid": "184151135252580@lid",
-    "jid": "62895323007900@s.whatsapp.net"
+    "jid": "62895323007900@s.whatsapp.net",
+    "notify": "Rejaanimm the 1975🥀🤺🗿"
   },
   "6281524645297@s.whatsapp.net": {
     "isContact": true,
@@ -12841,7 +12842,8 @@
     "id": "62895704334234@s.whatsapp.net",
     "name": "▫️Dinda",
     "lid": "142696211599405@lid",
-    "jid": "62895704334234@s.whatsapp.net"
+    "jid": "62895704334234@s.whatsapp.net",
+    "notify": "☁️"
   },
   "6282246327071@s.whatsapp.net": {
     "isContact": true,
@@ -13905,7 +13907,8 @@
     "id": "6285148076097@s.whatsapp.net",
     "name": "!Grimlock☘️",
     "lid": "253214779773065@lid",
-    "jid": "6285148076097@s.whatsapp.net"
+    "jid": "6285148076097@s.whatsapp.net",
+    "notify": "Grimlock☘️"
   },
   "6285713952128@s.whatsapp.net": {
     "isContact": true,
@@ -18324,7 +18327,8 @@
     "id": "6282239841068@s.whatsapp.net",
     "name": "√ Lyrn",
     "lid": "37572776599715@lid",
-    "jid": "6282239841068@s.whatsapp.net"
+    "jid": "6282239841068@s.whatsapp.net",
+    "notify": "yayayaya"
   },
   "6282245815962@s.whatsapp.net": {
     "isContact": true,
@@ -31627,5 +31631,10 @@
     "id": "79203676516392@lid",
     "lid": "79203676516392@lid",
     "imgUrl": "removed"
+  },
+  "9444717027354@lid": {
+    "id": "9444717027354@lid",
+    "lid": "9444717027354@lid",
+    "imgUrl": "changed"
   }
 }
