@@ -4218,6 +4218,210 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 break;
                         }
 
+                        case 'komiktap':
+                        case 'komik': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📖 *KOMIKTAP* 」\n` +
+                                                        `│\n` +
+                                                        `│ *Cari manga/manhwa/manhua:*\n` +
+                                                        `│ ${pfx}komik <judul>\n` +
+                                                        `│\n` +
+                                                        `│ *Detail manga:*\n` +
+                                                        `│ ${pfx}komikinfo <url manga>\n` +
+                                                        `│\n` +
+                                                        `│ *Download chapter jadi PDF:*\n` +
+                                                        `│ ${pfx}komikget <url chapter>\n` +
+                                                        `│ ${pfx}komikget <url chapter> <jumlah hal>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ ${pfx}komik naruto\n` +
+                                                        `│ ${pfx}komikinfo https://komiktap.info/manga/naruto/\n` +
+                                                        `│ ${pfx}komikget https://komiktap.info/naruto-chapter-1/\n` +
+                                                        `│ ${pfx}komikget https://komiktap.info/naruto-chapter-1/ 15\n` +
+                                                        `│\n` +
+                                                        `│ ℹ️ Default 20 hal, max 50 hal\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { komiktapSearch, formatSearchResults } = _require(path.resolve('./src/scrape/komiktap.cjs'));
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '🔍', key: m.key } });
+                                        await tolak(hisoka, m, `🔍 Mencari *${input}* di Komiktap...`);
+
+                                        const results = await komiktapSearch(input);
+                                        const text = formatSearchResults(results, input);
+
+                                        if (results.length > 0 && results[0].cover) {
+                                                try {
+                                                        const imgRes = await _require('axios').get(results[0].cover, {
+                                                                responseType: 'arraybuffer', timeout: 10000,
+                                                                headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://komiktap.info/' },
+                                                        });
+                                                        await hisoka.sendMessage(m.from, { image: Buffer.from(imgRes.data), caption: text }, { quoted: m });
+                                                } catch {
+                                                        await tolak(hisoka, m, text);
+                                                }
+                                        } else {
+                                                await tolak(hisoka, m, text);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[KOMIKTAP] Search error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-search');
+                                        await tolak(hisoka, m, `❌ Gagal cari komik.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'komikinfo': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input || !input.startsWith('http')) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📖 *KOMIKINFO* 」\n` +
+                                                        `│\n` +
+                                                        `│ Kirim URL manga dari komiktap.info\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ ${pfx}komikinfo https://komiktap.info/manga/naruto/\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { komiktapDetail, formatDetailText } = _require(path.resolve('./src/scrape/komiktap.cjs'));
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '📖', key: m.key } });
+                                        await tolak(hisoka, m, `📖 Mengambil detail manga...`);
+
+                                        const detail = await komiktapDetail(input);
+                                        const text = formatDetailText(detail, pfx);
+
+                                        if (detail.cover) {
+                                                try {
+                                                        const imgRes = await _require('axios').get(detail.cover, {
+                                                                responseType: 'arraybuffer', timeout: 10000,
+                                                                headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://komiktap.info/' },
+                                                        });
+                                                        await hisoka.sendMessage(m.from, { image: Buffer.from(imgRes.data), caption: text }, { quoted: m });
+                                                } catch {
+                                                        await tolak(hisoka, m, text);
+                                                }
+                                        } else {
+                                                await tolak(hisoka, m, text);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[KOMIKTAP] Detail error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-detail');
+                                        await tolak(hisoka, m, `❌ Gagal ambil detail manga.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
+                        case 'komikget':
+                        case 'komikdl': {
+                                try {
+                                        const input = (query || '').trim();
+                                        const pfx = m.prefix || '.';
+
+                                        if (!input || !input.startsWith('http')) {
+                                                await tolak(hisoka, m,
+                                                        `╭─「 📥 *KOMIKGET* 」\n` +
+                                                        `│\n` +
+                                                        `│ *Format:*\n` +
+                                                        `│ ${pfx}komikget <url chapter>\n` +
+                                                        `│ ${pfx}komikget <url chapter> <jumlah hal>\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ ${pfx}komikget https://komiktap.info/naruto-chapter-1/\n` +
+                                                        `│ ${pfx}komikget https://komiktap.info/naruto-chapter-1/ 15\n` +
+                                                        `│\n` +
+                                                        `│ ℹ️ Default 20 hal, max 50 hal\n` +
+                                                        `│ ⏳ Proses ~30–90 detik\n` +
+                                                        `╰──────────────────────`
+                                                );
+                                                break;
+                                        }
+
+                                        const { komiktapPdf, komiktapChapterImages, makeProgressBar } = _require(path.resolve('./src/scrape/komiktap.cjs'));
+
+                                        const parts = input.split(/\s+/);
+                                        const chapterUrl = parts[0];
+                                        let maxPg = 20;
+                                        if (parts[1] && /^\d+$/.test(parts[1])) {
+                                                maxPg = Math.min(Math.max(1, parseInt(parts[1])), 50);
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '📥', key: m.key } });
+                                        await tolak(hisoka, m, `📥 Mengambil daftar gambar chapter...`);
+
+                                        const images = await komiktapChapterImages(chapterUrl);
+                                        const totalAvail = images.length;
+                                        const dlCount = Math.min(totalAvail, maxPg);
+
+                                        const chapterName = chapterUrl.replace(/.*\/([^/]+)\/?$/, '$1').replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+
+                                        const loadingMsg = await m.reply(
+                                                `⬛⬛⬛⬛⬛⬛⬛⬛⬛⬛ 0%\n` +
+                                                `📥 *Downloading ${dlCount} halaman...*\n` +
+                                                `📖 _${chapterName}_`
+                                        );
+
+                                        let lastPct = 0;
+                                        const onProgress = async (done, total) => {
+                                                const { pct, bar } = makeProgressBar(done, total);
+                                                if (pct - lastPct < 10 && pct < 100) return;
+                                                lastPct = pct;
+                                                try {
+                                                        await m.reply({
+                                                                edit: loadingMsg.key,
+                                                                text: `${bar} ${pct}%\n📥 *Downloading ${done}/${total} halaman...*\n📖 _${chapterName}_`,
+                                                        });
+                                                } catch (_) {}
+                                        };
+
+                                        const pdfBuf = await komiktapPdf(chapterUrl, maxPg, onProgress);
+
+                                        try {
+                                                await m.reply({
+                                                        edit: loadingMsg.key,
+                                                        text: `██████████ 100%\n✅ *Selesai! Mengirim PDF...*\n📖 _${chapterName}_`,
+                                                });
+                                        } catch (_) {}
+
+                                        const safeName = chapterName.slice(0, 60) || 'komiktap_chapter';
+
+                                        await hisoka.sendMessage(m.from, {
+                                                document: pdfBuf,
+                                                mimetype: 'application/pdf',
+                                                fileName: `${safeName}.pdf`,
+                                                caption: `📖 *${chapterName}*\n📄 ${dlCount}/${totalAvail} halaman\n🔗 ${chapterUrl}`,
+                                        }, { quoted: m });
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+
+                                } catch (err) {
+                                        console.error('[KOMIKTAP] Download error:', err?.message);
+                                        logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-download');
+                                        await tolak(hisoka, m, `❌ Gagal download chapter.\n💬 ${err?.message || 'Coba lagi nanti'}`);
+                                }
+                                break;
+                        }
+
                         case 'kusonime':
                         case 'kuso':
                         case 'anime': {
@@ -5715,7 +5919,13 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.nh / .nhentai [judul/kode]*
 ├➤ *.nhget [id]*
 ├➤ *.nhrand*
-╰➤ *.nhdl [id]*
+├➤ *.nhdl [id]*
+│
+╭─「 📖 *KOMIKTAP* 」
+│
+├➤ *.komik [judul]*
+├➤ *.komikinfo [url manga]*
+╰➤ *.komikget [url chapter]*
 
 ╭─「 🤖 *AI CHAT* 」
 │
@@ -5883,6 +6093,10 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.nhget [id]*
 ├➤ *.nhrand*
 ├➤ *.nhdl [id]*
+│
+├➤ *.komik [judul]*
+├➤ *.komikinfo [url manga]*
+├➤ *.komikget [url chapter]*
 │
 ├➤ *.ai / .tanya [pesan]*
 ├➤ *.mymemory / .myprofile*
