@@ -4579,17 +4579,17 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         // Kirim album cover (jika ada)
                                         if (albumItems.length > 0) {
                                                 try {
-                                                        await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: m });
+                                                        await m.reply({ albumMessage: albumItems });
                                                 } catch {
                                                         // Fallback: kirim per batch 10 dulu, baru individual kalau gagal lagi
                                                         const BATCH = 10;
                                                         for (let _b = 0; _b < albumItems.length; _b += BATCH) {
                                                                 const _batch = albumItems.slice(_b, _b + BATCH);
                                                                 try {
-                                                                        await hisoka.sendMessage(m.from, { albumMessage: _batch }, { quoted: _b === 0 ? m : undefined });
+                                                                        await (_b === 0 ? m.reply({ albumMessage: _batch }) : hisoka.sendMessage(m.from, { albumMessage: _batch }));
                                                                 } catch {
                                                                         for (const item of _batch) {
-                                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m }); } catch (_) {}
+                                                                                try { await m.reply({ image: item.image, caption: item.caption }); } catch (_) {}
                                                                         }
                                                                 }
                                                         }
@@ -4607,7 +4607,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         });
                                         menuText += `│\n│ 💡 *Balas pesan ini* dengan nomor\n│ Contoh: balas *1* untuk manga pertama\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
 
-                                        const menuMsg = await hisoka.sendMessage(m.from, { text: menuText }, { quoted: m });
+                                        const menuMsg = await m.reply(menuText);
 
                                         // Simpan session untuk reply interaktif
                                         const komikKey = getJadibotChoiceKey(m);
@@ -4814,17 +4814,17 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                         if (albumUpd.length > 0) {
                                                 try {
-                                                        await hisoka.sendMessage(m.from, { albumMessage: albumUpd }, { quoted: m });
+                                                        await m.reply({ albumMessage: albumUpd });
                                                 } catch {
                                                         // Fallback: kirim per batch 10 dulu, baru individual kalau gagal lagi
                                                         const BATCH = 10;
                                                         for (let _b = 0; _b < albumUpd.length; _b += BATCH) {
                                                                 const _batch = albumUpd.slice(_b, _b + BATCH);
                                                                 try {
-                                                                        await hisoka.sendMessage(m.from, { albumMessage: _batch }, { quoted: _b === 0 ? m : undefined });
+                                                                        await (_b === 0 ? m.reply({ albumMessage: _batch }) : hisoka.sendMessage(m.from, { albumMessage: _batch }));
                                                                 } catch {
                                                                         for (const item of _batch) {
-                                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m }); } catch (_) {}
+                                                                                try { await m.reply({ image: item.image, caption: item.caption }); } catch (_) {}
                                                                         }
                                                                 }
                                                         }
@@ -4840,7 +4840,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         });
                                         updText += `│\n│ 🔗 ${m.prefix || '.'}komik <judul> untuk cari & download\n╰──────────────────────`;
 
-                                        await hisoka.sendMessage(m.from, { text: updText }, { quoted: m });
+                                        await m.reply(updText);
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
 
                                 } catch (err) {
