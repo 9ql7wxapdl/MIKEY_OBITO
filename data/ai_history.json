@@ -1,74 +1,5 @@
 {
   "sessions": {
-    "6289688206739@s.whatsapp.net_120363383540766761@g.us": {
-      "messages": [
-        {
-          "role": "user",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.38 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"📄 *Alqanime_KyonyuuFutariInai_720p.zip* 💾 250.0 MB | 🏠 PixelDrain\" | 📎 KIRIM STICKER | 👤 Wily]\nAnalisis gambar ini secara menyeluruh dan mendalam."
-            }
-          ]
-        },
-        {
-          "role": "model",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.38]\nH-hei, muka ngambek gitu? Kenapa sih, Wily? Gara-gara file tadi? Ya terserah kalau mau ngambek, bukan salahku juga kan."
-            }
-          ]
-        },
-        {
-          "role": "user",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.39 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, muka ngambek gitu? Kenapa sih, Wily? Gara-gara file tadi? Ya terserah kalau mau ngambek, bukan salahku juga kan.\" | 👤 Wily]\nKenapa"
-            }
-          ]
-        },
-        {
-          "role": "model",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.39]\nH-hei, ya kenapa lagi? Kan kamu *barusan kirim sticker muka ngambek* setelah aku kasih file itu. Emangnya aku salah tebak, Wily? Ya terserah kalau mau deny."
-            }
-          ]
-        },
-        {
-          "role": "user",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.39 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, ya kenapa lagi? Kan kamu *barusan kirim sticker muka ngambek* setelah aku kasih file itu. Emangnya aku salah tebak, Wily? Ya terserah...\" | 📎 KIRIM STICKER | 👤 Wily]\nAnalisis gambar ini secara menyeluruh dan mendalam."
-            }
-          ]
-        },
-        {
-          "role": "model",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.39]\nH-hei, *analisis mendalam* untuk sticker? Ya, terserah kamu deh, Wily. Aku bukan nggak bisa, cuma... ya sudahlah. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-8625"
-            }
-          ]
-        },
-        {
-          "role": "user",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.40 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, *analisis mendalam* untuk sticker? Ya, terserah kamu deh, Wily. Aku bukan nggak bisa, cuma... ya sudahlah. [REPLY-STIKER: https://cdn...\" | 👤 Wily]\nBjir :v"
-            }
-          ]
-        },
-        {
-          "role": "model",
-          "parts": [
-            {
-              "text": "[⏰ 05 Mei, 22.40]\nH-hei, *'Bjir :v'* itu apa sih maksudnya? Ngeledek aku ya? \n\nYa terserah kamu aja deh, Wily. Aku nggak peduli kok."
-            }
-          ]
-        }
-      ],
-      "lastActivity": 1777995623188
-    },
     "6285175463174@s.whatsapp.net_120363383540766761@g.us": {
       "messages": [
         {
@@ -179,6 +110,27 @@
         }
       ],
       "lastActivity": 1778397866652
+    },
+    "6289688206739@s.whatsapp.net_120363383540766761@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.55 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"📖 *Narutop Uchiwa Den Chapter 1* 📄 20/31 halaman 🔗 https://komiktap.info/narutop-uchiwa-den-chapter-1/\" | 👤 Wily]\nbahasa indo kwowkwok gue buat scraper ini :v"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.55]\nOh, jadi ini *Narutop Uchiwa Den* yang kamu baca. Hmph. \n...Jadi kamu yang bikin *scraper*-nya sendiri? Pantesan. Itu *'kwowkwok'* apa lagi sih, Wily? Jangan sok akrab deh.\nYa... lumayan sih kalau bisa bikin yang kayak gitu. Bukan berarti aku terkesan ya, cuma... ya, bagus."
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778399713314
     }
   },
   "sticker_pattern": {
@@ -193,9 +145,9 @@
       "last_sent": 1777992895
     },
     "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp": {
-      "total_sent": 27,
+      "total_sent": 28,
       "moods": {},
-      "last_sent": 1778397864
+      "last_sent": 1778399711
     },
     "https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef2153a-HONOLULU.webp": {
       "total_sent": 1,
@@ -610,6 +562,13 @@
         "context": "H-hei, *'Bjir :v'* itu apa sih maksudnya? Ngeledek aku ya? [REPLY-STIKER: https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp] Ya terserah kamu aja deh, Wily. Aku nggak pedul",
         "was_fallback": 0,
         "sent_at": 1777995621
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Oh, jadi ini *Narutop Uchiwa Den* yang kamu baca. Hmph. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] ...Jadi kamu yang bikin *scraper*-nya sendiri? Pant",
+        "was_fallback": 0,
+        "sent_at": 1778399711
       }
     ],
     "6285175463174@s.whatsapp.net_120363383540766761@g.us": [
