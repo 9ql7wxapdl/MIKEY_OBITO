@@ -2825,8 +2825,12 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         if (_komikEntry) {
                                 const matchedKey   = _komikEntry.key;
                                 const pendingKomik = _komikEntry.session;
-                                const isReplyToMenu = m.isQuoted && (!pendingKomik.botMsgId || quotedId === pendingKomik.botMsgId);
                                 const rawChoice    = String(m.text || '').trim();
+                                // search phase: wajib reply ke menu bot
+                                // detail phase: terima reply apapun ATAU pesan biasa berisi angka (tanpa prefix)
+                                const isReplyToMenu =
+                                        (m.isQuoted && (!pendingKomik.botMsgId || quotedId === pendingKomik.botMsgId)) ||
+                                        (pendingKomik.phase === 'detail' && !m.prefix && /^\d+$/.test(rawChoice));
 
                                 // Override helpers to use matchedKey instead of komikKey
                                 const _komikDelete = () => pendingKomikChoices.delete(matchedKey);
@@ -2887,34 +2891,41 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 await hisoka.sendMessage(m.from, { text: infoText }, { quoted: m });
                                                         }
 
-                                                        // Pesan 2: SEMUA chapter list → ini yang jadi botMsgId
-                                                        const CHUNK = 50;
-                                                        let lastChapMsg;
-                                                        for (let ci = 0; ci < chapters.length; ci += CHUNK) {
-                                                                const slice = chapters.slice(ci, ci + CHUNK);
-                                                                const isLast = ci + CHUNK >= chapters.length;
-                                                                let chapText = ci === 0
-                                                                        ? `╭─「 📋 *DAFTAR CHAPTER* (${chapters.length} total) 」\n│\n`
-                                                                        : `╭─「 📋 *CHAPTER LANJUTAN* 」\n│\n`;
-                                                                slice.forEach((ch, j) => {
-                                                                        chapText += `│ *${ci + j + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
-                                                                });
-                                                                if (isLast) {
-                                                                        chapText += `│\n│ 💡 *Balas pesan ini* dengan nomor chapter\n│ Contoh: balas *1* untuk chapter pertama\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
+                                                        // Pesan 2: chapter list dalam SATU pesan (30 terbaru + 10 pertama)
+                                                        {
+                                                                const total = chapters.length;
+                                                                let chapText = `╭─「 📋 *DAFTAR CHAPTER* (${total} total) 」\n│\n`;
+
+                                                                if (total <= 40) {
+                                                                        // Semua muat dalam satu pesan
+                                                                        chapters.forEach((ch, j) => {
+                                                                                chapText += `│ *${j + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
+                                                                        });
                                                                 } else {
-                                                                        chapText += `╰──────────────────────`;
+                                                                        // Tampilkan 10 pertama
+                                                                        chapters.slice(0, 10).forEach((ch, j) => {
+                                                                                chapText += `│ *${j + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
+                                                                        });
+                                                                        chapText += `│ ┊ ... (${total - 40} chapter disembunyikan) ...\n`;
+                                                                        // Tampilkan 30 terbaru
+                                                                        chapters.slice(total - 30).forEach((ch, j) => {
+                                                                                chapText += `│ *${total - 30 + j + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
+                                                                        });
                                                                 }
-                                                                lastChapMsg = await hisoka.sendMessage(m.from, { text: chapText }, { quoted: isLast ? m : undefined });
+
+                                                                chapText += `│\n│ 💡 Ketik nomor chapter (tanpa quote)\n│ Contoh: *1* untuk chapter pertama, *${total}* untuk terbaru\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
+
+                                                                await hisoka.sendMessage(m.from, { text: chapText }, { quoted: m });
                                                         }
 
-                                                        // Simpan phase 2
+                                                        // Simpan phase 2 — botMsgId kosong agar menerima reply/pesan biasa
                                                         if (pendingKomik.timeout) clearTimeout(pendingKomik.timeout);
                                                         const newTimeout = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
                                                         _komikSet({
                                                                 phase: 'detail',
                                                                 detail,
                                                                 chapters,
-                                                                botMsgId: lastChapMsg?.key?.id || '',
+                                                                botMsgId: '',
                                                                 expiresAt: Date.now() + 10 * 60 * 1000,
                                                                 timeout: newTimeout,
                                                                 loading: false,
