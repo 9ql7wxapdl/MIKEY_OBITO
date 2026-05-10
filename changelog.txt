@@ -2,7 +2,7 @@
 📅 10 Mei 2026
 📦 7 Update  |  🔧 2 Bug Fix  |  ✨ 5 Fitur Baru
 
-> *🔧 BUG FIX*
+*🔧 BUG FIX*
 
 > ◈ *Fix Koneksi Bot Utama — Maksimal, Jarang Stuck*
 > `connectTimeoutMs` 60s — koneksi tidak hanging selamanya
@@ -18,7 +18,7 @@
 > `.wily` `.ai` `.tanya` kini hanya direspons *main bot*
 > Cegah konflik dan respons ganda antara main & jadibot
 
-> *✨ FITUR BARU*
+*✨ FITUR BARU*
 
 > ◈ *Tempmail — Email Sementara Instan*
 > `.tempmail` `.tmail` — buat email sementara otomatis
