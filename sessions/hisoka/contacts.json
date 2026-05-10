@@ -10161,7 +10161,8 @@
     "id": "6289504802678@s.whatsapp.net",
     "name": "! Rendra wa 126",
     "lid": "263445207371837@lid",
-    "jid": "6289504802678@s.whatsapp.net"
+    "jid": "6289504802678@s.whatsapp.net",
+    "notify": "Jose pulang ada gulali"
   },
   "6285657305937@s.whatsapp.net": {
     "isContact": true,
@@ -28941,7 +28942,8 @@
     "id": "6281345905196@s.whatsapp.net",
     "name": "pushkontak wa 21",
     "lid": "276926941929540@lid",
-    "jid": "6281345905196@s.whatsapp.net"
+    "jid": "6281345905196@s.whatsapp.net",
+    "notify": "."
   },
   "6285814761071@s.whatsapp.net": {
     "isContact": true,
@@ -31541,5 +31543,10 @@
     "id": "143065461354558@lid",
     "lid": "143065461354558@lid",
     "imgUrl": "changed"
+  },
+  "263157327101955@lid": {
+    "id": "263157327101955@lid",
+    "lid": "263157327101955@lid",
+    "imgUrl": "removed"
   }
 }
