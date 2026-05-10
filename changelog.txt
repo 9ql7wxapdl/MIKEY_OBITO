@@ -5,47 +5,47 @@
 > *🔧 BUG FIX*
 
 > ◈ *Fix Koneksi Bot Utama — Maksimal, Jarang Stuck*
-  ✦ `connectTimeoutMs` 60s — koneksi tidak hanging selamanya
-  ✦ `defaultQueryTimeoutMs` 60s — query tidak stuck tak terbatas
-  ✦ `maxMsgRetryCount 5` — batas retry, antrian tidak numpuk
-  ✦ `keepAliveIntervalMs` diperketat ke *25s* — ping lebih sering
-  ✦ *Watchdog 90s* — bot stuck di connecting → otomatis reconnect
-  ✦ `cleanupSocket()` terpusat — bersihkan socket sebelum reconnect
-  ✦ Tambah handler *515* stream error & *503* service unavailable
-  ✦ Semua case disconnect kini konsisten dan tidak bocor
+> `connectTimeoutMs` 60s — koneksi tidak hanging selamanya
+> `defaultQueryTimeoutMs` 60s — query tidak stuck tak terbatas
+> `maxMsgRetryCount 5` — batas retry, antrian tidak numpuk
+> `keepAliveIntervalMs` diperketat ke *25s* — ping lebih sering
+> *Watchdog 90s* — bot stuck di connecting otomatis reconnect
+> `cleanupSocket()` terpusat — bersihkan socket sebelum reconnect
+> Tambah handler *515* stream error & *503* service unavailable
+> Semua case disconnect kini konsisten dan tidak bocor
 
 > ◈ *Fix AI Tidak Merespons di User Jadibot*
-  ✦ `.wily` `.ai` `.tanya` kini hanya direspons *main bot*
-  ✦ Cegah konflik dan respons ganda antara main & jadibot
+> `.wily` `.ai` `.tanya` kini hanya direspons *main bot*
+> Cegah konflik dan respons ganda antara main & jadibot
 
 > *✨ FITUR BARU*
 
 > ◈ *Tempmail — Email Sementara Instan*
-  ✦ `.tempmail` `.tmail` — buat email sementara otomatis
-  ✦ `.tminbox` — cek inbox email kamu
-  ✦ `.tmread` — baca isi email masuk
-  ✦ `.tmwait` — tunggu email masuk realtime
-  ✦ `.tmdel` — hapus akun tempmail
+> `.tempmail` `.tmail` — buat email sementara otomatis
+> `.tminbox` — cek inbox email kamu
+> `.tmread` — baca isi email masuk
+> `.tmwait` — tunggu email masuk realtime
+> `.tmdel` — hapus akun tempmail
 
 > ◈ *NHentai — Doujin Search & Download*
-  ✦ `.nh` `.nhrand` — cari atau ambil doujin acak
-  ✦ `.nhget <id>` — download doujin sebagai *PDF*
-  ✦ Khusus grup *NSFW*
+> `.nh` `.nhrand` — cari atau ambil doujin acak
+> `.nhget <id>` — download doujin sebagai *PDF*
+> Khusus grup *NSFW*
 
 > ◈ *Kusonime — Anime Sub Indo*
-  ✦ `.anime <judul>` — info lengkap + semua link download
-  ✦ `.anime winter/spring/summer/fall <tahun>` — per musim
-  ✦ Hasil dikirim format *TXT* & *PDF* + poster anime
+> `.anime <judul>` — info lengkap + semua link download
+> `.anime winter/spring/summer/fall <tahun>` — per musim
+> Hasil dikirim format *TXT* & *PDF* + poster anime
 
 > ◈ *AlqAnime — Anime Sub Indo*
-  ✦ `.alq <judul>` — info + link download per resolusi
-  ✦ `.alqdl` — download episode langsung dari bot
-  ✦ Tampil sinopsis, genre, studio, score, status
+> `.alq <judul>` — info + link download per resolusi
+> `.alqdl` — download episode langsung dari bot
+> Tampil sinopsis, genre, studio, score, status
 
 > ◈ *WhatsMusik — Tebak Judul Lagu*
-  ✦ `.whatsmusik` `.wmusik` `.tebaklagu` `.shazam`
-  ✦ Reply audio / voice note / video lalu ketik perintah
-  ✦ `.whatsmusik <link youtube>` — deteksi dari YouTube
-  ✦ Hasil: *cover lagu* + detail artis + *voice note*
+> `.whatsmusik` `.wmusik` `.tebaklagu` `.shazam`
+> Reply audio / voice note / video lalu ketik perintah
+> `.whatsmusik <link youtube>` — deteksi dari YouTube
+> Hasil: *cover lagu* + detail artis + *voice note*
 
 🤖 *Wily-Bot*  |  *V15*  |  10 Mei 2026

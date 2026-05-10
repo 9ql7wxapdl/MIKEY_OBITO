@@ -858,7 +858,9 @@
     "id": "6285956660403@s.whatsapp.net",
     "name": "! Fadli",
     "lid": "176549462564879@lid",
-    "jid": "6285956660403@s.whatsapp.net"
+    "jid": "6285956660403@s.whatsapp.net",
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6285641568690@s.whatsapp.net": {
     "isContact": true,
@@ -24878,7 +24880,9 @@
     "id": "6282136282264@s.whatsapp.net",
     "name": "-zpa-",
     "lid": "143396526112850@lid",
-    "jid": "6282136282264@s.whatsapp.net"
+    "jid": "6282136282264@s.whatsapp.net",
+    "notify": "Z-pa",
+    "verifiedName": "Z-pa"
   },
   "6281246328872@s.whatsapp.net": {
     "isContact": true,
