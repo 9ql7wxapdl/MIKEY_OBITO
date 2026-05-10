@@ -1388,6 +1388,7 @@ show_main_menu() {
   echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repo"
   echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repo"
   echo -e "  ${C_MAGENTA}12${C_RESET} ${C_BOLD}›${C_RESET} Semua repo"
+  echo -e "  ${C_CYAN}13${C_RESET} ${C_BOLD}›${C_RESET} Releases & Tags"
   echo ""
   # ── Grup: Tools ───────────────────────
   echo -e "  ${C_DIM}⚡ LAINNYA${C_RESET}"
@@ -1415,6 +1416,7 @@ show_main_menu() {
     10) action_import_repo ;;
     11) action_delete_repo ;;
     12) action_list_repos ;;
+    13) action_releases_tags ;;
     p|P) action_quick_push ;;
     l|L) action_view_push_log ;;
     0|q|Q|exit) goodbye_prompt ;;
@@ -4228,6 +4230,456 @@ run_upload() {
   fi
 
   prompt_back_or_exit
+}
+
+# ===== Action: Releases & Tags =====
+action_releases_tags() {
+  # ── header lokal ─────────────────────────────────────────────────────────
+  _rt_header() {
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│   🏷️   RELEASES & TAGS            │${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}📁 Repo :${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
+    echo ""
+  }
+
+  # ── sub-menu pilihan ─────────────────────────────────────────────────────
+  _rt_menu() {
+    _rt_header
+    echo -e "  ${C_DIM}🚀 RELEASE${C_RESET}"
+    echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_GREEN} 1${C_RESET} ${C_BOLD}›${C_RESET} Lihat semua releases"
+    echo -e "  ${C_CYAN} 2${C_RESET} ${C_BOLD}›${C_RESET} Buat release baru"
+    echo -e "  ${C_RED} 3${C_RESET} ${C_BOLD}›${C_RESET} Hapus release"
+    echo ""
+    echo -e "  ${C_DIM}🏷️  TAG${C_RESET}"
+    echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_BLUE} 4${C_RESET} ${C_BOLD}›${C_RESET} Lihat semua tags"
+    echo -e "  ${C_CYAN} 5${C_RESET} ${C_BOLD}›${C_RESET} Buat tag baru"
+    echo -e "  ${C_RED} 6${C_RESET} ${C_BOLD}›${C_RESET} Hapus tag"
+    echo ""
+    echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_YELLOW} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu utama"
+    echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+  }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1) Lihat semua releases
+  # ──────────────────────────────────────────────────────────────────────────
+  _rt_list_releases() {
+    _rt_header
+    echo -e "  ${C_DIM}▸ Mengambil data releases dari GitHub...${C_RESET}"
+    local TMP=/tmp/_gh_rel_$$.json
+    local http
+    http=$(curl -s -o "$TMP" -w "%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/releases?per_page=20" 2>/dev/null)
+
+    if [ "$http" != "200" ]; then
+      echo -e "  ${C_RED}❌ Gagal ambil releases (HTTP ${http})${C_RESET}"
+      rm -f "$TMP"; prompt_back_or_exit; return
+    fi
+
+    local count
+    count=$(node -e "try{const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));console.log(d.length);}catch(e){console.log(0);}" 2>/dev/null)
+
+    _rt_header
+    if [ "$count" = "0" ]; then
+      echo -e "  ${C_DIM}📭 Belum ada release di repo ini.${C_RESET}"
+      echo -e "  ${C_DIM}   Buat release pertamamu dengan pilihan 2.${C_RESET}"
+      rm -f "$TMP"; prompt_back_or_exit; return
+    fi
+
+    echo -e "  ${C_DIM}Total: ${count} release${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+    node -e "
+      const d = JSON.parse(require('fs').readFileSync('$TMP','utf8'));
+      d.forEach((r, i) => {
+        const badge = r.draft ? '📝Draft' : r.prerelease ? '🔶Pre' : '✅Stable';
+        const dt = r.published_at ? r.published_at.slice(0,10) : '-';
+        const name = r.name || r.tag_name;
+        console.log('  #' + (i+1) + '  ' + badge + '  ' + r.tag_name);
+        console.log('     Judul : ' + name);
+        console.log('     Tanggal: ' + dt);
+        console.log('     URL   : https://github.com/${USER}/${REPO}/releases/tag/' + r.tag_name);
+        console.log('');
+      });
+    " 2>/dev/null
+
+    rm -f "$TMP"
+    prompt_back_or_exit
+  }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2) Buat release baru
+  # ──────────────────────────────────────────────────────────────────────────
+  _rt_create_release() {
+    _rt_header
+    echo -e "  ${C_DIM}Branch/tag asal release:${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+    echo ""
+
+    # — tag name
+    echo -e "${C_DIM}  ── Tag name (contoh: v1.0.0 / V17.0) ──${C_RESET}"
+    echo -e "  ${C_DIM}0 = kembali${C_RESET}"
+    printf "  ${C_BOLD}▸ tag ▸ ${C_RESET}"
+    local rtag; read -r rtag
+    rtag=$(echo "$rtag" | tr -d '[:space:]')
+    [ -z "$rtag" ] || [ "$rtag" = "0" ] && return
+
+    # — nama release
+    echo ""
+    echo -e "${C_DIM}  ── Nama release (judul) ────────────────${C_RESET}"
+    echo -e "  ${C_DIM}Enter = sama dengan tag${C_RESET}"
+    printf "  ${C_BOLD}▸ nama ▸ ${C_RESET}"
+    local rname; read -r rname
+    [ -z "$rname" ] && rname="$rtag"
+
+    # — deskripsi
+    echo ""
+    echo -e "${C_DIM}  ── Deskripsi / Changelog (1 baris, Enter = kosong) ─${C_RESET}"
+    printf "  ${C_BOLD}▸ desc ▸ ${C_RESET}"
+    local rbody; read -r rbody
+
+    # — draft?
+    echo ""
+    echo -e "${C_DIM}  ── Tipe release ─────────────────────────${C_RESET}"
+    echo -e "  ${C_GREEN}1${C_RESET} › Stable (langsung publik)"
+    echo -e "  ${C_YELLOW}2${C_RESET} › Pre-release"
+    echo -e "  ${C_DIM}3${C_RESET} › Draft (tersembunyi)"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    local rtype; read -r rtype
+    local is_draft="false" is_pre="false"
+    case "$rtype" in
+      2) is_pre="true" ;;
+      3) is_draft="true" ;;
+    esac
+
+    echo ""
+    echo -e "  ${C_CYAN}▸ Membuat release ${C_BOLD}${rtag}${C_RESET}${C_CYAN}...${C_RESET}"
+
+    local TMP=/tmp/_gh_relcreate_$$.json
+    local payload
+    payload=$(node -e "console.log(JSON.stringify({
+      tag_name: '${rtag}',
+      target_commitish: '${DEFAULT_BRANCH}',
+      name: $(node -e "process.stdout.write(JSON.stringify('${rname}'))"),
+      body: $(node -e "process.stdout.write(JSON.stringify('${rbody}'))"),
+      draft: ${is_draft},
+      prerelease: ${is_pre}
+    }))" 2>/dev/null)
+
+    local http
+    http=$(curl -s -o "$TMP" -w "%{http_code}" \
+      -X POST \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/releases" \
+      -d "$payload" 2>/dev/null)
+
+    if [ "$http" = "201" ]; then
+      local rel_url
+      rel_url=$(node -e "
+        const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));
+        console.log(d.html_url||'');
+      " 2>/dev/null)
+      echo -e "  ${C_GREEN}✅ Release ${C_BOLD}${rtag}${C_RESET}${C_GREEN} berhasil dibuat!${C_RESET}"
+      [ -n "$rel_url" ] && echo -e "  ${C_BLUE}🔗 ${rel_url}${C_RESET}"
+    else
+      local errmsg
+      errmsg=$(node -e "
+        try{const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));console.log(d.message||'');}catch(e){}
+      " 2>/dev/null)
+      echo -e "  ${C_RED}❌ Gagal buat release (HTTP ${http})${C_RESET}"
+      [ -n "$errmsg" ] && echo -e "  ${C_DIM}   ${errmsg}${C_RESET}"
+    fi
+    rm -f "$TMP"
+    prompt_back_or_exit
+  }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3) Hapus release
+  # ──────────────────────────────────────────────────────────────────────────
+  _rt_delete_release() {
+    _rt_header
+    echo -e "  ${C_DIM}▸ Mengambil daftar releases...${C_RESET}"
+    local TMP=/tmp/_gh_reldel_$$.json
+    local http
+    http=$(curl -s -o "$TMP" -w "%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/releases?per_page=20" 2>/dev/null)
+
+    if [ "$http" != "200" ]; then
+      echo -e "  ${C_RED}❌ Gagal ambil releases (HTTP ${http})${C_RESET}"
+      rm -f "$TMP"; prompt_back_or_exit; return
+    fi
+
+    # Ambil list id + tag
+    local ids=() tags_r=()
+    while IFS=$'\t' read -r _id _tag; do
+      ids+=("$_id"); tags_r+=("$_tag")
+    done < <(node -e "
+      const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));
+      d.forEach(r=>console.log(r.id+'\t'+r.tag_name));
+    " 2>/dev/null)
+    rm -f "$TMP"
+
+    _rt_header
+    if [ ${#ids[@]} -eq 0 ]; then
+      echo -e "  ${C_DIM}📭 Tidak ada release untuk dihapus.${C_RESET}"
+      prompt_back_or_exit; return
+    fi
+
+    echo -e "  ${C_DIM}Pilih nomor release yang ingin dihapus:${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    for (( i=0; i<${#ids[@]}; i++ )); do
+      echo -e "  ${C_YELLOW}$((i+1))${C_RESET} › ${tags_r[$i]}"
+    done
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_DIM}0 = kembali${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    local pick; read -r pick
+    pick=$(echo "$pick" | tr -d '[:space:]')
+    [ -z "$pick" ] || [ "$pick" = "0" ] && return
+
+    if ! echo "$pick" | grep -qE '^[0-9]+$' || [ "$pick" -lt 1 ] || [ "$pick" -gt ${#ids[@]} ]; then
+      echo -e "  ${C_RED}✖ Pilihan tidak valid.${C_RESET}"; sleep 1; return
+    fi
+
+    local sel_id="${ids[$((pick-1))]}"
+    local sel_tag="${tags_r[$((pick-1))]}"
+    echo ""
+    printf "  ${C_RED}⚠️  Hapus release '${sel_tag}'? (y/N) ▸ ${C_RESET}"
+    local confirm; read -r confirm
+    case "$confirm" in y|Y) ;; *) echo -e "  ${C_DIM}Dibatalkan.${C_RESET}"; sleep 1; return ;; esac
+
+    echo -e "  ${C_CYAN}▸ Menghapus release...${C_RESET}"
+    local del_http
+    del_http=$(curl -s -o /dev/null -w "%{http_code}" \
+      -X DELETE \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/releases/${sel_id}" 2>/dev/null)
+
+    if [ "$del_http" = "204" ]; then
+      echo -e "  ${C_GREEN}✅ Release ${C_BOLD}${sel_tag}${C_RESET}${C_GREEN} berhasil dihapus.${C_RESET}"
+      echo -e "  ${C_DIM}   (Tag-nya masih ada — hapus dari submenu Tag jika perlu)${C_RESET}"
+    else
+      echo -e "  ${C_RED}❌ Gagal hapus release (HTTP ${del_http})${C_RESET}"
+    fi
+    prompt_back_or_exit
+  }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4) Lihat semua tags
+  # ──────────────────────────────────────────────────────────────────────────
+  _rt_list_tags() {
+    _rt_header
+    echo -e "  ${C_DIM}▸ Mengambil data tags dari GitHub...${C_RESET}"
+    local TMP=/tmp/_gh_tags_$$.json
+    local http
+    http=$(curl -s -o "$TMP" -w "%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/tags?per_page=30" 2>/dev/null)
+
+    if [ "$http" != "200" ]; then
+      echo -e "  ${C_RED}❌ Gagal ambil tags (HTTP ${http})${C_RESET}"
+      rm -f "$TMP"; prompt_back_or_exit; return
+    fi
+
+    local count
+    count=$(node -e "try{const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));console.log(d.length);}catch(e){console.log(0);}" 2>/dev/null)
+
+    _rt_header
+    if [ "$count" = "0" ]; then
+      echo -e "  ${C_DIM}📭 Belum ada tag di repo ini.${C_RESET}"
+      echo -e "  ${C_DIM}   Tag otomatis terbuat saat kamu buat release baru.${C_RESET}"
+      rm -f "$TMP"; prompt_back_or_exit; return
+    fi
+
+    echo -e "  ${C_DIM}Total: ${count} tag${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+    node -e "
+      const d = JSON.parse(require('fs').readFileSync('$TMP','utf8'));
+      d.forEach((t, i) => {
+        const sha = t.commit && t.commit.sha ? t.commit.sha.slice(0,8) : '-';
+        console.log('  #' + (i+1) + '  🏷️  ' + t.name + '  ' + sha);
+      });
+    " 2>/dev/null
+
+    rm -f "$TMP"
+    prompt_back_or_exit
+  }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5) Buat tag baru (lightweight tag via refs API)
+  # ──────────────────────────────────────────────────────────────────────────
+  _rt_create_tag() {
+    _rt_header
+    echo -e "  ${C_DIM}Tag akan dibuat dari tip branch:${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+    echo ""
+
+    echo -e "${C_DIM}  ── Nama tag (contoh: v2.0.0) ─────────${C_RESET}"
+    echo -e "  ${C_DIM}0 = kembali${C_RESET}"
+    printf "  ${C_BOLD}▸ tag ▸ ${C_RESET}"
+    local tname; read -r tname
+    tname=$(echo "$tname" | tr -d '[:space:]')
+    [ -z "$tname" ] || [ "$tname" = "0" ] && return
+
+    echo -e "  ${C_CYAN}▸ Ambil SHA dari ${DEFAULT_BRANCH}...${C_RESET}"
+    local SHA_TMP=/tmp/_gh_sharef_$$.json
+    local sha_http sha
+    sha_http=$(curl -s -o "$SHA_TMP" -w "%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/ref/heads/${DEFAULT_BRANCH}" 2>/dev/null)
+
+    if [ "$sha_http" != "200" ]; then
+      echo -e "  ${C_RED}❌ Gagal ambil SHA (HTTP ${sha_http})${C_RESET}"
+      rm -f "$SHA_TMP"; prompt_back_or_exit; return
+    fi
+
+    sha=$(node -e "
+      const d=JSON.parse(require('fs').readFileSync('$SHA_TMP','utf8'));
+      console.log(d.object&&d.object.sha?d.object.sha:'');
+    " 2>/dev/null)
+    rm -f "$SHA_TMP"
+
+    if [ -z "$sha" ]; then
+      echo -e "  ${C_RED}❌ SHA tidak ditemukan.${C_RESET}"
+      prompt_back_or_exit; return
+    fi
+
+    echo -e "  ${C_DIM}   SHA: ${sha:0:10}...${C_RESET}"
+    echo -e "  ${C_CYAN}▸ Membuat tag ${C_BOLD}${tname}${C_RESET}${C_CYAN}...${C_RESET}"
+
+    local TMP=/tmp/_gh_tagcreate_$$.json
+    local http
+    http=$(curl -s -o "$TMP" -w "%{http_code}" \
+      -X POST \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/refs" \
+      -d "{\"ref\":\"refs/tags/${tname}\",\"sha\":\"${sha}\"}" 2>/dev/null)
+
+    if [ "$http" = "201" ]; then
+      echo -e "  ${C_GREEN}✅ Tag ${C_BOLD}${tname}${C_RESET}${C_GREEN} berhasil dibuat!${C_RESET}"
+      echo -e "  ${C_BLUE}🔗 https://github.com/${USER}/${REPO}/releases/tag/${tname}${C_RESET}"
+    else
+      local errmsg
+      errmsg=$(node -e "
+        try{const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));console.log(d.message||'');}catch(e){}
+      " 2>/dev/null)
+      echo -e "  ${C_RED}❌ Gagal buat tag (HTTP ${http})${C_RESET}"
+      [ -n "$errmsg" ] && echo -e "  ${C_DIM}   ${errmsg}${C_RESET}"
+    fi
+    rm -f "$TMP"
+    prompt_back_or_exit
+  }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6) Hapus tag
+  # ──────────────────────────────────────────────────────────────────────────
+  _rt_delete_tag() {
+    _rt_header
+    echo -e "  ${C_DIM}▸ Mengambil daftar tags...${C_RESET}"
+    local TMP=/tmp/_gh_tagdel_$$.json
+    local http
+    http=$(curl -s -o "$TMP" -w "%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/tags?per_page=30" 2>/dev/null)
+
+    if [ "$http" != "200" ]; then
+      echo -e "  ${C_RED}❌ Gagal ambil tags (HTTP ${http})${C_RESET}"
+      rm -f "$TMP"; prompt_back_or_exit; return
+    fi
+
+    local tag_names=()
+    while IFS= read -r _t; do
+      tag_names+=("$_t")
+    done < <(node -e "
+      const d=JSON.parse(require('fs').readFileSync('$TMP','utf8'));
+      d.forEach(t=>console.log(t.name));
+    " 2>/dev/null)
+    rm -f "$TMP"
+
+    _rt_header
+    if [ ${#tag_names[@]} -eq 0 ]; then
+      echo -e "  ${C_DIM}📭 Tidak ada tag untuk dihapus.${C_RESET}"
+      prompt_back_or_exit; return
+    fi
+
+    echo -e "  ${C_DIM}Pilih nomor tag yang ingin dihapus:${C_RESET}"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    for (( i=0; i<${#tag_names[@]}; i++ )); do
+      echo -e "  ${C_YELLOW}$((i+1))${C_RESET} › 🏷️  ${tag_names[$i]}"
+    done
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    echo -e "  ${C_DIM}0 = kembali${C_RESET}"
+    printf "  ${C_BOLD}▸ ${C_RESET}"
+    local pick; read -r pick
+    pick=$(echo "$pick" | tr -d '[:space:]')
+    [ -z "$pick" ] || [ "$pick" = "0" ] && return
+
+    if ! echo "$pick" | grep -qE '^[0-9]+$' || [ "$pick" -lt 1 ] || [ "$pick" -gt ${#tag_names[@]} ]; then
+      echo -e "  ${C_RED}✖ Pilihan tidak valid.${C_RESET}"; sleep 1; return
+    fi
+
+    local sel_tag="${tag_names[$((pick-1))]}"
+    echo ""
+    printf "  ${C_RED}⚠️  Hapus tag '${sel_tag}'? (y/N) ▸ ${C_RESET}"
+    local confirm; read -r confirm
+    case "$confirm" in y|Y) ;; *) echo -e "  ${C_DIM}Dibatalkan.${C_RESET}"; sleep 1; return ;; esac
+
+    echo -e "  ${C_CYAN}▸ Menghapus tag...${C_RESET}"
+    local del_http
+    del_http=$(curl -s -o /dev/null -w "%{http_code}" \
+      -X DELETE \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/refs/tags/${sel_tag}" 2>/dev/null)
+
+    if [ "$del_http" = "204" ]; then
+      echo -e "  ${C_GREEN}✅ Tag ${C_BOLD}${sel_tag}${C_RESET}${C_GREEN} berhasil dihapus.${C_RESET}"
+    else
+      echo -e "  ${C_RED}❌ Gagal hapus tag (HTTP ${del_http})${C_RESET}"
+    fi
+    prompt_back_or_exit
+  }
+
+  # ── Loop sub-menu ─────────────────────────────────────────────────────────
+  while true; do
+    _rt_menu
+    local rpick; read -r rpick
+    rpick=$(echo "$rpick" | tr -d '[:space:]')
+    case "$rpick" in
+      1) _rt_list_releases ;;
+      2) _rt_create_release ;;
+      3) _rt_delete_release ;;
+      4) _rt_list_tags ;;
+      5) _rt_create_tag ;;
+      6) _rt_delete_tag ;;
+      0|q|Q) return ;;
+      *) echo -e "  ${C_RED}✖ Pilihan tidak valid.${C_RESET}"; sleep 1 ;;
+    esac
+  done
 }
 
 # ===== Helper: prompt tunggal setelah setiap action =====
