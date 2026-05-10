@@ -1,6 +1,6 @@
 🤖 *WILY BOT — V15*
 📅 10 Mei 2026
-📦 7 Update  |  🔧 2 Bug Fix  |  ✨ 5 Fitur Baru
+📦 8 Update  |  🔧 2 Bug Fix  |  ✨ 6 Fitur Baru
 
 *🔧 BUG FIX*
 
@@ -19,6 +19,12 @@
 > Cegah konflik dan respons ganda antara main & jadibot
 
 *✨ FITUR BARU*
+
+> ◈ *Cosplay — Foto & Video Cosplay*
+> `.cosplay <keyword>` — cari cosplay dari cosplaytele.com
+> `.cosplay random` / `.cosplayrand` — ambil cosplay *acak* langsung
+> Hasil dikirim sebagai *album foto*
+> Video cosplay dikirim sebagai link terpisah
 
 > ◈ *Tempmail — Email Sementara Instan*
 > `.tempmail` `.tmail` — buat email sementara otomatis
