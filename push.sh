@@ -882,17 +882,75 @@ echo -e "  ${C_BOLD}📁 Repository tujuan: ${C_GREEN}${REPO}${C_RESET}" >&2
 echo "" >&2
 sleep 1
 
-# Notif login berhasil ke Telegram
-_ts_login=$(date '+%H:%M:%S %d %b %Y')
-_btn_login='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${REPO}"'/settings"}]]}'
-send_telegram_photo "https://w.wallhaven.cc/full/j3/wallhaven-j3k2eq.png" "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
+# Notif login berhasil ke Telegram (background — fetch realtime data dulu)
+{
+  _ts_login=$(TZ=Asia/Jakarta date '+%d %b %Y • %H:%M WIB' 2>/dev/null || date '+%d %b %Y • %H:%M')
+
+  # Ambil info realtime dari GitHub API
+  _gh_base="https://api.github.com/repos/${USER}/${REPO}"
+  _repo_json=$(curl -s --max-time 6 \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "${_gh_base}" 2>/dev/null)
+  _star=$(echo "$_repo_json" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write(String(d.stargazers_count||0));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+  _fork=$(echo "$_repo_json" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write(String(d.forks_count||0));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+  _vis=$(echo  "$_repo_json" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write(d.private?'🔒 Private':'🌐 Public');}catch(e){process.stdout.write('?');}" 2>/dev/null)
+  _size=$(echo "$_repo_json" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));const kb=d.size||0;process.stdout.write(kb>=1024?Math.round(kb/1024)+'MB':kb+'KB');}catch(e){process.stdout.write('?');}" 2>/dev/null)
+
+  # Branch count
+  _br_json=$(curl -s --max-time 5 \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "${_gh_base}/branches?per_page=100" 2>/dev/null)
+  _br_count=$(echo "$_br_json" | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write(String(d.length||0));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+
+  # Commit terakhir di default branch
+  _cm_json=$(curl -s --max-time 5 \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "${_gh_base}/commits?sha=${DEFAULT_BRANCH}&per_page=1" 2>/dev/null)
+  _last_sha=$(echo "$_cm_json"   | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write((d[0]&&d[0].sha?d[0].sha.slice(0,7):'?'));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+  _last_msg=$(echo "$_cm_json"   | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write((d[0]&&d[0].commit&&d[0].commit.message?d[0].commit.message.split('\n')[0].slice(0,50):'?'));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+  _last_who=$(echo "$_cm_json"   | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write((d[0]&&d[0].commit&&d[0].commit.author?d[0].commit.author.name.slice(0,20):'?'));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+
+  # Release terakhir
+  _rel_json=$(curl -s --max-time 5 \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "${_gh_base}/releases?per_page=1" 2>/dev/null)
+  _last_rel=$(echo "$_rel_json"  | node -e "try{const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));process.stdout.write((d[0]&&d[0].tag_name?d[0].tag_name:'Belum ada'));}catch(e){process.stdout.write('?');}" 2>/dev/null)
+
+  # Ringkasan push history lokal
+  _log_total=0; _log_ok=0; _log_fail=0
+  if [ -f "${PUSH_LOG_FILE}" ] && [ -s "${PUSH_LOG_FILE}" ]; then
+    _log_total=$(wc -l < "${PUSH_LOG_FILE}" | tr -d ' ')
+    _log_ok=$(grep -c '| OK ' "${PUSH_LOG_FILE}" 2>/dev/null || echo 0)
+    _log_fail=$(grep -c '| FAIL ' "${PUSH_LOG_FILE}" 2>/dev/null || echo 0)
+  fi
+
+  _btn_login='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${USER}"'/'"${REPO}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${USER}"'/'"${REPO}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${USER}"'/'"${REPO}"'/commits"},{"text":"🚀 Releases","url":"https://github.com/'"${USER}"'/'"${REPO}"'/releases"}],[{"text":"⚙️ Settings","url":"https://github.com/'"${USER}"'/'"${REPO}"'/settings"},{"text":"📈 Insights","url":"https://github.com/'"${USER}"'/'"${REPO}"'/pulse"}]]}'
+  send_telegram_photo "https://w.wallhaven.cc/full/j3/wallhaven-j3k2eq.png" "🟢 <b>SCRIPT AKTIF — LOGIN BERHASIL</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${USER}</code>
-📁 <code>${USER}/${REPO}</code>
-🌿 Default: <code>${DEFAULT_BRANCH}</code>
-🕐 ${_ts_login}
+📁 <code>${USER}/${REPO}</code>  ${_vis}
+💾 Ukuran repo: ${_size}
 ━━━━━━━━━━━━━━━━━━━━
-🔗 github.com/${USER}/${REPO}" "$_btn_login" 2>/dev/null &
+🌿 Default branch: <code>${DEFAULT_BRANCH}</code>
+🔀 Jumlah branch: ${_br_count}
+⭐ Stars: ${_star}  •  🍴 Fork: ${_fork}
+🚀 Release terakhir: <code>${_last_rel}</code>
+━━━━━━━━━━━━━━━━━━━━
+📝 Commit terakhir:
+🔑 <code>${_last_sha}</code>  oleh ${_last_who}
+💬 ${_last_msg}
+━━━━━━━━━━━━━━━━━━━━
+📊 Riwayat push lokal: ${_log_total} push  •  ✅${_log_ok}  ❌${_log_fail}
+🕐 ${_ts_login}" "$_btn_login" 2>/dev/null
+} &
 
 REMOTE_URL="https://${USER}:${TOKEN}@github.com/${USER}/${REPO}.git"
 
@@ -1535,33 +1593,67 @@ action_view_push_log() {
   echo ""
 
   if [ ! -f "$PUSH_LOG_FILE" ] || [ ! -s "$PUSH_LOG_FILE" ]; then
-    echo -e "  ${C_DIM}Belum ada riwayat push.${C_RESET}"
-    echo -e "  ${C_DIM}Log akan muncul setelah kamu push pertama kali.${C_RESET}"
+    echo -e "  ${C_DIM}📭 Belum ada riwayat push.${C_RESET}"
+    echo -e "  ${C_DIM}   Log akan muncul setelah push pertama kali.${C_RESET}"
     echo ""
     prompt_back_or_exit
     return
   fi
 
-  # Hitung total & sukses
-  local _total _ok _fail
+  # ── Statistik ────────────────────────────────────────────────────────────
+  local _total _ok _fail _force
   _total=$(wc -l < "$PUSH_LOG_FILE" | tr -d ' ')
   _ok=$(grep -c '| OK ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+  _force=$(grep -c '| OK(force) ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
   _fail=$(grep -c '| FAIL ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+  local _suc=$(( _ok + _force ))
 
-  echo -e "  ${C_DIM}Total push : ${C_RESET}${C_BOLD}${_total}${C_RESET}  ${C_DIM}•  ${C_GREEN}✅ ${_ok} sukses${C_RESET}  ${C_DIM}•  ${C_RED}❌ ${_fail} gagal${C_RESET}"
+  echo -e "  ${C_DIM}📊 Statistik Push${C_RESET}"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_DIM}(20 push terakhir)${C_RESET}"
+  echo -e "  ${C_BOLD}Total  :${C_RESET} ${C_BOLD}${_total}${C_RESET} push"
+  echo -e "  ${C_GREEN}✅ OK   :${C_RESET} ${_ok} normal  ${C_DIM}+${C_RESET}  ${C_YELLOW}⚡ ${_force} force${C_RESET}"
+  echo -e "  ${C_RED}❌ Gagal:${C_RESET} ${_fail}"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   echo ""
 
-  # Tampilkan 20 baris terakhir dengan warna status
-  local _line _status_part
-  while IFS= read -r _line; do
-    if echo "$_line" | grep -q '| OK '; then
-      echo -e "  ${C_GREEN}✅${C_RESET} ${C_DIM}${_line}${C_RESET}"
-    else
-      echo -e "  ${C_RED}❌${C_RESET} ${C_DIM}${_line}${C_RESET}"
-    fi
+  # ── 20 push terakhir dalam format rapi ────────────────────────────────────
+  echo -e "  ${C_DIM}📜 20 Push Terakhir${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+  local _idx=0
+  while IFS= read -r _raw; do
+    _idx=$(( _idx + 1 ))
+
+    # Parse: [YYYY-MM-DD HH:MM:SS] STATUS | branch: X | hash: Y | file: Z | msg
+    local _ts _stat _branch _hash _files _msg
+    _ts=$(    echo "$_raw" | sed 's/^\[\([^]]*\)\].*/\1/')
+    _stat=$(  echo "$_raw" | sed 's/.*\] \([^ ]*\) .*/\1/')
+    _branch=$(echo "$_raw" | sed 's/.*branch: \([^|]*\).*/\1/' | sed 's/[[:space:]]*$//')
+    _hash=$(  echo "$_raw" | sed 's/.*hash: \([^ ]*\).*/\1/')
+    _files=$( echo "$_raw" | sed 's/.*file: \([^ ]*\).*/\1/')
+    _msg=$(   echo "$_raw" | sed 's/.*file: [^|]* | //')
+
+    # Potong branch & msg biar pas
+    _branch_s=$(echo "$_branch" | cut -c1-22)
+    _msg_s=$(   echo "$_msg"    | cut -c1-40)
+
+    # Tanggal & jam
+    _date_s=$(echo "$_ts" | cut -c1-10)
+    _time_s=$(echo "$_ts" | cut -c12-16)
+
+    # Icon & warna status
+    local _icon _col
+    case "$_stat" in
+      OK)        _icon="✅"; _col="$C_GREEN"  ;;
+      OK\(force\)) _icon="⚡"; _col="$C_YELLOW" ;;
+      FAIL)      _icon="❌"; _col="$C_RED"    ;;
+      *)         _icon="❓"; _col="$C_DIM"    ;;
+    esac
+
+    printf "  ${_col}${_icon}${C_RESET} ${C_DIM}%3d${C_RESET}  ${C_BOLD}%-5s${C_RESET} ${C_DIM}%s${C_RESET}  ${C_CYAN}%-22s${C_RESET}  ${C_DIM}🔑%-7s  📄%-3s${C_RESET}\n" \
+      "$_idx" "$_time_s" "$_date_s" "$_branch_s" "$_hash" "$_files"
+    printf "       ${C_DIM}💬 %s${C_RESET}\n" "$_msg_s"
+
   done < <(tail -20 "$PUSH_LOG_FILE")
 
   echo ""
@@ -1576,9 +1668,16 @@ action_view_push_log() {
   read -r _ans </dev/tty
   case "$_ans" in
     h|H)
-      rm -f "$PUSH_LOG_FILE"
-      echo -e "  ${C_GREEN}✅ Riwayat dihapus.${C_RESET}"
-      sleep 1
+      printf "  ${C_YELLOW}⚠️  Yakin hapus semua %s riwayat? (y/N) ▸ ${C_RESET}" "$_total"
+      local _conf; read -r _conf </dev/tty
+      case "$_conf" in
+        y|Y)
+          rm -f "$PUSH_LOG_FILE"
+          echo -e "  ${C_GREEN}✅ Semua riwayat dihapus.${C_RESET}"
+          sleep 1
+          ;;
+        *) echo -e "  ${C_DIM}Dibatalkan.${C_RESET}"; sleep 1 ;;
+      esac
       ;;
     0|q|Q) goodbye_prompt ;;
   esac
