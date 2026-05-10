@@ -5932,7 +5932,8 @@
     "id": "6283833697404@s.whatsapp.net",
     "name": "Nadiya",
     "lid": "26345463611535@lid",
-    "jid": "6283833697404@s.whatsapp.net"
+    "jid": "6283833697404@s.whatsapp.net",
+    "notify": "J"
   },
   "6285248107352@s.whatsapp.net": {
     "isContact": true,
@@ -31570,5 +31571,14 @@
     "id": "227049553821873@lid",
     "lid": "227049553821873@lid",
     "notify": "‎"
+  },
+  "169797337784433@lid": {
+    "id": "169797337784433@lid",
+    "lid": "169797337784433@lid",
+    "notify": "Maury.Denver ƒт『𝐂.𝐈.𝐇』"
+  },
+  "601159947565@s.whatsapp.net": {
+    "id": "601159947565@s.whatsapp.net",
+    "notify": "NAUFAL"
   }
 }
