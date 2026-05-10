@@ -5849,7 +5849,8 @@
     "id": "6287793006207@s.whatsapp.net",
     "name": "! bstation123321",
     "lid": "32830813913177@lid",
-    "jid": "6287793006207@s.whatsapp.net"
+    "jid": "6287793006207@s.whatsapp.net",
+    "notify": "...."
   },
   "6281358899877@s.whatsapp.net": {
     "isContact": true,
@@ -31528,7 +31529,8 @@
   "97968623505429@lid": {
     "id": "97968623505429@lid",
     "lid": "97968623505429@lid",
-    "notify": "Hen V2"
+    "notify": "Hen V2",
+    "imgUrl": "changed"
   },
   "81582920577063@lid": {
     "id": "81582920577063@lid",

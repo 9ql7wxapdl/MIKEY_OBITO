@@ -2804,25 +2804,41 @@ export default async function ({ message, type: messagesType }, hisoka) {
                 }
 
                 // ── Helper: build chapter page text (100 per page) ──
+                const _CHAP_PER_PAGE = 100;
                 function _buildChapPageText(chapters, page = 1) {
-                        const PER_PAGE = 100;
                         const total = chapters.length;
-                        const totalPages = Math.ceil(total / PER_PAGE);
+                        const totalPages = Math.ceil(total / _CHAP_PER_PAGE);
                         const p = Math.max(1, Math.min(page, totalPages));
-                        const start = (p - 1) * PER_PAGE;
-                        const slice = chapters.slice(start, start + PER_PAGE);
-                        let txt = `╭─「 📋 *DAFTAR CHAPTER* (${total} total) 」\n│ 📄 Halaman *${p}/${totalPages}*\n│\n`;
+                        const start = (p - 1) * _CHAP_PER_PAGE;
+                        const slice = chapters.slice(start, start + _CHAP_PER_PAGE);
+                        let txt = `╭─「 📋 *DAFTAR CHAPTER* (${total} chapter) 」\n│ 📄 Hal. *${p}/${totalPages}*  •  Ch. ${start + 1}–${Math.min(start + _CHAP_PER_PAGE, total)}\n│\n`;
                         slice.forEach((ch, j) => {
                                 txt += `│ *${start + j + 1}.* ${ch.name}${ch.date ? `  _${ch.date}_` : ''}\n`;
                         });
                         txt += `│\n`;
+                        // Nav bar
+                        const nav = [];
+                        if (p > 1)          nav.push(`*a* ← hal.${p-1}`);
+                        if (p < totalPages) nav.push(`hal.${p+1} → *d*`);
                         if (totalPages > 1) {
-                                const navParts = [];
-                                if (p > 1) navParts.push(`*sebelum* ← hal. ${p - 1}`);
-                                if (p < totalPages) navParts.push(`hal. ${p + 1} → *lanjut*`);
-                                txt += `│ 🗂️ ${navParts.join('  |  ')}\n│\n`;
+                                txt += `│ 🎮 ${nav.join('   ')}`;
+                                if (p > 1)          txt += `   *q* awal`;
+                                if (p < totalPages) txt += `   *e* akhir`;
+                                txt += `   *w* daftar hal.\n│\n`;
                         }
-                        txt += `│ 💡 Ketik nomor chapter untuk download PDF\n│ Contoh: *${start + 1}* atau *${Math.min(start + PER_PAGE, total)}*\n│ Ketik *batal* untuk membatalkan\n╰──────────────────────`;
+                        txt += `│ 💡 Ketik nomor chapter  •  *p${p < totalPages ? p+1 : 1}* = loncat hal.\n╰──────────────────────`;
+                        return txt;
+                }
+                function _buildChapOverview(chapters) {
+                        const total = chapters.length;
+                        const totalPages = Math.ceil(total / _CHAP_PER_PAGE);
+                        let txt = `╭─「 🗂️ *SEMUA HALAMAN* (${total} chapter) 」\n│\n`;
+                        for (let pg = 1; pg <= totalPages; pg++) {
+                                const s = (pg - 1) * _CHAP_PER_PAGE + 1;
+                                const e = Math.min(pg * _CHAP_PER_PAGE, total);
+                                txt += `│ *p${pg}* → Ch. ${s}–${e}\n`;
+                        }
+                        txt += `│\n│ 💡 Ketik *p<N>* untuk loncat, misal *p1* atau *p${totalPages}*\n╰──────────────────────`;
                         return txt;
                 }
 
@@ -2850,8 +2866,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 const pendingKomik = _komikEntry.session;
                                 const rawChoice    = String(m.text || '').trim();
                                 // search phase: wajib reply ke menu bot
-                                // detail phase: terima reply apapun ATAU pesan biasa (angka / navigasi lanjut|sebelum)
-                                const _isNavCmd = /^(lanjut|next|ln|>|>>|sebelum|sebelumnya|prev|back|<|<<|batal|cancel|x)$/i.test(rawChoice);
+                                // detail phase: angka chapter / navigasi (a d q e w p<N>) — tanpa perlu quote
+                                const _isNavCmd = /^(a|d|q|e|w|p\d+|batal|cancel|x)$/i.test(rawChoice);
                                 const isReplyToMenu =
                                         (m.isQuoted && (!pendingKomik.botMsgId || quotedId === pendingKomik.botMsgId)) ||
                                         (pendingKomik.phase === 'detail' && !m.prefix && (/^\d+$/.test(rawChoice) || _isNavCmd));
@@ -2873,38 +2889,40 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 return;
                                         }
 
-                                        // ── Navigasi halaman chapter (lanjut / sebelumnya) ──
-                                        if (pendingKomik.phase === 'detail' && /^(lanjut|next|ln|>|>>)$/i.test(rawChoice)) {
-                                                const totalPages = Math.ceil((pendingKomik.chapters || []).length / 100);
-                                                const curPage = pendingKomik.chapPage || 1;
-                                                if (curPage >= totalPages) {
-                                                        await tolak(hisoka, m, `⚠️ Sudah di halaman terakhir (${curPage}/${totalPages}).`);
-                                                        return;
+                                        // ── Navigasi halaman chapter: a/d/q/e/w/p<N> ──
+                                        if (pendingKomik.phase === 'detail' && _isNavCmd) {
+                                                const chapters   = pendingKomik.chapters || [];
+                                                const totalPages = Math.ceil(chapters.length / _CHAP_PER_PAGE);
+                                                const curPage    = pendingKomik.chapPage || 1;
+                                                const lc = rawChoice.toLowerCase();
+
+                                                let targetPage = curPage;
+                                                if (lc === 'd') targetPage = Math.min(curPage + 1, totalPages);
+                                                else if (lc === 'a') targetPage = Math.max(curPage - 1, 1);
+                                                else if (lc === 'q') targetPage = 1;
+                                                else if (lc === 'e') targetPage = totalPages;
+                                                else if (/^p\d+$/i.test(lc)) targetPage = Math.max(1, Math.min(parseInt(lc.slice(1), 10), totalPages));
+
+                                                if (lc === 'w') {
+                                                        // Tampilkan overview semua halaman (edit pesan yg sama)
+                                                        const overviewText = _buildChapOverview(chapters);
+                                                        if (pendingKomik.chapMsgKey) {
+                                                                try { await hisoka.sendMessage(m.from, { edit: pendingKomik.chapMsgKey, text: overviewText }); } catch { await tolak(hisoka, m, overviewText); }
+                                                        } else { await tolak(hisoka, m, overviewText); }
+                                                } else {
+                                                        if (targetPage === curPage && lc !== 'q' && lc !== 'e') {
+                                                                await tolak(hisoka, m, targetPage === 1 ? `⚠️ Sudah di halaman pertama.` : `⚠️ Sudah di halaman terakhir (${totalPages}).`);
+                                                                return;
+                                                        }
+                                                        const newText = _buildChapPageText(chapters, targetPage);
+                                                        if (pendingKomik.chapMsgKey) {
+                                                                try { await hisoka.sendMessage(m.from, { edit: pendingKomik.chapMsgKey, text: newText }); } catch { await tolak(hisoka, m, newText); }
+                                                        } else { await tolak(hisoka, m, newText); }
                                                 }
-                                                const newPage = curPage + 1;
-                                                const newText = _buildChapPageText(pendingKomik.chapters, newPage);
-                                                if (pendingKomik.chapMsgKey) {
-                                                        try { await hisoka.sendMessage(m.from, { edit: pendingKomik.chapMsgKey, text: newText }); } catch { await tolak(hisoka, m, newText); }
-                                                } else { await tolak(hisoka, m, newText); }
+
                                                 if (pendingKomik.timeout) clearTimeout(pendingKomik.timeout);
-                                                const _nt = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
-                                                _komikSet({ ...pendingKomik, chapPage: newPage, timeout: _nt, expiresAt: Date.now() + 10 * 60 * 1000 });
-                                                return;
-                                        }
-                                        if (pendingKomik.phase === 'detail' && /^(sebelum|sebelumnya|prev|back|<|<<)$/i.test(rawChoice)) {
-                                                const curPage = pendingKomik.chapPage || 1;
-                                                if (curPage <= 1) {
-                                                        await tolak(hisoka, m, `⚠️ Sudah di halaman pertama.`);
-                                                        return;
-                                                }
-                                                const newPage = curPage - 1;
-                                                const newText = _buildChapPageText(pendingKomik.chapters, newPage);
-                                                if (pendingKomik.chapMsgKey) {
-                                                        try { await hisoka.sendMessage(m.from, { edit: pendingKomik.chapMsgKey, text: newText }); } catch { await tolak(hisoka, m, newText); }
-                                                } else { await tolak(hisoka, m, newText); }
-                                                if (pendingKomik.timeout) clearTimeout(pendingKomik.timeout);
-                                                const _nt2 = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
-                                                _komikSet({ ...pendingKomik, chapPage: newPage, timeout: _nt2, expiresAt: Date.now() + 10 * 60 * 1000 });
+                                                const _navTimeout = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
+                                                _komikSet({ ...pendingKomik, chapPage: lc === 'w' ? curPage : targetPage, timeout: _navTimeout, expiresAt: Date.now() + 10 * 60 * 1000 });
                                                 return;
                                         }
 
