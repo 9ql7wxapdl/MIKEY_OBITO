@@ -1,44 +1,36 @@
 'use strict';
 
 /**
- * ─────────────────────────────────────────
- *  FITUR  : Info Wibu Otomatis
- *  Fungsi : Ambil info anime trending dari
- *           AniList lalu kirim ke grup WA
- *           secara otomatis & realtime
- * ─────────────────────────────────────────
+ * ─────────────────────────────────────────────────────
+ *  FITUR   : Info Wibu Realtime
+ *  Fungsi  : Pantau jadwal tayang anime dari AniList
+ *            setiap 5 menit. Langsung kirim notifikasi
+ *            ke grup WA saat ada episode baru tayang.
+ *  Sumber  : AniList GraphQL API (gratis, tanpa login)
+ * ─────────────────────────────────────────────────────
  */
 
 const axios = require('axios');
 const fs    = require('fs');
 const path  = require('path');
 
-// Lokasi file penyimpanan data infowibu (grup aktif, anime sudah terkirim, dll)
+// Lokasi file penyimpanan data (grup aktif, episode sudah dikirim, dll)
 const FILE_DATA = path.join(process.cwd(), 'data', 'infowibu.json');
 
-// Alamat API AniList (GraphQL) — sumber data anime trending
+// Alamat API AniList
 const URL_ANILIST = 'https://graphql.anilist.co';
-
-// Header standar untuk request HTTP
-const HEADER_STANDAR = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-    'Accept'    : 'application/json',
-};
 
 // ── FUNGSI BACA & SIMPAN DATA ─────────────────────────────────────────────────
 
-// Baca data dari file JSON lokal
 function bacaData() {
     try {
         if (fs.existsSync(FILE_DATA)) {
             return JSON.parse(fs.readFileSync(FILE_DATA, 'utf-8'));
         }
     } catch (_) {}
-    // Kalau belum ada file, kembalikan data kosong
-    return { grup: {}, idTerkirim: [], waktuAmbilTerakhir: 0 };
+    return { grup: {}, idTerkirim: [], waktuCekTerakhir: 0 };
 }
 
-// Simpan data ke file JSON lokal
 function simpanData(data) {
     try {
         fs.writeFileSync(FILE_DATA, JSON.stringify(data, null, 2), 'utf-8');
@@ -76,24 +68,76 @@ function semuaPengaturanGrup() {
 
 // ── PENCEGAH KIRIMAN DUPLIKAT ─────────────────────────────────────────────────
 
-// Tandai sebuah anime sudah pernah dikirim (supaya tidak dikirim dua kali)
-function tandaiSudahKirim(id) {
+// Tandai episode sudah pernah dikirim supaya tidak dikirim dua kali
+function tandaiSudahKirim(idUnik) {
     const data = bacaData();
     if (!data.idTerkirim) data.idTerkirim = [];
-    // Simpan maksimal 200 ID terakhir supaya file tidak membengkak
-    data.idTerkirim = [String(id), ...data.idTerkirim].slice(0, 200);
+    // Simpan maksimal 500 ID terakhir
+    data.idTerkirim = [String(idUnik), ...data.idTerkirim].slice(0, 500);
     simpanData(data);
 }
 
-// Cek apakah anime sudah pernah dikirim sebelumnya
-function sudahPernahKirim(id) {
+// Cek apakah episode ini sudah pernah dikirim
+function sudahPernahKirim(idUnik) {
     const data = bacaData();
-    return (data.idTerkirim || []).includes(String(id));
+    return (data.idTerkirim || []).includes(String(idUnik));
 }
 
-// ── QUERY GRAPHQL KE ANILIST ──────────────────────────────────────────────────
+// Simpan waktu terakhir cek jadwal tayang
+function simpanWaktuCek() {
+    const data = bacaData();
+    data.waktuCekTerakhir = Math.floor(Date.now() / 1000);
+    simpanData(data);
+}
 
-// Query ini mengambil daftar anime yang sedang tayang & paling trending
+// ── QUERY REALTIME: CEK JADWAL TAYANG ────────────────────────────────────────
+
+// Query ini ambil episode yang tayang dalam rentang waktu tertentu
+const QUERY_JADWAL_TAYANG = `
+query ($dari: Int, $sampai: Int) {
+  Page(perPage: 50) {
+    airingSchedules(airingAt_greater: $dari, airingAt_lesser: $sampai, notYetAired: false) {
+      episode
+      airingAt
+      media {
+        id
+        title { romaji native english }
+        description(asHtml: false)
+        episodes
+        averageScore
+        popularity
+        genres
+        coverImage { extraLarge large }
+        bannerImage
+        siteUrl
+        studios(isMain: true) { nodes { name } }
+        season
+        seasonYear
+        status
+      }
+    }
+  }
+}`;
+
+// Ambil daftar episode yang baru saja tayang dalam rentang waktu (detik Unix)
+async function cekEpisodeBaruTayang(dariDetik, sampaiDetik) {
+    const { data } = await axios.post(
+        URL_ANILIST,
+        {
+            query: QUERY_JADWAL_TAYANG,
+            variables: { dari: dariDetik, sampai: sampaiDetik },
+        },
+        {
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            timeout: 15000,
+        }
+    );
+    return data?.data?.Page?.airingSchedules || [];
+}
+
+// ── QUERY TRENDING: FALLBACK / SIMULASI ──────────────────────────────────────
+
+// Query anime trending (dipakai untuk simulasi & fallback)
 const QUERY_ANIME_TRENDING = `
 query ($halaman: Int, $jumlah: Int) {
   Page(page: $halaman, perPage: $jumlah) {
@@ -117,7 +161,6 @@ query ($halaman: Int, $jumlah: Int) {
   }
 }`;
 
-// Ambil daftar anime trending dari AniList
 async function ambilAnimeTrending(halaman = 1, jumlah = 10) {
     const { data } = await axios.post(
         URL_ANILIST,
@@ -130,72 +173,98 @@ async function ambilAnimeTrending(halaman = 1, jumlah = 10) {
     return data?.data?.Page?.media || [];
 }
 
-// ── AMBIL ANIME BARU YANG BELUM PERNAH DIKIRIM ───────────────────────────────
+// ── CARI EPISODE BARU YANG BELUM PERNAH DIKIRIM ──────────────────────────────
 
-async function ambilAnimeBaru() {
-    // Coba halaman pertama dulu
-    const daftar1 = await ambilAnimeTrending(1, 20);
-    for (const anime of daftar1) {
-        const idUnik = `al-${anime.id}`;
+// Digunakan scheduler realtime — cek episode yang tayang 5 menit terakhir
+async function cariEpisodeBaru(rentangMenit = 5) {
+    const sekarang  = Math.floor(Date.now() / 1000);
+    const dariDetik = sekarang - (rentangMenit * 60); // mundur N menit
+    const jadwal    = await cekEpisodeBaruTayang(dariDetik, sekarang);
+
+    const hasilBaru = [];
+    for (const item of jadwal) {
+        // Buat ID unik dari kombinasi ID anime + nomor episode
+        const idUnik = `ep-${item.media?.id}-${item.episode}`;
         if (sudahPernahKirim(idUnik)) continue; // Lewati yang sudah dikirim
-        return { sumber: 'anilist', anime, idUnik };
+        if (!item.media) continue;
+        hasilBaru.push({ episode: item.episode, tayangPada: item.airingAt, anime: item.media, idUnik });
     }
 
-    // Kalau halaman pertama sudah habis semua, coba halaman kedua
-    const daftar2 = await ambilAnimeTrending(2, 20);
-    for (const anime of daftar2) {
-        const idUnik = `al-${anime.id}`;
-        if (sudahPernahKirim(idUnik)) continue;
-        return { sumber: 'anilist', anime, idUnik };
-    }
-
-    // Tidak ada anime baru yang belum dikirim
-    return null;
+    return hasilBaru;
 }
 
-// ── FORMAT TEKS CAPTION ───────────────────────────────────────────────────────
+// ── FORMAT CAPTION REALTIME (NOTIF EPISODE BARU) ──────────────────────────────
 
+function buatCaptionEpisode(item) {
+    const a      = item.anime;
+    const judul  = a.title?.romaji || a.title?.english || a.title?.native || '?';
+    const native = a.title?.native ? ` _(${a.title.native})_` : '';
+    const skor   = a.averageScore  ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
+    const genre  = (a.genres || []).slice(0, 4).join(', ') || '-';
+    const studio = a.studios?.nodes?.[0]?.name || '-';
+    const musim  = a.season && a.seasonYear ? `${kapitalisasi(a.season)} ${a.seasonYear}` : '-';
+
+    // Potong deskripsi agar tidak terlalu panjang
+    let deskripsi = (a.description || '')
+        .replace(/<[^>]+>/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+        .slice(0, 220);
+    if ((a.description || '').length > 220) deskripsi += '...';
+
+    const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+    const totalEps   = a.episodes ? `/${a.episodes}` : '';
+
+    return (
+        `🔴 *REALTIME INFO WIBU — EPISODE BARU!*\n` +
+        `${'━'.repeat(30)}\n\n` +
+        `🎌 *${judul}*${native}\n` +
+        `📺 *Episode ${item.episode}${totalEps} baru saja tayang!*\n\n` +
+        `📖 ${deskripsi}\n\n` +
+        `${skor}  |  🎭 ${genre}\n` +
+        `🏢 Studio : *${studio}*\n` +
+        `🗓️ Musim  : *${musim}*\n\n` +
+        `🔗 ${a.siteUrl || 'https://anilist.co'}\n` +
+        `${'━'.repeat(30)}\n` +
+        `🕐 _${waktuKirim} WIB_`
+    );
+}
+
+// Format caption untuk trending (simulasi & fallback)
 function buatCaption(post, opsi = {}) {
     const { realtime = true } = opsi;
-    const a = post.anime;
-
-    // Judul: utamakan romaji, lalu inggris, lalu native
-    const judul       = a.title?.romaji || a.title?.english || a.title?.native || '?';
-    const judulNative = a.title?.native ? ` _(${a.title.native})_` : '';
-
-    // Skor dari AniList (skala 0–100 diubah jadi 0–10)
-    const skor   = a.averageScore ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
+    const a      = post.anime;
+    const judul  = a.title?.romaji || a.title?.english || a.title?.native || '?';
+    const native = a.title?.native ? ` _(${a.title.native})_` : '';
+    const skor   = a.averageScore  ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
     const genre  = (a.genres || []).slice(0, 4).join(', ') || '-';
     const studio = a.studios?.nodes?.[0]?.name || '-';
     const eps    = a.episodes ? `${a.episodes} eps` : 'Belum selesai';
 
-    // Potong deskripsi maksimal 200 karakter supaya tidak terlalu panjang
     let deskripsi = (a.description || '')
-        .replace(/<[^>]+>/g, '')      // Hapus tag HTML
-        .replace(/\n{3,}/g, '\n\n')   // Rapikan baris kosong berlebihan
+        .replace(/<[^>]+>/g, '')
+        .replace(/\n{3,}/g, '\n\n')
         .trim()
         .slice(0, 200);
     if ((a.description || '').length > 200) deskripsi += '...';
 
-    // Info episode berikutnya (kalau ada)
     let infoEpSelanjutnya = '';
     if (a.nextAiringEpisode) {
-        const nomorEp  = a.nextAiringEpisode.episode;
+        const nomorEp     = a.nextAiringEpisode.episode;
         const waktuTayang = new Date(a.nextAiringEpisode.airingAt * 1000);
-        const tanggal = waktuTayang.toLocaleDateString('id-ID', {
+        const tanggal     = waktuTayang.toLocaleDateString('id-ID', {
             weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
         });
         infoEpSelanjutnya = `\n📅 *Ep ${nomorEp} tayang:* ${tanggal}`;
     }
 
-    // Badge atas: realtime atau biasa
     const badge      = realtime ? '🔴 *REALTIME INFO WIBU*' : '📢 *INFO WIBU*';
     const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
     return (
         `${badge}\n` +
         `${'─'.repeat(28)}\n` +
-        `🎌 *${judul}*${judulNative}\n\n` +
+        `🎌 *${judul}*${native}\n\n` +
         `📖 ${deskripsi}\n\n` +
         `${skor}  |  🎭 ${genre}\n` +
         `🏢 Studio: *${studio}*\n` +
@@ -206,27 +275,51 @@ function buatCaption(post, opsi = {}) {
     );
 }
 
-// ── AMBIL URL GAMBAR COVER / BANNER ──────────────────────────────────────────
+// ── FUNGSI BANTU ──────────────────────────────────────────────────────────────
 
+function kapitalisasi(str) {
+    return String(str || '').toLowerCase().replace(/^\w/, c => c.toUpperCase());
+}
+
+// Ambil URL gambar terbaik (banner > cover besar > cover kecil)
 function ambilUrlGambar(post) {
-    const a = post.anime;
-    // Utamakan banner (lebih lebar), lalu cover ukuran besar, lalu medium
+    const a = post.anime || post;
     return a.bannerImage || a.coverImage?.extraLarge || a.coverImage?.large || null;
 }
 
 // ── SIMULASI / TES KIRIM ──────────────────────────────────────────────────────
 
-// Digunakan oleh perintah `.infowibu test` untuk tes tanpa menunggu jadwal
+// Simulasi realtime: cek jadwal tayang 24 jam ke belakang supaya pasti ada data
 async function simulasi() {
+    // Coba cek jadwal 24 jam ke belakang untuk simulasi
+    const sekarang  = Math.floor(Date.now() / 1000);
+    const dariDetik = sekarang - (24 * 60 * 60); // 24 jam ke belakang
+    const jadwal    = await cekEpisodeBaruTayang(dariDetik, sekarang);
+
+    if (jadwal.length > 0) {
+        // Pakai episode terbaru yang ditemukan
+        const item   = jadwal[jadwal.length - 1];
+        const post   = { episode: item.episode, tayangPada: item.airingAt, anime: item.media, idUnik: `ep-${item.media?.id}-${item.episode}` };
+        return {
+            caption  : buatCaptionEpisode(post),
+            urlGambar: ambilUrlGambar(post),
+            judul    : item.media?.title?.romaji || item.media?.title?.english || '?',
+            idUnik   : post.idUnik,
+            tipe     : 'realtime-episode',
+        };
+    }
+
+    // Fallback ke trending kalau tidak ada jadwal
     const daftar = await ambilAnimeTrending(1, 5);
     if (!daftar.length) throw new Error('Tidak ada data anime dari AniList. Coba lagi nanti.');
-    const anime  = daftar[0];
-    const post   = { sumber: 'anilist', anime, idUnik: `al-${anime.id}` };
+    const anime = daftar[0];
+    const post  = { sumber: 'anilist', anime, idUnik: `al-${anime.id}` };
     return {
         caption  : buatCaption(post, { realtime: true }),
         urlGambar: ambilUrlGambar(post),
         judul    : anime.title?.romaji || anime.title?.english || '?',
         idUnik   : post.idUnik,
+        tipe     : 'trending-fallback',
     };
 }
 
@@ -241,13 +334,16 @@ module.exports = {
     semuaPengaturanGrup,
     tandaiSudahKirim,
     sudahPernahKirim,
+    simpanWaktuCek,
+    cekEpisodeBaruTayang,
     ambilAnimeTrending,
-    ambilAnimeBaru,
+    cariEpisodeBaru,
+    buatCaptionEpisode,
     buatCaption,
     ambilUrlGambar,
     simulasi,
 
-    // Alias nama lama supaya tidak error di tempat lain yang sudah pakai
+    // Alias nama lama supaya bagian lain bot tidak error
     setGroupEnabled    : aturGrup,
     isGroupEnabled     : cekGrupAktif,
     getEnabledGroups   : daftarGrupAktif,
@@ -255,7 +351,10 @@ module.exports = {
     markSent           : tandaiSudahKirim,
     alreadySent        : sudahPernahKirim,
     fetchTrendingAnime : ambilAnimeTrending,
-    fetchFreshPost     : ambilAnimeBaru,
+    fetchFreshPost     : async () => {
+        const hasil = await module.exports.cariEpisodeBaru(360); // fallback 6 jam
+        return hasil?.[0] ? { anime: hasil[0].anime, uid: hasil[0].idUnik, ...hasil[0] } : null;
+    },
     formatCaption      : buatCaption,
     getCoverUrl        : ambilUrlGambar,
     simulate           : simulasi,

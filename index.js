@@ -724,50 +724,61 @@ async function main() {
                         }
                         {
                                 const _iw = _require(path.join(process.cwd(), 'src', 'scrape', 'infowibu.cjs'));
-                                const IW_INTERVAL_MS = 30 * 60 * 1000; // setiap 30 menit
+                                // Cek setiap 5 menit — langsung kirim saat ada episode baru tayang
+                                const IW_INTERVAL_MS = 5 * 60 * 1000;
 
                                 const runInfoWibu = async () => {
                                         try {
-                                                const groups = _iw.getEnabledGroups();
-                                                if (!groups.length) return;
+                                                const daftarGrup = _iw.getEnabledGroups();
+                                                if (!daftarGrup.length) return;
 
-                                                const post = await _iw.fetchFreshPost();
-                                                if (!post) {
-                                                        console.log('[InfoWibu] Tidak ada post baru untuk dikirim.');
+                                                // Cari episode yang baru tayang dalam 5 menit terakhir
+                                                const episodeBaru = await _iw.cariEpisodeBaru(5);
+                                                if (!episodeBaru.length) {
+                                                        console.log('[InfoWibu] Tidak ada episode baru dalam 5 menit terakhir.');
                                                         return;
                                                 }
 
-                                                const caption  = _iw.formatCaption(post, { realtime: true });
-                                                const imageUrl = _iw.getCoverUrl(post);
+                                                // Kirim setiap episode baru yang ditemukan
+                                                for (const item of episodeBaru) {
+                                                        const caption  = _iw.buatCaptionEpisode(item);
+                                                        const urlGambar = _iw.ambilUrlGambar(item);
 
-                                                for (const jid of groups) {
-                                                        try {
-                                                                if (imageUrl) {
-                                                                        await hisoka.sendMessage(jid, {
-                                                                                image: { url: imageUrl },
-                                                                                caption,
-                                                                        });
-                                                                } else {
-                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                        for (const jid of daftarGrup) {
+                                                                try {
+                                                                        if (urlGambar) {
+                                                                                await hisoka.sendMessage(jid, {
+                                                                                        image: { url: urlGambar },
+                                                                                        caption,
+                                                                                });
+                                                                        } else {
+                                                                                await hisoka.sendMessage(jid, { text: caption });
+                                                                        }
+                                                                        // Jeda 2 detik antar grup supaya tidak kena rate limit
+                                                                        await new Promise(r => setTimeout(r, 2000));
+                                                                } catch (e) {
+                                                                        console.error(`[InfoWibu] Gagal kirim ke ${jid}:`, e?.message);
                                                                 }
-                                                                await new Promise(r => setTimeout(r, 2000));
-                                                        } catch (e) {
-                                                                console.error(`[InfoWibu] Gagal kirim ke ${jid}:`, e?.message);
                                                         }
-                                                }
 
-                                                _iw.markSent(post.uid);
-                                                console.log(`[InfoWibu] ✅ Terkirim ke ${groups.length} grup — ${post.uid}`);
+                                                        // Tandai episode ini sudah dikirim supaya tidak dikirim ulang
+                                                        _iw.tandaiSudahKirim(item.idUnik);
+                                                        console.log(`[InfoWibu] ✅ Ep ${item.episode} "${item.anime?.title?.romaji}" terkirim ke ${daftarGrup.length} grup`);
+
+                                                        // Jeda 3 detik antar episode
+                                                        await new Promise(r => setTimeout(r, 3000));
+                                                }
                                         } catch (err) {
-                                                console.error('[InfoWibu] Error scheduler:', err?.message);
+                                                console.error('[InfoWibu] Error scheduler realtime:', err?.message);
                                         }
                                 };
 
-                                // Mulai setelah 10 detik, lalu setiap 30 menit
+                                // Mulai setelah 15 detik, lalu cek setiap 5 menit
                                 setTimeout(() => {
                                         runInfoWibu();
                                         global.infoWibuInterval = setInterval(runInfoWibu, IW_INTERVAL_MS);
-                                }, 10000);
+                                        console.log('[InfoWibu] 🟢 Scheduler realtime aktif — cek setiap 5 menit');
+                                }, 15000);
                         }
                         /* =================== END AUTO INFOWIBU SCHEDULER =================== */
                         
