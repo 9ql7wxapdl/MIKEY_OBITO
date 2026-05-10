@@ -1,0 +1,82 @@
+[15.08, 10/5/2026] Hen V2: .komikupdate
+[15.08, 10/5/2026] Hen V2: .komikupdate
+🔄 Mengambil update terbaru dari Komiktap...
+1. “Jako ni wa Kaji ga Oniaida www” to Iwareta Kaji Level 9999 no Ore, Tsuihousareta no de Boukensha ni Tenshoku suru – Saikyou de Musou Shinagara Guild de Tanoshiku Kurashimasu
+📖 Chapter 04.2 bahasa indonesia
+[15.09, 10/5/2026] Hen V2: .komikupdate
+╭─「 🔄 UPDATE TERBARU KOMIKTAP 」
+│
+│ 1. “Jako ni wa Kaji ga Oniaida www” to Iwareta Kaji L  Chapter 04.2 bahasa indonesia
+│ 2. 〇sen-yen de Oppai Misete  Chapter 1
+│ 3. 100-byougo ni Sex Suru Ane  Chapter 1 End
+│ 4. 100% Maketa Watashi no Ana – Guchogucho ni Okashit  Chapter 2
+│ 5. 1000 Yen Cut no Onee-san ni Suite Morau Hon  Chapter 1 End
+│ 6. 1000-kai Iku made Deraremasen  Chapter 1 End
+│ 7. 12 Years Apart  Chapter 20
+│ 8. 15 Minutes  Chapter 25
+│ 9. 15-nengo no Onna  Chapter 1 End
+│ 10. 2 Nensei Archive  Chapter 1 End
+│ 11. 200-Nen Mo no Shojo Elf Shota o Kau  Chapter 1 End
+│ 12. 211cm no Jirai-kei Joshi ni Nerawarete Mou Nigerar  Chapter 1 End
+│ 13. 28 Nichi-go ni Ore no Kaa-chan ga Tomodachi no Sen  Chapter 2
+│ 14. 29 Year Old Office Lady Yuuka Kazami  C…
+[15.10, 10/5/2026] Hen V2: .komik
+[15.10, 10/5/2026] Hen V2: .komik
+╭─「 📖 KOMIKTAP 」
+│
+│ Cari manga/manhwa/manhua:
+│ .komik <judul>
+│
+│ Detail manga:
+│ .komikinfo <url manga>
+│
+│ Download chapter jadi PDF:
+│ .komikget <url chapter>
+│ .komikget <url chapter> <jumlah hal>
+│
+│ Contoh:
+│ .komik naruto
+│ .komikinfo https://komiktap.info/manga/naruto/
+│ .komikget https://komiktap.info/naruto-chapter-1/
+│ .komikget https://komiktap.info/naruto-chapter-1/ 15
+│
+│ ℹ️ Default 20 hal, max 50 hal
+╰──────────────────────
+[15.10, 10/5/2026] Hen V2: .komik Secret Class
+[15.10, 10/5/2026] Hen V2: .komik Secret Class
+🔍 Mencari Secret Class di Komiktap...
+1. Secret Class Uncen ⭐93%
+[15.10, 10/5/2026] Hen V2: .komik Secret Class
+╭─「 🔍 KOMIKTAP SEARCH 」
+│
+│ Hasil: Secret Class
+│
+│ 1. Secret Class Uncen
+│      ⭐93%
+│ 2. Secret Class
+│      ⭐71%
+│ 3. Uchuujin no Kakushigoto
+│     
+│
+│ 💡 Balas pesan ini dengan nomor
+│ Contoh: balas 1 untuk manga pertama
+│ Ketik batal untuk membatalkan
+╰──────────────────────
+[15.11, 10/5/2026] Agan Rizkia: ╭─「  KOMIKTAP SEARCH 」
+│
+│ Hasil: Secret Class
+│
+│ 1. Secret Class Uncen
+│      93%
+│ 2. Secret Class
+│      71%
+│ 3. Uchuujin no Kakushigoto
+│     
+│
+│  Balas pesan ini dengan nomor
+│ Contoh: balas 1 untuk manga pertama
+│ Ketik batal untuk membatalkan
+╰──────────────────────
+2
+[15.11, 10/5/2026] Agan Rizkia: 3 foto
+3
