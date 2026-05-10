@@ -17942,7 +17942,8 @@
     "id": "6281295543915@s.whatsapp.net",
     "name": "Remi_ikan 111",
     "lid": "26547712958494@lid",
-    "jid": "6281295543915@s.whatsapp.net"
+    "jid": "6281295543915@s.whatsapp.net",
+    "notify": "Arthur.remi_kan"
   },
   "6281248490650@s.whatsapp.net": {
     "isContact": true,
@@ -26746,7 +26747,8 @@
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
     "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily"
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "6281282780625@s.whatsapp.net": {
     "isContact": true,
@@ -31645,6 +31647,7 @@
   "26547712958494@lid": {
     "id": "26547712958494@lid",
     "lid": "26547712958494@lid",
-    "notify": "Arthur.remi_kan"
+    "notify": "Arthur.remi_kan",
+    "verifiedName": "Arthur.remi_kan"
   }
 }

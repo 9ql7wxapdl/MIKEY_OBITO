@@ -2806,21 +2806,41 @@ export default async function ({ message, type: messagesType }, hisoka) {
                 // ── Handle pending komiktap interactive reply ──
                 {
                         const komikKey = getJadibotChoiceKey(m);
-                        if (pendingKomikChoices.has(komikKey)) {
-                                const pendingKomik = pendingKomikChoices.get(komikKey);
-                                const quotedId     = getQuotedStanzaId(m);
+                        const quotedId = getQuotedStanzaId(m);
+
+                        // Cari session: pertama coba exact key (sender yg buat command),
+                        // lalu fallback cari siapapun di chat yg sama berdasarkan botMsgId
+                        let _komikEntry = pendingKomikChoices.has(komikKey)
+                                ? { key: komikKey, session: pendingKomikChoices.get(komikKey) }
+                                : null;
+                        if (!_komikEntry && m.isQuoted && quotedId) {
+                                for (const [_k, _s] of pendingKomikChoices.entries()) {
+                                        if (_k.startsWith(m.from + ':') && _s.botMsgId && _s.botMsgId === quotedId) {
+                                                _komikEntry = { key: _k, session: _s };
+                                                break;
+                                        }
+                                }
+                        }
+
+                        if (_komikEntry) {
+                                const matchedKey   = _komikEntry.key;
+                                const pendingKomik = _komikEntry.session;
                                 const isReplyToMenu = m.isQuoted && (!pendingKomik.botMsgId || quotedId === pendingKomik.botMsgId);
                                 const rawChoice    = String(m.text || '').trim();
 
+                                // Override helpers to use matchedKey instead of komikKey
+                                const _komikDelete = () => pendingKomikChoices.delete(matchedKey);
+                                const _komikSet    = (val) => pendingKomikChoices.set(matchedKey, val);
+
                                 if (isReplyToMenu && rawChoice && !m.prefix) {
                                         if (pendingKomik.expiresAt <= Date.now()) {
-                                                pendingKomikChoices.delete(komikKey);
+                                                _komikDelete();
                                                 await tolak(hisoka, m, '⏳ Menu sudah kedaluwarsa. Ketik `.komik <judul>` lagi.');
                                                 return;
                                         }
                                         if (/^(batal|cancel|x)$/i.test(rawChoice)) {
                                                 if (pendingKomik.timeout) clearTimeout(pendingKomik.timeout);
-                                                pendingKomikChoices.delete(komikKey);
+                                                _komikDelete();
                                                 await tolak(hisoka, m, '✅ Dibatalkan.');
                                                 return;
                                         }
@@ -2889,8 +2909,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                                         // Simpan phase 2
                                                         if (pendingKomik.timeout) clearTimeout(pendingKomik.timeout);
-                                                        const newTimeout = setTimeout(() => pendingKomikChoices.delete(komikKey), 10 * 60 * 1000);
-                                                        pendingKomikChoices.set(komikKey, {
+                                                        const newTimeout = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
+                                                        _komikSet({
                                                                 phase: 'detail',
                                                                 detail,
                                                                 chapters,
@@ -2904,7 +2924,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                                 } catch (err) {
                                                         console.error('[KOMIK] Detail error:', err?.message);
-                                                        pendingKomikChoices.delete(komikKey);
+                                                        _komikDelete();
                                                         await tolak(hisoka, m, `❌ Gagal ambil detail.\n💬 ${err?.message || 'Coba lagi nanti'}`);
                                                 }
                                                 return;
@@ -2968,8 +2988,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
 
                                                         // Restore session — user bisa pilih chapter lain tanpa .komik lagi
-                                                        const restoreTimeout = setTimeout(() => pendingKomikChoices.delete(komikKey), 10 * 60 * 1000);
-                                                        pendingKomikChoices.set(komikKey, {
+                                                        const restoreTimeout = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
+                                                        _komikSet({
                                                                 phase: 'detail',
                                                                 detail: savedDetail,
                                                                 chapters: savedChapters,
@@ -2983,8 +3003,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                         console.error('[KOMIK] PDF error:', err?.message);
                                                         logError(err instanceof Error ? err : new Error(String(err?.message || err)), 'komiktap-interactive-pdf');
                                                         // Restore session even on error
-                                                        const restoreTimeout = setTimeout(() => pendingKomikChoices.delete(komikKey), 10 * 60 * 1000);
-                                                        pendingKomikChoices.set(komikKey, {
+                                                        const restoreTimeout = setTimeout(() => _komikDelete(), 10 * 60 * 1000);
+                                                        _komikSet({
                                                                 phase: 'detail',
                                                                 detail: savedDetail,
                                                                 chapters: savedChapters,
@@ -4493,8 +4513,17 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 try {
                                                         await hisoka.sendMessage(m.from, { albumMessage: albumItems }, { quoted: m });
                                                 } catch {
-                                                        for (const item of albumItems) {
-                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }); } catch (_) {}
+                                                        // Fallback: kirim per batch 10 dulu, baru individual kalau gagal lagi
+                                                        const BATCH = 10;
+                                                        for (let _b = 0; _b < albumItems.length; _b += BATCH) {
+                                                                const _batch = albumItems.slice(_b, _b + BATCH);
+                                                                try {
+                                                                        await hisoka.sendMessage(m.from, { albumMessage: _batch }, { quoted: _b === 0 ? m : undefined });
+                                                                } catch {
+                                                                        for (const item of _batch) {
+                                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m }); } catch (_) {}
+                                                                        }
+                                                                }
                                                         }
                                                 }
                                         }
@@ -4719,8 +4748,17 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 try {
                                                         await hisoka.sendMessage(m.from, { albumMessage: albumUpd }, { quoted: m });
                                                 } catch {
-                                                        for (const item of albumUpd) {
-                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }); } catch (_) {}
+                                                        // Fallback: kirim per batch 10 dulu, baru individual kalau gagal lagi
+                                                        const BATCH = 10;
+                                                        for (let _b = 0; _b < albumUpd.length; _b += BATCH) {
+                                                                const _batch = albumUpd.slice(_b, _b + BATCH);
+                                                                try {
+                                                                        await hisoka.sendMessage(m.from, { albumMessage: _batch }, { quoted: _b === 0 ? m : undefined });
+                                                                } catch {
+                                                                        for (const item of _batch) {
+                                                                                try { await hisoka.sendMessage(m.from, { image: item.image, caption: item.caption }, { quoted: m }); } catch (_) {}
+                                                                        }
+                                                                }
                                                         }
                                                 }
                                         }
