@@ -1,114 +1,173 @@
 ╔══════════════════════════════════╗
-║   🤖  W I L Y  B O T  —  V 1 4 . 5   ║
+║     🤖  W I L Y  B O T  —  V 1 5   ║
 ╚══════════════════════════════════╝
-📅 Updated  : Selasa, 5 Mei 2026
-📦 Total    : 24 Update
-🔧 Bug Fix  : 9  |  ♻️ Pembaruan : 7  |  ✨ Fitur Baru : 8
+📅 Updated  : Sabtu, 10 Mei 2026
+📦 Total    : 35 Update
+🔧 Bug Fix  : 5  |  ♻️ Pembaruan : 10  |  ✨ Fitur Baru : 20
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 🔧 BUG FIX
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-◈ Fix Jadibot Tidak Reconnect Setelah Disconnect
-◈ Fix Jadibot Tidak Auto-Start Saat Bot Restart
-◈ Fix Crash di cachedGroupMetadata
-◈ Fix .dbstats Error Jika Tabel Belum Ada
-◈ Fix Session Jadibot Dianggap Tidak Valid Pasca Migrasi
-◈ Fix AI Tidak Merespons / Respons Error
-  ✦ Perbaikan handling error pada Gemini & Groq
-  ✦ AI tidak lagi stuck atau kirim pesan kosong
+◈ Fix AI Tidak Balas / Respons Kosong
+  ✦ Rework total sistem AI reply lewat aiReact.js
+  ✦ sendAIReply kini lebih stabil dan tidak stuck
 
-◈ Fix .stopbot — Socket Pairing Tidak Tertutup Saat Bot Di-Stop
-  ✦ Jika bot di-stop saat masih proses pairing (kode sudah terkirim,
-    user belum scan), socket lama kini ikut ditutup dari startingSocketMap
-  ✦ Mencegah bot auto-connect kembali di background padahal sudah di-stop
+◈ Fix History AI Tidak Tersimpan Antar Sesi
+  ✦ Sistem history dipindah ke aiHistory.js (db layer)
+  ✦ getHistory, addToHistory, clearHistory kini atomic
 
-◈ Fix .stopbot — State activeOrStartingJadibot Tidak Dibersihkan
-  ✦ Setelah .stopbot, jadibot nomor yang sama bisa langsung di-.jadibot
-    lagi tanpa masuk jalur "pairing stuck"
-  ✦ pairingRequested, pairingTimeout, startingSocketMap kini ikut
-    dibersihkan saat stop dari kondisi connected
+◈ Fix Bot Crash Tanpa Keterangan
+  ✦ crashGuard.js menangkap uncaught error & rejection
+  ✦ Error otomatis dicatat ke log & bot tetap jalan
 
-◈ Fix formatRemainingTime — Detik Tidak Ditampilkan Jika Masih Ada Menit
-  ✦ Sebelumnya: "5 menit" padahal sisa "5 menit 30 detik"
-  ✦ Sekarang: detik ikut tampil selama tidak ada komponen "hari"
-  ✦ Berlaku di: .menu jadibot, .listbot, notif warning expiry
+◈ Fix Memory User Tidak Akurat
+  ✦ detectAndUpdateMemory lebih presisi
+  ✦ Data memori user tidak lagi tumpang tindih antar sender
+
+◈ Fix File Tmp Menumpuk & Makan Storage
+  ✦ autoCleaner dan sessionCleaner kini berjalan otomatis
+  ✦ cleanStaleSessionFiles dijalankan saat bot start
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ♻️ PEMBARUAN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-◈ .dbstats Lebih Lengkap — tampilkan contacts, groups, settings
-◈ Sistem Reconnect Jadibot Lebih Stabil & guard duplikat diperketat
-◈ Peningkatan Fitur AI — respons lebih akurat & stabil
-  ✦ Optimasi prompt handling & konteks percakapan
-◈ Session Kembali Menggunakan creds.json (Rollback dari SQLite)
-  ✦ Semua sesi (main + jadibot) kembali ke format creds.json
-  ✦ Lebih familiar & mudah dikelola manual
-◈ Ekspansi Fitur Jadibot — lebih banyak command bisa diakses
-  ✦ User jadibot kini bisa akses download, sticker, rvo, dll
-  ✦ Setting per-user jadibot tersimpan realtime ke JSON sendiri
+◈ Sistem AI Dirombak Total
+  ✦ AI sekarang pakai aiHistory.js untuk riwayat percakapan
+  ✦ aiTools.js — AI bisa ekstrak: voice note, lagu, video,
+    stiker, TikTok, Instagram, YouTube langsung dari teks
+  ✦ imageSearch.js — AI bisa cari & embed gambar ke balasan
+  ✦ aiReact.js (sendAIReply) — handler reply AI lebih bersih
 
-◈ [JADIBOT] .menu — Tampilkan Masa Aktif (Expiry) Realtime
-  ✦ Baris baru: ⏳ Masa Aktif : X hari Y jam Z menit N detik
-  ✦ Jika permanent: ♾️ Masa Aktif : Permanent
-  ✦ Diambil langsung dari jadibot_realtime.json saat .menu diketik
+◈ Sticker Memory — Bot Ingat Stiker
+  ✦ stickerMemory.js: hash stiker, simpan emosi & kategori
+  ✦ Bot makin cerdas tiap kali lihat stiker baru
+  ✦ buildStickerContextHint dipakai untuk prompt AI
 
-◈ push.sh + .gitignore — Folder jadibot Kini Ikut Di-Upload ke GitHub
-  ✦ .gitignore diperbarui: seluruh isi folder jadibot/ kini di-track
-  ✦ push.sh: jadibot/ masuk daftar force-add otomatis saat push
-  ✦ Sesi jadibot aktif akan ikut tersimpan di repository
+◈ Sticker Map — Data Stiker Karakter CDN
+  ✦ stickerMap.js: daftar stiker Honolulu (Azur Lane) + CDN
+  ✦ Dipakai aiTools.js & aiPrompt.js untuk validasi stiker
+
+◈ User Memory — Bot Ingat Profil User
+  ✦ userMemory.js: deteksi & update memori per sender
+  ✦ .memori / .mymemory / .myprofile — lihat profil kamu di bot
+  ✦ .lupakanaku / .resetmemori — hapus memori kamu dari bot
+
+◈ Hot Reload Handler
+  ✦ hotReload.js: reload handler tanpa restart bot
+  ✦ Pakai initHotReload, getHandler, onReload
+  ✦ Perubahan langsung berlaku tanpa downtime
+
+◈ Crash Guard Otomatis
+  ✦ crashGuard.js: tangkap uncaughtException & unhandledRejection
+  ✦ Semua error tercatat ke errorLog.js untuk diagnosa
+
+◈ Phone Region — Format Nomor Lebih Akurat
+  ✦ getPhoneRegion & formatPhoneWithRegion aktif di semua info nomor
+
+◈ Auto Cleaner Lebih Lengkap
+  ✦ cleaner.js: ensureTmpDir, startAutoCleaner, stopAutoCleaner,
+    restartAutoCleaner, cleanStaleSessionFiles
+
+◈ View Once Cache Diperkuat
+  ✦ voCache.js: saveViewOnceCache, cleanOldViewOnceCache, hasViewOnceCache
+  ✦ Cache VO tidak hilang saat bot restart
+
+◈ Error Logging Terpusat
+  ✦ errorLog.js: logError dipakai di semua command penting
+  ✦ .cekerror untuk lihat riwayat error dari chat
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ✨ FITUR BARU
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-◈ .dbstats / .sessiondb / .sessionstat — Statistik Session
-  ✦ Info creds.json, jumlah pre-key, session & sender-key files
-  ✦ Tampil ukuran total semua sesi (main + jadibot)
+◈ .telegram / .tele — Integrasi Notifikasi Telegram
+  ✦ Kirim story WA otomatis ke bot Telegram kamu
+  ✦ Set token & chat ID langsung dari chat
+  ✦ .telegram test — test kirim pesan ke Telegram
+  ✦ .telegram tutorial — panduan cara dapat token & chat ID
+  ✦ Validasi token & chat ID realtime
 
-◈ .kusonime — Download Anime dari Kusonime
-  ✦ Cari & download anime dengan mudah lewat bot
+◈ .wilyai — Panel Setting AI
+  ✦ On/off fitur .wily / .ai / .tanya
+  ✦ Toggle auto reply AI
+  ✦ Atur scope: pm / gc / all
+  ✦ .wilyai reset — hapus semua sesi history AI
+  ✦ Tampil total sesi tersimpan
 
-◈ .nhentai — Cari Doujin dari NHentai
-  ✦ Cari berdasarkan kode atau keyword (khusus grup NSFW)
+◈ .online — Auto Presence Online/Offline Stealth
+  ✦ .online on — terlihat online terus
+  ✦ .online off — mode stealth (kirim unavailable berkala)
+  ✦ .online set <detik> — atur interval presence
 
-◈ SQLiteDB — Penyimpanan contacts/groups/settings
-  ✦ Data store (bukan session) tetap pakai SQLite untuk performa
+◈ .anticallvid / .acv — Anti Panggilan Video
+  ✦ Tolak otomatis semua panggilan video masuk
+  ✦ Bisa diatur on/off dari chat
 
-◈ [JADIBOT] Per-User Settings Realtime
-  ✦ Setiap jadibot punya setting sendiri di jadibot_settings.json
-  ✦ Tidak bertabrakan antar jadibot maupun dengan main bot
-  ✦ Atomic write — aman dari data corrupt
+◈ .react / .reaksi — React ke Postingan Channel
+  ✦ .react [link_post] [emoji] — kirim reaksi ke channel WA
+  ✦ Mendukung lebih dari 1 emoji sekaligus
 
-◈ [JADIBOT] .menu — Menu Khusus Jadibot (Tanpa Thumbnail)
-  ✦ Tampilan teks bersih, hanya fitur yang tersedia untuk jadibot
-  ✦ Main bot tetap pakai menu dengan thumbnail foto profil
+◈ .cekreact / .reactinfo — Cek Saldo Coin React
+  ✦ Lihat saldo coin API react yang tersisa
 
-◈ [JADIBOT] .antidel on/off — Anti-Delete per Jadibot
-  ✦ User jadibot aktifkan/nonaktifkan anti-delete sendiri
-  ✦ Mendukung: private, group, all, sendto self/chat/both
-  ✦ Tersimpan realtime ke jadibot_settings.json
+◈ .setreactapi / .reactapi — Atur API React
+  ✦ Set API key & URL untuk fitur react channel
 
-◈ [JADIBOT] .readsw on/off/true/false — Auto Read Story per Jadibot
-  ✦ User jadibot atur mode Read+Reaction atau Read Only
-  ✦ Bisa atur delay kustom: .readsw delay <min> <max>
-  ✦ Tersimpan realtime ke jadibot_settings.json
+◈ .ghosttag / .gt — Ghost Tag Member Grup
+  ✦ Tag semua member grup tanpa teks terlihat
+  ✦ Mendukung custom pesan & mention tersembunyi
 
-◈ [JADIBOT] .rvo / .viewonce / .vo — Buka View Once
-  ✦ Mendukung gambar, video, audio, dokumen, sticker
+◈ .ssweb / .scrapeweb / .webinfo — Screenshot Website
+  ✦ Kirim URL → bot screenshot dan kirim hasilnya
+  ✦ .webinfo untuk scrape info dasar website
 
-◈ [JADIBOT] Download Media — .tt .ig .fb .ytmp3 .ytmp4 .play
-  ✦ TikTok, Instagram, Facebook, YouTube MP3/MP4, Search Play
+◈ .sendstatus — Kirim Status WA
+  ✦ Kirim pesan/gambar sebagai status WA dari bot
 
-◈ [JADIBOT] .sticker / .s — Buat Sticker
-  ✦ Konversi gambar/video jadi sticker langsung dari jadibot
+◈ .upswgc / .swgc / .statusgrup — Status Grup
+  ✦ Update & cek status postingan grup
+  ✦ Info lengkap aktivitas story di grup
 
-◈ [JADIBOT] .toimg — Sticker → Gambar
-  ✦ Reply sticker → .toimg → terima gambar PNG
+◈ .welgod / .setwelgod — Welcome Message Godly
+  ✦ Set welcome message dengan tampilan premium
+  ✦ Berbeda dari .welcome biasa, lebih berkarakter
+
+◈ .stickerly / .stickerpack — Download Sticker Pack
+  ✦ Cari & download sticker pack dari Stickerly
+  ✦ Kirim hasil dalam format file stiker WA
+
+◈ .antitagsw — Anti Tag Story
+  ✦ Blokir otomatis tag dari story yang tidak diinginkan
+  ✦ Bisa atur on/off dan pengecualian kontak
+
+◈ .upbot — Update Bot dari GitHub
+  ✦ Pull update terbaru dari repo langsung via chat
+  ✦ Tampil status update dan versi terbaru
+
+◈ .backup — Backup Session & Data Bot
+  ✦ Backup semua sesi aktif + data ke file zip
+  ✦ Bisa diunduh langsung dari chat
+
+◈ .ceksesi — Cek Sesi Aktif
+  ✦ Lihat semua sesi jadibot yang sedang berjalan
+  ✦ Info lengkap: nomor, status, waktu aktif
+
+◈ .cekerror — Lihat Log Error Bot
+  ✦ Tampil riwayat error terakhir langsung dari chat
+  ✦ Bantu diagnosa masalah tanpa buka server
+
+◈ .autocleaner — Kelola Auto Cleaner
+  ✦ On/off auto cleaner file tmp otomatis
+  ✦ Set interval dan lihat status cleaner
+
+◈ .sessioncleaner — Bersihkan File Session Lama
+  ✦ Hapus file sesi yang sudah tidak aktif
+  ✦ Ringankan beban storage server
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🤖 Wily-Bot  |  Versi V14.5  |  5 Mei 2026
+🤖 Wily-Bot  |  Versi V15  |  10 Mei 2026
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
