@@ -13098,6 +13098,100 @@ infoText += `╰═════════════════════�
                                 break;
                         }
 
+                        case 'infowibu': {
+                                if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
+                                if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
+
+                                const { setGroupEnabled, isGroupEnabled, getAllGroupSettings, simulate } = _require(path.resolve('./src/scrape/infowibu.cjs'));
+                                const sub = (query || '').trim().toLowerCase();
+                                const pfx = m.prefix || '.';
+
+                                if (!sub || sub === 'help') {
+                                        const enabled = isGroupEnabled(m.from);
+                                        await tolak(hisoka, m,
+                                                `╭─「 📺 *INFO WIBU* 」\n` +
+                                                `│\n` +
+                                                `│ Status di grup ini: ${enabled ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
+                                                `│\n` +
+                                                `│ *Perintah:*\n` +
+                                                `│ • ${pfx}infowibu on — aktifkan\n` +
+                                                `│ • ${pfx}infowibu off — nonaktifkan\n` +
+                                                `│ • ${pfx}infowibu test — kirim test sekarang\n` +
+                                                `│ • ${pfx}infowibu status — lihat semua grup\n` +
+                                                `│\n` +
+                                                `│ 💡 Bot otomatis kirim info anime\n` +
+                                                `│    trending ke grup yang aktif.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                if (sub === 'on') {
+                                        setGroupEnabled(m.from, true);
+                                        await tolak(hisoka, m,
+                                                `✅ *InfoWibu aktif di grup ini!*\n\n` +
+                                                `Bot akan otomatis kirim info anime trending secara realtime.\n` +
+                                                `Ketik *${pfx}infowibu off* untuk menonaktifkan.`
+                                        );
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'infowibu-on');
+                                        break;
+                                }
+
+                                if (sub === 'off') {
+                                        setGroupEnabled(m.from, false);
+                                        await tolak(hisoka, m,
+                                                `❌ *InfoWibu dinonaktifkan di grup ini.*\n\n` +
+                                                `Ketik *${pfx}infowibu on* untuk mengaktifkan kembali.`
+                                        );
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'infowibu-off');
+                                        break;
+                                }
+
+                                if (sub === 'status') {
+                                        const all = getAllGroupSettings();
+                                        const entries = Object.entries(all);
+                                        if (!entries.length) {
+                                                await tolak(hisoka, m, '📋 Belum ada grup yang dikonfigurasi.');
+                                                break;
+                                        }
+                                        let txt = `╭─「 📋 *STATUS INFOWIBU* 」\n│\n`;
+                                        for (const [jid, cfg] of entries) {
+                                            const label = jid.replace('@g.us', '');
+                                            const icon  = cfg.enabled ? '✅' : '❌';
+                                            txt += `│ ${icon} ${label}\n`;
+                                        }
+                                        txt += `╰──────────────────────`;
+                                        await tolak(hisoka, m, txt);
+                                        break;
+                                }
+
+                                if (sub === 'test') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const result = await simulate();
+                                                if (result.imageUrl) {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image: { url: result.imageUrl },
+                                                                caption: result.caption,
+                                                        }, { quoted: m });
+                                                } else {
+                                                        await tolak(hisoka, m, result.caption);
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'infowibu-test');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch info wibu: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}infowibu* untuk bantuan.`);
+                                break;
+                        }
+
                         default:
                                 break;
                 }

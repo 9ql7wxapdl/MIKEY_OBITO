@@ -716,6 +716,60 @@ async function main() {
                         ensureTmpDir();
                         startAutoCleaner(6); // ini tambahan
                         cleanOldViewOnceCache(); // hapus cache vo lama (>7 hari)
+
+                        /* ===================== AUTO INFOWIBU SCHEDULER ===================== */
+                        if (global.infoWibuInterval) {
+                                clearInterval(global.infoWibuInterval);
+                                global.infoWibuInterval = null;
+                        }
+                        {
+                                const _iw = _require(path.join(process.cwd(), 'src', 'scrape', 'infowibu.cjs'));
+                                const IW_INTERVAL_MS = 30 * 60 * 1000; // setiap 30 menit
+
+                                const runInfoWibu = async () => {
+                                        try {
+                                                const groups = _iw.getEnabledGroups();
+                                                if (!groups.length) return;
+
+                                                const post = await _iw.fetchFreshPost();
+                                                if (!post) {
+                                                        console.log('[InfoWibu] Tidak ada post baru untuk dikirim.');
+                                                        return;
+                                                }
+
+                                                const caption  = _iw.formatCaption(post, { realtime: true });
+                                                const imageUrl = _iw.getCoverUrl(post);
+
+                                                for (const jid of groups) {
+                                                        try {
+                                                                if (imageUrl) {
+                                                                        await hisoka.sendMessage(jid, {
+                                                                                image: { url: imageUrl },
+                                                                                caption,
+                                                                        });
+                                                                } else {
+                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                }
+                                                                await new Promise(r => setTimeout(r, 2000));
+                                                        } catch (e) {
+                                                                console.error(`[InfoWibu] Gagal kirim ke ${jid}:`, e?.message);
+                                                        }
+                                                }
+
+                                                _iw.markSent(post.uid);
+                                                console.log(`[InfoWibu] ✅ Terkirim ke ${groups.length} grup — ${post.uid}`);
+                                        } catch (err) {
+                                                console.error('[InfoWibu] Error scheduler:', err?.message);
+                                        }
+                                };
+
+                                // Mulai setelah 10 detik, lalu setiap 30 menit
+                                setTimeout(() => {
+                                        runInfoWibu();
+                                        global.infoWibuInterval = setInterval(runInfoWibu, IW_INTERVAL_MS);
+                                }, 10000);
+                        }
+                        /* =================== END AUTO INFOWIBU SCHEDULER =================== */
                         
                         /* ===================== AUTO START SEMUA JADIBOT (STABIL) ===================== */
 const jadibotDir = path.join(process.cwd(), 'jadibot');
