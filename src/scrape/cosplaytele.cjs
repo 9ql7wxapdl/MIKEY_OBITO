@@ -1,6 +1,7 @@
 'use strict';
 
 const axios = require('axios');
+const sharp = require('sharp');
 
 const BASE = 'https://cosplaytele.com';
 const API  = `${BASE}/wp-json/wp/v2`;
@@ -175,7 +176,24 @@ async function downloadBuffer(url) {
         timeout: 30000,
         maxRedirects: 5,
     });
-    return Buffer.from(data);
+
+    let buf = Buffer.from(data);
+
+    // Auto-convert WebP → JPEG agar bisa dibuka di WhatsApp
+    // WebP magic: RIFF....WEBP
+    const isWebP = buf.length > 12 &&
+        buf.slice(0, 4).toString('hex') === '52494646' &&
+        buf.slice(8, 12).toString('ascii') === 'WEBP';
+
+    if (isWebP) {
+        try {
+            buf = await sharp(buf).jpeg({ quality: 90 }).toBuffer();
+        } catch (_) {
+            // Kalau convert gagal, tetap pakai buffer asli
+        }
+    }
+
+    return buf;
 }
 
 function formatCosplayteleCaption(post, { imgIndex, imgTotal } = {}) {

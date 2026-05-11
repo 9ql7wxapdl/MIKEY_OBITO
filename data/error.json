@@ -1,6 +1,15 @@
 {
   "errors": [
     {
+      "fingerprint": "InfoWibu::[InfoWibu] Error scheduler realtime: timeout of Nms exceeded",
+      "source": "InfoWibu",
+      "message": "[InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded",
+      "stack": "Error: [InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at runInfoWibu (file:///home/runner/workspace/index.js:769:57)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-11T13:39:00.791Z",
+      "lastSeen": "2026-05-11T13:39:00.791Z"
+    },
+    {
       "fingerprint": "unhandledRejection::ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'",
       "source": "unhandledRejection",
       "message": "ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'",
