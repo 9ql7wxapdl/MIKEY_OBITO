@@ -357,21 +357,34 @@ async function buatCaptionEpisode(item) {
 
     const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
+    // Sinopsis dibungkus blockquote WA ("> ") agar tampil rapi & elegan
+    const sinopsisBlock = deskripsi
+        .split('\n')
+        .map(baris => `> ${baris}`)
+        .join('\n');
+
+    // Native title hanya ditampilkan kalau berbeda dari romaji
+    const judulNative = a.title?.native && a.title.native !== judul
+        ? `_${a.title.native}_\n`
+        : '';
+
     return (
-        `🔴 *REALTIME INFO WIBU — EPISODE BARU!*\n` +
-        `${'━'.repeat(30)}\n\n` +
-        `🎌 *${judul}*${native}\n` +
-        `${'─'.repeat(28)}\n` +
-        `📺 *EPISODE TERBARU*\n` +
-        `${infoEp}${epBerikutnya}\n\n` +
-        `📖 *Sinopsis:*\n${deskripsi}\n\n` +
-        `${'─'.repeat(28)}\n` +
-        `${skor}  |  🎭 ${genre}\n` +
-        `🏢 Studio   : *${studio}*\n` +
-        `🗓️ Musim    : *${musim}*\n` +
-        `📡 Status   : *${statusIndo}*\n\n` +
+        `🔴 *REALTIME INFO WIBU!*\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n` +
+        `🎌 *${judul}*\n` +
+        `${judulNative}\n` +
+        `📺 *Episode ${epSekarang}${totalEps > 0 ? ` dari ${totalEps}` : ''}*${persen}\n` +
+        `\`${progresBar || `Ep ${epSekarang} • Sedang tayang`}\`\n` +
+        `${epBerikutnya ? epBerikutnya + '\n' : ''}` +
+        `\n📖 *Sinopsis*\n` +
+        `${sinopsisBlock}\n\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
+        `${skor} • 🎭 _${genre}_\n` +
+        `🏢 *Studio:* ${studio}\n` +
+        `🗓️ *Musim:* ${musim}\n` +
+        `📡 *Status:* ${statusIndo}\n\n` +
         `🔗 ${a.siteUrl || 'https://anilist.co'}\n` +
-        `${'━'.repeat(30)}\n` +
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n` +
         `🕐 _${waktuKirim} WIB_`
     );
 }
