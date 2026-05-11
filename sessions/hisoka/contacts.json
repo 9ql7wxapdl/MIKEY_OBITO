@@ -15877,7 +15877,8 @@
     "id": "6282258833301@s.whatsapp.net",
     "name": "!!!Nova",
     "lid": "244452643868853@lid",
-    "jid": "6282258833301@s.whatsapp.net"
+    "jid": "6282258833301@s.whatsapp.net",
+    "notify": "i'm tired"
   },
   "628818614760@s.whatsapp.net": {
     "isContact": true,
@@ -31415,5 +31416,16 @@
     "id": "204973052801253@lid",
     "lid": "204973052801253@lid",
     "imgUrl": "removed"
+  },
+  "263483945930926@lid": {
+    "id": "263483945930926@lid",
+    "lid": "263483945930926@lid",
+    "notify": "j",
+    "verifiedName": "j"
+  },
+  "74797375574209@lid": {
+    "id": "74797375574209@lid",
+    "lid": "74797375574209@lid",
+    "imgUrl": "changed"
   }
 }
