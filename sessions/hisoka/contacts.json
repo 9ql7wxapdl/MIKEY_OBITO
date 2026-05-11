@@ -12733,7 +12733,8 @@
     "id": "6283833697404@s.whatsapp.net",
     "name": "Nadiya",
     "lid": "26345463611535@lid",
-    "jid": "6283833697404@s.whatsapp.net"
+    "jid": "6283833697404@s.whatsapp.net",
+    "notify": "J"
   },
   "6281522834937@s.whatsapp.net": {
     "isContact": true,
@@ -22289,7 +22290,9 @@
     "id": "6283897069764@s.whatsapp.net",
     "name": "|[Rangga]|",
     "lid": "59236289622095@lid",
-    "jid": "6283897069764@s.whatsapp.net"
+    "jid": "6283897069764@s.whatsapp.net",
+    "notify": "WansXDR",
+    "verifiedName": "WansXDR"
   },
   "6282231605417@s.whatsapp.net": {
     "isContact": true,
@@ -26462,7 +26465,9 @@
     "id": "6285150762138@s.whatsapp.net",
     "name": "Arga",
     "lid": "12442939724000@lid",
-    "jid": "6285150762138@s.whatsapp.net"
+    "jid": "6285150762138@s.whatsapp.net",
+    "notify": "anti kompres",
+    "verifiedName": "anti kompres"
   },
   "6285374597780@s.whatsapp.net": {
     "isContact": true,
@@ -29150,7 +29155,8 @@
     "id": "6283153755611@s.whatsapp.net",
     "name": "|Satya",
     "lid": "85401414947016@lid",
-    "jid": "6283153755611@s.whatsapp.net"
+    "jid": "6283153755611@s.whatsapp.net",
+    "notify": "saytya"
   },
   "6285724935272@s.whatsapp.net": {
     "isContact": true,
@@ -31047,7 +31053,8 @@
     "id": "62881025542877@s.whatsapp.net",
     "name": "! Rara",
     "lid": "74797375574209@lid",
-    "jid": "62881025542877@s.whatsapp.net"
+    "jid": "62881025542877@s.whatsapp.net",
+    "notify": "🫪"
   },
   "6281252847802@s.whatsapp.net": {
     "isContact": true,
@@ -31366,5 +31373,30 @@
     "id": "76416209145992@lid",
     "lid": "76416209145992@lid",
     "imgUrl": "removed"
+  },
+  "98019978518617@lid": {
+    "id": "98019978518617@lid",
+    "lid": "98019978518617@lid",
+    "imgUrl": "changed"
+  },
+  "269732552937504@lid": {
+    "id": "269732552937504@lid",
+    "lid": "269732552937504@lid",
+    "imgUrl": "changed"
+  },
+  "42112741585149@lid": {
+    "id": "42112741585149@lid",
+    "lid": "42112741585149@lid",
+    "imgUrl": "changed"
+  },
+  "276054929362982@lid": {
+    "id": "276054929362982@lid",
+    "lid": "276054929362982@lid",
+    "imgUrl": "removed"
+  },
+  "76790290767977@lid": {
+    "id": "76790290767977@lid",
+    "lid": "76790290767977@lid",
+    "notify": "NAKIRA || VON SARTSZAN"
   }
 }
