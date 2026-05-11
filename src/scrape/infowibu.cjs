@@ -367,7 +367,7 @@ function formatTanggalMulai(startDate) {
     if (!month) return String(year);
     try {
         const tgl = new Date(year, month - 1, day || 1);
-        return tgl.toLocaleDateString('id-ID', { day: day ? 'numeric' : undefined, month: 'long', year: 'numeric' });
+        return tgl.toLocaleDateString('id-ID', { day: day ? 'numeric' : undefined, month: 'short', year: 'numeric' });
     } catch (_) {
         return `${day || ''} ${month}/${year}`.trim();
     }
@@ -384,13 +384,13 @@ function formatSisaWaktu(detik) {
     return `${menit}m`;
 }
 
-// Buat progress bar episode — contoh: ▓▓▓▓▓░░░░░ 5/12
+// Buat progress bar episode — contoh: [▓▓▓▓▓░░░░░]
 function buatProgressBar(sekarang, total, panjang = 10) {
     if (!total || total <= 0) return '';
     const isi    = Math.round((sekarang / total) * panjang);
     const kosong = panjang - isi;
     const bar    = '▓'.repeat(Math.max(0, isi)) + '░'.repeat(Math.max(0, kosong));
-    return `[${bar}] ${sekarang}/${total}`;
+    return `[${bar}]`;
 }
 
 // ── FORMAT CAPTION REALTIME (NOTIF EPISODE BARU) ──────────────────────────────
@@ -452,33 +452,35 @@ async function buatCaptionEpisode(item) {
 
     const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
-    // Baris episode: "Ep 5/8 (63%)  [▓▓▓▓▓▓░░░░]"
-    const barisPorgres = totalEps > 0
-        ? `📺 *Ep ${epSekarang}/${totalEps}*${persen}  \`${progresBar}\``
-        : `📺 *Ep ${epSekarang}*  _\`belum selesai\`_`;
+    // Baris progress episode (dua baris: heading lalu bar)
+    const barisEpHead  = totalEps > 0
+        ? `📺 *Ep ${epSekarang}/${totalEps}* _(${Math.round((epSekarang / totalEps) * 100)}%)_`
+        : `📺 *Ep ${epSekarang}*`;
+    const barisEpBar   = progresBar ? `\`${progresBar}\`` : '';
 
-    // Baris info kompak (2 item per baris jika muat)
-    const barisMulaiMusim = `🗓️ ${tanggalMulai}  •  🌸 _${musim}_`;
-    const barisFormatSumber = [formatAnime, durasi].filter(Boolean).join('  ') + (sumber ? `  •  📚 _${sumber}_` : '');
-    const barisStatusStudio = `📡 ${statusIndo}  •  🏢 _${studio}_`;
-    const barisPopuler = `👥 ${popularitas}  •  ❤️ _${favorit} favorit_`;
+    // Baris info (dikelompokkan agar ringkas di HP)
+    const barisFormat  = [formatAnime, durasi].filter(Boolean).join('  •  ') + (sumber ? `  •  📚 _${sumber}_` : '');
+    const barisMulai   = `🗓️ ${tanggalMulai}  •  🌸 _${musim}_`;
+    const barisStudio  = `📡 ${statusIndo}  •  🏢 _${studio}_`;
+    const barisSkor    = `⭐ *${a.averageScore || '-'}%*  •  👥 ${popularitas}  •  ❤️ _${favorit}_`;
 
     return (
         `🔴 *REALTIME INFO WIBU!*\n` +
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
         `${barisTambahan ? barisTambahan + '\n' : ''}` +
-        `\n${barisPorgres}\n` +
+        `\n${barisEpHead}\n` +
+        `${barisEpBar ? barisEpBar + '\n' : ''}` +
         `${epBerikutnya ? epBerikutnya + '\n' : ''}` +
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
-        `⭐ *${a.averageScore || '-'}%*  🎭 _${semuaGenre}_\n` +
-        `${barisFormatSumber}\n` +
+        `${barisFormat}\n` +
         `${hashtag ? hashtag + '\n' : ''}` +
-        `${barisMulaiMusim}\n` +
-        `${barisStatusStudio}\n` +
-        `${barisPopuler}\n` +
+        `${barisMulai}\n` +
+        `${barisStudio}\n` +
+        `${barisSkor}\n` +
+        `🎭 _${semuaGenre}_\n` +
         `${SEP}\n` +
         `🔗 anilist.co/anime/${a.id || ''}\n` +
         `🕐 _${waktuKirim} WIB_`
@@ -520,10 +522,10 @@ async function buatCaption(post, opsi = {}) {
     const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const sinopsisBlock = deskripsi.split('\n').map(b => `> ${b}`).join('\n');
 
-    const barisMulaiMusim    = `🗓️ ${tanggalMulai}  •  🌸 _${musim}_`;
-    const barisFormatSumber  = [formatAnime, durasi].filter(Boolean).join('  ') + (sumber ? `  •  📚 _${sumber}_` : '');
-    const barisStatusStudio  = `📡 ${statusIndo}  •  🏢 _${studio}_`;
-    const barisPopuler       = `👥 ${popularitas}  •  ❤️ _${favorit} favorit_`;
+    const barisFormat  = [formatAnime, durasi].filter(Boolean).join('  •  ') + (sumber ? `  •  📚 _${sumber}_` : '');
+    const barisMulai   = `🗓️ ${tanggalMulai}  •  🌸 _${musim}_`;
+    const barisStudio  = `📡 ${statusIndo}  •  🏢 _${studio}_`;
+    const barisSkor    = `⭐ *${a.averageScore || '-'}%*  •  👥 ${popularitas}  •  ❤️ _${favorit}_`;
 
     return (
         `📢 *INFO WIBU*\n` +
@@ -535,12 +537,12 @@ async function buatCaption(post, opsi = {}) {
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
-        `⭐ *${a.averageScore || '-'}%*  🎭 _${semuaGenre}_\n` +
-        `${barisFormatSumber}\n` +
+        `${barisFormat}\n` +
         `${hashtag ? hashtag + '\n' : ''}` +
-        `${barisMulaiMusim}\n` +
-        `${barisStatusStudio}\n` +
-        `${barisPopuler}\n` +
+        `${barisMulai}\n` +
+        `${barisStudio}\n` +
+        `${barisSkor}\n` +
+        `🎭 _${semuaGenre}_\n` +
         `${SEP}\n` +
         `🔗 anilist.co/anime/${a.id || ''}\n` +
         `🕐 _${waktuKirim} WIB_`

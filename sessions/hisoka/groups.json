@@ -7640,7 +7640,7 @@
     "subjectOwner": "6283123405940@s.whatsapp.net",
     "subjectOwnerLid": "172838711480524@lid",
     "subjectTime": 1761452838,
-    "size": 1018,
+    "size": 1019,
     "creation": 1693096407,
     "owner": "6285807405071@s.whatsapp.net",
     "ownerLid": "88609721962527@lid",
@@ -11464,6 +11464,11 @@
         "admin": null
       },
       {
+        "id": "244706432819307@lid",
+        "jid": "6285185750371@s.whatsapp.net",
+        "admin": null
+      },
+      {
         "id": "167435709730941@lid",
         "jid": "6285764732805@s.whatsapp.net",
         "admin": null
@@ -12742,8 +12747,7 @@
         "id": "274380311523546@lid",
         "jid": "62882022633535@s.whatsapp.net",
         "admin": null
-      },
-      "244706432819307@lid"
+      }
     ]
   },
   "120363288769564494@g.us": {
@@ -12753,7 +12757,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1972,
+    "size": 1973,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -15267,6 +15271,11 @@
         "admin": null
       },
       {
+        "id": "244706432819307@lid",
+        "jid": "244706432819307@lid",
+        "admin": null
+      },
+      {
         "id": "19199141380142@lid",
         "jid": "19199141380142@lid",
         "admin": null
@@ -16109,11 +16118,6 @@
       {
         "id": "248283586891905@lid",
         "jid": "248283586891905@lid",
-        "admin": null
-      },
-      {
-        "id": "227389242089572@lid",
-        "jid": "227389242089572@lid",
         "admin": null
       },
       {
@@ -22477,6 +22481,11 @@
         "admin": null
       },
       {
+        "id": "34686894121037@lid",
+        "jid": "34686894121037@lid",
+        "admin": null
+      },
+      {
         "id": "125052938879173@lid",
         "jid": "125052938879173@lid",
         "admin": null
@@ -22625,8 +22634,7 @@
         "id": "254193512226986@lid",
         "jid": "254193512226986@lid",
         "admin": null
-      },
-      "34686894121037@lid"
+      }
     ]
   }
 }

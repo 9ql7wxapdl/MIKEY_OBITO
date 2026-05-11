@@ -368,7 +368,8 @@
     "id": "6289678522775@s.whatsapp.net",
     "name": "! Zacky Ariansyah",
     "lid": "193020829909081@lid",
-    "jid": "6289678522775@s.whatsapp.net"
+    "jid": "6289678522775@s.whatsapp.net",
+    "notify": "Zacky Ariansyah"
   },
   "62895339742323@s.whatsapp.net": {
     "isContact": true,
@@ -31398,5 +31399,10 @@
     "id": "76790290767977@lid",
     "lid": "76790290767977@lid",
     "notify": "NAKIRA || VON SARTSZAN"
+  },
+  "4162024697903@lid": {
+    "id": "4162024697903@lid",
+    "lid": "4162024697903@lid",
+    "imgUrl": "changed"
   }
 }
