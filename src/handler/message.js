@@ -2662,22 +2662,19 @@ export default async function ({ message, type: messagesType }, hisoka) {
                 async function _sendCosplayImages(sock, msg, post, dlFn, capFn, tag) {
                         const total = post.images.length;
                         const CONCUR = 5;
-                        const allBuffers = [];
+                        const allItems = [];
                         for (let i = 0; i < total; i += CONCUR) {
                                 const chunk = post.images.slice(i, i + CONCUR);
-                                const results = await Promise.allSettled(chunk.map(url => dlFn(url)));
+                                const results = await Promise.allSettled(chunk.map(async (url, ci) => {
+                                        const buf = await dlFn(url);
+                                        return { image: buf, caption: capFn(post, { imgIndex: i + ci, imgTotal: total }) };
+                                }));
                                 for (const r of results) {
-                                        if (r.status === 'fulfilled') allBuffers.push(r.value);
+                                        if (r.status === 'fulfilled') allItems.push(r.value);
                                         else console.error(`${tag} Gagal unduh:`, r.reason?.message);
                                 }
                         }
-                        if (allBuffers.length === 0) return;
-                        // Nomor urut caption berdasarkan jumlah gambar yang BERHASIL diunduh
-                        const sentTotal = allBuffers.length;
-                        const allItems = allBuffers.map((buf, idx) => ({
-                                image: buf,
-                                caption: capFn(post, { imgIndex: idx, imgTotal: sentTotal }),
-                        }));
+                        if (allItems.length === 0) return;
                         try {
                                 await sock.sendMessage(msg.from, { albumMessage: allItems }, { quoted: msg });
                         } catch (_) {
@@ -2760,14 +2757,9 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                         }
 
                                         if (post.hasVideos && post.cossoraIds?.length > 0) {
-                                                // Ambil jumlah video dari judul (misal "29 videos")
-                                                const vidCountMatch = post.title.match(/(\d+)\s*videos?/i);
-                                                const vidCount = vidCountMatch ? parseInt(vidCountMatch[1]) : post.cossoraIds.length;
-                                                const playlistLines = post.cossoraIds.map((u, i) =>
-                                                        `│ 🎬 Playlist ${i + 1} (${vidCount} video): ${u}`
-                                                ).join('\n');
+                                                const vidLinks = post.cossoraIds.map((u, i) => `🎬 Video ${i + 1}: ${u}`).join('\n');
                                                 await hisoka.sendMessage(m.from, {
-                                                        text: `╭─「 🎬 *VIDEO COSPLAY* 」\n│ Post ini berisi *${vidCount} video*\n│ dalam 1 playlist Cossora.\n│\n${playlistLines}\n│\n│ ℹ️ Buka link di atas untuk tonton\n│    semua video secara berurutan.\n╰──────────────────────`,
+                                                        text: `╭─「 🎬 *VIDEO COSPLAY* 」\n│ Tonton video dari post ini:\n│\n${post.cossoraIds.map((u, i) => `│ ${i + 1}. ${u}`).join('\n')}\n╰──────────────────────`,
                                                 }, { quoted: m });
                                         }
 
@@ -5522,13 +5514,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                                 await _sendCosplayImages(hisoka, m, post, downloadBuffer, formatCosplayteleCaption, '[CosplayRandom]');
                                                         }
                                                         if (post.hasVideos && post.cossoraIds?.length > 0) {
-                                                                const vidCountMatch2 = post.title.match(/(\d+)\s*videos?/i);
-                                                                const vidCount2 = vidCountMatch2 ? parseInt(vidCountMatch2[1]) : post.cossoraIds.length;
-                                                                const playlistLines2 = post.cossoraIds.map((u, i) =>
-                                                                        `│ 🎬 Playlist ${i + 1} (${vidCount2} video): ${u}`
-                                                                ).join('\n');
                                                                 await hisoka.sendMessage(m.from, {
-                                                                        text: `╭─「 🎬 *VIDEO COSPLAY* 」\n│ Post ini berisi *${vidCount2} video*\n│ dalam 1 playlist Cossora.\n│\n${playlistLines2}\n│\n│ ℹ️ Buka link di atas untuk tonton\n│    semua video secara berurutan.\n╰──────────────────────`,
+                                                                        text: `╭─「 🎬 *VIDEO COSPLAY* 」\n│ Tonton video dari post ini:\n│\n${post.cossoraIds.map((u, i) => `│ ${i + 1}. ${u}`).join('\n')}\n╰──────────────────────`,
                                                                 }, { quoted: m });
                                                         }
                                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });

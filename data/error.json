@@ -1,15 +1,6 @@
 {
   "errors": [
     {
-      "fingerprint": "JADIBOT::[JADIBOT] Gagal request pairing code N (sisa retry: N): Connection Closed",
-      "source": "JADIBOT",
-      "message": "[JADIBOT] Gagal request pairing code 6281368074650 (sisa retry: 2): Connection Closed",
-      "stack": "Error: [JADIBOT] Gagal request pairing code 6281368074650 (sisa retry: 2): Connection Closed\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at Timeout._onTimeout (file:///home/runner/workspace/src/helper/jadibot.js:1045:21)",
-      "count": 1,
-      "firstSeen": "2026-05-11T13:54:23.939Z",
-      "lastSeen": "2026-05-11T13:54:23.939Z"
-    },
-    {
       "fingerprint": "InfoWibu::[InfoWibu] Error scheduler realtime: timeout of Nms exceeded",
       "source": "InfoWibu",
       "message": "[InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded",
