@@ -13102,16 +13102,22 @@ infoText += `╰═════════════════════�
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
-                                const { setGroupEnabled, isGroupEnabled, getAllGroupSettings, simulate } = _require(path.resolve('./src/scrape/infowibu.cjs'));
+                                const { simulate: simulasiIW } = _require(path.resolve('./src/scrape/infowibu.cjs'));
+                                const cfgPathIW = path.join(process.cwd(), 'config.json');
                                 const sub = (query || '').trim().toLowerCase();
                                 const pfx = m.prefix || '.';
 
+                                // Pastikan struktur infowibu sudah ada di config.json
+                                const cfgIW = loadConfig();
+                                if (!cfgIW.infowibu)         cfgIW.infowibu         = { enabled: true, groups: {} };
+                                if (!cfgIW.infowibu.groups)  cfgIW.infowibu.groups  = {};
+
                                 if (!sub || sub === 'help') {
-                                        const enabled = isGroupEnabled(m.from);
+                                        const aktif = cfgIW.infowibu.groups[m.from]?.enabled === true;
                                         await tolak(hisoka, m,
                                                 `╭─「 📺 *INFO WIBU* 」\n` +
                                                 `│\n` +
-                                                `│ Status di grup ini: ${enabled ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
+                                                `│ Status di grup ini: ${aktif ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
                                                 `│\n` +
                                                 `│ *Perintah:*\n` +
                                                 `│ • ${pfx}infowibu on — aktifkan\n` +
@@ -13119,18 +13125,19 @@ infoText += `╰═════════════════════�
                                                 `│ • ${pfx}infowibu test — kirim test sekarang\n` +
                                                 `│ • ${pfx}infowibu status — lihat semua grup\n` +
                                                 `│\n` +
-                                                `│ 💡 Bot otomatis kirim info anime\n` +
-                                                `│    trending ke grup yang aktif.\n` +
+                                                `│ 💡 Bot otomatis kirim notif episode\n` +
+                                                `│    baru ke grup yang aktif (realtime).\n` +
                                                 `╰──────────────────────`
                                         );
                                         break;
                                 }
 
                                 if (sub === 'on') {
-                                        setGroupEnabled(m.from, true);
+                                        cfgIW.infowibu.groups[m.from] = { enabled: true, diubahPada: Date.now() };
+                                        fs.writeFileSync(cfgPathIW, JSON.stringify(cfgIW, null, 2));
                                         await tolak(hisoka, m,
                                                 `✅ *InfoWibu aktif di grup ini!*\n\n` +
-                                                `Bot akan otomatis kirim info anime trending secara realtime.\n` +
+                                                `Bot akan otomatis kirim notifikasi episode baru secara realtime.\n` +
                                                 `Ketik *${pfx}infowibu off* untuk menonaktifkan.`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
@@ -13139,7 +13146,8 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'off') {
-                                        setGroupEnabled(m.from, false);
+                                        cfgIW.infowibu.groups[m.from] = { enabled: false, diubahPada: Date.now() };
+                                        fs.writeFileSync(cfgPathIW, JSON.stringify(cfgIW, null, 2));
                                         await tolak(hisoka, m,
                                                 `❌ *InfoWibu dinonaktifkan di grup ini.*\n\n` +
                                                 `Ketik *${pfx}infowibu on* untuk mengaktifkan kembali.`
@@ -13150,17 +13158,16 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'status') {
-                                        const all = getAllGroupSettings();
-                                        const entries = Object.entries(all);
-                                        if (!entries.length) {
+                                        const semuaGrup = Object.entries(cfgIW.infowibu.groups || {});
+                                        if (!semuaGrup.length) {
                                                 await tolak(hisoka, m, '📋 Belum ada grup yang dikonfigurasi.');
                                                 break;
                                         }
                                         let txt = `╭─「 📋 *STATUS INFOWIBU* 」\n│\n`;
-                                        for (const [jid, cfg] of entries) {
-                                            const label = jid.replace('@g.us', '');
-                                            const icon  = cfg.enabled ? '✅' : '❌';
-                                            txt += `│ ${icon} ${label}\n`;
+                                        for (const [jid, data] of semuaGrup) {
+                                                const label = jid.replace('@g.us', '');
+                                                const icon  = data.enabled ? '✅' : '❌';
+                                                txt += `│ ${icon} ${label}\n`;
                                         }
                                         txt += `╰──────────────────────`;
                                         await tolak(hisoka, m, txt);
@@ -13170,14 +13177,14 @@ infoText += `╰═════════════════════�
                                 if (sub === 'test') {
                                         await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
                                         try {
-                                                const result = await simulate();
-                                                if (result.imageUrl) {
+                                                const hasil = await simulasiIW();
+                                                if (hasil.urlGambar) {
                                                         await hisoka.sendMessage(m.from, {
-                                                                image: { url: result.imageUrl },
-                                                                caption: result.caption,
+                                                                image: { url: hasil.urlGambar },
+                                                                caption: hasil.caption,
                                                         }, { quoted: m });
                                                 } else {
-                                                        await tolak(hisoka, m, result.caption);
+                                                        await tolak(hisoka, m, hasil.caption);
                                                 }
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                                 logCommand(m, hisoka, 'infowibu-test');

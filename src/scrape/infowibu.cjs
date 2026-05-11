@@ -14,21 +14,24 @@ const axios = require('axios');
 const fs    = require('fs');
 const path  = require('path');
 
-// Lokasi file penyimpanan data (grup aktif, episode sudah dikirim, dll)
-const FILE_DATA = path.join(process.cwd(), 'data', 'infowibu.json');
+// File dedup episode yang sudah dikirim (bukan pengaturan grup)
+const FILE_DATA  = path.join(process.cwd(), 'data', 'infowibu.json');
+// File konfigurasi utama bot — pengaturan grup disimpan di sini
+const FILE_CONFIG = path.join(process.cwd(), 'config.json');
 
 // Alamat API AniList
 const URL_ANILIST = 'https://graphql.anilist.co';
 
-// ── FUNGSI BACA & SIMPAN DATA ─────────────────────────────────────────────────
+// ── FUNGSI BACA & SIMPAN DATA DEDUP ──────────────────────────────────────────
 
+// Hanya menyimpan daftar ID episode yang sudah dikirim (dedup)
 function bacaData() {
     try {
         if (fs.existsSync(FILE_DATA)) {
             return JSON.parse(fs.readFileSync(FILE_DATA, 'utf-8'));
         }
     } catch (_) {}
-    return { grup: {}, idTerkirim: [], waktuCekTerakhir: 0 };
+    return { idTerkirim: [] };
 }
 
 function simpanData(data) {
@@ -37,33 +40,51 @@ function simpanData(data) {
     } catch (_) {}
 }
 
-// ── PENGATURAN GRUP ───────────────────────────────────────────────────────────
+// ── BACA & SIMPAN CONFIG.JSON ─────────────────────────────────────────────────
+
+function bacaConfig() {
+    try {
+        if (fs.existsSync(FILE_CONFIG)) {
+            return JSON.parse(fs.readFileSync(FILE_CONFIG, 'utf-8'));
+        }
+    } catch (_) {}
+    return {};
+}
+
+function simpanConfig(cfg) {
+    try {
+        fs.writeFileSync(FILE_CONFIG, JSON.stringify(cfg, null, 2), 'utf-8');
+    } catch (_) {}
+}
+
+// ── PENGATURAN GRUP (DISIMPAN DI CONFIG.JSON) ─────────────────────────────────
 
 // Aktifkan atau nonaktifkan infowibu di sebuah grup
 function aturGrup(jidGrup, aktif) {
-    const data = bacaData();
-    if (!data.grup) data.grup = {};
-    data.grup[jidGrup] = { aktif, diubahPada: Date.now() };
-    simpanData(data);
+    const cfg = bacaConfig();
+    if (!cfg.infowibu)              cfg.infowibu         = { enabled: true, groups: {} };
+    if (!cfg.infowibu.groups)       cfg.infowibu.groups  = {};
+    cfg.infowibu.groups[jidGrup]    = { enabled: aktif, diubahPada: Date.now() };
+    simpanConfig(cfg);
 }
 
 // Cek apakah infowibu aktif di grup tertentu
 function cekGrupAktif(jidGrup) {
-    const data = bacaData();
-    return !!(data.grup?.[jidGrup]?.aktif);
+    const cfg = bacaConfig();
+    return !!(cfg.infowibu?.groups?.[jidGrup]?.enabled);
 }
 
 // Ambil daftar semua grup yang sudah diaktifkan
 function daftarGrupAktif() {
-    const data = bacaData();
-    return Object.entries(data.grup || {})
-        .filter(([, v]) => v.aktif)
+    const cfg = bacaConfig();
+    return Object.entries(cfg.infowibu?.groups || {})
+        .filter(([, v]) => v.enabled)
         .map(([jid]) => jid);
 }
 
-// Ambil semua pengaturan grup (aktif maupun tidak)
+// Ambil semua pengaturan grup (aktif maupun tidak) dari config.json
 function semuaPengaturanGrup() {
-    return bacaData().grup || {};
+    return bacaConfig().infowibu?.groups || {};
 }
 
 // ── PENCEGAH KIRIMAN DUPLIKAT ─────────────────────────────────────────────────
