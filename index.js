@@ -774,7 +774,6 @@ async function main() {
                                 setTimeout(() => {
                                         runInfoWibu();
                                         global.infoWibuInterval = setInterval(runInfoWibu, IW_INTERVAL_MS);
-                                        console.log('[InfoWibu] 🟢 Scheduler realtime aktif — cek setiap 5 menit');
                                 }, 15000);
                         }
                         /* =================== END AUTO INFOWIBU SCHEDULER =================== */

@@ -24490,7 +24490,8 @@
     "id": "6289667923162@s.whatsapp.net",
     "name": "Hen V2",
     "lid": "97968623505429@lid",
-    "jid": "6289667923162@s.whatsapp.net"
+    "jid": "6289667923162@s.whatsapp.net",
+    "notify": "Hen V2"
   },
   "6282153927853@s.whatsapp.net": {
     "isContact": true,
