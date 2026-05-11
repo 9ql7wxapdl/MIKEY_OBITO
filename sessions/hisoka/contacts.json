@@ -8798,7 +8798,8 @@
     "id": "6281374976765@s.whatsapp.net",
     "name": "√tita💅",
     "lid": "195713338183899@lid",
-    "jid": "6281374976765@s.whatsapp.net"
+    "jid": "6281374976765@s.whatsapp.net",
+    "notify": "."
   },
   "6283846191409@s.whatsapp.net": {
     "isContact": true,
@@ -12070,7 +12071,9 @@
     "id": "6285711200877@s.whatsapp.net",
     "name": "Naizo 👍",
     "lid": "168736715731040@lid",
-    "jid": "6285711200877@s.whatsapp.net"
+    "jid": "6285711200877@s.whatsapp.net",
+    "notify": "Albiverstappen",
+    "verifiedName": "Albiverstappen"
   },
   "6285764251098@s.whatsapp.net": {
     "isContact": true,
@@ -18928,7 +18931,8 @@
     "id": "6285136314199@s.whatsapp.net",
     "name": "! Nurul 🗿",
     "lid": "90916371062907@lid",
-    "jid": "6285136314199@s.whatsapp.net"
+    "jid": "6285136314199@s.whatsapp.net",
+    "notify": "Nursaos_tartar"
   },
   "6285707806138@s.whatsapp.net": {
     "isContact": true,
@@ -27457,7 +27461,9 @@
     "id": "6282136282264@s.whatsapp.net",
     "name": "-zpa-",
     "lid": "143396526112850@lid",
-    "jid": "6282136282264@s.whatsapp.net"
+    "jid": "6282136282264@s.whatsapp.net",
+    "notify": "Z-pa",
+    "verifiedName": "Z-pa"
   },
   "6287820661518@s.whatsapp.net": {
     "isContact": true,
@@ -31398,6 +31404,16 @@
   "126135170031798@lid": {
     "id": "126135170031798@lid",
     "lid": "126135170031798@lid",
+    "imgUrl": "removed"
+  },
+  "90916371062907@lid": {
+    "id": "90916371062907@lid",
+    "lid": "90916371062907@lid",
+    "notify": "Nursaos_tartar"
+  },
+  "204973052801253@lid": {
+    "id": "204973052801253@lid",
+    "lid": "204973052801253@lid",
     "imgUrl": "removed"
   }
 }
