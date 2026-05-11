@@ -25,5 +25,36 @@ echo "▶ Menjalankan bot dengan PM2..."
 pm2 delete wily-bot 2>/dev/null || true
 pm2 start ecosystem.config.cjs
 pm2 save
-echo "✅ Bot berjalan! Menampilkan log..."
-pm2 logs wily-bot
+echo "✅ Bot berjalan!"
+
+# ── Auto-restart fallback di luar PM2 ──
+# Kalau PM2 tidak bisa restart (misal crash total),
+# loop ini yang akan hidupkan ulang botnya
+RESTART_COUNT=0
+MAX_RESTARTS=10
+RESTART_DELAY=5
+
+echo "▶ Watchdog aktif — memantau proses PM2..."
+while true; do
+  sleep 10
+
+  STATUS=$(pm2 jlist 2>/dev/null | grep -o '"status":"[^"]*"' | grep -o '[^"]*$' | head -1)
+
+  if [ "$STATUS" != "online" ]; then
+    RESTART_COUNT=$((RESTART_COUNT + 1))
+    echo "⚠️  Bot tidak online (status: ${STATUS:-unknown}), restart ke-$RESTART_COUNT..."
+
+    if [ "$RESTART_COUNT" -ge "$MAX_RESTARTS" ]; then
+      echo "❌ Terlalu banyak restart ($MAX_RESTARTS kali), hentikan watchdog."
+      break
+    fi
+
+    sleep $RESTART_DELAY
+    pm2 delete wily-bot 2>/dev/null || true
+    pm2 start ecosystem.config.cjs
+    pm2 save
+    echo "✅ Bot berhasil di-restart!"
+  else
+    RESTART_COUNT=0
+  fi
+done

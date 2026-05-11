@@ -21,5 +21,24 @@ fi
 echo "▶ Update PM2..."
 pm2 update
 
-echo "✅ Menjalankan bot..."
-node index.js
+# ── Auto-restart loop ──
+RESTART_COUNT=0
+MAX_RESTARTS=10
+RESTART_DELAY=5
+
+echo "✅ Menjalankan bot dengan auto-restart..."
+while true; do
+  node index.js
+  EXIT_CODE=$?
+
+  RESTART_COUNT=$((RESTART_COUNT + 1))
+  echo "⚠️  Bot berhenti (exit code: $EXIT_CODE), restart ke-$RESTART_COUNT dalam ${RESTART_DELAY}s..."
+
+  if [ "$RESTART_COUNT" -ge "$MAX_RESTARTS" ]; then
+    echo "❌ Terlalu banyak restart ($MAX_RESTARTS kali), bot dihentikan."
+    exit 1
+  fi
+
+  sleep $RESTART_DELAY
+  echo "▶ Menjalankan ulang bot..."
+done
