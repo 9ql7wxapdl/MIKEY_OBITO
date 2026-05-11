@@ -214,24 +214,101 @@ async function cariEpisodeBaru(rentangMenit = 5) {
     return hasilBaru;
 }
 
+// ── TERJEMAHAN OTOMATIS KE BAHASA INDONESIA ──────────────────────────────────
+
+// Terjemahkan teks ke Bahasa Indonesia menggunakan Google Translate gratis
+async function terjemahkan(teks) {
+    if (!teks || !teks.trim()) return teks;
+    try {
+        const url    = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=id&dt=t&q=${encodeURIComponent(teks)}`;
+        const { data } = await axios.get(url, { timeout: 8000 });
+        // Hasil terjemahan ada di data[0] berupa array array
+        if (Array.isArray(data) && Array.isArray(data[0])) {
+            return data[0].map(seg => seg?.[0] || '').join('').trim() || teks;
+        }
+    } catch (_) {}
+    // Kalau terjemahan gagal, kembalikan teks asli
+    return teks;
+}
+
+// Bersihkan teks deskripsi dari tag HTML & spasi berlebih
+function bersihkanDeskripsi(teks, maks = 250) {
+    let hasil = (teks || '')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+        .slice(0, maks);
+    if ((teks || '').replace(/<[^>]+>/g, '').trim().length > maks) hasil += '...';
+    return hasil;
+}
+
+// ── PETA GENRE & MUSIM KE BAHASA INDONESIA ───────────────────────────────────
+
+const PETA_GENRE = {
+    'Action'          : 'Aksi',
+    'Adventure'       : 'Petualangan',
+    'Comedy'          : 'Komedi',
+    'Drama'           : 'Drama',
+    'Ecchi'           : 'Ecchi',
+    'Fantasy'         : 'Fantasi',
+    'Horror'          : 'Horor',
+    'Mahou Shoujo'    : 'Sihir',
+    'Mecha'           : 'Mecha',
+    'Music'           : 'Musik',
+    'Mystery'         : 'Misteri',
+    'Psychological'   : 'Psikologi',
+    'Romance'         : 'Romansa',
+    'Sci-Fi'          : 'Fiksi Ilmiah',
+    'Slice of Life'   : 'Kehidupan Sehari-hari',
+    'Sports'          : 'Olahraga',
+    'Supernatural'    : 'Supranatural',
+    'Thriller'        : 'Thriller',
+    'Hentai'          : 'Dewasa',
+    'Shounen'         : 'Shounen',
+    'Shoujo'          : 'Shoujo',
+    'Seinen'          : 'Seinen',
+    'Josei'           : 'Josei',
+};
+
+const PETA_MUSIM = {
+    'SPRING' : 'Musim Semi',
+    'SUMMER' : 'Musim Panas',
+    'FALL'   : 'Musim Gugur',
+    'WINTER' : 'Musim Dingin',
+};
+
+// Terjemahkan daftar genre ke Bahasa Indonesia
+function terjemahkanGenre(daftarGenre) {
+    return (daftarGenre || [])
+        .slice(0, 4)
+        .map(g => PETA_GENRE[g] || g)
+        .join(', ') || '-';
+}
+
+// Terjemahkan nama musim ke Bahasa Indonesia
+function terjemahkanMusim(season, year) {
+    if (!season) return '-';
+    const namaMusim = PETA_MUSIM[String(season).toUpperCase()] || kapitalisasi(season);
+    return year ? `${namaMusim} ${year}` : namaMusim;
+}
+
 // ── FORMAT CAPTION REALTIME (NOTIF EPISODE BARU) ──────────────────────────────
 
-function buatCaptionEpisode(item) {
+// Fungsi ini async karena perlu terjemah sinopsis ke Bahasa Indonesia
+async function buatCaptionEpisode(item) {
     const a      = item.anime;
     const judul  = a.title?.romaji || a.title?.english || a.title?.native || '?';
     const native = a.title?.native ? ` _(${a.title.native})_` : '';
     const skor   = a.averageScore  ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
-    const genre  = (a.genres || []).slice(0, 4).join(', ') || '-';
+    const genre  = terjemahkanGenre(a.genres);
     const studio = a.studios?.nodes?.[0]?.name || '-';
-    const musim  = a.season && a.seasonYear ? `${kapitalisasi(a.season)} ${a.seasonYear}` : '-';
+    const musim  = terjemahkanMusim(a.season, a.seasonYear);
 
-    // Potong deskripsi agar tidak terlalu panjang
-    let deskripsi = (a.description || '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim()
-        .slice(0, 220);
-    if ((a.description || '').length > 220) deskripsi += '...';
+    // Bersihkan lalu terjemahkan sinopsis ke Bahasa Indonesia
+    const deskripsiAsli   = bersihkanDeskripsi(a.description, 300);
+    const deskripsi       = await terjemahkan(deskripsiAsli);
 
     const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const totalEps   = a.episodes ? `/${a.episodes}` : '';
@@ -241,7 +318,7 @@ function buatCaptionEpisode(item) {
         `${'━'.repeat(30)}\n\n` +
         `🎌 *${judul}*${native}\n` +
         `📺 *Episode ${item.episode}${totalEps} baru saja tayang!*\n\n` +
-        `📖 ${deskripsi}\n\n` +
+        `📖 *Sinopsis:*\n${deskripsi}\n\n` +
         `${skor}  |  🎭 ${genre}\n` +
         `🏢 Studio : *${studio}*\n` +
         `🗓️ Musim  : *${musim}*\n\n` +
@@ -251,23 +328,19 @@ function buatCaptionEpisode(item) {
     );
 }
 
-// Format caption untuk trending (simulasi & fallback)
-function buatCaption(post, opsi = {}) {
+// Format caption untuk trending (simulasi & fallback) — juga async
+async function buatCaption(post, opsi = {}) {
     const { realtime = true } = opsi;
     const a      = post.anime;
     const judul  = a.title?.romaji || a.title?.english || a.title?.native || '?';
     const native = a.title?.native ? ` _(${a.title.native})_` : '';
     const skor   = a.averageScore  ? `⭐ ${(a.averageScore / 10).toFixed(1)}/10` : '⭐ -';
-    const genre  = (a.genres || []).slice(0, 4).join(', ') || '-';
+    const genre  = terjemahkanGenre(a.genres);
     const studio = a.studios?.nodes?.[0]?.name || '-';
     const eps    = a.episodes ? `${a.episodes} eps` : 'Belum selesai';
 
-    let deskripsi = (a.description || '')
-        .replace(/<[^>]+>/g, '')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim()
-        .slice(0, 200);
-    if ((a.description || '').length > 200) deskripsi += '...';
+    const deskripsiAsli = bersihkanDeskripsi(a.description, 300);
+    const deskripsi     = await terjemahkan(deskripsiAsli);
 
     let infoEpSelanjutnya = '';
     if (a.nextAiringEpisode) {
@@ -286,7 +359,7 @@ function buatCaption(post, opsi = {}) {
         `${badge}\n` +
         `${'─'.repeat(28)}\n` +
         `🎌 *${judul}*${native}\n\n` +
-        `📖 ${deskripsi}\n\n` +
+        `📖 *Sinopsis:*\n${deskripsi}\n\n` +
         `${skor}  |  🎭 ${genre}\n` +
         `🏢 Studio: *${studio}*\n` +
         `📺 Episode: *${eps}*${infoEpSelanjutnya}\n\n` +
@@ -322,7 +395,7 @@ async function simulasi() {
         const item   = jadwal[jadwal.length - 1];
         const post   = { episode: item.episode, tayangPada: item.airingAt, anime: item.media, idUnik: `ep-${item.media?.id}-${item.episode}` };
         return {
-            caption  : buatCaptionEpisode(post),
+            caption  : await buatCaptionEpisode(post),
             urlGambar: ambilUrlGambar(post),
             judul    : item.media?.title?.romaji || item.media?.title?.english || '?',
             idUnik   : post.idUnik,
@@ -336,7 +409,7 @@ async function simulasi() {
     const anime = daftar[0];
     const post  = { sumber: 'anilist', anime, idUnik: `al-${anime.id}` };
     return {
-        caption  : buatCaption(post, { realtime: true }),
+        caption  : await buatCaption(post, { realtime: true }),
         urlGambar: ambilUrlGambar(post),
         judul    : anime.title?.romaji || anime.title?.english || '?',
         idUnik   : post.idUnik,

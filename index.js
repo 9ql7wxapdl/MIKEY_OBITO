@@ -738,7 +738,7 @@ async function main() {
 
                                                 // Kirim setiap episode baru yang ditemukan
                                                 for (const item of episodeBaru) {
-                                                        const caption  = _iw.buatCaptionEpisode(item);
+                                                        const caption  = await _iw.buatCaptionEpisode(item);
                                                         const urlGambar = _iw.ambilUrlGambar(item);
 
                                                         for (const jid of daftarGrup) {
