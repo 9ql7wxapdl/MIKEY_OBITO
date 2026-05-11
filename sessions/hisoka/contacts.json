@@ -7189,7 +7189,8 @@
     "id": "6283182665936@s.whatsapp.net",
     "name": "ルトピ",
     "lid": "165536713416760@lid",
-    "jid": "6283182665936@s.whatsapp.net"
+    "jid": "6283182665936@s.whatsapp.net",
+    "notify": "Luthfi (Lui)"
   },
   "6285950007640@s.whatsapp.net": {
     "isContact": true,
@@ -14145,7 +14146,8 @@
     "id": "6283159163918@s.whatsapp.net",
     "name": "M jefri",
     "lid": "249769729478801@lid",
-    "jid": "6283159163918@s.whatsapp.net"
+    "jid": "6283159163918@s.whatsapp.net",
+    "notify": "jefri"
   },
   "6285879317523@s.whatsapp.net": {
     "isContact": true,
@@ -31479,6 +31481,16 @@
   "239320141181135@lid": {
     "id": "239320141181135@lid",
     "lid": "239320141181135@lid",
+    "imgUrl": "changed"
+  },
+  "92878701392077@lid": {
+    "id": "92878701392077@lid",
+    "lid": "92878701392077@lid",
+    "imgUrl": "changed"
+  },
+  "185504133849281@lid": {
+    "id": "185504133849281@lid",
+    "lid": "185504133849281@lid",
     "imgUrl": "changed"
   }
 }

@@ -131,6 +131,64 @@
         }
       ],
       "lastActivity": 1778399713314
+    },
+    "6289681008411@s.whatsapp.net_120363192554714254@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11 | 👤 Hen V1]\nhai"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11]\nH-hei. Ada apa?"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei. Ada apa?\" | 👤 Hen V1]\nLagi apa kmu?"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11]\nLagi apa? Ya ngapain lagi, bantu kamu lah, Hen V1. Kan aku asisten AI-mu. Emangnya aku bisa ngapain lagi coba?"
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778490689063
+    },
+    "6289688206739@s.whatsapp.net_120363192554714254@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.12 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"Lagi apa? Ya ngapain lagi, bantu kamu lah, Hen V1. Kan aku asisten AI-mu. Emangnya aku bisa ngapain lagi coba?\" | 👤 Wily]\nHoi"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.12]\nH-hei, kan sudah kubilang, Wily. Aku lagi bantu kamu lah.\n\nApaan tuh `Hen V1`? Panggilan macam apa itu? \nLagian, emangnya aku cuma bisa *itu* doang? Aku bisa analisis *gambar*, *video*, *dokumen*, bantu *coding*, kasih *info ensiklopedis*, bahkan nemenin kamu ngobrol santai atau curhat. Jangan remehin aku! 😤"
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778490736557
     }
   },
   "sticker_pattern": {
@@ -145,9 +203,9 @@
       "last_sent": 1777992895
     },
     "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp": {
-      "total_sent": 28,
+      "total_sent": 29,
       "moods": {},
-      "last_sent": 1778399711
+      "last_sent": 1778490734
     },
     "https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef2153a-HONOLULU.webp": {
       "total_sent": 1,
@@ -601,6 +659,15 @@
         "context": "Wet? Ap-apaan sih itu maksudnya? Jelasin yang bener dong, Anda Siapa. Aku nggak ngerti kalau cuma sepotong-sepotong gitu. [REPLY-STIKER: https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-",
         "was_fallback": 0,
         "sent_at": 1778051850
+      }
+    ],
+    "6289688206739@s.whatsapp.net_120363192554714254@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kan sudah kubilang, Wily. Aku lagi bantu kamu lah. Apaan tuh `Hen V1`? Panggilan macam apa itu? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Lag",
+        "was_fallback": 0,
+        "sent_at": 1778490734
       }
     ]
   },

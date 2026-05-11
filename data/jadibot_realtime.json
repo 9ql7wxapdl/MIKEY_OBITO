@@ -1,3 +1,13 @@
 {
-  "bots": {}
+  "bots": {
+    "6289681008411": {
+      "number": "6289681008411",
+      "createdAt": 1778490608251,
+      "updatedAt": 1778490608251,
+      "expiresAt": 1781082608251,
+      "durationMs": 2592000000,
+      "durationText": "30 hari",
+      "status": "active"
+    }
+  }
 }
