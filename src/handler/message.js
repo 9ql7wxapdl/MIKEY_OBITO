@@ -50,7 +50,7 @@ import { getHistory, addToHistory, clearHistory, clearAllHistory, countHistory, 
 import { sendAIReply } from '../helper/aiReact.js';
 import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt } from '../helper/aiPrompt.js';
 import { hashSticker, lookupSticker, saveSticker, incrementStickerSeen, buildStickerContextHint, getStickerMemoryStats } from '../helper/stickerMemory.js';
-import { getJadibotAntidel, getJadibotReadsw, setJadibotUserSetting, getJadibotNumber } from '../helper/jadibotSettings.js';
+import { getJadibotAntidel, getJadibotReadsw, getJadibotAnticall, getJadibotAnticallvid, setJadibotUserSetting, getJadibotNumber } from '../helper/jadibotSettings.js';
 
 const WILY_VERBOSE_LOGS = process.env.WILY_VERBOSE_LOGS === 'true' || process.env.BOT_DEBUG_LOG === 'true';
 const wilyLog = (...args) => {
@@ -6234,6 +6234,20 @@ ${masaAktifLine}
 ├➤ *.antidel group on/off* — Grup
 ╰➤ *.antidel sendto self/chat/both*
 
+╭─「 🛡️ *ANTI CALL* 」
+├➤ *.anticall on/off* — Tolak panggilan suara
+├➤ *.anticall msg [teks]* — Atur pesan tolak
+├➤ *.anticall add [nomor]* — Whitelist nomor
+├➤ *.anticall del [nomor]* — Hapus whitelist
+╰➤ *.anticall list* — Lihat whitelist
+
+╭─「 📵 *ANTI CALL VIDEO* 」
+├➤ *.anticallvid on/off* — Tolak panggilan video
+├➤ *.anticallvid msg [teks]* — Atur pesan tolak
+├➤ *.anticallvid add [nomor]* — Whitelist nomor
+├➤ *.anticallvid del [nomor]* — Hapus whitelist
+╰➤ *.anticallvid list* — Lihat whitelist
+
 ╭─「 👁️ *VIEW ONCE* 」
 ╰➤ *.rvo / .viewonce / .vo* — Buka view once
 
@@ -6251,7 +6265,7 @@ ${masaAktifLine}
 
 ━━━━━━━━━━━━━━━━━━━━━━
 _⚙️ Setting tersimpan per-jadibot realtime_
-_📦 Powered by Wily Bot V14.5_ 🤖`;
+_📦 Powered by Wily Bot V16_ 🤖`;
                                                 await hisoka.sendMessage(m.from, { text: menuTeks }, { quoted: m });
                                                 logCommand(m, hisoka, 'menu');
                                                 break;
@@ -9521,14 +9535,30 @@ text += `╰═════════════════╯`;
 
                         case 'anticall':
                         case 'ac': {
-                                if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
                                 try {
-                                        const config = loadConfig();
-                                        const antiCall = config.antiCall || { enabled: false, message: '', whitelist: [] };
+                                        const isJadibot = hisoka?.isMainBot === false;
+                                        const jadibotNum = isJadibot ? getJadibotNumber(hisoka) : null;
+
+                                        const getAntiCall = () => isJadibot
+                                                ? getJadibotAnticall(jadibotNum)
+                                                : (loadConfig().antiCall || { enabled: false, message: '', whitelist: [] });
+
+                                        const saveAntiCall = (val) => {
+                                                if (isJadibot) {
+                                                        setJadibotUserSetting(jadibotNum, 'anticall', val);
+                                                } else {
+                                                        const cfg = loadConfig();
+                                                        cfg.antiCall = val;
+                                                        saveConfig(cfg);
+                                                }
+                                        };
+
+                                        const antiCall = getAntiCall();
                                         const args = query ? query.split(' ') : [];
                                         const argLower = args[0] ? args[0].toLowerCase() : '';
-                                        
+                                        const jadibotNote = isJadibot ? `\n_⚙️ Setting khusus jadibot +${jadibotNum}_` : '';
+
                                         if (args.length === 0) {
                                                 let text = `╭═══『 *ANTI CALL* 』═══╮\n│\n`;
 text += `│ *Status:* ${antiCall.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
@@ -9545,36 +9575,34 @@ text += `│ .anticall reset\n`;
 text += `│\n`;
 text += `│ *Info:* Nomor whitelist tidak\n`;
 text += `│ akan di-reject panggilannya\n`;
+if (isJadibot) text += `│\n│ _⚙️ Setting jadibot +${jadibotNum}_\n`;
 text += `│\n`;
 text += `╰═════════════════╯`;
                                                 await tolak(hisoka, m, text);
                                                 break;
                                         }
-                                        
+
                                         if (argLower === 'on') {
                                                 if (antiCall.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Anti Call sudah aktif sebelumnya');
                                                 } else {
-                                                        config.antiCall = { ...antiCall, enabled: true };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, '✅ Anti Call diaktifkan - Panggilan suara akan otomatis ditolak');
+                                                        saveAntiCall({ ...antiCall, enabled: true });
+                                                        await tolak(hisoka, m, '✅ Anti Call diaktifkan - Panggilan suara akan otomatis ditolak' + jadibotNote);
                                                 }
                                         } else if (argLower === 'off') {
                                                 if (!antiCall.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Anti Call sudah nonaktif sebelumnya');
                                                 } else {
-                                                        config.antiCall = { ...antiCall, enabled: false };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, '❌ Anti Call dinonaktifkan');
+                                                        saveAntiCall({ ...antiCall, enabled: false });
+                                                        await tolak(hisoka, m, '❌ Anti Call dinonaktifkan' + jadibotNote);
                                                 }
                                         } else if (argLower === 'msg' || argLower === 'message' || argLower === 'pesan') {
                                                 const newMsg = args.slice(1).join(' ');
                                                 if (!newMsg) {
                                                         await tolak(hisoka, m, `📝 Pesan saat ini:\n\n${antiCall.message || '(kosong)'}\n\nGunakan: .anticall msg <pesan baru>`);
                                                 } else {
-                                                        config.antiCall = { ...antiCall, message: newMsg };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, `✅ Pesan Anti Call diubah menjadi:\n\n${newMsg}`);
+                                                        saveAntiCall({ ...antiCall, message: newMsg });
+                                                        await tolak(hisoka, m, `✅ Pesan Anti Call diubah menjadi:\n\n${newMsg}` + jadibotNote);
                                                 }
                                         } else if (argLower === 'list') {
                                                 const whitelist = antiCall.whitelist || [];
@@ -9599,9 +9627,8 @@ text += `│\n╰═════════════════╯`;
                                                         await tolak(hisoka, m, `ℹ️ Nomor ${number} sudah ada di whitelist`);
                                                 } else {
                                                         whitelist.push(number);
-                                                        config.antiCall = { ...antiCall, whitelist };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, `✅ Nomor ${number} ditambahkan ke whitelist Anti Call`);
+                                                        saveAntiCall({ ...antiCall, whitelist });
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} ditambahkan ke whitelist Anti Call` + jadibotNote);
                                                 }
                                         } else if (argLower === 'del' || argLower === 'delete' || argLower === 'hapus') {
                                                 const number = args[1] ? args[1].replace(/[^0-9]/g, '') : '';
@@ -9615,18 +9642,16 @@ text += `│\n╰═════════════════╯`;
                                                         await tolak(hisoka, m, `ℹ️ Nomor ${number} tidak ditemukan di whitelist`);
                                                 } else {
                                                         whitelist.splice(idx, 1);
-                                                        config.antiCall = { ...antiCall, whitelist };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, `✅ Nomor ${number} dihapus dari whitelist Anti Call`);
+                                                        saveAntiCall({ ...antiCall, whitelist });
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} dihapus dari whitelist Anti Call` + jadibotNote);
                                                 }
                                         } else if (argLower === 'reset' || argLower === 'clear') {
-                                                config.antiCall = { ...antiCall, whitelist: [] };
-                                                saveConfig(config);
-                                                await tolak(hisoka, m, '✅ Whitelist Anti Call direset');
+                                                saveAntiCall({ ...antiCall, whitelist: [] });
+                                                await tolak(hisoka, m, '✅ Whitelist Anti Call direset' + jadibotNote);
                                         } else {
                                                 await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .anticall untuk melihat bantuan.');
                                         }
-                                        
+
                                         logCommand(m, hisoka, 'anticall');
                                 } catch (error) {
                                         console.error('\x1b[31m[AntiCall] Error:\x1b[39m', error.message);
@@ -9637,14 +9662,30 @@ text += `│\n╰═════════════════╯`;
 
                         case 'anticallvid':
                         case 'acv': {
-                                if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
                                 try {
-                                        const config = loadConfig();
-                                        const antiCallVideo = config.antiCallVideo || { enabled: false, message: '', whitelist: [] };
+                                        const isJadibot = hisoka?.isMainBot === false;
+                                        const jadibotNum = isJadibot ? getJadibotNumber(hisoka) : null;
+
+                                        const getAntiCallVid = () => isJadibot
+                                                ? getJadibotAnticallvid(jadibotNum)
+                                                : (loadConfig().antiCallVideo || { enabled: false, message: '', whitelist: [] });
+
+                                        const saveAntiCallVid = (val) => {
+                                                if (isJadibot) {
+                                                        setJadibotUserSetting(jadibotNum, 'anticallvid', val);
+                                                } else {
+                                                        const cfg = loadConfig();
+                                                        cfg.antiCallVideo = val;
+                                                        saveConfig(cfg);
+                                                }
+                                        };
+
+                                        const antiCallVideo = getAntiCallVid();
                                         const args = query ? query.split(' ') : [];
                                         const argLower = args[0] ? args[0].toLowerCase() : '';
-                                        
+                                        const jadibotNote = isJadibot ? `\n_⚙️ Setting khusus jadibot +${jadibotNum}_` : '';
+
                                         if (args.length === 0) {
                                                 let text = `╭═══『 *ANTI CALL VIDEO* 』═══╮\n│\n`;
 text += `│ *Status:* ${antiCallVideo.enabled ? '✅ Aktif' : '❌ Nonaktif'}\n`;
@@ -9661,36 +9702,34 @@ text += `│ .anticallvid reset\n`;
 text += `│\n`;
 text += `│ *Info:* Nomor whitelist tidak\n`;
 text += `│ akan di-reject panggilannya\n`;
+if (isJadibot) text += `│\n│ _⚙️ Setting jadibot +${jadibotNum}_\n`;
 text += `│\n`;
 text += `╰═════════════════╯`;
                                                 await tolak(hisoka, m, text);
                                                 break;
                                         }
-                                        
+
                                         if (argLower === 'on') {
                                                 if (antiCallVideo.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Anti Call Video sudah aktif sebelumnya');
                                                 } else {
-                                                        config.antiCallVideo = { ...antiCallVideo, enabled: true };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, '✅ Anti Call Video diaktifkan - Panggilan video akan otomatis ditolak');
+                                                        saveAntiCallVid({ ...antiCallVideo, enabled: true });
+                                                        await tolak(hisoka, m, '✅ Anti Call Video diaktifkan - Panggilan video akan otomatis ditolak' + jadibotNote);
                                                 }
                                         } else if (argLower === 'off') {
                                                 if (!antiCallVideo.enabled) {
                                                         await tolak(hisoka, m, 'ℹ️ Anti Call Video sudah nonaktif sebelumnya');
                                                 } else {
-                                                        config.antiCallVideo = { ...antiCallVideo, enabled: false };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, '❌ Anti Call Video dinonaktifkan');
+                                                        saveAntiCallVid({ ...antiCallVideo, enabled: false });
+                                                        await tolak(hisoka, m, '❌ Anti Call Video dinonaktifkan' + jadibotNote);
                                                 }
                                         } else if (argLower === 'msg' || argLower === 'message' || argLower === 'pesan') {
                                                 const newMsg = args.slice(1).join(' ');
                                                 if (!newMsg) {
                                                         await tolak(hisoka, m, `📝 Pesan saat ini:\n\n${antiCallVideo.message || '(kosong)'}\n\nGunakan: .anticallvid msg <pesan baru>`);
                                                 } else {
-                                                        config.antiCallVideo = { ...antiCallVideo, message: newMsg };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, `✅ Pesan Anti Call Video diubah menjadi:\n\n${newMsg}`);
+                                                        saveAntiCallVid({ ...antiCallVideo, message: newMsg });
+                                                        await tolak(hisoka, m, `✅ Pesan Anti Call Video diubah menjadi:\n\n${newMsg}` + jadibotNote);
                                                 }
                                         } else if (argLower === 'list') {
                                                 const whitelist = antiCallVideo.whitelist || [];
@@ -9715,9 +9754,8 @@ text += `│\n╰═════════════════╯`;
                                                         await tolak(hisoka, m, `ℹ️ Nomor ${number} sudah ada di whitelist`);
                                                 } else {
                                                         whitelist.push(number);
-                                                        config.antiCallVideo = { ...antiCallVideo, whitelist };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, `✅ Nomor ${number} ditambahkan ke whitelist Anti Call Video`);
+                                                        saveAntiCallVid({ ...antiCallVideo, whitelist });
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} ditambahkan ke whitelist Anti Call Video` + jadibotNote);
                                                 }
                                         } else if (argLower === 'del' || argLower === 'delete' || argLower === 'hapus') {
                                                 const number = args[1] ? args[1].replace(/[^0-9]/g, '') : '';
@@ -9731,18 +9769,16 @@ text += `│\n╰═════════════════╯`;
                                                         await tolak(hisoka, m, `ℹ️ Nomor ${number} tidak ditemukan di whitelist`);
                                                 } else {
                                                         whitelist.splice(idx, 1);
-                                                        config.antiCallVideo = { ...antiCallVideo, whitelist };
-                                                        saveConfig(config);
-                                                        await tolak(hisoka, m, `✅ Nomor ${number} dihapus dari whitelist Anti Call Video`);
+                                                        saveAntiCallVid({ ...antiCallVideo, whitelist });
+                                                        await tolak(hisoka, m, `✅ Nomor ${number} dihapus dari whitelist Anti Call Video` + jadibotNote);
                                                 }
                                         } else if (argLower === 'reset' || argLower === 'clear') {
-                                                config.antiCallVideo = { ...antiCallVideo, whitelist: [] };
-                                                saveConfig(config);
-                                                await tolak(hisoka, m, '✅ Whitelist Anti Call Video direset');
+                                                saveAntiCallVid({ ...antiCallVideo, whitelist: [] });
+                                                await tolak(hisoka, m, '✅ Whitelist Anti Call Video direset' + jadibotNote);
                                         } else {
                                                 await tolak(hisoka, m, '❌ Perintah tidak valid. Gunakan .anticallvid untuk melihat bantuan.');
                                         }
-                                        
+
                                         logCommand(m, hisoka, 'anticallvid');
                                 } catch (error) {
                                         console.error('\x1b[31m[AntiCallVideo] Error:\x1b[39m', error.message);

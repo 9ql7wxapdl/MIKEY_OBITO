@@ -1426,7 +1426,8 @@
     "id": "6285175463174@s.whatsapp.net",
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
-    "jid": "6285175463174@s.whatsapp.net"
+    "jid": "6285175463174@s.whatsapp.net",
+    "notify": "sunshine.jpeg"
   },
   "6285704944237@s.whatsapp.net": {
     "isContact": true,
@@ -8430,7 +8431,8 @@
     "id": "6282139672290@s.whatsapp.net",
     "name": "Ananda",
     "lid": "164746439479432@lid",
-    "jid": "6282139672290@s.whatsapp.net"
+    "jid": "6282139672290@s.whatsapp.net",
+    "notify": "Nixel"
   },
   "60126002792@s.whatsapp.net": {
     "isContact": true,
@@ -20030,7 +20032,8 @@
     "id": "6287860371877@s.whatsapp.net",
     "name": "! Fuma Kotaro",
     "lid": "200356231442552@lid",
-    "jid": "6287860371877@s.whatsapp.net"
+    "jid": "6287860371877@s.whatsapp.net",
+    "notify": "Fuma Kotaro"
   },
   "6283844256238@s.whatsapp.net": {
     "isContact": true,
@@ -20093,7 +20096,9 @@
     "id": "18258961472@s.whatsapp.net",
     "name": "Hamdan [ NOKOS ]",
     "lid": "54392187277397@lid",
-    "jid": "18258961472@s.whatsapp.net"
+    "jid": "18258961472@s.whatsapp.net",
+    "notify": "Anda Siapa??",
+    "verifiedName": "Anda Siapa??"
   },
   "6285183875049@s.whatsapp.net": {
     "isContact": true,
@@ -24296,7 +24301,8 @@
     "id": "6283134844523@s.whatsapp.net",
     "name": "Hamdan",
     "lid": "239328697536578@lid",
-    "jid": "6283134844523@s.whatsapp.net"
+    "jid": "6283134844523@s.whatsapp.net",
+    "notify": "Anda Siapa?"
   },
   "6281227213038@s.whatsapp.net": {
     "isContact": true,
@@ -31492,5 +31498,23 @@
     "id": "185504133849281@lid",
     "lid": "185504133849281@lid",
     "imgUrl": "changed"
+  },
+  "51187705479207@lid": {
+    "id": "51187705479207@lid",
+    "lid": "51187705479207@lid",
+    "imgUrl": "changed"
+  },
+  "106030075756608@lid": {
+    "id": "106030075756608@lid",
+    "lid": "106030075756608@lid",
+    "imgUrl": "removed"
+  },
+  "212611350872@s.whatsapp.net": {
+    "id": "212611350872@s.whatsapp.net",
+    "notify": "— Fiora Sylvie"
+  },
+  "23674618863@s.whatsapp.net": {
+    "id": "23674618863@s.whatsapp.net",
+    "notify": "mw sewa? chat owner"
   }
 }

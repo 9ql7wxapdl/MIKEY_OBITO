@@ -43,6 +43,7 @@ import messageHandler from '../handler/message.js'
 import JSONDB from '../db/json.js'
 import { cleanStaleSessionFiles } from './cleaner.js'
 import { logError } from '../db/errorLog.js'
+import { getJadibotAnticall, getJadibotAnticallvid, getJadibotNumber } from './jadibotSettings.js'
 
 /* ================= LOGGER ================= */
 const silentLogger = pino({ level: 'silent' })
@@ -1274,6 +1275,37 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
         activeOrStartingJadibot.delete(number)
         startJadibot(number, sendReply, mainBotNumber, editMsg, sendPairingMsg, hasConnectedOnce ? undefined : durationMs, mainBotSock)
       }, 3000)
+    }
+  })
+
+  /* ================= ANTI CALL ================= */
+  sock.ev.on('call', async calls => {
+    for (const call of calls) {
+      try {
+        if (call.status !== 'offer') continue
+        const jadibotNum = getJadibotNumber(sock)
+        const isVideo = call.isVideo === true
+        const setting = isVideo ? getJadibotAnticallvid(jadibotNum) : getJadibotAnticall(jadibotNum)
+        if (!setting.enabled) continue
+        const callerNumber = (call.from || '').split('@')[0].split(':')[0].replace(/[^0-9]/g, '')
+        const whitelist = setting.whitelist || []
+        const isWhitelisted = whitelist.some(n => {
+          const c = n.replace(/[^0-9]/g, '')
+          return callerNumber.includes(c) || c.includes(callerNumber)
+        })
+        if (isWhitelisted) {
+          console.log(`[JADIBOT][${isVideo ? 'AntiCallVid' : 'AntiCall'}] +${jadibotNum} → ${callerNumber} WHITELISTED, skip`)
+          continue
+        }
+        await sock.rejectCall(call.id, call.from)
+        console.log(`[JADIBOT][${isVideo ? 'AntiCallVid' : 'AntiCall'}] +${jadibotNum} → Rejected ${isVideo ? 'video' : 'voice'} call from ${callerNumber}`)
+        if (setting.message) {
+          await new Promise(r => setTimeout(r, 1000))
+          await sock.sendMessage(call.from, { text: setting.message })
+        }
+      } catch (err) {
+        console.error(`[JADIBOT][AntiCall] Error:`, err.message)
+      }
     }
   })
 

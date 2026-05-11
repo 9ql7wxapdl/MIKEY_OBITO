@@ -68,6 +68,16 @@ export function getJadibotReadsw(number) {
   }
 }
 
+export function getJadibotAnticall(number) {
+  const settings = getJadibotUserSettings(number)
+  return settings.anticall || { enabled: false, message: '', whitelist: [] }
+}
+
+export function getJadibotAnticallvid(number) {
+  const settings = getJadibotUserSettings(number)
+  return settings.anticallvid || { enabled: false, message: '', whitelist: [] }
+}
+
 export function getJadibotNumber(hisoka) {
   return String(hisoka?.user?.id || '').split('@')[0].split(':')[0].replace(/[^0-9]/g, '')
 }
