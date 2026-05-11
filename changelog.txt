@@ -1,90 +1,87 @@
-╔══════════════════════════════╗
-║   🤖  *WILY BOT — V16*  🤖   ║
-║       _11 Mei 2026_          ║
-╚══════════════════════════════╝
+🤖 *WILY BOT — V16*
+_📅 11 Mei 2026_
+📦 6 Update | 🔧 4 Bug Fix | ✨ 2 Fitur Baru
 
-📦 *6 Update*  |  🔧 *4 Bug Fix*  |  ✨ *2 Fitur Baru*
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━
 
 🔧 *BUG FIX*
 
-╭─「 🛡️ *Anti Call — Jadibot QR* 」
-│ ✦ Listener event `call` hilang di mode QR
-│ ✦ Jadibot QR tidak bisa tolak panggilan sama sekali
-│ ✦ Kini dipasang di *Pairing Code* ✅ & *QR Code* ✅
-│ ✦ Berlaku untuk panggilan *suara* & *video*
-╰ ✦ Whitelist & pesan tolak custom tetap per nomor jadibot
+> 🛡️ *Anti Call — Jadibot QR Tidak Bisa Tolak Panggilan*
+> Listener event `call` hilang di mode QR
+> Jadibot QR tidak bisa tolak panggilan sama sekali
+> Kini dipasang di *Pairing Code* & *QR Code*
+> Berlaku untuk panggilan *suara* & *video*
+> Whitelist & pesan tolak custom tetap per nomor jadibot
 
-╭─「 🔕 *Anti Call — Command Tidak Direspons* 」
-│ ✦ `anticall`, `ac`, `anticallvid`, `acv` tidak ada di whitelist
-│ ✦ Bot diam saja saat command dikirim ke nomor jadibot
-╰ ✦ Semua alias sudah ditambahkan ke allowed command jadibot
+> 🔕 *Anti Call — Command Tidak Direspons Jadibot*
+> `anticall` `ac` `anticallvid` `acv` tidak ada di whitelist
+> Bot diam saja saat command dikirim ke nomor jadibot
+> Semua alias sudah ditambahkan ke allowed command jadibot
 
-╭─「 🚧 *Anti Call — Diblock di Bot Utama* 」
-│ ✦ User jadibot diblock guard saat kirim ke bot utama
-│ ✦ Guard lama hanya izinkan: jadibot, stopbot, listbot
-╰ ✦ Kini anticall & anticallvid ikut diizinkan tembus guard
+> 🚧 *Anti Call — Diblock saat Kirim ke Bot Utama*
+> User jadibot diblock guard saat kirim command ke bot utama
+> Guard lama hanya izinkan: `jadibot` `stopbot` `listbot`
+> Kini `anticall` & `anticallvid` ikut diizinkan tembus guard
 
-╭─「 💾 *Anti Call — Setting Salah Tersimpan* 」
-│ ✦ Setting tersimpan ke config bot utama, bukan ke jadibot
-│ ✦ Handler tidak bisa deteksi konteks sender jadibot
-│ ✦ Kini handler cek sender di `jadibotMap` secara realtime
-│ ✦ Setting tersimpan ke `jadibot_settings.json[nomor]` yg benar
-╰ ✦ Tidak ada bentrok antar jadibot maupun bot utama
+> 💾 *Anti Call — Setting Tersimpan ke Tempat yang Salah*
+> Setting tersimpan ke config bot utama, bukan ke jadibot
+> Handler tidak bisa deteksi konteks sender jadibot
+> Kini handler cek sender di `jadibotMap` secara realtime
+> Setting tersimpan ke `jadibot_settings.json[nomor]` yang benar
+> Tidak ada bentrok antar jadibot maupun bot utama
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━
 
 ✨ *FITUR BARU / TAMBAHAN*
 
-╭─「 🖼️ *Command .hd — Akses Jadibot* 」
-│ ✦ `.hd` / `.remini` kini bisa dipakai user jadibot
-│ ✦ Ditambahkan ke whitelist command jadibot
-╰ ✦ Tampil di menu jadibot seksi *STICKER & GAMBAR*
+> 🖼️ *Command .hd — Kini Bisa Dipakai User Jadibot*
+> `.hd` / `.remini` kini bisa dipakai user jadibot
+> Ditambahkan ke whitelist command jadibot
+> Tampil di menu jadibot seksi *STICKER & GAMBAR*
 
-╭─「 📋 *Menu Jadibot — Update & Lebih Lengkap* 」
-│ ✦ Seksi sticker berganti jadi *STICKER & GAMBAR*
-│ ✦ Menampilkan `.hd / .remini` sebagai opsi baru
-╰ ✦ Menu kini mencerminkan semua command yang aktif
+> 📋 *Menu Jadibot — Diperbarui & Lebih Lengkap*
+> Seksi sticker berganti jadi *STICKER & GAMBAR*
+> Menampilkan `.hd` / `.remini` sebagai opsi baru
+> Menu kini mencerminkan semua command yang aktif
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━
 
 📋 *AKSES USER JADIBOT — TERBARU*
 
-╭─「 🌐 *Umum* 」
-│ ✦ `.ping` / `.p` — cek status & ping bot
-╰ ✦ `.menu` — lihat menu jadibot + sisa masa aktif
+> 🌐 *Umum*
+> `.ping` / `.p` — cek status & ping bot
+> `.menu` — lihat menu jadibot + sisa masa aktif
 
-╭─「 ⚙️ *Setting* 」
-│ ✦ `.antidel` / `.ad` — anti delete on/off
-│ ✦ `.readsw` — auto read story on/off
-│ ✦ `.anticall` / `.ac` — tolak panggilan suara ✅ *baru*
-╰ ✦ `.anticallvid` / `.acv` — tolak panggilan video ✅ *baru*
+> ⚙️ *Setting*
+> `.antidel` / `.ad` — anti delete on/off _(per jadibot)_
+> `.readsw` — auto read story on/off _(per jadibot)_
+> `.anticall` / `.ac` — tolak panggilan suara _(per jadibot)_ ✅ *baru*
+> `.anticallvid` / `.acv` — tolak panggilan video _(per jadibot)_ ✅ *baru*
 
-╭─「 🎨 *Sticker & Gambar* 」
-│ ✦ `.sticker` / `.s` — buat sticker dari gambar/video
-│ ✦ `.toimg` — konversi sticker ke gambar
-│ ✦ `.hd` / `.remini` — perjelas foto blur ✅ *baru*
-╰ ✦ `.rvo` / `.vo` / `.viewonce` — buka pesan view once
+> 🎨 *Sticker & Gambar*
+> `.sticker` / `.s` — buat sticker dari gambar/video
+> `.toimg` — konversi sticker ke gambar
+> `.hd` / `.remini` — perjelas foto blur ✅ *baru*
+> `.rvo` / `.vo` / `.viewonce` — buka pesan view once
 
-╭─「 📥 *Download* 」
-│ ✦ `.tt` — TikTok
-│ ✦ `.ig` — Instagram
-│ ✦ `.fb` — Facebook
-│ ✦ `.ytmp3` — YouTube Audio
-│ ✦ `.ytmp4` — YouTube Video
-╰ ✦ `.play` — cari & download lagu
+> 📥 *Download*
+> `.tt` — TikTok
+> `.ig` — Instagram
+> `.fb` — Facebook
+> `.ytmp3` — YouTube Audio
+> `.ytmp4` — YouTube Video
+> `.play` — cari & download lagu
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━
 
 📦 *DATA STORAGE — AKURAT & NO BENTROK*
 
-╭─「 💾 *Semua Setting Tersimpan Per Nomor Jadibot* 」
-│ ✦ `[nomor].anticall` — anti call suara
-│ ✦ `[nomor].anticallvid` — anti call video
-│ ✦ `[nomor].antidel` — anti delete
-│ ✦ `[nomor].readsw` — auto read story
-╰ ✦ Lokasi: `data/jadibot_settings.json`
+> 💾 *Semua Setting Tersimpan Per Nomor Jadibot*
+> `[nomor].anticall` — anti call suara
+> `[nomor].anticallvid` — anti call video
+> `[nomor].antidel` — anti delete
+> `[nomor].readsw` — auto read story
+> _Lokasi: `data/jadibot_settings.json`_
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🤖 *Wily-Bot*  |  *V16*  |  _11 Mei 2026_
+━━━━━━━━━━━━━━━━━━━━━━
+🤖 *Wily-Bot* | *V16* | _11 Mei 2026_
