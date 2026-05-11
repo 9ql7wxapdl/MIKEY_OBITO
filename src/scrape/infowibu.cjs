@@ -134,7 +134,9 @@ query ($dari: Int, $sampai: Int) {
         studios(isMain: true) { nodes { name } }
         season
         seasonYear
+        seasonInt
         status
+        nextAiringEpisode { episode airingAt timeUntilAiring }
       }
     }
   }
@@ -294,6 +296,27 @@ function terjemahkanMusim(season, year) {
     return year ? `${namaMusim} ${year}` : namaMusim;
 }
 
+// Terjemahkan status tayang anime ke Bahasa Indonesia
+const PETA_STATUS = {
+    'RELEASING'        : 'Sedang Tayang',
+    'FINISHED'         : 'Tamat',
+    'NOT_YET_RELEASED' : 'Belum Tayang',
+    'CANCELLED'        : 'Dibatalkan',
+    'HIATUS'           : 'Hiatus',
+};
+function terjemahkanStatus(status) {
+    return PETA_STATUS[String(status || '').toUpperCase()] || status || '-';
+}
+
+// Buat progress bar episode — contoh: ▓▓▓▓▓░░░░░ 5/12
+function buatProgressBar(sekarang, total, panjang = 10) {
+    if (!total || total <= 0) return '';
+    const isi    = Math.round((sekarang / total) * panjang);
+    const kosong = panjang - isi;
+    const bar    = '▓'.repeat(Math.max(0, isi)) + '░'.repeat(Math.max(0, kosong));
+    return `[${bar}] ${sekarang}/${total}`;
+}
+
 // ── FORMAT CAPTION REALTIME (NOTIF EPISODE BARU) ──────────────────────────────
 
 // Fungsi ini async karena perlu terjemah sinopsis ke Bahasa Indonesia
@@ -306,22 +329,47 @@ async function buatCaptionEpisode(item) {
     const studio = a.studios?.nodes?.[0]?.name || '-';
     const musim  = terjemahkanMusim(a.season, a.seasonYear);
 
+    // Info progress episode — "Ep 5 dari 12 (41%)" atau "Ep 5 (sedang tayang)"
+    const totalEps   = a.episodes || 0;
+    const epSekarang = item.episode;
+    const progresBar = totalEps > 0 ? buatProgressBar(epSekarang, totalEps) : '';
+    const persen     = totalEps > 0 ? ` (${Math.round((epSekarang / totalEps) * 100)}%)` : '';
+    const infoEp     = totalEps > 0
+        ? `*Ep ${epSekarang} dari ${totalEps}*${persen}\n${progresBar}`
+        : `*Ep ${epSekarang}* _(total episode belum ditentukan)_`;
+
+    // Info episode berikutnya — "Ep 6 tayang: Sabtu, 17 Mei 2026 pukul 23:30 WIB"
+    let epBerikutnya = '';
+    if (a.nextAiringEpisode) {
+        const nEp  = a.nextAiringEpisode.episode;
+        const wkt  = new Date(a.nextAiringEpisode.airingAt * 1000);
+        const tgl  = wkt.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const jam  = wkt.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' });
+        epBerikutnya = `\n📅 *Ep ${nEp} tayang:* ${tgl} pukul ${jam} WIB`;
+    }
+
+    // Status tayang dalam Bahasa Indonesia
+    const statusIndo = terjemahkanStatus(a.status);
+
     // Bersihkan lalu terjemahkan sinopsis ke Bahasa Indonesia
-    const deskripsiAsli   = bersihkanDeskripsi(a.description, 300);
-    const deskripsi       = await terjemahkan(deskripsiAsli);
+    const deskripsiAsli = bersihkanDeskripsi(a.description, 300);
+    const deskripsi     = await terjemahkan(deskripsiAsli);
 
     const waktuKirim = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
-    const totalEps   = a.episodes ? `/${a.episodes}` : '';
 
     return (
         `🔴 *REALTIME INFO WIBU — EPISODE BARU!*\n` +
         `${'━'.repeat(30)}\n\n` +
         `🎌 *${judul}*${native}\n` +
-        `📺 *Episode ${item.episode}${totalEps} baru saja tayang!*\n\n` +
+        `${'─'.repeat(28)}\n` +
+        `📺 *EPISODE TERBARU*\n` +
+        `${infoEp}${epBerikutnya}\n\n` +
         `📖 *Sinopsis:*\n${deskripsi}\n\n` +
+        `${'─'.repeat(28)}\n` +
         `${skor}  |  🎭 ${genre}\n` +
-        `🏢 Studio : *${studio}*\n` +
-        `🗓️ Musim  : *${musim}*\n\n` +
+        `🏢 Studio   : *${studio}*\n` +
+        `🗓️ Musim    : *${musim}*\n` +
+        `📡 Status   : *${statusIndo}*\n\n` +
         `🔗 ${a.siteUrl || 'https://anilist.co'}\n` +
         `${'━'.repeat(30)}\n` +
         `🕐 _${waktuKirim} WIB_`
