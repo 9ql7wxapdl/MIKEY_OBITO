@@ -6273,162 +6273,198 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
                                         await hisoka.sendMessage(m.from, { react: { text: `🌊`, key: m.key } }).catch(() => {});
 
                                         const teks =
-`╭─「 👤 *INFO PENGGUNA* 」
-│
-├➤ *Nama*   : ${m.pushName}
-├➤ *Rank*   : ${m.isOwner ? '👑 Owner' : '🆓 Pengguna'}
-├➤ *Fitur*  : ${totalCmd} fitur tersedia
-╰➤ *Status* : Online 🟢
+`╔══════════════════════════════╗
+║  🤖  *${botName.toUpperCase()}*  🤖  ║
+╚══════════════════════════════╝
 
-╭─「 🤖 *INFO BOT* 」
-│
-├➤ *Bot*    : ${botName}
-├➤ *Uptime* : ${uptimeStr}
-╰➤ *Prefix* : Bisa dengan atau tanpa prefix
+👤 *${m.pushName || 'User'}*  |  ${m.isOwner ? '👑 Owner' : '🆓 Pengguna'}
+⏱️ *Uptime:* ${uptimeStr}
+📦 *Total Fitur:* ${totalCmd} fitur aktif
+🌐 *Status Bot:* Online 🟢
+${ownerNum ? `📞 *Owner:* wa.me/${ownerNum}` : ''}
 
-╭─「 🌐 *KONTAK* 」
-│
-╰➤ *WA*     : wa.me/${ownerNum}
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
-╭─「 ⚙️ *SETTING* 」
+╭─「 🤖 *AUTO FITUR* 」
+│  _Aktif otomatis tanpa perintah_
 │
-├➤ *.typing*
-├➤ *.recording*
-├➤ *.online*
-├➤ *.readsw*
+├➤ *.typing on/off*
+│   _Bot kirim efek "sedang mengetik"_
+├➤ *.recording on/off*
+│   _Bot kirim efek "sedang merekam"_
+├➤ *.online on/off*
+│   _Bot selalu tampil online_
+├➤ *.readsw on/off*
+│   _Auto baca & reaksi story kontak_
 ├➤ *.antidel on/off*
-├➤ *.anticall*
-├➤ *.anticallvid*
-├➤ *.autocleaner*
-├➤ *.sessioncleaner*
-╰➤ *.telegram*
+│   _Tangkap pesan yang dihapus_
+├➤ *.anticall on/off*
+│   _Tolak otomatis panggilan suara_
+├➤ *.anticallvid on/off*
+│   _Tolak otomatis panggilan video_
+├➤ *.telegram on/off*
+│   _Forward pesan/story ke Telegram_
+├➤ *.autocleaner on/off*
+│   _Bersihkan file temp otomatis_
+╰➤ *.sessioncleaner on/off*
+   _Bersihkan sesi stale otomatis_
 
-╭─「 👥 *GRUP & PESAN* 」
+╭─「 💬 *PESAN & STICKER* 」
 │
-├➤ *.hidetag*
-├➤ *.ghosttag*
-├➤ *.quoted*
-├➤ *.rvo*
-├➤ *.s*
-├➤ *.stickerly*
-├➤ *.stickerpack [query]*
-├➤ *.toimg*
-├➤ *.react / .reaksi [reply pesan]*
-├➤ *.cekreact*
-├➤ *.listgroup*
-├➤ *.group*
+├➤ *.s / .sticker*  _→ Buat sticker_
+├➤ *.toimg*  _→ Sticker jadi gambar_
+├➤ *.stickerly [query/link]*  _→ Cari sticker_
+├➤ *.stickerpack [query]*  _→ Download pack sticker_
+├➤ *.rvo / .viewonce*  _→ Buka pesan sekali lihat_
+├➤ *.quoted / .q*  _→ Ambil pesan yang di-reply_
+╰➤ *.react / .reaksi*  _→ Kirim reaksi ke pesan_
+
+╭─「 👥 *FITUR GRUP* 」
+│  _Khusus digunakan di dalam grup_
+│
+├➤ *.hidetag / .ht [teks]*
+│   _Tag semua member tanpa notif_
+├➤ *.ghosttag / .gt [teks]*
+│   _Tag member tanpa terlihat_
 ├➤ *.welcome on/off*
+│   _Pesan sambutan member baru_
 ├➤ *.goodbye on/off*
-╰➤ *.welgod on/off*
+│   _Pesan perpisahan member keluar_
+├➤ *.welgod on/off*
+│   _Welcome + Goodbye sekaligus_
+├➤ *.listgroup*  _→ Daftar semua grup bot_
+╰➤ *.group*  _→ Info grup saat ini_
 
-╭─「 📡 *STATUS* 」
+╭─「 📡 *STATUS & STORY* 」
 │
-├➤ *.upswgc*
-├➤ *.antitagsw*
 ├➤ *.sw / .getsw*
-╰➤ *.sendstatus / .swgc [reply media]*
-
-╭─「 🔍 *INFO & CEK* 」
-│
-├➤ *.cekhp / .spechp / .infohp*
-│   _Cek spesifikasi HP realtime_
-├➤ *.bandingkan <HP1> vs <HP2>*
-│   _Bandingkan 2 HP side-by-side_
-├➤ *.ba / .bachar / .bluearchive*
-│   _Info karakter Blue Archive_
-├➤ *.genius / .carilagu*
-│   _Cari info lagu Genius_
-├➤ *.geniusdetail [id]*
-│   _Detail lagu Genius by ID_
-├➤ *.whatsmusik / .wmusik*
-│   _Kenali judul lagu dari audio_
-├➤ *.cuaca [daerah]*
-│   _Cek cuaca realtime_
-├➤ *.pixiv [karakter/judul]*
-│   _Cari ilustrasi anime dari Pixiv (safe)_
-╰➤ *.pixivr18 [karakter/judul]*
-   _Cari ilustrasi R18 dari Pixiv (18+)_
+│   _Ambil media dari story_
+├➤ *.upswgc [caption]*
+│   _Upload story ke semua grup_
+├➤ *.sendstatus / .swgc*
+│   _Kirim status ke kontak/grup_
+╰➤ *.antitagsw on/off*
+   _Blokir tag spam di story_
 
 ╭─「 📥 *DOWNLOAD* 」
 │
-├➤ *.tt*
-├➤ *.ig*
-├➤ *.fb*
-├➤ *.ytmp3*
-├➤ *.ytmp4*
-├➤ *.play*
-├➤ *.hd / .remini / .hdr*
-╰➤ *.hdvid / .vidhd / .hdvideo*
+├➤ *.tt [link]*  _→ TikTok video/audio_
+├➤ *.ig [link]*  _→ Instagram reels/foto_
+├➤ *.fb [link]*  _→ Facebook video_
+├➤ *.ytmp3 [link]*  _→ YouTube → MP3_
+├➤ *.ytmp4 [link]*  _→ YouTube → MP4_
+├➤ *.play [judul]*  _→ Cari & download lagu_
+├➤ *.hd / .remini*  _→ Perjelas foto blur_
+╰➤ *.hdvid / .hdvideo*  _→ Perjelas video blur_
 
-╭─「 🎌 *ANIME* 」
+╭─「 🔍 *INFO & CEK* 」
 │
-├➤ *.kusonime / .anime [judul]*
-├➤ *.kusonimeupdate*
-├➤ *.alq / .alqanime [judul]*
-├➤ *.alqupdate*
-╰➤ *.alqdl [link]*
-
-╭─「 🔞 *NHENTAI* 」
-│
-├➤ *.nh / .nhentai [judul/kode]*
-├➤ *.nhget [id]*
-├➤ *.nhrand*
-├➤ *.nhdl [id]*
-│
-╭─「 📖 *KOMIKTAP* 」
-│
-├➤ *.komik [judul]*
-├➤ *.komikinfo [url manga]*
-├➤ *.komikget [url chapter]*
-╰➤ *.komikupdate*
-
-╭─「 🎭 *COSPLAY* 」
-│
-├➤ *.cosplay [query]*
-╰➤ *.cosplayrandom*
+├➤ *.cekhp / .spechp [merk HP]*
+│   _Cek spesifikasi HP realtime_
+├➤ *.bandingkan [HP1] vs [HP2]*
+│   _Bandingkan 2 HP side-by-side_
+├➤ *.cuaca [kota/daerah]*
+│   _Cek cuaca & prakiraan realtime_
+├➤ *.ba / .bluearchive [nama]*
+│   _Info karakter Blue Archive_
+├➤ *.genius / .carilagu [judul]*
+│   _Cari info & lirik lagu_
+├➤ *.geniusdetail [id]*
+│   _Detail lagu Genius_
+╰➤ *.whatsmusik / .wmusik*
+   _Kenali judul lagu dari audio_
 
 ╭─「 🤖 *AI CHAT* 」
 │
 ├➤ *.ai / .tanya [pesan]*
+│   _Chat dengan AI (Gemini/Llama)_
 ├➤ *.mymemory*
+│   _Lihat riwayat percakapan AI_
 ╰➤ *.forgetme*
+   _Reset memori AI_
 
-╭─「 🌐 *WEB & TEMP MAIL* 」
+╭─「 🎌 *ANIME & MANGA* 」
+│
+├➤ *.kusonime / .anime [judul]*
+│   _Cari info & download anime_
+├➤ *.kusonimeupdate*  _→ Update terbaru_
+├➤ *.alq / .alqanime [judul]*
+│   _Cari anime dari AlqAnime_
+├➤ *.alqupdate*  _→ Update terbaru_
+├➤ *.alqdl [link]*  _→ Download anime_
+├➤ *.komik / .komiktap [judul]*
+│   _Cari manga/komik_
+├➤ *.komikinfo [url]*  _→ Info manga_
+├➤ *.komikget [url chapter]*  _→ Baca chapter_
+╰➤ *.komikupdate*  _→ Update komik terbaru_
+
+╭─「 🔞 *KONTEN 18+* 」
+│  _⚠️ Gunakan dengan bijak_
+│
+├➤ *.nh / .nhentai [judul/kode]*
+│   _Cari di nhentai_
+├➤ *.nhget [id]*  _→ Detail by ID_
+├➤ *.nhrand*  _→ Konten random_
+├➤ *.nhdl [id]*  _→ Download semua halaman_
+├➤ *.cosplay [query]*
+│   _Cari foto cosplay_
+├➤ *.cosplayrandom*  _→ Cosplay random_
+╰➤ *.pixivr18 [query]*
+   _Ilustrasi R18 dari Pixiv_
+
+╭─「 🌐 *WEB & TOOLS* 」
 │
 ├➤ *.ss / .screenshot [link]*
+│   _Screenshot halaman web_
 ├➤ *.ssweb / .webinfo [link]*
+│   _Scrape info dari website_
+├➤ *.pixiv [query]*
+│   _Ilustrasi anime Pixiv (SFW)_
 ├➤ *.tmail / .tempmail*
-├➤ *.tminbox*
-├➤ *.tmread [id]*
-├➤ *.tmwait*
-╰➤ *.tmdel*
+│   _Buat email sementara_
+├➤ *.tminbox*  _→ Cek inbox tempmail_
+├➤ *.tmread [id]*  _→ Baca email_
+├➤ *.tmwait*  _→ Tunggu email masuk_
+╰➤ *.tmdel*  _→ Hapus tempmail_
 
 ╭─「 🤖 *JADIBOT* 」
+│  _Jadikan nomor lain sebagai bot_
 │
-├➤ *.jadibot*
-├➤ *.stopbot*
-╰➤ *.listbot*
+├➤ *.jadibot [nomor] [durasi]*
+│   _Contoh: .jadibot 628xxx 1j_
+├➤ *.stopbot [nomor]*
+│   _Hentikan jadibot_
+├➤ *.listbot*
+│   _Daftar jadibot aktif_
+╰➤ *.jadibotmenu*
+   _Menu lengkap jadibot_
 
-╭─「 👑 *OWNER* 」
+╭─「 👑 *OWNER ONLY* 」
+│  _🔒 Khusus pemilik bot_
 │
 ├➤ *.listowner / .addowner / .delowner*
-├➤ *.backup / .ceksesi / .eval / .bash*
+├➤ *.all [teks]*  _→ Tag semua grup_
+├➤ *.ac / .acv*  _→ Anti call/video_
+├➤ *.swgrup / .statusgroup*  _→ Kirim status ke grup_
+├➤ *.infowibu*  _→ Auto info wibu di grup_
+├➤ *.wilyai on/off*  _→ AI auto-reply_
+├➤ *.wily / .simi*  _→ AI manual_
+├➤ *.setreactapi [key]*  _→ Set API react_
 ├➤ *.addemoji / .delemoji / .listemoji*
-├➤ *.wily / .simi / .wilyai*
-├➤ *.upbot*
-├➤ *.dbstats / .sessiondb*
-├➤ *.listcontact*
-├➤ *.setreactapi*
-├➤ *.swgrup / .statusgroup*
-├➤ *.infowibu*
-├➤ *.all [teks]*
-├➤ *.ac / .acv*
-╰➤ *.cekerror / .contact*
+├➤ *.upbot*  _→ Update & restart bot_
+├➤ *.backup*  _→ Backup sesi bot_
+├➤ *.ceksesi*  _→ Cek status sesi_
+├➤ *.eval / .bash*  _→ Eksekusi kode/command_
+├➤ *.dbstats / .sessiondb*  _→ Statistik database_
+├➤ *.listcontact*  _→ Daftar kontak bot_
+├➤ *.cekerror*  _→ Cek log error bot_
+╰➤ *.contact*  _→ Info kontak bot_
 
-▸▸▸━━━━━━━━━━━━━━━━━━━━◂◂◂
-
-💬 _"Kami terus berinovasi untuk_
-_memberikan pengalaman terbaik!"_ ✨
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
+📌 _Ketik_ *.settingmenu* _| .downloadmenu_
+📌 _Ketik_ *.groupmenu* _| .jadibotmenu_
+📌 _Ketik_ *.ownermenu* _untuk sub-menu lengkap_
+▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 `;
                                         const ppUser = await getUserProfilePictureUrl(hisoka, m.sender);
