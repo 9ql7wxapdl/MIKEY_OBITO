@@ -7874,7 +7874,9 @@
     "id": "6287766516011@s.whatsapp.net",
     "name": "Akbar 547",
     "lid": "248627335299292@lid",
-    "jid": "6287766516011@s.whatsapp.net"
+    "jid": "6287766516011@s.whatsapp.net",
+    "notify": "Abauu'u",
+    "verifiedName": "Abauu'u"
   },
   "6287886636200@s.whatsapp.net": {
     "isContact": true,
@@ -31416,7 +31418,7 @@
   "85590628409444@lid": {
     "id": "85590628409444@lid",
     "lid": "85590628409444@lid",
-    "imgUrl": "changed"
+    "imgUrl": "removed"
   },
   "274255723921630@lid": {
     "id": "274255723921630@lid",
@@ -31452,5 +31454,20 @@
     "id": "16832111104056@lid",
     "lid": "16832111104056@lid",
     "imgUrl": "removed"
+  },
+  "276673991844070@lid": {
+    "id": "276673991844070@lid",
+    "lid": "276673991844070@lid",
+    "imgUrl": "changed"
+  },
+  "184306207039714@lid": {
+    "id": "184306207039714@lid",
+    "lid": "184306207039714@lid",
+    "imgUrl": "changed"
+  },
+  "150156418752607@lid": {
+    "id": "150156418752607@lid",
+    "lid": "150156418752607@lid",
+    "imgUrl": "changed"
   }
 }

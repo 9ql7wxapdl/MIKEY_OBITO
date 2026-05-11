@@ -6275,13 +6275,17 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
                                         const teks =
 `╔══════════════════════════════╗
 ║  🤖  *${botName.toUpperCase()}*  🤖  ║
+║      _Readswdika V16_        ║
 ╚══════════════════════════════╝
 
-👤 *${m.pushName || 'User'}*  |  ${m.isOwner ? '👑 Owner' : '🆓 Pengguna'}
-⏱️ *Uptime:* ${uptimeStr}
-📦 *Total Fitur:* ${totalCmd} fitur aktif
-🌐 *Status Bot:* Online 🟢
-${ownerNum ? `📞 *Owner:* wa.me/${ownerNum}` : ''}
+👤 *${m.pushName || 'User'}*
+🎖️ ${m.isOwner ? '👑 *Owner*' : '🆓 *Pengguna Biasa*'}
+
+⏱️ *Uptime   :* ${uptimeStr}
+📦 *Fitur    :* ${totalCmd} fitur aktif
+🌐 *Status   :* Online 🟢
+🔖 *Versi    :* Readswdika V16
+${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
