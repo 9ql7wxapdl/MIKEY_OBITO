@@ -20097,8 +20097,7 @@
     "name": "Hamdan [ NOKOS ]",
     "lid": "54392187277397@lid",
     "jid": "18258961472@s.whatsapp.net",
-    "notify": "Anda Siapa??",
-    "verifiedName": "Anda Siapa??"
+    "notify": "Anda Siapa??"
   },
   "6285183875049@s.whatsapp.net": {
     "isContact": true,
@@ -31516,5 +31515,10 @@
   "23674618863@s.whatsapp.net": {
     "id": "23674618863@s.whatsapp.net",
     "notify": "mw sewa? chat owner"
+  },
+  "119524745597028@lid": {
+    "id": "119524745597028@lid",
+    "lid": "119524745597028@lid",
+    "imgUrl": "changed"
   }
 }
