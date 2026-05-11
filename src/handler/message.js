@@ -6254,9 +6254,10 @@ ${masaAktifLine}
 ╭─「 👁️ *VIEW ONCE* 」
 ╰➤ *.rvo / .viewonce / .vo* — Buka view once
 
-╭─「 🎨 *STICKER* 」
+╭─「 🎨 *STICKER & GAMBAR* 」
 ├➤ *.sticker / .s* — Buat sticker
-╰➤ *.toimg* — Sticker → Gambar
+├➤ *.toimg* — Sticker → Gambar
+╰➤ *.hd / .remini* — Perjelas foto blur
 
 ╭─「 📥 *DOWNLOAD* 」
 ├➤ *.tt [link]* — Download TikTok
