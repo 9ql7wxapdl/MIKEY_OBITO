@@ -12564,7 +12564,8 @@
     "id": "6281295543915@s.whatsapp.net",
     "name": "Remi_ikan 111",
     "lid": "26547712958494@lid",
-    "jid": "6281295543915@s.whatsapp.net"
+    "jid": "6281295543915@s.whatsapp.net",
+    "notify": "Arthur.remi_kan"
   },
   "6283861146010@s.whatsapp.net": {
     "isContact": true,
@@ -31359,6 +31360,11 @@
   "18378316079134@lid": {
     "id": "18378316079134@lid",
     "lid": "18378316079134@lid",
+    "imgUrl": "removed"
+  },
+  "76416209145992@lid": {
+    "id": "76416209145992@lid",
+    "lid": "76416209145992@lid",
     "imgUrl": "removed"
   }
 }
