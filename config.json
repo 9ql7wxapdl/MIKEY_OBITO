@@ -55,7 +55,7 @@
   },
   "autoCleaner": {
     "enabled": true,
-    "intervalHours": 6
+    "intervalHours": 24
   },
   "sessionCleaner": {
     "enabled": true

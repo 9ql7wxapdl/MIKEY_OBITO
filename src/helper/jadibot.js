@@ -975,6 +975,7 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
             if (aborted) break
 
             // Kirim pairing code ke nomor target secara realtime via main bot
+            let directPairingSent = false
             if (mainBotSock) {
               try {
                 const fmt = formatPairingCode(code)
@@ -996,24 +997,44 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
                     `⏳ *Kode berlaku 3 menit*\n\n` +
                     `\`\`\`${fmt}\`\`\``
                 })
+                directPairingSent = true
                 console.log(`[JADIBOT] ✅ Pairing code terkirim realtime ke +${number}`)
+
+                // Notif singkat ke owner bahwa kode sudah dikirim ke nomor tujuan
+                try {
+                  const sentInfo = await sendReply(
+                    `╔══════════════════════╗\n` +
+                    `║   🤖  *J A D I B O T*  ║\n` +
+                    `╚══════════════════════╝\n\n` +
+                    `✅ *Kode pairing berhasil dikirim!*\n\n` +
+                    `📱 Kode langsung dikirim ke nomor:\n` +
+                    `*+${number}*\n\n` +
+                    `⏳ Suruh mereka segera buka kode tersebut\n` +
+                    `dan masukkan di WhatsApp → Perangkat Tertaut.\n\n` +
+                    `_Berlaku 3 menit_`
+                  )
+                  if (sentInfo?.key) pairingMsgKey = sentInfo.key
+                } catch {}
               } catch (e) {
                 console.log(`[JADIBOT] ⚠️ Gagal kirim pairing code ke +${number}: ${e?.message}`)
               }
             }
 
-            if (sendPairingMsg) {
-              const sentInfo = await sendPairingMsg(code, number)
-              if (sentInfo?.key) pairingMsgKey = sentInfo.key
-            } else {
-              try {
-                const sentInfo = await sendReply(msgCopyCode(code, number))
+            // Fallback: kirim ke owner jika pengiriman langsung ke nomor tujuan gagal
+            if (!directPairingSent) {
+              if (sendPairingMsg) {
+                const sentInfo = await sendPairingMsg(code, number)
                 if (sentInfo?.key) pairingMsgKey = sentInfo.key
-              } catch {
-                const formatted = formatPairingCode(code)
-                const sentInfo = await sendReply(msgPairingCode(code, number))
-                if (sentInfo?.key) pairingMsgKey = sentInfo.key
-                await sendReply(`📋 *Salin Kode:*\n\n\`\`\`${formatted}\`\`\`\n\n👆 Ketuk tahan teks kode lalu *Salin*`)
+              } else {
+                try {
+                  const sentInfo = await sendReply(msgCopyCode(code, number))
+                  if (sentInfo?.key) pairingMsgKey = sentInfo.key
+                } catch {
+                  const formatted = formatPairingCode(code)
+                  const sentInfo = await sendReply(msgPairingCode(code, number))
+                  if (sentInfo?.key) pairingMsgKey = sentInfo.key
+                  await sendReply(`📋 *Salin Kode:*\n\n\`\`\`${formatted}\`\`\`\n\n👆 Ketuk tahan teks kode lalu *Salin*`)
+                }
               }
             }
             break
