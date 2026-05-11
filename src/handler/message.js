@@ -1,7 +1,7 @@
 /**
  * ───────────────────────────────
  *  Base Script : Bang Dika Ardnt
- *  Recode By   : Bang Wilykun
+ *  Recode By    : Bang Wilykun
  *  WhatsApp    : 6289688206739
  *  Telegram    : @Wilykun1994
  * ───────────────────────────────
@@ -2107,7 +2107,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 'anticallvid', 'acv',
                                 'tt', 'ig', 'fb', 'ytmp3', 'ytmp4', 'play',
                                 'sticker', 's',
-                                'toimg'
+                                'toimg',
+                                'hd'
                             ]);
                             if (!jadibotAllowedCommands.has(m.command)) {
                                 return;
