@@ -14654,7 +14654,8 @@
     "id": "6282113794951@s.whatsapp.net",
     "name": "~Firna",
     "lid": "91860995469566@lid",
-    "jid": "6282113794951@s.whatsapp.net"
+    "jid": "6282113794951@s.whatsapp.net",
+    "notify": "naa♡"
   },
   "6288976566611@s.whatsapp.net": {
     "isContact": true,
@@ -31345,5 +31346,10 @@
     "id": "162406101721160@lid",
     "lid": "162406101721160@lid",
     "imgUrl": "changed"
+  },
+  "42112741585149@lid": {
+    "id": "42112741585149@lid",
+    "lid": "42112741585149@lid",
+    "imgUrl": "removed"
   }
 }
