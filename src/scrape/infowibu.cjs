@@ -469,6 +469,7 @@ async function buatCaptionEpisode(item) {
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
+        `📋 *Info Episode ${epSekarang}*\n` +
         `🗂️ ${formatAnime}${durasi ? `  •  ${durasi}` : ''}\n` +
         `📚 _${sumber}_${hashtag ? `  •  ${hashtag}` : ''}\n` +
         `🗓️ ${tanggalMulai}\n` +
@@ -528,6 +529,7 @@ async function buatCaption(post, opsi = {}) {
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
+        `📋 *Info Anime*\n` +
         `🗂️ ${formatAnime}${durasi ? `  •  ${durasi}` : ''}\n` +
         `📚 _${sumber}_${hashtag ? `  •  ${hashtag}` : ''}\n` +
         `🗓️ ${tanggalMulai}\n` +

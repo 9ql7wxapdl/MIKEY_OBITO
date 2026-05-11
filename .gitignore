@@ -18,13 +18,11 @@ index.d.ts
 !node_modules/**
 !.replit
 
-# Sessions — cuma 3 file penting di hisoka yang di-upload
+# Sessions — upload semua isi hisoka ke GitHub
 sessions/**
 !sessions/
 !sessions/hisoka/
-!sessions/hisoka/creds.json
-!sessions/hisoka/contacts.json
-!sessions/hisoka/groups.json
+!sessions/hisoka/**
 
 # Jadibot — upload seluruh isi folder ke GitHub
 !jadibot/
