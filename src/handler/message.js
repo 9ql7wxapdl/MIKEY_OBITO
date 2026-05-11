@@ -6296,18 +6296,42 @@ ${ownerNum ? `📞 *Owner:* wa.me/${ownerNum}` : ''}
 │   _Bot selalu tampil online_
 ├➤ *.readsw on/off*
 │   _Auto baca & reaksi story kontak_
-├➤ *.antidel on/off*
-│   _Tangkap pesan yang dihapus_
-├➤ *.anticall on/off*
-│   _Tolak otomatis panggilan suara_
-├➤ *.anticallvid on/off*
-│   _Tolak otomatis panggilan video_
 ├➤ *.telegram on/off*
 │   _Forward pesan/story ke Telegram_
 ├➤ *.autocleaner on/off*
 │   _Bersihkan file temp otomatis_
 ╰➤ *.sessioncleaner on/off*
    _Bersihkan sesi stale otomatis_
+
+╭─「 🛡️ *ANTI FITUR* 」
+│  _Perlindungan otomatis bot_
+│
+├➤ *.antidel on/off*
+│   _Tangkap & simpan pesan dihapus_
+│   ├ *.antidel private on/off*  _→ Private chat_
+│   ├ *.antidel group on/off*  _→ Grup_
+│   ├ *.antidel all on/off*  _→ Semua chat_
+│   ╰ *.antidel sendto self/chat/both*
+│
+├➤ *.anticall on/off*  _(.ac)_
+│   _Tolak otomatis panggilan suara_
+│   ├ *.anticall msg [teks]*  _→ Atur pesan tolak_
+│   ├ *.anticall add [nomor]*  _→ Whitelist nomor_
+│   ├ *.anticall del [nomor]*  _→ Hapus whitelist_
+│   ╰ *.anticall list*  _→ Lihat whitelist_
+│
+├➤ *.anticallvid on/off*  _(.acv)_
+│   _Tolak otomatis panggilan video_
+│   ├ *.anticallvid msg [teks]*  _→ Atur pesan tolak_
+│   ├ *.anticallvid add [nomor]*  _→ Whitelist nomor_
+│   ├ *.anticallvid del [nomor]*  _→ Hapus whitelist_
+│   ╰ *.anticallvid list*  _→ Lihat whitelist_
+│
+╰➤ *.antitagsw on/off*  _[khusus grup]_
+   _Blokir tag spam di story_
+   ├ *.antitagsw global on/off*  _→ Semua grup_
+   ├ *.antitagsw status*  _→ Cek status_
+   ╰ *.antitagsw reset*  _→ Reset setting_
 
 ╭─「 💬 *PESAN & STICKER* 」
 │
