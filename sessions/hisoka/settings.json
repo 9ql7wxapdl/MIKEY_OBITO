@@ -1,14 +1,14 @@
 {
   "privacy": {
-    "calladd": "known",
+    "calladd": "all",
     "cover_photo": "all",
     "defense": "off",
     "dependentaccountmessages": "all",
-    "groupadd": "contact_blacklist",
+    "groupadd": "all",
     "groupcreation": "on_standard",
     "messages": "all",
     "online": "all",
-    "last": "contacts",
+    "last": "all",
     "profile": "all",
     "readreceipts": "all",
     "status": "contacts",

@@ -1,6 +1,42 @@
 {
   "errors": [
     {
+      "fingerprint": "command:cosplay::Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.",
+      "source": "command:cosplay",
+      "message": "Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.",
+      "stack": "Error: Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.\n    at cosplayteleSearch (/home/runner/workspace/src/scrape/cosplaytele.cjs:93:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778494278172:5540:57)",
+      "count": 1,
+      "firstSeen": "2026-05-11T10:17:19.122Z",
+      "lastSeen": "2026-05-11T10:17:19.122Z"
+    },
+    {
+      "fingerprint": "console.error::\u001b[Nm[Cosplay] Error:\u001b[Nm Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.",
+      "source": "console.error",
+      "message": "\u001b[31m[Cosplay] Error:\u001b[39m Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.",
+      "stack": "Error: \u001b[31m[Cosplay] Error:\u001b[39m Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778494278172:5581:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-11T10:17:19.118Z",
+      "lastSeen": "2026-05-11T10:17:19.118Z"
+    },
+    {
+      "fingerprint": "command:cosplay::Tidak ada hasil untuk \"fern-N\". Coba kata kunci lain.",
+      "source": "command:cosplay",
+      "message": "Tidak ada hasil untuk \"fern-16\". Coba kata kunci lain.",
+      "stack": "Error: Tidak ada hasil untuk \"fern-16\". Coba kata kunci lain.\n    at cosplayteleSearch (/home/runner/workspace/src/scrape/cosplaytele.cjs:93:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async default (file:///home/runner/workspace/src/handler/message.js?t=1778494278172:5540:57)",
+      "count": 1,
+      "firstSeen": "2026-05-11T10:16:46.326Z",
+      "lastSeen": "2026-05-11T10:16:46.326Z"
+    },
+    {
+      "fingerprint": "console.error::\u001b[Nm[Cosplay] Error:\u001b[Nm Tidak ada hasil untuk \"fern-N\". Coba kata kunci lain.",
+      "source": "console.error",
+      "message": "\u001b[31m[Cosplay] Error:\u001b[39m Tidak ada hasil untuk \"fern-16\". Coba kata kunci lain.",
+      "stack": "Error: \u001b[31m[Cosplay] Error:\u001b[39m Tidak ada hasil untuk \"fern-16\". Coba kata kunci lain.\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778494278172:5581:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 1,
+      "firstSeen": "2026-05-11T10:16:46.320Z",
+      "lastSeen": "2026-05-11T10:16:46.320Z"
+    },
+    {
       "fingerprint": "console.error::\u001b[Nm[HotReload] Gagal load 'src/handler/message.js':\u001b[Nm The requested module '../helper/jadibotSettings.js' does not pr",
       "source": "console.error",
       "message": "\u001b[31m[HotReload] Gagal load 'src/handler/message.js':\u001b[39m The requested module '../helper/jadibotSettings.js' does not provide an export named 'getJadibotAnticall'",

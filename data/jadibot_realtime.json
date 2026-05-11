@@ -20,7 +20,10 @@
       "expiresAt": 1781085178773,
       "durationMs": 2592000000,
       "durationText": "30 hari",
-      "status": "active"
+      "status": "active",
+      "isPaused": true,
+      "pausedAt": 1778494250097,
+      "pausedRemainingMs": 2590928676
     }
   }
 }

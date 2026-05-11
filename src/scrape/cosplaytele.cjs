@@ -14,6 +14,14 @@ const HEADERS = {
 
 const MAX_VIDEOS = 5;
 
+function toHD(url) {
+    if (!url) return url;
+    // Hapus suffix resize WordPress: -300x225, -1024x768, -scaled, dsb
+    return url
+        .replace(/-\d+x\d+(\.[a-zA-Z]+)$/, '$1')
+        .replace(/-scaled(\.[a-zA-Z]+)$/, '$1');
+}
+
 function decodeEntities(str) {
     return String(str || '')
         .replace(/&#8211;/g, '–')
@@ -36,7 +44,7 @@ function extractMediaFromContent(html) {
     const reSingle = /href='(https:\/\/cosplaytele\.com\/wp-content\/uploads\/[^'>\s]+\.(?:jpg|jpeg|png|webp|gif))'/gi;
     let m;
     while ((m = reSingle.exec(html)) !== null) {
-        const url = m[1];
+        const url = toHD(m[1]);
         if (!seen.has(url)) { seen.add(url); images.push(url); }
     }
 
@@ -44,7 +52,7 @@ function extractMediaFromContent(html) {
     if (images.length === 0) {
         const reDouble = /src="(https:\/\/cosplaytele\.com\/wp-content\/uploads\/[^">\s]+\.(?:jpg|jpeg|png|webp|gif))"/gi;
         while ((m = reDouble.exec(html)) !== null) {
-            const url = m[1];
+            const url = toHD(m[1]);
             if (!seen.has(url)) { seen.add(url); images.push(url); }
         }
     }
@@ -68,7 +76,8 @@ function extractThumbnail(post) {
         const emb = post._embedded?.['wp:featuredmedia'];
         if (emb && emb[0]) {
             const sizes = emb[0]?.media_details?.sizes || {};
-            return sizes.medium?.source_url || sizes.thumbnail?.source_url || emb[0].source_url || '';
+            const url = sizes.full?.source_url || emb[0].source_url || sizes.large?.source_url || sizes.medium?.source_url || '';
+            return toHD(url);
         }
     } catch (_) {}
     return '';
