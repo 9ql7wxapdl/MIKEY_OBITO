@@ -2103,6 +2103,8 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 'rvo', 'viewonce', 'vo',
                                 'antidel', 'ad',
                                 'readsw',
+                                'anticall', 'ac',
+                                'anticallvid', 'acv',
                                 'tt', 'ig', 'fb', 'ytmp3', 'ytmp4', 'play',
                                 'sticker', 's',
                                 'toimg'
