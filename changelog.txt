@@ -1,75 +1,90 @@
-🤖 *WILY BOT — V16*
-📅 11 Mei 2026
-📦 6 Update  |  🔧 4 Bug Fix  |  ✨ 2 Fitur Baru
+╔══════════════════════════════╗
+║   🤖  *WILY BOT — V16*  🤖   ║
+║       _11 Mei 2026_          ║
+╚══════════════════════════════╝
 
-*🔧 BUG FIX*
+📦 *6 Update*  |  🔧 *4 Bug Fix*  |  ✨ *2 Fitur Baru*
 
-> ◈ *Fix Anti Call & Anti Call Video Tidak Bekerja di Jadibot QR*
-> Listener event `call` tidak dipasang di `startJadibotQR`
-> Jadibot yang konek via QR code sama sekali tidak bisa tolak panggilan
-> Kini listener anti-call & anti-call video dipasang di kedua mode:
-> *Pairing Code* (startJadibot) ✅ dan *QR Code* (startJadibotQR) ✅
-> Berlaku untuk panggilan suara maupun video
-> Whitelist & pesan tolak custom tetap berfungsi per nomor jadibot
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-> ◈ *Fix Command .anticall & .anticallvid Tidak Direspons Jadibot*
-> `anticall`, `ac`, `anticallvid`, `acv` tidak ada di whitelist command jadibot
-> Bot diam saja tanpa respons saat command dikirim ke nomor jadibot
-> Semua alias sudah ditambahkan ke `jadibotAllowedCommands`
+🔧 *BUG FIX*
 
-> ◈ *Fix .anticall & .anticallvid Diblock saat Dikirim ke Bot Utama*
-> User jadibot (nomor yang aktif sebagai jadibot) diblock oleh guard bot utama
-> Guard hanya izinkan: jadibot, stopbot, listbot, jadibotmenu, upbot
-> Kini `anticall`, `ac`, `anticallvid`, `acv` ikut diizinkan tembus guard
-> Berlaku di kedua titik pengecekan guard (pendingPlayChoices & else branch)
+╭─「 🛡️ *Anti Call — Jadibot QR* 」
+│ ✦ Listener event `call` hilang di mode QR
+│ ✦ Jadibot QR tidak bisa tolak panggilan sama sekali
+│ ✦ Kini dipasang di *Pairing Code* ✅ & *QR Code* ✅
+│ ✦ Berlaku untuk panggilan *suara* & *video*
+╰ ✦ Whitelist & pesan tolak custom tetap per nomor jadibot
 
-> ◈ *Fix Setting Anti Call Tersimpan ke Config Utama, Bukan ke Jadibot*
-> Saat user jadibot kirim .anticall ke bot utama, handler salah deteksi konteks
-> `isJadibot` hanya cek `hisoka.isMainBot === false`, padahal proses di main bot
-> Kini handler juga cek apakah sender ada di `jadibotMap`
-> Jika ya → setting disimpan ke `data/jadibot_settings.json[nomor]` yang benar
-> Tidak bentrok antar jadibot maupun dengan setting bot utama
-> Berlaku untuk handler `anticall` dan `anticallvid`
+╭─「 🔕 *Anti Call — Command Tidak Direspons* 」
+│ ✦ `anticall`, `ac`, `anticallvid`, `acv` tidak ada di whitelist
+│ ✦ Bot diam saja saat command dikirim ke nomor jadibot
+╰ ✦ Semua alias sudah ditambahkan ke allowed command jadibot
 
-*✨ FITUR BARU / TAMBAHAN*
+╭─「 🚧 *Anti Call — Diblock di Bot Utama* 」
+│ ✦ User jadibot diblock guard saat kirim ke bot utama
+│ ✦ Guard lama hanya izinkan: jadibot, stopbot, listbot
+╰ ✦ Kini anticall & anticallvid ikut diizinkan tembus guard
 
-> ◈ *Tambah Command .hd ke Akses Jadibot*
-> `.hd` / `.remini` — perjelas foto blur kini bisa dipakai user jadibot
-> Ditambahkan ke `jadibotAllowedCommands` agar tidak diblock
-> Ditampilkan di menu jadibot pada seksi *STICKER & GAMBAR*
+╭─「 💾 *Anti Call — Setting Salah Tersimpan* 」
+│ ✦ Setting tersimpan ke config bot utama, bukan ke jadibot
+│ ✦ Handler tidak bisa deteksi konteks sender jadibot
+│ ✦ Kini handler cek sender di `jadibotMap` secara realtime
+│ ✦ Setting tersimpan ke `jadibot_settings.json[nomor]` yg benar
+╰ ✦ Tidak ada bentrok antar jadibot maupun bot utama
 
-> ◈ *Update Menu Jadibot — Lebih Lengkap & Akurat*
-> Seksi sticker berganti jadi *STICKER & GAMBAR*
-> Menampilkan `.hd / .remini` sebagai opsi baru
-> Menu kini mencerminkan semua command yang benar-benar bisa dipakai
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-*📋 AKSES USER JADIBOT (TERBARU)*
+✨ *FITUR BARU / TAMBAHAN*
 
-> ◈ *Command yang Bisa Diakses User Jadibot*
-> `.ping` / `.p` — cek status & ping bot
-> `.menu` — lihat menu jadibot + sisa masa aktif
-> `.rvo` / `.vo` / `.viewonce` — buka pesan view once
-> `.antidel` / `.ad` — anti delete on/off (per jadibot)
-> `.readsw` — auto read story on/off (per jadibot)
-> `.anticall` / `.ac` — tolak panggilan suara otomatis (per jadibot) ✅ baru
-> `.anticallvid` / `.acv` — tolak panggilan video otomatis (per jadibot) ✅ baru
-> `.hd` / `.remini` — perjelas foto blur ✅ baru
-> `.tt` — download TikTok
-> `.ig` — download Instagram
-> `.fb` — download Facebook
-> `.ytmp3` — download YouTube audio
-> `.ytmp4` — download YouTube video
-> `.play` — cari & download lagu
-> `.sticker` / `.s` — buat sticker dari gambar/video
-> `.toimg` — konversi sticker ke gambar
+╭─「 🖼️ *Command .hd — Akses Jadibot* 」
+│ ✦ `.hd` / `.remini` kini bisa dipakai user jadibot
+│ ✦ Ditambahkan ke whitelist command jadibot
+╰ ✦ Tampil di menu jadibot seksi *STICKER & GAMBAR*
 
-*📦 DATA STORAGE — AKURAT & NO BENTROK*
+╭─「 📋 *Menu Jadibot — Update & Lebih Lengkap* 」
+│ ✦ Seksi sticker berganti jadi *STICKER & GAMBAR*
+│ ✦ Menampilkan `.hd / .remini` sebagai opsi baru
+╰ ✦ Menu kini mencerminkan semua command yang aktif
 
-> ◈ *Semua Setting Jadibot Tersimpan Per Nomor*
-> `data/jadibot_settings.json[nomor].anticall` — setting anti call suara
-> `data/jadibot_settings.json[nomor].anticallvid` — setting anti call video
-> `data/jadibot_settings.json[nomor].antidel` — setting anti delete
-> `data/jadibot_settings.json[nomor].readsw` — setting auto read story
-> Setiap jadibot punya data sendiri, tidak ada yang bentrok
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🤖 *Wily-Bot*  |  *V16*  |  11 Mei 2026
+📋 *AKSES USER JADIBOT — TERBARU*
+
+╭─「 🌐 *Umum* 」
+│ ✦ `.ping` / `.p` — cek status & ping bot
+╰ ✦ `.menu` — lihat menu jadibot + sisa masa aktif
+
+╭─「 ⚙️ *Setting* 」
+│ ✦ `.antidel` / `.ad` — anti delete on/off
+│ ✦ `.readsw` — auto read story on/off
+│ ✦ `.anticall` / `.ac` — tolak panggilan suara ✅ *baru*
+╰ ✦ `.anticallvid` / `.acv` — tolak panggilan video ✅ *baru*
+
+╭─「 🎨 *Sticker & Gambar* 」
+│ ✦ `.sticker` / `.s` — buat sticker dari gambar/video
+│ ✦ `.toimg` — konversi sticker ke gambar
+│ ✦ `.hd` / `.remini` — perjelas foto blur ✅ *baru*
+╰ ✦ `.rvo` / `.vo` / `.viewonce` — buka pesan view once
+
+╭─「 📥 *Download* 」
+│ ✦ `.tt` — TikTok
+│ ✦ `.ig` — Instagram
+│ ✦ `.fb` — Facebook
+│ ✦ `.ytmp3` — YouTube Audio
+│ ✦ `.ytmp4` — YouTube Video
+╰ ✦ `.play` — cari & download lagu
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📦 *DATA STORAGE — AKURAT & NO BENTROK*
+
+╭─「 💾 *Semua Setting Tersimpan Per Nomor Jadibot* 」
+│ ✦ `[nomor].anticall` — anti call suara
+│ ✦ `[nomor].anticallvid` — anti call video
+│ ✦ `[nomor].antidel` — anti delete
+│ ✦ `[nomor].readsw` — auto read story
+╰ ✦ Lokasi: `data/jadibot_settings.json`
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🤖 *Wily-Bot*  |  *V16*  |  _11 Mei 2026_
