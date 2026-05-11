@@ -1,6 +1,24 @@
 {
   "errors": [
     {
+      "fingerprint": "unhandledRejection::ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'",
+      "source": "unhandledRejection",
+      "message": "ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'",
+      "stack": "Error: ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'\n    at async open (node:internal/fs/promises:634:25)\n    at async writeFile (node:internal/fs/promises:1206:14)\n    at async /home/runner/workspace/node_modules/socketon/lib/Utils/use-multi-file-auth-state.js:32:17",
+      "count": 1,
+      "firstSeen": "2026-05-11T13:02:23.231Z",
+      "lastSeen": "2026-05-11T13:02:23.231Z"
+    },
+    {
+      "fingerprint": "console.error::\u001b[Nm[CrashGuard] UnhandledRejection (N this minute):\u001b[Nm ENOENT: no such file or directory, open '/home/runner/workspace",
+      "source": "console.error",
+      "message": "\u001b[31m[CrashGuard] UnhandledRejection (1 this minute):\u001b[39m ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'",
+      "stack": "Error: \u001b[31m[CrashGuard] UnhandledRejection (1 this minute):\u001b[39m ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at process.<anonymous> (file:///home/runner/workspace/src/helper/crashGuard.js:131:17)\n    at process.emit (node:events:524:28)\n    at emitUnhandledRejection (node:internal/process/promises:250:13)\n    at throwUnhandledRejectionsMode (node:internal/process/promises:385:19)\n    at processPromiseRejections (node:internal/process/promises:470:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:96:32)",
+      "count": 1,
+      "firstSeen": "2026-05-11T13:02:23.219Z",
+      "lastSeen": "2026-05-11T13:02:23.219Z"
+    },
+    {
       "fingerprint": "command:cosplay::Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.",
       "source": "command:cosplay",
       "message": "Tidak ada hasil untuk \"小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren\". Coba kata kunci lain.",
