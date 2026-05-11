@@ -1561,6 +1561,37 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
     }
   })
 
+  /* ================= ANTI CALL (QR) ================= */
+  sock.ev.on('call', async calls => {
+    for (const call of calls) {
+      try {
+        if (call.status !== 'offer') continue
+        const jadibotNum = getJadibotNumber(sock)
+        const isVideo = call.isVideo === true
+        const setting = isVideo ? getJadibotAnticallvid(jadibotNum) : getJadibotAnticall(jadibotNum)
+        if (!setting.enabled) continue
+        const callerNumber = (call.from || '').split('@')[0].split(':')[0].replace(/[^0-9]/g, '')
+        const whitelist = setting.whitelist || []
+        const isWhitelisted = whitelist.some(n => {
+          const c = n.replace(/[^0-9]/g, '')
+          return callerNumber.includes(c) || c.includes(callerNumber)
+        })
+        if (isWhitelisted) {
+          console.log(`[JADIBOT QR][${isVideo ? 'AntiCallVid' : 'AntiCall'}] +${jadibotNum} → ${callerNumber} WHITELISTED, skip`)
+          continue
+        }
+        await sock.rejectCall(call.id, call.from)
+        console.log(`[JADIBOT QR][${isVideo ? 'AntiCallVid' : 'AntiCall'}] +${jadibotNum} → Rejected ${isVideo ? 'video' : 'voice'} call from ${callerNumber}`)
+        if (setting.message) {
+          await new Promise(r => setTimeout(r, 1000))
+          await sock.sendMessage(call.from, { text: setting.message })
+        }
+      } catch (err) {
+        console.error(`[JADIBOT QR][AntiCall] Error:`, err.message)
+      }
+    }
+  })
+
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return
     for (const msg of messages) {

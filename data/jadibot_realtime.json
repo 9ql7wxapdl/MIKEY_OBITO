@@ -3,15 +3,13 @@
     "6289681008411": {
       "number": "6289681008411",
       "createdAt": 1778490608251,
-      "updatedAt": 1778491220734,
-      "expiresAt": 1781082616099,
+      "updatedAt": 1778491999201,
+      "expiresAt": 1781083023282,
       "durationMs": 2592000000,
       "durationText": "30 hari",
       "status": "active",
-      "isPaused": true,
-      "connectedAt": 1778491220734,
-      "pausedAt": 1778491590848,
-      "pausedRemainingMs": 2591025251
+      "isPaused": false,
+      "connectedAt": 1778491999201
     }
   }
 }

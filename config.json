@@ -71,7 +71,7 @@
     "sourceUrl": "https://wa.me/6289688206739"
   },
   "wilyAI": {
-    "enabled": true,
+    "enabled": false,
     "autoReply": true,
     "privateReply": true,
     "scope": "all"
