@@ -17191,7 +17191,8 @@
     "id": "6289503411254@s.whatsapp.net",
     "name": "Kyu",
     "lid": "68380191097053@lid",
-    "jid": "6289503411254@s.whatsapp.net"
+    "jid": "6289503411254@s.whatsapp.net",
+    "notify": "Get Up"
   },
   "6285642150293@s.whatsapp.net": {
     "isContact": true,
@@ -31468,6 +31469,11 @@
   "150156418752607@lid": {
     "id": "150156418752607@lid",
     "lid": "150156418752607@lid",
+    "imgUrl": "changed"
+  },
+  "106536814805225@lid": {
+    "id": "106536814805225@lid",
+    "lid": "106536814805225@lid",
     "imgUrl": "changed"
   }
 }

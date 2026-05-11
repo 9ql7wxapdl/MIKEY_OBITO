@@ -6560,121 +6560,72 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `⏱️`, key: m.key } });
 
                                 const allTeks =
-`╭─「 📋 *SEMUA PERINTAH* 」
-│
-├➤ *.menu*
-├➤ *.allmenu*
-├➤ *.ping*
-├➤ *.info*
-├➤ *.memory / .ram*
-│
-├➤ *.typing*
-├➤ *.recording*
-├➤ *.online*
-├➤ *.readsw*
-├➤ *.antidel on/off*
-├➤ *.anticall*
-├➤ *.anticallvid*
-├➤ *.autocleaner*
-├➤ *.sessioncleaner*
-├➤ *.telegram*
-│
-├➤ *.hidetag*
-├➤ *.ghosttag*
-├➤ *.quoted*
-├➤ *.rvo*
-├➤ *.s*
-├➤ *.stickerly*
-├➤ *.toimg*
-├➤ *.listgroup*
-├➤ *.group*
-│
-├➤ *.upswgc*
-├➤ *.antitagsw*
-│
-├➤ *.tt*
-├➤ *.ig*
-├➤ *.fb*
-├➤ *.ytmp3*
-├➤ *.ytmp4*
-├➤ *.play*
-├➤ *.cuaca [daerah]*
-├➤ *.genius [judul/artis]*
-├➤ *.geniusdetail [id]*
-├➤ *.whatsmusik [reply audio]*
-├➤ *.stickerly [query/link]*
-├➤ *.hd / .remini / .hdr*
-├➤ *.hdvid / .vidhd / .hdvideo*
-│
-├➤ *.react / .reaksi [reply pesan]*
-├➤ *.cekreact*
-├➤ *.setreactapi*
-│
-├➤ *.kusonime / .anime [judul]*
-├➤ *.kusonimeupdate*
-├➤ *.alq / .alqanime [judul]*
-├➤ *.alqupdate*
-├➤ *.alqdl [link]*
-│
-├➤ *.nh / .nhentai [judul/kode]*
-├➤ *.nhget [id]*
-├➤ *.nhrand*
-├➤ *.nhdl [id]*
-│
-├➤ *.komik [judul]*
-├➤ *.komikinfo [url manga]*
-├➤ *.komikget [url chapter]*
-├➤ *.komikupdate*
-│
-├➤ *.cosplay [query]*
-├➤ *.cosplayrandom*
-│
-├➤ *.ai / .tanya [pesan]*
-├➤ *.mymemory / .myprofile*
-├➤ *.forgetme / .resetmemory*
-│
-├➤ *.ss / .screenshot [link]*
-├➤ *.ssweb / .webinfo [link]*
-│
-├➤ *.tmail / .tempmail*
-├➤ *.tminbox*
-├➤ *.tmread [id]*
-├➤ *.tmwait*
-├➤ *.tmdel*
-│
-├➤ *.sw / .getsw*
-├➤ *.sendstatus / .swgc [reply media]*
-│
-├➤ *.stickerpack [query]*
-│
-├➤ *.jadibot*
-├➤ *.stopbot*
-├➤ *.listbot*
-│
-├➤ *.addemoji*
-├➤ *.delemoji*
-├➤ *.listemoji*
-├➤ *.wily*
-├➤ *.simi*
-├➤ *.wilyai*
-├➤ *.contact*
-│
-├➤ *.listowner*
-├➤ *.addowner*
-├➤ *.delowner*
-├➤ *.backup*
-├➤ *.ceksesi*
-├➤ *.eval*
-├➤ *.bash*
-├➤ *.upbot*
-├➤ *.dbstats / .sessiondb*
-├➤ *.listcontact*
-├➤ *.setreactapi*
-├➤ *.swgrup / .statusgroup*
-├➤ *.infowibu*
-├➤ *.all [teks]*
-├➤ *.ac / .acv*
-╰➤ *.cekerror*
+`╔══════════════════════════════╗
+║  📋  *SEMUA PERINTAH*  📋  ║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+
+「 🤖 *AUTO FITUR* 」
+typing | recording | online | readsw
+telegram | autocleaner | sessioncleaner
+
+「 🛡️ *ANTI FITUR* 」
+antidel | antidel private/group/all on/off
+antidel sendto self/chat/both
+anticall (.ac) | anticall msg/add/del/list
+anticallvid (.acv) | anticallvid msg/add/del/list
+antitagsw | antitagsw global on/off | antitagsw status/reset
+
+「 💬 *PESAN & STICKER* 」
+s/sticker | toimg | stickerly | stickerpack
+rvo | quoted | react/reaksi | cekreact
+
+「 👥 *FITUR GRUP* 」
+hidetag (.ht) | ghosttag (.gt)
+welcome | goodbye | welgod
+listgroup | group
+
+「 📡 *STATUS & STORY* 」
+sw/getsw | upswgc | sendstatus/swgc | readsw
+
+「 📥 *DOWNLOAD* 」
+tt | ig | fb | ytmp3 | ytmp4 | play
+hd/remini/hdr | hdvid/hdvideo
+
+「 🔍 *INFO & CEK* 」
+cekhp/spechp/infohp | bandingkan
+cuaca | ba/bluearchive
+genius/carilagu | geniusdetail
+whatsmusik/wmusik
+pixiv | pixivr18
+
+「 🤖 *AI CHAT* 」
+ai/tanya | mymemory | forgetme
+
+「 🎌 *ANIME & MANGA* 」
+kusonime/anime | kusonimeupdate
+alq/alqanime | alqupdate | alqdl
+komik/komiktap | komikinfo | komikget | komikupdate
+
+「 🔞 *KONTEN 18+* 」
+nh/nhentai | nhget | nhrand | nhdl
+cosplay | cosplayrandom | pixivr18
+
+「 🌐 *WEB & TOOLS* 」
+ss/screenshot | ssweb/webinfo
+tmail/tempmail | tminbox | tmread | tmwait | tmdel
+
+「 🤖 *JADIBOT* 」
+jadibot [nomor] [durasi] | stopbot | listbot
+
+「 👑 *OWNER ONLY* 」
+listowner | addowner | delowner
+all | swgrup/statusgroup | infowibu
+wily | simi | wilyai on/off | wilyai pm/gc/all | wilyai reset
+setreactapi | addemoji | delemoji | listemoji
+upbot | backup | ceksesi | eval | bash
+dbstats | sessiondb | listcontact
+cekerror | cekerror reset | contact
 
 `;
 
@@ -6698,18 +6649,55 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `⚙️`, key: m.key } });
 
                                 const settingTeks =
-`╭─「 ⚙️ *SETTING MENU* 」
+`╔══════════════════════════════╗
+║  ⚙️  *SETTING MENU*  ⚙️  ║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+
+╭─「 🤖 *AUTO FITUR* 」
+│  _Aktif otomatis, tanpa perintah ulang_
 │
 ├➤ *.typing on/off*
+│   _Efek sedang mengetik_
 ├➤ *.recording on/off*
+│   _Efek sedang merekam suara_
 ├➤ *.online on/off*
+│   _Bot selalu tampil online_
 ├➤ *.readsw on/off*
-├➤ *.antidel on/off*
-├➤ *.anticall on/off*
-├➤ *.anticallvid on/off*
+│   _Auto baca & kasih reaksi ke story_
+├➤ *.telegram on/off*
+│   _Forward pesan/story ke Telegram_
 ├➤ *.autocleaner on/off*
-├➤ *.sessioncleaner on/off*
-╰➤ *.telegram*
+│   _Bersihkan file temp secara berkala_
+╰➤ *.sessioncleaner on/off*
+   _Bersihkan sesi stale secara berkala_
+
+╭─「 🛡️ *ANTI FITUR* 」
+│
+├➤ *.antidel on/off*  _(.ad)_
+│   _Tangkap & simpan pesan dihapus_
+│   ├ *.antidel private on/off*
+│   ├ *.antidel group on/off*
+│   ├ *.antidel all on/off*
+│   ╰ *.antidel sendto self/chat/both*
+│
+├➤ *.anticall on/off*  _(.ac)_
+│   _Tolak otomatis panggilan suara_
+│   ├ *.anticall msg [teks]*
+│   ├ *.anticall add/del [nomor]*
+│   ╰ *.anticall list*
+│
+├➤ *.anticallvid on/off*  _(.acv)_
+│   _Tolak otomatis panggilan video_
+│   ├ *.anticallvid msg [teks]*
+│   ├ *.anticallvid add/del [nomor]*
+│   ╰ *.anticallvid list*
+│
+╰➤ *.antitagsw on/off*  _[khusus grup]_
+   _Blokir tag spam di story_
+   ├ *.antitagsw global on/off*
+   ├ *.antitagsw status*
+   ╰ *.antitagsw reset*
 
 `;
 
@@ -6733,23 +6721,47 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `👥`, key: m.key } });
 
                                 const groupTeks =
-`╭─「 👥 *GROUP & PESAN MENU* 」
+`╔══════════════════════════════╗
+║  👥  *GRUP & PESAN MENU*  👥 ║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+
+╭─「 👥 *FITUR GRUP* 」
+│  _Khusus digunakan di dalam grup_
 │
-├➤ *.hidetag [teks]*
-├➤ *.ghosttag [teks]*
-├➤ *.quoted*
-├➤ *.rvo*
-├➤ *.s*
-├➤ *.stickerly [query/link]*
-├➤ *.stickerpack [query]*
-├➤ *.toimg*
-├➤ *.react / .reaksi [reply pesan]*
-├➤ *.cekreact*
-├➤ *.listgroup*
-├➤ *.group*
+├➤ *.hidetag / .ht [teks]*
+│   _Tag semua member tanpa notif_
+├➤ *.ghosttag / .gt [teks]*
+│   _Tag member tanpa terlihat di chat_
 ├➤ *.welcome on/off*
+│   _Pesan sambutan member baru_
 ├➤ *.goodbye on/off*
-╰➤ *.welgod on/off*
+│   _Pesan perpisahan member keluar_
+├➤ *.welgod on/off*
+│   _Welcome + Goodbye sekaligus_
+├➤ *.listgroup*
+│   _Daftar semua grup yang diikuti bot_
+╰➤ *.group*
+   _Info lengkap grup saat ini_
+
+╭─「 💬 *PESAN & STICKER* 」
+│
+├➤ *.s / .sticker*
+│   _Buat sticker dari gambar/video_
+├➤ *.toimg*
+│   _Konversi sticker jadi gambar_
+├➤ *.stickerly [query/link]*
+│   _Cari & download sticker_
+├➤ *.stickerpack [query]*
+│   _Download satu pack sticker_
+├➤ *.rvo / .viewonce*
+│   _Buka pesan sekali lihat_
+├➤ *.quoted / .q*
+│   _Ambil pesan yang di-reply_
+├➤ *.react / .reaksi [reply pesan]*
+│   _Kirim reaksi emoji ke pesan_
+╰➤ *.cekreact*
+   _Cek reaksi pada suatu pesan_
 
 `;
 
@@ -6773,17 +6785,33 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `📡`, key: m.key } });
 
                                 const statusTeks =
-`╭─「 📡 *STATUS & ANTI-TAG MENU* 」
+`╔══════════════════════════════╗
+║  📡  *STATUS & STORY MENU*  📡║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+
+╭─「 📡 *STATUS & STORY* 」
 │
-├➤ *.upswgc [caption]*
-├➤ *.antitagsw on*
-├➤ *.antitagsw off*
-├➤ *.antitagsw reset*
-├➤ *.antitagsw status*
 ├➤ *.sw / .getsw*
-│   _Reply story/status → ambil medianya_
-╰➤ *.sendstatus / .swgc [reply media]*
-   _Kirim status ke semua kontak/grup_
+│   _Reply story kontak → ambil medianya_
+├➤ *.upswgc [caption]*
+│   _Upload story ke semua grup_
+├➤ *.sendstatus / .swgc [reply media]*
+│   _Kirim status ke kontak/grup_
+╰➤ *.readsw on/off*
+   _Auto baca & reaksi story kontak_
+
+╭─「 🛡️ *ANTI TAG STORY* 」
+│  _Khusus admin & owner grup_
+│
+├➤ *.antitagsw on/off*
+│   _Aktifkan/nonaktifkan di grup ini_
+├➤ *.antitagsw global on/off*
+│   _Aktifkan/nonaktifkan di semua grup_
+├➤ *.antitagsw status*
+│   _Cek status antitagsw grup ini_
+╰➤ *.antitagsw reset*
+   _Reset setting antitagsw grup ini_
 
 `;
 
@@ -6807,23 +6835,51 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `📥`, key: m.key } });
 
                                 const dlTeks =
-`╭─「 📥 *DOWNLOAD MENU* 」
+`╔══════════════════════════════╗
+║  📥  *DOWNLOAD MENU*  📥  ║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+
+╭─「 📥 *SOSMED & MUSIK* 」
 │
 ├➤ *.tt [link]*
+│   _Download video/audio TikTok_
 ├➤ *.ig [link]*
+│   _Download reels/foto Instagram_
 ├➤ *.fb [link]*
+│   _Download video Facebook_
 ├➤ *.ytmp3 [link]*
+│   _YouTube → MP3 audio_
 ├➤ *.ytmp4 [link]*
-├➤ *.play [judul/link]*
-├➤ *.stickerly [query/link]*
-├➤ *.hd / .remini / .hdr*
-├➤ *.hdvid / .vidhd / .hdvideo*
+│   _YouTube → MP4 video_
+╰➤ *.play [judul]*
+   _Cari & download lagu otomatis_
+
+╭─「 🖼️ *PERJELAS MEDIA* 」
+│
+├➤ *.hd / .remini / .hdr [reply foto]*
+│   _Perjelas & enhance foto blur_
+╰➤ *.hdvid / .hdvideo [reply video]*
+   _Perjelas video blur/buram_
+
+╭─「 🎌 *ANIME & MANGA* 」
 │
 ├➤ *.kusonime / .anime [judul]*
+│   _Cari info & download anime_
 ├➤ *.kusonimeupdate*
+│   _Update anime terbaru_
 ├➤ *.alq / .alqanime [judul]*
+│   _Cari anime dari AlqAnime_
 ├➤ *.alqupdate*
-╰➤ *.alqdl [link]*
+│   _Update AlqAnime terbaru_
+├➤ *.alqdl [link]*
+│   _Download anime dari AlqAnime_
+├➤ *.komik / .komiktap [judul]*
+│   _Cari manga/komik_
+├➤ *.komikget [url chapter]*
+│   _Baca/download chapter komik_
+╰➤ *.komikupdate*
+   _Update komik/manga terbaru_
 
 `;
 
@@ -6847,11 +6903,25 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `🤖`, key: m.key } });
 
                                 const jadibotTeks =
-`╭─「 🤖 *JADIBOT MENU* 」
+`╔══════════════════════════════╗
+║  🤖  *JADIBOT MENU*  🤖  ║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+
+╭─「 🤖 *JADIBOT* 」
+│  _Jadikan nomor lain sebagai bot_
 │
-├➤ *.jadibot [nomor]*
-├➤ *.stopbot [nom]*
+├➤ *.jadibot [nomor] [durasi]*
+│   _Aktifkan jadibot di nomor tertentu_
+│   _Contoh: .jadibot 628xxx 1j_
+│   _Format durasi: 30m / 1j / 2h / 1d_
+│
+├➤ *.stopbot [nomor]*
+│   _Hentikan jadibot di nomor tertentu_
+│   _Contoh: .stopbot 628xxx_
+│
 ╰➤ *.listbot*
+   _Lihat daftar jadibot yang sedang aktif_
 
 `;
 
@@ -6875,37 +6945,64 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                 hisoka.sendMessage(m.from, { react: { text: `👑`, key: m.key } });
 
                                 const ownerTeks =
-`╭─「 👑 *OWNER MENU* 」
+`╔══════════════════════════════╗
+║  👑  *OWNER MENU*  👑  ║
+║      _Readswdika V16_        ║
+╚══════════════════════════════╝
+🔒 _Khusus pemilik bot_
+
+╭─「 👑 *MANAJEMEN OWNER* 」
 │
 ├➤ *.listowner*
+│   _Lihat daftar semua owner bot_
 ├➤ *.addowner [nomor]*
-├➤ *.delowner [nomor]*
-├➤ *.backup*
-├➤ *.eval [kode]*
-├➤ *.bash [perintah]*
-├➤ *.ceksesi*
-├➤ *.addemoji*
-├➤ *.delemoji*
-├➤ *.listemoji*
-├➤ *.cekerror*
-├➤ *.cekerror reset*
-├➤ *.wily [teks]*
-├➤ *.simi*
-├➤ *.wilyai*
-│   ├ .wilyai on/off
-│   ├ .wilyai replay on/off
-│   ├ .wilyai pm | gc | all
-│   ╰ .wilyai reset
-├➤ *.upbot*
-├➤ *.dbstats / .sessiondb*
-├➤ *.listcontact*
-├➤ *.setreactapi [key]*
-├➤ *.swgrup / .statusgroup [reply media]*
-├➤ *.infowibu*
+│   _Tambah owner baru_
+╰➤ *.delowner [nomor]*
+   _Hapus owner_
+
+╭─「 🤖 *AI & FITUR BOT* 」
+│
+├➤ *.wily [teks]*  _→ Tanya AI manual_
+├➤ *.simi*  _→ AI Simi_
+├➤ *.wilyai on/off*
+│   _Auto-reply pakai AI_
+│   ├ *.wilyai pm/gc/all*  _→ Mode target_
+│   ├ *.wilyai replay on/off*
+│   ╰ *.wilyai reset*
+╰➤ *.setreactapi [key]*
+   _Set API key untuk fitur react_
+
+╭─「 📡 *BROADCAST & STATUS* 」
+│
 ├➤ *.all [teks]*
-├➤ *.ac [nomor]*
-├➤ *.acv [nomor]*
-╰➤ *.contact*
+│   _Tag/broadcast ke semua grup_
+├➤ *.swgrup / .statusgroup [reply media]*
+│   _Kirim status ke semua grup_
+╰➤ *.infowibu*
+   _Kirim info wibu otomatis ke grup_
+
+╭─「 🛠️ *TOOLS TEKNIS* 」
+│
+├➤ *.upbot*  _→ Update & restart bot_
+├➤ *.backup*  _→ Backup sesi bot_
+├➤ *.ceksesi*  _→ Cek status sesi aktif_
+├➤ *.eval [kode JS]*  _→ Eksekusi kode_
+├➤ *.bash [perintah]*  _→ Eksekusi shell_
+├➤ *.dbstats*  _→ Statistik database_
+├➤ *.sessiondb*  _→ Info session DB_
+├➤ *.listcontact*  _→ Daftar kontak bot_
+├➤ *.cekerror*  _→ Log error bot_
+├➤ *.cekerror reset*  _→ Reset log error_
+╰➤ *.contact*  _→ Info kontak bot_
+
+╭─「 🎨 *EMOJI CUSTOM* 」
+│
+├➤ *.addemoji [nama] [reply sticker]*
+│   _Tambah emoji custom_
+├➤ *.delemoji [nama]*
+│   _Hapus emoji custom_
+╰➤ *.listemoji*
+   _Daftar semua emoji custom_
 
 `;
 
