@@ -22,6 +22,15 @@ send_tg() {
   fi
 }
 
+# ── Fungsi format durasi detik → jam/menit/detik ──
+format_uptime() {
+  local secs=$1
+  local h=$((secs / 3600))
+  local m=$(((secs % 3600) / 60))
+  local s=$((secs % 60))
+  echo "${h}j ${m}m ${s}d"
+}
+
 echo "▶ Wily Bot - Pterodactyl Mode"
 
 # Install node_modules jika belum ada
@@ -39,9 +48,39 @@ fi
 echo "▶ Update PM2..."
 pm2 update
 
+BOT_START_TIME=$(date +%s)
+
 send_tg "✅ *Wily Bot - Pterodactyl*
 Bot berhasil dijalankan.
 🕐 $(date '+%Y-%m-%d %H:%M:%S')"
+
+# ── Daily report (background, setiap 24 jam) ──
+daily_report() {
+  while true; do
+    sleep 86400
+    NOW=$(date '+%Y-%m-%d %H:%M:%S')
+    ELAPSED=$(( $(date +%s) - BOT_START_TIME ))
+    UPTIME_STR=$(format_uptime $ELAPSED)
+
+    # Ambil memori dari /proc/meminfo
+    MEM_USED_KB=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+    MEM_TOTAL_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
+    MEM_USED_MB=$(( (MEM_TOTAL_KB - MEM_USED_KB) / 1024 ))
+    MEM_TOTAL_MB=$(( MEM_TOTAL_KB / 1024 ))
+
+    send_tg "📊 *Wily Bot - Laporan Harian (Pterodactyl)*
+
+🟢 Status: \`Online\`
+⏱ Uptime sejak start: \`${UPTIME_STR}\`
+🔄 Total Crash & Restart: \`${RESTART_COUNT}x\`
+💾 Memori Server: \`${MEM_USED_MB} MB / ${MEM_TOTAL_MB} MB\`
+🕐 Waktu: $NOW"
+  done
+}
+
+# Jalankan daily report di background
+daily_report &
+DAILY_PID=$!
 
 # ── Auto-restart loop ──
 RESTART_COUNT=0
@@ -63,6 +102,7 @@ while true; do
 Bot dihentikan setelah $MAX_RESTARTS kali crash.
 Exit Code terakhir: \`$EXIT_CODE\`
 🕐 $NOW"
+    kill $DAILY_PID 2>/dev/null
     exit 1
   fi
 
