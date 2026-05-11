@@ -7875,8 +7875,7 @@
     "name": "Akbar 547",
     "lid": "248627335299292@lid",
     "jid": "6287766516011@s.whatsapp.net",
-    "notify": "Abauu'u",
-    "verifiedName": "Abauu'u"
+    "notify": "Abauu'u"
   },
   "6287886636200@s.whatsapp.net": {
     "isContact": true,
@@ -31474,6 +31473,11 @@
   "106536814805225@lid": {
     "id": "106536814805225@lid",
     "lid": "106536814805225@lid",
+    "imgUrl": "changed"
+  },
+  "239320141181135@lid": {
+    "id": "239320141181135@lid",
+    "lid": "239320141181135@lid",
     "imgUrl": "changed"
   }
 }
