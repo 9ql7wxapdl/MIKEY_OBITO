@@ -458,12 +458,6 @@ async function buatCaptionEpisode(item) {
         : `📺 *Ep ${epSekarang}*`;
     const barisEpBar   = progresBar ? `\`${progresBar}\`` : '';
 
-    // Baris info (dikelompokkan agar ringkas di HP)
-    const barisFormat  = [formatAnime, durasi].filter(Boolean).join('  •  ') + (sumber ? `  •  📚 _${sumber}_` : '');
-    const barisMulai   = `🗓️ ${tanggalMulai}  •  🌸 _${musim}_`;
-    const barisStudio  = `📡 ${statusIndo}  •  🏢 _${studio}_`;
-    const barisSkor    = `⭐ *${a.averageScore || '-'}%*  •  👥 ${popularitas}  •  ❤️ _${favorit}_`;
-
     return (
         `🔴 *REALTIME INFO WIBU!*\n` +
         `${SEP}\n\n` +
@@ -475,11 +469,13 @@ async function buatCaptionEpisode(item) {
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
-        `${barisFormat}\n` +
-        `${hashtag ? hashtag + '\n' : ''}` +
-        `${barisMulai}\n` +
-        `${barisStudio}\n` +
-        `${barisSkor}\n` +
+        `🗂️ ${formatAnime}${durasi ? `  •  ${durasi}` : ''}\n` +
+        `📚 _${sumber}_${hashtag ? `  •  ${hashtag}` : ''}\n` +
+        `🗓️ ${tanggalMulai}\n` +
+        `🌸 _${musim}_\n` +
+        `📡 _${statusIndo}_\n` +
+        `🏢 _${studio}_\n` +
+        `⭐ *${a.averageScore || '-'}%*  •  👥 ${popularitas}  •  ❤️ _${favorit}_\n` +
         `🎭 _${semuaGenre}_\n` +
         `${SEP}\n` +
         `🔗 anilist.co/anime/${a.id || ''}\n` +
@@ -522,11 +518,6 @@ async function buatCaption(post, opsi = {}) {
     const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const sinopsisBlock = deskripsi.split('\n').map(b => `> ${b}`).join('\n');
 
-    const barisFormat  = [formatAnime, durasi].filter(Boolean).join('  •  ') + (sumber ? `  •  📚 _${sumber}_` : '');
-    const barisMulai   = `🗓️ ${tanggalMulai}  •  🌸 _${musim}_`;
-    const barisStudio  = `📡 ${statusIndo}  •  🏢 _${studio}_`;
-    const barisSkor    = `⭐ *${a.averageScore || '-'}%*  •  👥 ${popularitas}  •  ❤️ _${favorit}_`;
-
     return (
         `📢 *INFO WIBU*\n` +
         `${SEP}\n\n` +
@@ -537,11 +528,13 @@ async function buatCaption(post, opsi = {}) {
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
-        `${barisFormat}\n` +
-        `${hashtag ? hashtag + '\n' : ''}` +
-        `${barisMulai}\n` +
-        `${barisStudio}\n` +
-        `${barisSkor}\n` +
+        `🗂️ ${formatAnime}${durasi ? `  •  ${durasi}` : ''}\n` +
+        `📚 _${sumber}_${hashtag ? `  •  ${hashtag}` : ''}\n` +
+        `🗓️ ${tanggalMulai}\n` +
+        `🌸 _${musim}_\n` +
+        `📡 _${statusIndo}_\n` +
+        `🏢 _${studio}_\n` +
+        `⭐ *${a.averageScore || '-'}%*  •  👥 ${popularitas}  •  ❤️ _${favorit}_\n` +
         `🎭 _${semuaGenre}_\n` +
         `${SEP}\n` +
         `🔗 anilist.co/anime/${a.id || ''}\n` +
