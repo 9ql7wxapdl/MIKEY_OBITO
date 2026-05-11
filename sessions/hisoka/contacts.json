@@ -1425,7 +1425,8 @@
     "id": "6285175463174@s.whatsapp.net",
     "name": "sunshine jpeg",
     "lid": "156182794784889@lid",
-    "jid": "6285175463174@s.whatsapp.net"
+    "jid": "6285175463174@s.whatsapp.net",
+    "notify": "sunshine.jpeg"
   },
   "6285704944237@s.whatsapp.net": {
     "isContact": true,
@@ -7193,7 +7194,8 @@
     "id": "6283182665936@s.whatsapp.net",
     "name": "ルトピ",
     "lid": "165536713416760@lid",
-    "jid": "6283182665936@s.whatsapp.net"
+    "jid": "6283182665936@s.whatsapp.net",
+    "notify": "Luthfi (Lui)"
   },
   "6285950007640@s.whatsapp.net": {
     "isContact": true,
@@ -24214,7 +24216,9 @@
     "id": "6285956660403@s.whatsapp.net",
     "name": "! Fadli",
     "lid": "176549462564879@lid",
-    "jid": "6285956660403@s.whatsapp.net"
+    "jid": "6285956660403@s.whatsapp.net",
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6283861840004@s.whatsapp.net": {
     "isContact": true,
@@ -24299,8 +24303,7 @@
     "name": "Hamdan",
     "lid": "239328697536578@lid",
     "jid": "6283134844523@s.whatsapp.net",
-    "notify": "Anda Siapa?",
-    "verifiedName": "Anda Siapa?"
+    "notify": "Anda Siapa?"
   },
   "6281227213038@s.whatsapp.net": {
     "isContact": true,

@@ -734,10 +734,7 @@ async function main() {
 
                                                 // Cari episode yang baru tayang dalam 5 menit terakhir
                                                 const episodeBaru = await _iw.cariEpisodeBaru(5);
-                                                if (!episodeBaru.length) {
-                                                        console.log('[InfoWibu] Tidak ada episode baru dalam 5 menit terakhir.');
-                                                        return;
-                                                }
+                                                if (!episodeBaru.length) return;
 
                                                 // Kirim setiap episode baru yang ditemukan
                                                 for (const item of episodeBaru) {
