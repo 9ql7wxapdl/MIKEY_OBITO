@@ -6300,6 +6300,7 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.anticall*
 ├➤ *.anticallvid*
 ├➤ *.autocleaner*
+├➤ *.sessioncleaner*
 ╰➤ *.telegram*
 
 ╭─「 👥 *GRUP & PESAN* 」
@@ -6313,6 +6314,7 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.stickerpack [query]*
 ├➤ *.toimg*
 ├➤ *.react / .reaksi [reply pesan]*
+├➤ *.cekreact*
 ├➤ *.listgroup*
 ├➤ *.group*
 ├➤ *.welcome on/off*
@@ -6336,6 +6338,8 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 │   _Info karakter Blue Archive_
 ├➤ *.genius / .carilagu*
 │   _Cari info lagu Genius_
+├➤ *.geniusdetail [id]*
+│   _Detail lagu Genius by ID_
 ├➤ *.whatsmusik / .wmusik*
 │   _Kenali judul lagu dari audio_
 ├➤ *.cuaca [daerah]*
@@ -6375,7 +6379,13 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 │
 ├➤ *.komik [judul]*
 ├➤ *.komikinfo [url manga]*
-╰➤ *.komikget [url chapter]*
+├➤ *.komikget [url chapter]*
+╰➤ *.komikupdate*
+
+╭─「 🎭 *COSPLAY* 」
+│
+├➤ *.cosplay [query]*
+╰➤ *.cosplayrandom*
 
 ╭─「 🤖 *AI CHAT* 」
 │
@@ -6408,6 +6418,9 @@ _📦 Powered by Wily Bot V14.5_ 🤖`;
 ├➤ *.upbot*
 ├➤ *.dbstats / .sessiondb*
 ├➤ *.listcontact*
+├➤ *.setreactapi*
+├➤ *.swgrup / .statusgroup*
+├➤ *.infowibu*
 ├➤ *.all [teks]*
 ├➤ *.ac / .acv*
 ╰➤ *.cekerror / .contact*
@@ -6547,6 +6560,10 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.komik [judul]*
 ├➤ *.komikinfo [url manga]*
 ├➤ *.komikget [url chapter]*
+├➤ *.komikupdate*
+│
+├➤ *.cosplay [query]*
+├➤ *.cosplayrandom*
 │
 ├➤ *.ai / .tanya [pesan]*
 ├➤ *.mymemory / .myprofile*
@@ -6588,6 +6605,9 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.upbot*
 ├➤ *.dbstats / .sessiondb*
 ├➤ *.listcontact*
+├➤ *.setreactapi*
+├➤ *.swgrup / .statusgroup*
+├➤ *.infowibu*
 ├➤ *.all [teks]*
 ├➤ *.ac / .acv*
 ╰➤ *.cekerror*
@@ -6616,13 +6636,13 @@ _memberikan pengalaman terbaik!"_ ✨
                                 const settingTeks =
 `╭─「 ⚙️ *SETTING MENU* 」
 │
-├➤ *.typing*
-├➤ *.recording*
-├➤ *.online*
-├➤ *.readsw*
+├➤ *.typing on/off*
+├➤ *.recording on/off*
+├➤ *.online on/off*
+├➤ *.readsw on/off*
 ├➤ *.antidel on/off*
-├➤ *.anticall*
-├➤ *.anticallvid*
+├➤ *.anticall on/off*
+├➤ *.anticallvid on/off*
 ├➤ *.autocleaner on/off*
 ├➤ *.sessioncleaner on/off*
 ╰➤ *.telegram*
@@ -6660,8 +6680,12 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.stickerpack [query]*
 ├➤ *.toimg*
 ├➤ *.react / .reaksi [reply pesan]*
+├➤ *.cekreact*
 ├➤ *.listgroup*
-╰➤ *.group*
+├➤ *.group*
+├➤ *.welcome on/off*
+├➤ *.goodbye on/off*
+╰➤ *.welgod on/off*
 
 `;
 
@@ -6811,6 +6835,9 @@ _memberikan pengalaman terbaik!"_ ✨
 ├➤ *.upbot*
 ├➤ *.dbstats / .sessiondb*
 ├➤ *.listcontact*
+├➤ *.setreactapi [key]*
+├➤ *.swgrup / .statusgroup [reply media]*
+├➤ *.infowibu*
 ├➤ *.all [teks]*
 ├➤ *.ac [nomor]*
 ├➤ *.acv [nomor]*
