@@ -6493,6 +6493,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ├➤ *.ac / .acv*  _→ Anti call/video_
 ├➤ *.swgrup / .statusgroup*  _→ Kirim status ke grup_
 ├➤ *.infowibu*  _→ Auto info wibu di grup_
+├➤ *.animasu*  _→ Auto notif Sub Indo Animasu_
 ├➤ *.wilyai on/off*  _→ AI auto-reply_
 ├➤ *.wily / .simi*  _→ AI manual_
 ├➤ *.setreactapi [key]*  _→ Set API react_
@@ -6638,7 +6639,7 @@ jadibot [nomor] [durasi] | stopbot | listbot
 
 「 👑 *OWNER ONLY* 」
 listowner | addowner | delowner
-all | swgrup/statusgroup | infowibu
+all | swgrup/statusgroup | infowibu | animasu
 wily | simi | wilyai on/off | wilyai pm/gc/all | wilyai reset
 setreactapi | addemoji | delemoji | listemoji
 upbot | backup | ceksesi | eval | bash
@@ -6996,8 +6997,10 @@ cekerror | cekerror reset | contact
 │   _Tag/broadcast ke semua grup_
 ├➤ *.swgrup / .statusgroup [reply media]*
 │   _Kirim status ke semua grup_
-╰➤ *.infowibu*
-   _Kirim info wibu otomatis ke grup_
+├➤ *.infowibu*
+│   _Kirim info wibu otomatis ke grup_
+╰➤ *.animasu on/off/test/status*
+   _Auto notif episode Sub Indo dari Animasu_
 
 ╭─「 🛠️ *TOOLS TEKNIS* 」
 │
@@ -13361,7 +13364,7 @@ infoText += `╰═════════════════════�
                                 break;
                         }
 
-                        case 'infowibu2': {
+                        case 'animasu': {
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
@@ -13382,10 +13385,10 @@ infoText += `╰═════════════════════�
                                                 `│ Status di grup ini: ${aktif ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
                                                 `│\n` +
                                                 `│ *Perintah:*\n` +
-                                                `│ • ${pfx}infowibu2 on — aktifkan\n` +
-                                                `│ • ${pfx}infowibu2 off — nonaktifkan\n` +
-                                                `│ • ${pfx}infowibu2 test — kirim test sekarang\n` +
-                                                `│ • ${pfx}infowibu2 status — lihat semua grup\n` +
+                                                `│ • ${pfx}animasu on — aktifkan\n` +
+                                                `│ • ${pfx}animasu off — nonaktifkan\n` +
+                                                `│ • ${pfx}animasu test — kirim test sekarang\n` +
+                                                `│ • ${pfx}animasu status — lihat semua grup\n` +
                                                 `│\n` +
                                                 `│ 💡 Bot otomatis kirim notif saat episode\n` +
                                                 `│    baru Sub Indo sudah tersedia di Animasu.\n` +
@@ -13400,10 +13403,10 @@ infoText += `╰═════════════════════�
                                         await tolak(hisoka, m,
                                                 `✅ *Animasu Sub Indo aktif di grup ini!*\n\n` +
                                                 `Bot akan otomatis kirim notifikasi saat episode baru Sub Indo tersedia di Animasu.\n` +
-                                                `Ketik *${pfx}infowibu2 off* untuk menonaktifkan.`
+                                                `Ketik *${pfx}animasu off* untuk menonaktifkan.`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                        logCommand(m, hisoka, 'infowibu2-on');
+                                        logCommand(m, hisoka, 'animasu-on');
                                         break;
                                 }
 
@@ -13412,10 +13415,10 @@ infoText += `╰═════════════════════�
                                         fs.writeFileSync(cfgPathAM, JSON.stringify(cfgAM, null, 2));
                                         await tolak(hisoka, m,
                                                 `❌ *Animasu Sub Indo dinonaktifkan di grup ini.*\n\n` +
-                                                `Ketik *${pfx}infowibu2 on* untuk mengaktifkan kembali.`
+                                                `Ketik *${pfx}animasu on* untuk mengaktifkan kembali.`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                        logCommand(m, hisoka, 'infowibu2-off');
+                                        logCommand(m, hisoka, 'animasu-off');
                                         break;
                                 }
 
@@ -13510,7 +13513,7 @@ infoText += `╰═════════════════════�
                                                         await tolak(hisoka, m, hasil.caption);
                                                 }
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                                logCommand(m, hisoka, 'infowibu2-test');
+                                                logCommand(m, hisoka, 'animasu-test');
                                         } catch (err) {
                                                 await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
                                                 await tolak(hisoka, m, `❌ Gagal fetch Animasu: ${err?.message || err}`);
@@ -13518,7 +13521,7 @@ infoText += `╰═════════════════════�
                                         break;
                                 }
 
-                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}infowibu2* untuk bantuan.`);
+                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}animasu* untuk bantuan.`);
                                 break;
                         }
 
