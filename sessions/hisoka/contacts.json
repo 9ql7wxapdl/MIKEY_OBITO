@@ -901,7 +901,8 @@
     "id": "6281393564657@s.whatsapp.net",
     "name": "Yus ( Donasi Jadi Bot )",
     "lid": "174577888038922@lid",
-    "jid": "6281393564657@s.whatsapp.net"
+    "jid": "6281393564657@s.whatsapp.net",
+    "notify": "γυς ρου"
   },
   "6285229441737@s.whatsapp.net": {
     "isContact": true,
@@ -2967,7 +2968,8 @@
     "id": "6281374976765@s.whatsapp.net",
     "name": "√tita💅",
     "lid": "195713338183899@lid",
-    "jid": "6281374976765@s.whatsapp.net"
+    "jid": "6281374976765@s.whatsapp.net",
+    "notify": "."
   },
   "6287748574387@s.whatsapp.net": {
     "isContact": true,
@@ -16785,7 +16787,8 @@
     "id": "6281295543915@s.whatsapp.net",
     "name": "Remi_ikan 111",
     "lid": "26547712958494@lid",
-    "jid": "6281295543915@s.whatsapp.net"
+    "jid": "6281295543915@s.whatsapp.net",
+    "notify": "Arthur.remi_kan"
   },
   "62882015661599@s.whatsapp.net": {
     "isContact": true,
@@ -23222,7 +23225,8 @@
     "id": "6289678522775@s.whatsapp.net",
     "name": "! Zacky Ariansyah",
     "lid": "193020829909081@lid",
-    "jid": "6289678522775@s.whatsapp.net"
+    "jid": "6289678522775@s.whatsapp.net",
+    "notify": "Zacky Ariansyah"
   },
   "6283873058380@s.whatsapp.net": {
     "isContact": true,
@@ -31407,6 +31411,51 @@
   "82085951885539@lid": {
     "id": "82085951885539@lid",
     "lid": "82085951885539@lid",
+    "imgUrl": "changed"
+  },
+  "177683417813151@lid": {
+    "id": "177683417813151@lid",
+    "lid": "177683417813151@lid",
+    "imgUrl": "removed"
+  },
+  "268285484523611@lid": {
+    "id": "268285484523611@lid",
+    "lid": "268285484523611@lid",
+    "imgUrl": "changed"
+  },
+  "140698850476252@lid": {
+    "id": "140698850476252@lid",
+    "lid": "140698850476252@lid",
+    "imgUrl": "changed"
+  },
+  "104222179745893@lid": {
+    "id": "104222179745893@lid",
+    "lid": "104222179745893@lid",
+    "imgUrl": "removed"
+  },
+  "114074331439279@lid": {
+    "id": "114074331439279@lid",
+    "lid": "114074331439279@lid",
+    "imgUrl": "removed"
+  },
+  "117111309480116@lid": {
+    "id": "117111309480116@lid",
+    "lid": "117111309480116@lid",
+    "imgUrl": "changed"
+  },
+  "269380499808481@lid": {
+    "id": "269380499808481@lid",
+    "lid": "269380499808481@lid",
+    "imgUrl": "changed"
+  },
+  "93342725578847@lid": {
+    "id": "93342725578847@lid",
+    "lid": "93342725578847@lid",
+    "imgUrl": "changed"
+  },
+  "9444717027354@lid": {
+    "id": "9444717027354@lid",
+    "lid": "9444717027354@lid",
     "imgUrl": "changed"
   }
 }
