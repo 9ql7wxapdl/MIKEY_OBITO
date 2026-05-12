@@ -92,7 +92,7 @@
     "logIntervalMs": 300000,
     "logUsage": true,
     "autoDetectLimit": true,
-    "autoDetectPercentage": 90
+    "autoDetectPercentage": 1000
   },
   "welcomeGoodbye": {
     "enabled": false,
