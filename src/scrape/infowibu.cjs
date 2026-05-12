@@ -140,6 +140,7 @@ query ($dari: Int, $sampai: Int) {
         siteUrl
         studios { nodes { name isAnimationStudio } }
         trailer { id site thumbnail }
+        countryOfOrigin
         season
         seasonYear
         seasonInt
@@ -196,6 +197,7 @@ query ($halaman: Int, $jumlah: Int) {
       siteUrl
       studios { nodes { name isAnimationStudio } }
       trailer { id site thumbnail }
+      countryOfOrigin
       startDate { year month day }
       nextAiringEpisode { episode airingAt timeUntilAiring }
     }
@@ -443,18 +445,20 @@ async function buatCaptionEpisode(item) {
     const hashtag      = a.hashtag || '';
     const semuaGenre   = (a.genres || []).map(g => PETA_GENRE[g] || g).join(', ') || '-';
     const urlTrailer   = ambilUrlTrailer(a.trailer);
+    const negara       = labelNegara(a.countryOfOrigin);
+    const formatFull   = negara ? `${formatAnime} (${negara})` : formatAnime;
 
     // Judul tambahan (native & inggris)
     const judulNative  = a.title?.native  ? `_${a.title.native}_`  : '';
     const judulInggris = a.title?.english && a.title.english !== judul ? `_${a.title.english}_` : '';
     const barisTambahan = [judulNative, judulInggris].filter(Boolean).join('\n');
 
-    // Sinonim (ambil max 2 yang paling pendek supaya tidak kepanjangan)
-    const sinonim = (a.synonyms || [])
-        .filter(s => s && s.length <= 60)
-        .slice(0, 2)
+    // Semua sinonim (maks 4, panjang ≤ 80 karakter)
+    const sinonimList = (a.synonyms || [])
+        .filter(s => s && s.length <= 80)
+        .slice(0, 4)
         .map(s => `_${s}_`)
-        .join(' • ');
+        .join('\n');
 
     // Sinopsis
     const deskripsiAsli = bersihkanDeskripsi(a.description, 350);
@@ -474,7 +478,7 @@ async function buatCaptionEpisode(item) {
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
         `${barisTambahan ? barisTambahan + '\n' : ''}` +
-        `${sinonim ? sinonim + '\n' : ''}` +
+        `${sinonimList ? sinonimList + '\n' : ''}` +
         `\n${barisEpHead}\n` +
         `${barisEpBar ? barisEpBar + '\n' : ''}` +
         `${epBerikutnya ? epBerikutnya + '\n' : ''}` +
@@ -482,7 +486,7 @@ async function buatCaptionEpisode(item) {
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
         `📋 *Info Anime*\n` +
-        `🗂️ *Format:* ${formatAnime}${durasi ? `  •  ⏱️ ${durasi}` : ''}\n` +
+        `🗂️ *Format:* ${formatFull}${durasi ? `  •  ⏱️ ${durasi}` : ''}\n` +
         `📦 *Total:* ${totalEps > 0 ? totalEps + ' eps' : '?'}\n` +
         `📚 *Sumber:* _${sumber}_${hashtag ? `  •  _${hashtag}_` : ''}\n` +
         `🗓️ *Mulai:* ${tanggalMulai}\n` +
@@ -518,16 +522,18 @@ async function buatCaption(post, opsi = {}) {
     const semuaGenre   = (a.genres || []).map(g => PETA_GENRE[g] || g).join(', ') || '-';
     const totalEps     = a.episodes ? `${a.episodes} eps` : '?';
     const urlTrailer   = ambilUrlTrailer(a.trailer);
+    const negara       = labelNegara(a.countryOfOrigin);
+    const formatFull   = negara ? `${formatAnime} (${negara})` : formatAnime;
 
     const judulNative  = a.title?.native  ? `_${a.title.native}_`  : '';
     const judulInggris = a.title?.english && a.title.english !== judul ? `_${a.title.english}_` : '';
     const barisTambahan = [judulNative, judulInggris].filter(Boolean).join('\n');
 
-    const sinonim = (a.synonyms || [])
-        .filter(s => s && s.length <= 60)
-        .slice(0, 2)
+    const sinonimList = (a.synonyms || [])
+        .filter(s => s && s.length <= 80)
+        .slice(0, 4)
         .map(s => `_${s}_`)
-        .join(' • ');
+        .join('\n');
 
     let epBerikutnya = '';
     if (a.nextAiringEpisode) {
@@ -547,14 +553,14 @@ async function buatCaption(post, opsi = {}) {
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
         `${barisTambahan ? barisTambahan + '\n' : ''}` +
-        `${sinonim ? sinonim + '\n' : ''}` +
+        `${sinonimList ? sinonimList + '\n' : ''}` +
         `\n📺 *Total:* ${totalEps}\n` +
         `${epBerikutnya ? epBerikutnya + '\n' : ''}` +
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
         `📋 *Info Anime*\n` +
-        `🗂️ *Format:* ${formatAnime}${durasi ? `  •  ⏱️ ${durasi}` : ''}\n` +
+        `🗂️ *Format:* ${formatFull}${durasi ? `  •  ⏱️ ${durasi}` : ''}\n` +
         `📚 *Sumber:* _${sumber}_${hashtag ? `  •  _${hashtag}_` : ''}\n` +
         `🗓️ *Mulai:* ${tanggalMulai}\n` +
         `🌸 *Musim:* _${musim}_\n` +
@@ -590,6 +596,17 @@ function ambilUrlTrailer(trailer) {
     if (site === 'youtube')     return `https://www.youtube.com/watch?v=${trailer.id}`;
     if (site === 'dailymotion') return `https://www.dailymotion.com/video/${trailer.id}`;
     return null;
+}
+
+// Terjemahkan kode negara asal ke label bahasa Indonesia
+const PETA_NEGARA = {
+    'JP': '',
+    'CN': 'Chinese',
+    'KR': 'Korean',
+    'TW': 'Taiwanese',
+};
+function labelNegara(countryOfOrigin) {
+    return PETA_NEGARA[String(countryOfOrigin || '').toUpperCase()] || '';
 }
 
 // Pisahkan studio animasi dan produser dari daftar studios AniList

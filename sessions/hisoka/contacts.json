@@ -13609,7 +13609,8 @@
     "id": "6282252134009@s.whatsapp.net",
     "name": "√ Elisa",
     "lid": "76790290767977@lid",
-    "jid": "6282252134009@s.whatsapp.net"
+    "jid": "6282252134009@s.whatsapp.net",
+    "notify": "NAKIRA || VON SARTSZAN"
   },
   "6285340434480@s.whatsapp.net": {
     "isContact": true,
@@ -24470,7 +24471,8 @@
     "id": "6289667923162@s.whatsapp.net",
     "name": "Hen V2",
     "lid": "97968623505429@lid",
-    "jid": "6289667923162@s.whatsapp.net"
+    "jid": "6289667923162@s.whatsapp.net",
+    "notify": "Hen V2"
   },
   "6283137862384@s.whatsapp.net": {
     "isContact": true,
@@ -31364,5 +31366,10 @@
     "id": "153296375427149@lid",
     "lid": "153296375427149@lid",
     "imgUrl": "changed"
+  },
+  "97968623505429@lid": {
+    "id": "97968623505429@lid",
+    "lid": "97968623505429@lid",
+    "notify": "Hen V2"
   }
 }
