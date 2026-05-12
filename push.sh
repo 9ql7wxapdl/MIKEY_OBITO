@@ -3945,13 +3945,8 @@ action_create_branch() {
 
 # ===== Action: hapus branch =====
 action_delete_branch() {
-  clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_BOLD}│   🗑️   HAPUS BRANCH              │${C_RESET}"
-  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
-  echo -e "  ${C_DIM}default dilindungi: ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
-  echo ""
+  local _DB_PAGE="${_DB_PAGE:-1}"
+  local _DB_PAGE_SIZE=8
 
   local branches=()
   while IFS= read -r b; do
@@ -3959,28 +3954,76 @@ action_delete_branch() {
   done < <(fetch_branches)
 
   local total=${#branches[@]}
+
+  local total_pages=$(( (total + _DB_PAGE_SIZE - 1) / _DB_PAGE_SIZE ))
+  [ "$total_pages" -eq 0 ] && total_pages=1
+  [ "$_DB_PAGE" -gt "$total_pages" ] && _DB_PAGE=$total_pages
+  [ "$_DB_PAGE" -lt 1 ] && _DB_PAGE=1
+
+  local start=$(( (_DB_PAGE - 1) * _DB_PAGE_SIZE ))
+  local end=$(( start + _DB_PAGE_SIZE ))
+  [ "$end" -gt "$total" ] && end="$total"
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🗑️   HAPUS BRANCH              │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}repo    ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo -e "  ${C_DIM}protect ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}${C_DIM}  (default, tidak bisa dihapus)${C_RESET}"
   if [ "$total" -eq 0 ]; then
+    echo ""
     echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch yang bisa dihapus${C_RESET}"
-    echo -e "  ${C_DIM}   (hanya branch default '${DEFAULT_BRANCH}' yang ada)${C_RESET}"
     prompt_back_or_exit
     return
   fi
+  if [ "$total_pages" -gt 1 ]; then
+    echo -e "  ${C_DIM}posisi ${C_RESET}${C_BOLD}$(( start + 1 ))–${end}${C_RESET}${C_DIM} dari ${total} branch  •  hal ${_DB_PAGE}/${total_pages}${C_RESET}"
+  else
+    echo -e "  ${C_DIM}total  ${C_RESET}${C_BOLD}${total} branch${C_RESET}"
+  fi
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+  for (( i=start; i<end; i++ )); do
+    printf "  ${C_YELLOW}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$(( i + 1 ))" "${branches[$i]}"
+  done
 
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  local i=1
-  for b in "${branches[@]}"; do
-    printf "  ${C_YELLOW}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
-    i=$((i + 1))
-  done
+  if [ "$total_pages" -gt 1 ]; then
+    [ "$_DB_PAGE" -lt "$total_pages" ] && \
+      echo -e "  ${C_CYAN} n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya"
+    [ "$_DB_PAGE" -gt 1 ] && \
+      echo -e "  ${C_CYAN} p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya"
+  fi
   echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_DIM}multi-hapus: pisahkan dengan koma/spasi  •  ${C_BOLD}all${C_RESET}${C_DIM} = semua${C_RESET}"
+  echo -e "  ${C_DIM}ketik nomor (1-${total})  •  multi: ${C_RESET}${C_BOLD}1,3${C_RESET}${C_DIM} / ${C_RESET}${C_BOLD}1 3${C_RESET}${C_DIM}  •  ${C_RESET}${C_BOLD}all${C_RESET}${C_DIM} = semua${C_RESET}"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local pick
   read -r pick
   pick="${pick:-0}"
+
+  case "$pick" in
+    n|N)
+      if [ "$_DB_PAGE" -lt "$total_pages" ]; then
+        _DB_PAGE=$(( _DB_PAGE + 1 )) action_delete_branch
+      else
+        _DB_PAGE=$_DB_PAGE action_delete_branch
+      fi
+      return
+      ;;
+    p|P)
+      if [ "$_DB_PAGE" -gt 1 ]; then
+        _DB_PAGE=$(( _DB_PAGE - 1 )) action_delete_branch
+      else
+        _DB_PAGE=$_DB_PAGE action_delete_branch
+      fi
+      return
+      ;;
+  esac
 
   if [ "$pick" = "0" ]; then
     echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
