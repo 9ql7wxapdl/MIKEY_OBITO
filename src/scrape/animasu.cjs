@@ -99,8 +99,10 @@ function parseDetailPage(html, animeUrl) {
     const judulAlt = alterMatch ? stripHtml(alterMatch[1]) : '';
 
     // Cover image — ambil dari div.thumb (portrait, bukan banner)
+    // Konversi WP Jetpack CDN (i{n}.wp.com) ke URL asli untuk kualitas penuh
     const coverMatch = html.match(/<div class="thumb"[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"/i);
-    const cover = coverMatch ? coverMatch[1].split('?')[0] : '';
+    const coverRaw   = coverMatch ? coverMatch[1].split('?')[0] : '';
+    const cover      = coverRaw.replace(/^https?:\/\/i\d+\.wp\.com\//, 'https://');
 
     // Info fields dari div.spe
     const speMatch = html.match(/<div class="spe">([\s\S]*?)<\/div>/i);
@@ -159,7 +161,8 @@ async function fetchHtml(url) {
 }
 
 async function fetchRecentPosts(count = 10) {
-    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,slug,title,_embedded`;
+    // Catatan: jangan masukkan '_embedded' di _fields — WP menambahkannya otomatis saat _embed dipakai
+    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,slug,title`;
     const r   = await axios.get(url, { headers: HEADERS, timeout: 15000 });
     return r.data;
 }
@@ -270,10 +273,16 @@ function buatCaption(data) {
     const sinopsisBlock = potongSinopsis(sinopsis).split('\n').map(b => `> ${b}`).join('\n');
     const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
+    // Tampilkan "X/Y ep" hanya kalau anime sudah selesai tayang; kalau ongoing cukup "X ep tersedia"
+    const sedangTayang = (status || '').toLowerCase().includes('tayang') && !(status || '').toLowerCase().includes('selesai');
+    const epInfo = totalEp
+        ? (sedangTayang ? `${totalEp} ep tersedia` : `${totalEp} ep`)
+        : null;
+
     const seksi1 = buatBarisInfo([
         ['🗂️ *Jenis*   ', jenis  || null],
         ['⏱️ *Durasi*  ', durasi || null],
-        ['📦 *Episode* ', totalEp ? `${ep}/${totalEp} ep` : ep ? `${ep}` : null],
+        ['📦 *Episode* ', epInfo],
         ['🗓️ *Rilis*   ', rilis  || null],
         ['🌸 *Musim*   ', musim  || null],
         ['📡 *Status*  ', status || null],
@@ -290,7 +299,7 @@ function buatCaption(data) {
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
         `${judulAlt ? `_${judulAlt}_\n` : ''}` +
-        `\n📺 *Episode ${ep}*${totalEp ? ` _(${ep}/${totalEp})_` : ''}\n` +
+        `\n📺 *Episode ${ep}*${(totalEp && !sedangTayang) ? ` _(${ep}/${totalEp})_` : ''}\n` +
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +

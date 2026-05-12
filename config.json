@@ -114,8 +114,16 @@
     "enabled": true,
     "groups": {
       "120363192554714254@g.us": {
+        "enabled": false,
+        "diubahPada": 1778575655811
+      }
+    }
+  },
+  "animasu": {
+    "groups": {
+      "120363192554714254@g.us": {
         "enabled": true,
-        "diubahPada": 1778484341112
+        "diubahPada": 1778575660091
       }
     }
   }
