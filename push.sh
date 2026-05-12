@@ -4109,13 +4109,8 @@ action_delete_branch() {
 
 # ===== Menu pemilih branch (sub-menu dari opsi 1) =====
 show_menu() {
-  clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_BOLD}│   📤  UPLOAD — PILIH BRANCH      │${C_RESET}"
-  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
-  echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo ""
+  local _SM_PAGE="${_SM_PAGE:-1}"
+  local _SM_PAGE_SIZE=8
 
   local branches=()
   while IFS= read -r b; do
@@ -4123,18 +4118,44 @@ show_menu() {
   done < <(fetch_branches)
 
   local total=${#branches[@]}
+  local total_pages=$(( (total + _SM_PAGE_SIZE - 1) / _SM_PAGE_SIZE ))
+  [ "$total_pages" -eq 0 ] && total_pages=1
+  [ "$_SM_PAGE" -gt "$total_pages" ] && _SM_PAGE=$total_pages
+  [ "$_SM_PAGE" -lt 1 ] && _SM_PAGE=1
+
+  local start=$(( (_SM_PAGE - 1) * _SM_PAGE_SIZE ))
+  local end=$(( start + _SM_PAGE_SIZE ))
+  [ "$end" -gt "$total" ] && end="$total"
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📤  UPLOAD — PILIH BRANCH      │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    echo -e "  ${C_DIM}hal   ${C_RESET}${C_BOLD}${_SM_PAGE}${C_DIM}/${total_pages}${C_RESET}  ${C_DIM}(${total} branch)${C_RESET}"
+  fi
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+  for (( i=start; i<end; i++ )); do
+    local b="${branches[$i]}"
+    local num=$(( i + 1 ))
+    if [ "$b" = "$DEFAULT_BRANCH" ]; then
+      printf "  ${C_GREEN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s  ${C_DIM}(default)${C_RESET}\n" "$num" "$b"
+    else
+      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$num" "$b"
+    fi
+  done
 
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  local i=1
-  for b in "${branches[@]}"; do
-    if [ "$b" = "$DEFAULT_BRANCH" ]; then
-      printf "  ${C_GREEN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s  ${C_DIM}(default)${C_RESET}\n" "$i" "$b"
-    else
-      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
-    fi
-    i=$((i + 1))
-  done
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    [ "$_SM_PAGE" -lt "$total_pages" ] && \
+      echo -e "  ${C_CYAN} n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya"
+    [ "$_SM_PAGE" -gt 1 ] && \
+      echo -e "  ${C_CYAN} p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya"
+  fi
   echo -e "  ${C_YELLOW} A${C_RESET} ${C_BOLD}›${C_RESET} Semua branch"
   echo -e "  ${C_GREEN} D${C_RESET} ${C_BOLD}›${C_RESET} Default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
   echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali"
@@ -4146,6 +4167,22 @@ show_menu() {
   choice="${choice:-D}"
 
   case "$choice" in
+    n|N)
+      if [ "$_SM_PAGE" -lt "$total_pages" ]; then
+        _SM_PAGE=$(( _SM_PAGE + 1 )) show_menu
+      else
+        show_menu
+      fi
+      return
+      ;;
+    p|P)
+      if [ "$_SM_PAGE" -gt 1 ]; then
+        _SM_PAGE=$(( _SM_PAGE - 1 )) show_menu
+      else
+        show_menu
+      fi
+      return
+      ;;
     0|q|Q|exit)
       goodbye_prompt
       ;;
@@ -4156,9 +4193,9 @@ show_menu() {
       SELECTED_BRANCHES=("$DEFAULT_BRANCH")
       ;;
     *[!0-9]*)
-      echo -e "${C_RED}✖ Pilihan tidak valid: '${choice}'${C_RESET} ${C_DIM}(hanya angka, A, D, atau 0)${C_RESET}"
+      echo -e "${C_RED}✖ Pilihan tidak valid: '${choice}'${C_RESET}"
       sleep 1
-      show_menu
+      _SM_PAGE=$_SM_PAGE show_menu
       return
       ;;
     *)
@@ -4167,7 +4204,7 @@ show_menu() {
       else
         echo -e "${C_RED}✖ Nomor ${choice} di luar range${C_RESET} ${C_DIM}(1-${total})${C_RESET}"
         sleep 1
-        show_menu
+        _SM_PAGE=$_SM_PAGE show_menu
         return
       fi
       ;;
