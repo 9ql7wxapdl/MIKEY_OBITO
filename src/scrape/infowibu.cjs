@@ -266,33 +266,8 @@ function bersihkanDeskripsi(teks, maks = 250) {
     return hasil;
 }
 
-// ── PETA GENRE & MUSIM KE BAHASA INDONESIA ───────────────────────────────────
+// ── PETA MUSIM & HELPER GENRE ─────────────────────────────────────────────────
 
-const PETA_GENRE = {
-    'Action'          : 'Aksi',
-    'Adventure'       : 'Petualangan',
-    'Comedy'          : 'Komedi',
-    'Drama'           : 'Drama',
-    'Ecchi'           : 'Ecchi',
-    'Fantasy'         : 'Fantasi',
-    'Horror'          : 'Horor',
-    'Mahou Shoujo'    : 'Sihir',
-    'Mecha'           : 'Mecha',
-    'Music'           : 'Musik',
-    'Mystery'         : 'Misteri',
-    'Psychological'   : 'Psikologi',
-    'Romance'         : 'Romansa',
-    'Sci-Fi'          : 'Fiksi Ilmiah',
-    'Slice of Life'   : 'Kehidupan Sehari-hari',
-    'Sports'          : 'Olahraga',
-    'Supernatural'    : 'Supranatural',
-    'Thriller'        : 'Thriller',
-    'Hentai'          : 'Dewasa',
-    'Shounen'         : 'Shounen',
-    'Shoujo'          : 'Shoujo',
-    'Seinen'          : 'Seinen',
-    'Josei'           : 'Josei',
-};
 
 const PETA_MUSIM = {
     'SPRING' : 'Musim Semi',
@@ -301,12 +276,8 @@ const PETA_MUSIM = {
     'WINTER' : 'Musim Dingin',
 };
 
-// Terjemahkan daftar genre ke Bahasa Indonesia
 function terjemahkanGenre(daftarGenre) {
-    return (daftarGenre || [])
-        .slice(0, 4)
-        .map(g => PETA_GENRE[g] || g)
-        .join(', ') || '-';
+    return (daftarGenre || []).slice(0, 4).join(', ') || '-';
 }
 
 // Terjemahkan nama musim ke Bahasa Indonesia
@@ -453,7 +424,7 @@ async function buatCaptionEpisode(item) {
     const popularitas  = a.popularity ? a.popularity.toLocaleString('id-ID') : '-';
     const favorit      = a.favourites ? a.favourites.toLocaleString('id-ID') : '-';
     const hashtag      = a.hashtag || '';
-    const semuaGenre   = (a.genres || []).map(g => PETA_GENRE[g] || g).join(', ') || '-';
+    const semuaGenre   = (a.genres || []).slice(0, 4).join(', ') || '-';
     const urlTrailer   = ambilUrlTrailer(a.trailer);
     const negara       = labelNegara(a.countryOfOrigin);
     const formatFull   = negara ? `${formatAnime} (${negara})` : formatAnime;
@@ -549,7 +520,7 @@ async function buatCaption(post, opsi = {}) {
     const popularitas  = a.popularity ? a.popularity.toLocaleString('id-ID') : '-';
     const favorit      = a.favourites ? a.favourites.toLocaleString('id-ID') : '-';
     const hashtag      = a.hashtag || '';
-    const semuaGenre   = (a.genres || []).map(g => PETA_GENRE[g] || g).join(', ') || '-';
+    const semuaGenre   = (a.genres || []).slice(0, 4).join(', ') || '-';
     const totalEps     = a.episodes ? `${a.episodes} eps` : '?';
     const urlTrailer   = ambilUrlTrailer(a.trailer);
     const negara       = labelNegara(a.countryOfOrigin);
