@@ -5931,7 +5931,8 @@
     "id": "6283121471949@s.whatsapp.net",
     "name": "Sigit",
     "lid": "127461811601572@lid",
-    "jid": "6283121471949@s.whatsapp.net"
+    "jid": "6283121471949@s.whatsapp.net",
+    "notify": "Sgt"
   },
   "6281271583278@s.whatsapp.net": {
     "isContact": true,
@@ -31657,11 +31658,31 @@
   "211862515904558@lid": {
     "id": "211862515904558@lid",
     "lid": "211862515904558@lid",
-    "imgUrl": "changed"
+    "imgUrl": "removed"
   },
   "211119369134180@lid": {
     "id": "211119369134180@lid",
     "lid": "211119369134180@lid",
+    "imgUrl": "changed"
+  },
+  "4870711021709@lid": {
+    "id": "4870711021709@lid",
+    "lid": "4870711021709@lid",
+    "imgUrl": "changed"
+  },
+  "124167722692832@lid": {
+    "id": "124167722692832@lid",
+    "lid": "124167722692832@lid",
+    "imgUrl": "changed"
+  },
+  "173074884341802@lid": {
+    "id": "173074884341802@lid",
+    "lid": "173074884341802@lid",
+    "imgUrl": "changed"
+  },
+  "271210222997642@lid": {
+    "id": "271210222997642@lid",
+    "lid": "271210222997642@lid",
     "imgUrl": "changed"
   }
 }
