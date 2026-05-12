@@ -1412,33 +1412,121 @@ banner() {
   _thn=$(date '+%Y'  2>/dev/null || echo "")
   _jam=$(date '+%H:%M:%S' 2>/dev/null || echo "")
 
+  # ── Status branch realtime ──
+  local _ahead _behind _staged _modified _untracked _deleted
+  local _last_msg _last_time _last_author _total_commit _branch_local
+  _ahead=$(git rev-list --count "@{u}..HEAD" 2>/dev/null || echo "0")
+  _behind=$(git rev-list --count "HEAD..@{u}" 2>/dev/null || echo "0")
+
+  # Hitung staged / modified / untracked / deleted secara terpisah
+  local _st
+  _st=$(git status --porcelain 2>/dev/null)
+  _staged=$(echo "$_st"    | grep -E '^[ADMRC]'  2>/dev/null | wc -l | tr -d ' ')
+  _modified=$(echo "$_st"  | grep -E '^ M'        2>/dev/null | wc -l | tr -d ' ')
+  _untracked=$(echo "$_st" | grep -E '^\?\?'       2>/dev/null | wc -l | tr -d ' ')
+  _deleted=$(echo "$_st"   | grep -E '^ D|^D'      2>/dev/null | wc -l | tr -d ' ')
+
+  # Info commit terakhir
+  _last_msg=$(git log -1 --format='%s' 2>/dev/null | cut -c1-28 || echo "-")
+  _last_time=$(git log -1 --format='%ar' 2>/dev/null || echo "-")
+  _last_author=$(git log -1 --format='%an' 2>/dev/null | cut -c1-16 || echo "-")
+  _total_commit=$(git rev-list --count HEAD 2>/dev/null || echo "?")
+  _branch_local=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "-")
+
+  # Label sync status
+  local _sync_label _sync_color
+  if [ "$_ahead" -gt 0 ] 2>/dev/null && [ "$_behind" -gt 0 ] 2>/dev/null; then
+    _sync_label="↑${_ahead} belum push  ↓${_behind} belum pull"
+    _sync_color="$C_YELLOW"
+  elif [ "$_ahead" -gt 0 ] 2>/dev/null; then
+    _sync_label="↑ ${_ahead} commit belum di-push"
+    _sync_color="$C_GREEN"
+  elif [ "$_behind" -gt 0 ] 2>/dev/null; then
+    _sync_label="↓ ${_behind} commit belum di-pull"
+    _sync_color="$C_RED"
+  else
+    _sync_label="✓ sinkron dengan remote"
+    _sync_color="$C_DIM"
+  fi
+
+  # ── Notif push terakhir dari log (realtime) ──
+  local _notif_line _notif_status _notif_branch _notif_hash _notif_files _notif_msg _notif_ts
+  _notif_line=""
+  if [ -f "$PUSH_LOG_FILE" ] && [ -s "$PUSH_LOG_FILE" ]; then
+    _notif_line=$(tail -1 "$PUSH_LOG_FILE" 2>/dev/null)
+  fi
+
+  local _notif_icon _notif_color
+  if [ -n "$_notif_line" ]; then
+    # Format: [2026-05-08 14:44:32] OK     | branch: xxx | hash: yyy | file: z | msg
+    _notif_ts=$(echo "$_notif_line"     | grep -oE '^\[[^]]+\]' | tr -d '[]')
+    _notif_status=$(echo "$_notif_line" | grep -oE '\] [A-Z(a-z)]+\s' | tr -d '] ' | tr -d ' ')
+    _notif_branch=$(echo "$_notif_line" | grep -oE 'branch: [^|]+' | sed 's/branch: //;s/ *$//')
+    _notif_hash=$(echo "$_notif_line"   | grep -oE 'hash: [^|]+' | sed 's/hash: //;s/ *$//')
+    _notif_files=$(echo "$_notif_line"  | grep -oE 'file: [^|]+' | sed 's/file: //;s/ *$//')
+    _notif_msg=$(echo "$_notif_line"    | sed 's/.*file: [^|]* | //')
+    case "$_notif_status" in
+      OK*)   _notif_icon="✅"; _notif_color="$C_GREEN" ;;
+      FAIL*) _notif_icon="❌"; _notif_color="$C_RED"   ;;
+      *)     _notif_icon="❓"; _notif_color="$C_DIM"   ;;
+    esac
+  fi
+
   echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
   echo -e "${C_BOLD}│  🚀  PUSH SCRIPT — BANG WILY  🚀  │${C_RESET}"
   echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo -e "  📅 ${_tgl} ${_bln} ${_thn}  ${C_CYAN}${C_BOLD}🕐 ${_jam}${C_RESET}"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   echo -e "  📁 ${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo -e "  🌿 ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  echo -e "  🌿 ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}${C_DIM}  •  ${_total_commit} commit${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${_sync_color}${_sync_label}${C_RESET}"
+  echo -e "  ${C_YELLOW}📝${_staged}${C_RESET}  ${C_CYAN}✏️ ${_modified}${C_RESET}  ${C_DIM}❓${_untracked}${C_RESET}  ${C_RED}🗑 ${_deleted}${C_RESET}${C_DIM}  (staged/mod/baru/del)${C_RESET}"
+  echo -e "  ${C_DIM}💾 ${_last_msg}  •  ${_last_time}${C_RESET}"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  # Notif push terakhir
+  if [ -n "$_notif_line" ]; then
+    echo -e "  ${C_BOLD}🔔 PUSH TERAKHIR${C_RESET}"
+    echo -e "  ${_notif_color}${_notif_icon} ${_notif_status}${C_RESET}${C_DIM}  •  ${_notif_ts}${C_RESET}"
+    echo -e "  ${C_DIM}🌿 ${_notif_branch}  •  #${_notif_hash}  •  ${_notif_files} file${C_RESET}"
+    echo -e "  ${C_DIM}💬 ${_notif_msg}${C_RESET}"
+  else
+    echo -e "  ${C_DIM}🔔 Belum ada riwayat push${C_RESET}"
+  fi
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
 }
 
 # ===== Menu utama =====
 show_main_menu() {
   banner
+  # ── Grup: Branch ──────────────────────
   echo -e "  ${C_DIM}🌿 BRANCH${C_RESET}"
-  echo -e "  ${C_GREEN} 1${C_RESET} › Upload    ${C_CYAN} 2${C_RESET} › Buat baru"
-  echo -e "  ${C_YELLOW} 3${C_RESET} › Hapus     ${C_MAGENTA} 4${C_RESET} › Ganti default"
-  echo -e "  ${C_BLUE} 5${C_RESET} › Cek token  ${C_BLUE} 7${C_RESET} › Edit nama"
-  echo -e "  ${C_GREEN} 8${C_RESET} › Status branch"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN} 1${C_RESET} ${C_BOLD}›${C_RESET} Upload ke branch"
+  echo -e "  ${C_CYAN} 2${C_RESET} ${C_BOLD}›${C_RESET} Buat branch baru"
+  echo -e "  ${C_YELLOW} 3${C_RESET} ${C_BOLD}›${C_RESET} Hapus branch"
+  echo -e "  ${C_MAGENTA} 4${C_RESET} ${C_BOLD}›${C_RESET} Ganti default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
+  echo -e "  ${C_BLUE} 5${C_RESET} ${C_BOLD}›${C_RESET} Cek token"
+  echo -e "  ${C_BLUE} 7${C_RESET} ${C_BOLD}›${C_RESET} Edit nama branch"
+  echo -e "  ${C_GREEN} 8${C_RESET} ${C_BOLD}›${C_RESET} Status branch"
+  echo ""
+  # ── Grup: Repository ──────────────────
   echo -e "  ${C_DIM}📁 REPOSITORY${C_RESET}"
-  echo -e "  ${C_BLUE} 6${C_RESET} › Rename     ${C_YELLOW} 9${C_RESET} › Buat repo"
-  echo -e "  ${C_BLUE}10${C_RESET} › Import    ${C_RED}11${C_RESET} › Hapus repo"
-  echo -e "  ${C_MAGENTA}12${C_RESET} › Semua repo ${C_CYAN}13${C_RESET} › Releases"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_GREEN} p${C_RESET} › ${C_BOLD}Quick Push${C_RESET}${C_DIM} → ${DEFAULT_BRANCH}${C_RESET}"
-  echo -e "  ${C_MAGENTA} l${C_RESET} › Riwayat push   ${C_RED} 0${C_RESET} › Keluar"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_BLUE} 6${C_RESET} ${C_BOLD}›${C_RESET} Rename repo   ${C_DIM}(${REPO})${C_RESET}"
+  echo -e "  ${C_YELLOW} 9${C_RESET} ${C_BOLD}›${C_RESET} Buat repo baru"
+  echo -e "  ${C_BLUE}10${C_RESET} ${C_BOLD}›${C_RESET} Import repo"
+  echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repo"
+  echo -e "  ${C_MAGENTA}12${C_RESET} ${C_BOLD}›${C_RESET} Semua repo"
+  echo -e "  ${C_CYAN}13${C_RESET} ${C_BOLD}›${C_RESET} Releases & Tags"
+  echo ""
+  # ── Grup: Tools ───────────────────────
+  echo -e "  ${C_DIM}⚡ LAINNYA${C_RESET}"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN} p${C_RESET} ${C_BOLD}›${C_RESET} ${C_BOLD}Quick Push${C_RESET} ${C_DIM}→ ${DEFAULT_BRANCH}${C_RESET}"
+  echo -e "  ${C_MAGENTA} l${C_RESET} ${C_BOLD}›${C_RESET} Riwayat push"
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+  echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local pick
