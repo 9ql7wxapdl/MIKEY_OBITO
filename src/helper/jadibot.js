@@ -918,7 +918,8 @@ async function startJadibot(number, sendReply, mainBotNumber, editMsg = null, se
     logger: silentLogger,
     printQRInTerminal: false,
     browser: ['Ubuntu', 'Chrome', '136.0.7103.93'],
-    keepAliveIntervalMs: 30000
+    keepAliveIntervalMs: 30000,
+    syncFullHistory: true,
   })
 
   sock.isMainBot = false
@@ -1372,7 +1373,8 @@ async function startJadibotQR(number, sendReply, sendImage, mainBotNumber, durat
     logger: silentLogger,
     printQRInTerminal: false,
     browser: ['Ubuntu', 'Chrome', '136.0.7103.93'],
-    keepAliveIntervalMs: 30000
+    keepAliveIntervalMs: 30000,
+    syncFullHistory: true,
   })
 
   sock.isMainBot = false
