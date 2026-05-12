@@ -352,6 +352,66 @@ function ambilUrlGambar(data) {
     return data?.cover || null;
 }
 
+// ── STATUS: DAFTAR ANIME SEDANG TAYANG + SISA EPISODE ────────────────────────
+
+async function getAiringStatus(jumlahPost = 40) {
+    const posts = await fetchRecentPosts(jumlahPost);
+
+    // Kelompokkan post per anime slug — ambil nomor episode terbesar per slug
+    const map = new Map();
+    for (const post of posts) {
+        const slug  = animeSlugDariPost(post);
+        const epNum = nomorEpisodeDariPost(post);
+        if (!slug) continue;
+        if (!map.has(slug) || epNum > map.get(slug).epNum) {
+            map.set(slug, { slug, epNum, postDate: post.date });
+        }
+    }
+
+    const slugList = [...map.values()];
+
+    // Fetch detail per anime secara paralel (max 6 sekaligus untuk hindari rate-limit)
+    const BATCH = 6;
+    const results = [];
+    for (let i = 0; i < slugList.length; i += BATCH) {
+        const chunk = slugList.slice(i, i + BATCH);
+        const settled = await Promise.allSettled(
+            chunk.map(async ({ slug, epNum, postDate }) => {
+                const animeUrl = `${BASE_URL}/anime/${slug}/`;
+                const html     = await fetchHtml(animeUrl);
+                const detail   = parseDetailPage(html, animeUrl);
+                const sisaEp   = (detail.totalSeri && epNum)
+                    ? Math.max(0, detail.totalSeri - epNum)
+                    : null;
+                return {
+                    judul     : detail.judul || slug,
+                    musim     : detail.musim || '-',
+                    status    : detail.status || '-',
+                    epTerbaru : epNum || detail.latestEpNum || 0,
+                    totalSeri : detail.totalSeri || 0,
+                    sisaEp,
+                    url       : animeUrl,
+                    postDate,
+                };
+            })
+        );
+        for (const s of settled) {
+            if (s.status === 'fulfilled') results.push(s.value);
+        }
+        if (i + BATCH < slugList.length) await new Promise(r => setTimeout(r, 500));
+    }
+
+    // Sort: paling banyak sisa di atas; yang tidak diketahui (null) di bawah
+    results.sort((a, b) => {
+        if (a.sisaEp === null && b.sisaEp === null) return 0;
+        if (a.sisaEp === null) return 1;
+        if (b.sisaEp === null) return -1;
+        return b.sisaEp - a.sisaEp;
+    });
+
+    return results;
+}
+
 // ── EXPORT ────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -362,4 +422,5 @@ module.exports = {
     ambilUrlGambar,
     tandaiSudahKirim,
     simulasi,
+    getAiringStatus,
 };

@@ -13365,7 +13365,7 @@ infoText += `╰═════════════════════�
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
-                                const { simulasi: simulasiAM } = _require(path.resolve('./src/scrape/animasu.cjs'));
+                                const { simulasi: simulasiAM, getAiringStatus } = _require(path.resolve('./src/scrape/animasu.cjs'));
                                 const cfgPathAM = path.join(process.cwd(), 'config.json');
                                 const sub = (query || '').trim().toLowerCase();
                                 const pfx = m.prefix || '.';
@@ -13420,19 +13420,48 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'status') {
-                                        const semuaGrup = Object.entries(cfgAM.animasu.groups || {});
-                                        if (!semuaGrup.length) {
-                                                await tolak(hisoka, m, '📋 Belum ada grup yang dikonfigurasi.');
-                                                break;
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const daftarAnime = await getAiringStatus(40);
+                                                if (!daftarAnime.length) {
+                                                        await tolak(hisoka, m, '📋 Belum ada anime yang terpantau dari Animasu saat ini.');
+                                                        break;
+                                                }
+
+                                                const waktu = new Date().toLocaleString('id-ID', {
+                                                        timeZone: 'Asia/Jakarta',
+                                                        day: '2-digit', month: 'short', year: 'numeric',
+                                                        hour: '2-digit', minute: '2-digit', hour12: false,
+                                                });
+
+                                                let txt = `╭─「 📺 *STATUS ANIME ANIMASU* 」\n`;
+                                                txt += `│ 🕐 _${waktu} WIB_\n`;
+                                                txt += `│ 📊 Total: *${daftarAnime.length} anime* terpantau\n`;
+                                                txt += `│ _(diurutkan: sisa episode terbanyak di atas)_\n`;
+                                                txt += `│\n`;
+
+                                                for (let i = 0; i < daftarAnime.length; i++) {
+                                                        const a    = daftarAnime[i];
+                                                        const no   = String(i + 1).padStart(2, '0');
+                                                        const epStr = a.totalSeri
+                                                                ? `Ep ${a.epTerbaru}/${a.totalSeri}`
+                                                                : `Ep ${a.epTerbaru || '?'}`;
+                                                        const sisaStr = a.sisaEp !== null
+                                                                ? `Sisa *${a.sisaEp} ep*`
+                                                                : `Sisa *?*`;
+                                                        const musimStr = a.musim && a.musim !== '-' ? ` · ${a.musim}` : '';
+                                                        txt += `│ *${no}.* ${a.judul}\n`;
+                                                        txt += `│     ${epStr} | ${sisaStr}${musimStr}\n`;
+                                                        if (i < daftarAnime.length - 1) txt += `│\n`;
+                                                }
+
+                                                txt += `╰──────────────────────`;
+                                                await tolak(hisoka, m, txt);
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal ambil status anime: ${err?.message || err}`);
                                         }
-                                        let txt = `╭─「 📋 *STATUS ANIMASU* 」\n│\n`;
-                                        for (const [jid, data] of semuaGrup) {
-                                                const label = jid.replace('@g.us', '');
-                                                const icon  = data.enabled ? '✅' : '❌';
-                                                txt += `│ ${icon} ${label}\n`;
-                                        }
-                                        txt += `╰──────────────────────`;
-                                        await tolak(hisoka, m, txt);
                                         break;
                                 }
 
