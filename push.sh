@@ -3671,15 +3671,9 @@ action_list_repos() {
 
 # ===== Action: edit (rename) nama branch =====
 action_rename_branch() {
-  clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_BOLD}│   ✏️   EDIT NAMA BRANCH          │${C_RESET}"
-  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
-  echo -e "  ${C_DIM}repo    ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo ""
+  local _RB_PAGE="${_RB_PAGE:-1}"
+  local _RB_PAGE_SIZE=8
 
-  # Ambil daftar branch dari GitHub
   local branches=()
   while IFS= read -r b; do
     [ -n "$b" ] && branches+=("$b")
@@ -3687,21 +3681,52 @@ action_rename_branch() {
 
   local total=${#branches[@]}
   if [ "$total" -eq 0 ]; then
-    echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch yang ditemukan.${C_RESET}"
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_YELLOW}ℹ️  Tidak ada branch yang ditemukan.${C_RESET}"
     prompt_back_or_exit
     return
   fi
 
+  local total_pages=$(( (total + _RB_PAGE_SIZE - 1) / _RB_PAGE_SIZE ))
+  [ "$total_pages" -eq 0 ] && total_pages=1
+  [ "$_RB_PAGE" -gt "$total_pages" ] && _RB_PAGE=$total_pages
+  [ "$_RB_PAGE" -lt 1 ] && _RB_PAGE=1
+
+  local start=$(( (_RB_PAGE - 1) * _RB_PAGE_SIZE ))
+  local end=$(( start + _RB_PAGE_SIZE ))
+  [ "$end" -gt "$total" ] && end="$total"
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   ✏️   EDIT NAMA BRANCH          │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    echo -e "  ${C_DIM}posisi${C_RESET} ${C_BOLD}$(( start + 1 ))–${end}${C_RESET}${C_DIM} dari ${total} branch  •  hal ${_RB_PAGE}/${total_pages}${C_RESET}"
+  else
+    echo -e "  ${C_DIM}total ${C_RESET}${C_BOLD}${total} branch${C_RESET}"
+  fi
+  echo ""
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  local i=1
-  for b in "${branches[@]}"; do
+
+  for (( i=start; i<end; i++ )); do
+    local b="${branches[$i]}"
+    local num=$(( i + 1 ))
     if [ "$b" = "$DEFAULT_BRANCH" ]; then
-      printf "  ${C_GREEN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s  ${C_DIM}(default)${C_RESET}\n" "$i" "$b"
+      printf "  ${C_GREEN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s  ${C_DIM}(default)${C_RESET}\n" "$num" "$b"
     else
-      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
+      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$num" "$b"
     fi
-    i=$((i + 1))
   done
+
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    [ "$_RB_PAGE" -lt "$total_pages" ] && \
+      echo -e "  ${C_CYAN} n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya"
+    [ "$_RB_PAGE" -gt 1 ] && \
+      echo -e "  ${C_CYAN} p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya"
+  fi
   echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}Pilih branch ▸ ${C_RESET}"
@@ -3709,6 +3734,25 @@ action_rename_branch() {
   local pick
   read -r pick
   pick="${pick:-0}"
+
+  case "$pick" in
+    n|N)
+      if [ "$_RB_PAGE" -lt "$total_pages" ]; then
+        _RB_PAGE=$(( _RB_PAGE + 1 )) action_rename_branch
+      else
+        _RB_PAGE=$_RB_PAGE action_rename_branch
+      fi
+      return
+      ;;
+    p|P)
+      if [ "$_RB_PAGE" -gt 1 ]; then
+        _RB_PAGE=$(( _RB_PAGE - 1 )) action_rename_branch
+      else
+        _RB_PAGE=$_RB_PAGE action_rename_branch
+      fi
+      return
+      ;;
+  esac
 
   if [ "$pick" = "0" ]; then
     echo -e "  ${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
@@ -3719,6 +3763,7 @@ action_rename_branch() {
   if ! echo "$pick" | grep -qE '^[0-9]+$' || [ "$pick" -lt 1 ] || [ "$pick" -gt "$total" ]; then
     echo -e "  ${C_RED}✖ Pilihan tidak valid.${C_RESET}"
     sleep 2
+    _RB_PAGE=$_RB_PAGE action_rename_branch
     return
   fi
 
