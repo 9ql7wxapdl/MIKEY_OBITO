@@ -401,8 +401,9 @@ function buatProgressBar(sekarang, total, panjang = 10) {
 
 // ── FORMAT CAPTION REALTIME (NOTIF EPISODE BARU) ──────────────────────────────
 
-// Separator pendek agar pas di layar HP (~20 karakter)
-const SEP = '──────────────────';
+// Separator garis tebal & tipis untuk WhatsApp
+const SEP  = '━━━━━━━━━━━━━━━━━━';
+const SEP2 = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄';
 
 // Format tanggal tayang berikutnya: ringkas untuk HP
 // Contoh: "Min, 17 Mei 23.00"
@@ -448,16 +449,17 @@ async function buatCaptionEpisode(item) {
     const negara       = labelNegara(a.countryOfOrigin);
     const formatFull   = negara ? `${formatAnime} (${negara})` : formatAnime;
 
-    // Judul tambahan (native & inggris)
-    const judulNative  = a.title?.native  ? `_${a.title.native}_`  : '';
+    // Judul native & inggris
+    const judulNative  = a.title?.native  ? `_${a.title.native}_` : '';
     const judulInggris = a.title?.english && a.title.english !== judul ? `_${a.title.english}_` : '';
     const barisTambahan = [judulNative, judulInggris].filter(Boolean).join('\n');
 
-    // Semua sinonim (maks 4, panjang ≤ 80 karakter)
+    // Semua sinonim — trim spasi, maks 7
     const sinonimList = (a.synonyms || [])
-        .filter(s => s && s.length <= 80)
-        .slice(0, 4)
-        .map(s => `_${s}_`)
+        .map(s => (s || '').trim())
+        .filter(s => s.length > 0 && s.length <= 100)
+        .slice(0, 7)
+        .map(s => `≡ _${s}_`)
         .join('\n');
 
     // Sinopsis
@@ -473,6 +475,8 @@ async function buatCaptionEpisode(item) {
         : `📺 *Ep ${epSekarang}*`;
     const barisEpBar  = progresBar ? `\`${progresBar}\`` : '';
 
+    const prodList = produsen !== '-' ? `╰ 🏭 _${produsen}_` : '';
+
     return (
         `🔴 *REALTIME INFO WIBU!*\n` +
         `${SEP}\n\n` +
@@ -486,20 +490,25 @@ async function buatCaptionEpisode(item) {
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
         `📋 *Info Anime*\n` +
-        `🗂️ *Format:* ${formatFull}${durasi ? `  •  ⏱️ ${durasi}` : ''}\n` +
-        `📦 *Total:* ${totalEps > 0 ? totalEps + ' eps' : '?'}\n` +
-        `📚 *Sumber:* _${sumber}_${hashtag ? `  •  _${hashtag}_` : ''}\n` +
-        `🗓️ *Mulai:* ${tanggalMulai}\n` +
-        `🌸 *Musim:* _${musim}_\n` +
-        `📡 *Status:* _${statusIndo}_\n` +
-        `🏢 *Studio:* _${studio}_\n` +
-        `🏭 *Produser:* _${produsen}_\n` +
-        `⭐ *Skor:* ${a.averageScore || '-'}%  •  📊 ${a.meanScore || '-'}%\n` +
-        `👥 *Populer:* ${popularitas}  •  ❤️ _${favorit}_\n` +
-        `🎭 *Genre:* _${semuaGenre}_\n` +
-        `${urlTrailer ? `🎬 *PV:* ${urlTrailer}\n` : ''}` +
+        `${SEP2}\n` +
+        `├ 🗂️ *Format*   : ${formatFull}\n` +
+        `├ ⏱️ *Durasi*   : ${durasi || '-'}\n` +
+        `├ 📦 *Episode*  : ${totalEps > 0 ? totalEps + ' eps' : '?'}\n` +
+        `├ 📚 *Sumber*   : _${sumber}_\n` +
+        `├ 🗓️ *Mulai*    : ${tanggalMulai}\n` +
+        `├ 🌸 *Musim*    : _${musim}_\n` +
+        `├ 📡 *Status*   : _${statusIndo}_\n` +
+        `├ 🏢 *Studio*   : _${studio}_\n` +
+        `${prodList ? prodList + '\n' : ''}` +
+        `${SEP2}\n` +
+        `├ ⭐ *Skor*     : ${a.averageScore || '-'}%  📊 ${a.meanScore || '-'}%\n` +
+        `├ 👥 *Populer*  : ${popularitas}\n` +
+        `├ ❤️ *Favorit*  : ${favorit}\n` +
+        `├ 🎭 *Genre*    : _${semuaGenre}_\n` +
+        `╰ 🏷️ *Hashtag*  : _${hashtag || '-'}_\n` +
         `${SEP}\n` +
-        `🔗 anilist.co/anime/${a.id || ''}\n` +
+        `${urlTrailer ? `🎬 *PV*  : ${urlTrailer}\n` : ''}` +
+        `🔗 *Link* : anilist.co/anime/${a.id || ''}\n` +
         `🕐 _${waktuKirim} WIB_`
     );
 }
@@ -530,9 +539,10 @@ async function buatCaption(post, opsi = {}) {
     const barisTambahan = [judulNative, judulInggris].filter(Boolean).join('\n');
 
     const sinonimList = (a.synonyms || [])
-        .filter(s => s && s.length <= 80)
-        .slice(0, 4)
-        .map(s => `_${s}_`)
+        .map(s => (s || '').trim())
+        .filter(s => s.length > 0 && s.length <= 100)
+        .slice(0, 7)
+        .map(s => `≡ _${s}_`)
         .join('\n');
 
     let epBerikutnya = '';
@@ -547,6 +557,7 @@ async function buatCaption(post, opsi = {}) {
     const deskripsi     = await terjemahkan(deskripsiAsli);
     const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const sinopsisBlock = deskripsi.split('\n').map(b => `> ${b}`).join('\n');
+    const prodList      = produsen !== '-' ? `╰ 🏭 _${produsen}_` : '';
 
     return (
         `📢 *INFO WIBU*\n` +
@@ -560,19 +571,25 @@ async function buatCaption(post, opsi = {}) {
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
         `📋 *Info Anime*\n` +
-        `🗂️ *Format:* ${formatFull}${durasi ? `  •  ⏱️ ${durasi}` : ''}\n` +
-        `📚 *Sumber:* _${sumber}_${hashtag ? `  •  _${hashtag}_` : ''}\n` +
-        `🗓️ *Mulai:* ${tanggalMulai}\n` +
-        `🌸 *Musim:* _${musim}_\n` +
-        `📡 *Status:* _${statusIndo}_\n` +
-        `🏢 *Studio:* _${studio}_\n` +
-        `🏭 *Produser:* _${produsen}_\n` +
-        `⭐ *Skor:* ${a.averageScore || '-'}%  •  📊 ${a.meanScore || '-'}%\n` +
-        `👥 *Populer:* ${popularitas}  •  ❤️ _${favorit}_\n` +
-        `🎭 *Genre:* _${semuaGenre}_\n` +
-        `${urlTrailer ? `🎬 *PV:* ${urlTrailer}\n` : ''}` +
+        `${SEP2}\n` +
+        `├ 🗂️ *Format*   : ${formatFull}\n` +
+        `├ ⏱️ *Durasi*   : ${durasi || '-'}\n` +
+        `├ 📦 *Episode*  : ${totalEps}\n` +
+        `├ 📚 *Sumber*   : _${sumber}_\n` +
+        `├ 🗓️ *Mulai*    : ${tanggalMulai}\n` +
+        `├ 🌸 *Musim*    : _${musim}_\n` +
+        `├ 📡 *Status*   : _${statusIndo}_\n` +
+        `├ 🏢 *Studio*   : _${studio}_\n` +
+        `${prodList ? prodList + '\n' : ''}` +
+        `${SEP2}\n` +
+        `├ ⭐ *Skor*     : ${a.averageScore || '-'}%  📊 ${a.meanScore || '-'}%\n` +
+        `├ 👥 *Populer*  : ${popularitas}\n` +
+        `├ ❤️ *Favorit*  : ${favorit}\n` +
+        `├ 🎭 *Genre*    : _${semuaGenre}_\n` +
+        `╰ 🏷️ *Hashtag*  : _${hashtag || '-'}_\n` +
         `${SEP}\n` +
-        `🔗 anilist.co/anime/${a.id || ''}\n` +
+        `${urlTrailer ? `🎬 *PV*  : ${urlTrailer}\n` : ''}` +
+        `🔗 *Link* : anilist.co/anime/${a.id || ''}\n` +
         `🕐 _${waktuKirim} WIB_`
     );
 }
