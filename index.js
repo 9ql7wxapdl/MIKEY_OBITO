@@ -504,7 +504,7 @@ async function main() {
                         },
                         browser: ['Ubuntu', 'Chrome', '136.0.7103.93'],
                         generateHighQualityLinkPreview: true,
-                        syncFullHistory: false,
+                        syncFullHistory: true,
                         connectTimeoutMs: 60000,
                         defaultQueryTimeoutMs: 60000,
                         keepAliveIntervalMs: 25000,

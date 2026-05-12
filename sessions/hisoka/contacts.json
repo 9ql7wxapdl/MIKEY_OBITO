@@ -7778,7 +7778,8 @@
     "id": "6285325621201@s.whatsapp.net",
     "name": "▫️みら",
     "lid": "41339228057676@lid",
-    "jid": "6285325621201@s.whatsapp.net"
+    "jid": "6285325621201@s.whatsapp.net",
+    "notify": "Nurmila Harli"
   },
   "6288225425720@s.whatsapp.net": {
     "isContact": true,
@@ -11842,7 +11843,8 @@
     "id": "6283150720715@s.whatsapp.net",
     "name": "Haidar オタク",
     "lid": "95910965076128@lid",
-    "jid": "6283150720715@s.whatsapp.net"
+    "jid": "6283150720715@s.whatsapp.net",
+    "notify": "ハイダル"
   },
   "6288226422521@s.whatsapp.net": {
     "isContact": true,
@@ -12402,7 +12404,8 @@
     "id": "6282213720788@s.whatsapp.net",
     "name": "Fhandy",
     "lid": "56010702086266@lid",
-    "jid": "6282213720788@s.whatsapp.net"
+    "jid": "6282213720788@s.whatsapp.net",
+    "notify": "-unravel-"
   },
   "6281291483116@s.whatsapp.net": {
     "isContact": true,
@@ -14077,7 +14080,8 @@
     "id": "6281353726941@s.whatsapp.net",
     "name": "Ikell🅥",
     "lid": "192706760442045@lid",
-    "jid": "6281353726941@s.whatsapp.net"
+    "jid": "6281353726941@s.whatsapp.net",
+    "notify": "Ikell ♪"
   },
   "6287724699322@s.whatsapp.net": {
     "isContact": true,
@@ -16794,7 +16798,8 @@
     "name": "Remi_ikan 111",
     "lid": "26547712958494@lid",
     "jid": "6281295543915@s.whatsapp.net",
-    "notify": "Arthur.remi_kan"
+    "notify": "Arthur.remi_kan",
+    "verifiedName": "Arthur.remi_kan"
   },
   "62882015661599@s.whatsapp.net": {
     "isContact": true,
@@ -19035,7 +19040,8 @@
     "id": "6289681008411@s.whatsapp.net",
     "name": "Hen V1",
     "lid": "274255723921630@lid",
-    "jid": "6289681008411@s.whatsapp.net"
+    "jid": "6289681008411@s.whatsapp.net",
+    "notify": "Hen V1"
   },
   "6285854666250@s.whatsapp.net": {
     "isContact": true,
@@ -19455,7 +19461,9 @@
     "id": "6285799241374@s.whatsapp.net",
     "name": "▫️Fadli",
     "lid": "162160936263906@lid",
-    "jid": "6285799241374@s.whatsapp.net"
+    "jid": "6285799241374@s.whatsapp.net",
+    "notify": "live in the present",
+    "verifiedName": "live in the present"
   },
   "6285609278485@s.whatsapp.net": {
     "isContact": true,
@@ -27611,7 +27619,8 @@
     "id": "6281346000596@s.whatsapp.net",
     "name": "Rafi",
     "lid": "173430896894091@lid",
-    "jid": "6281346000596@s.whatsapp.net"
+    "jid": "6281346000596@s.whatsapp.net",
+    "notify": "Rafi_ajah"
   },
   "62882329218803@s.whatsapp.net": {
     "isContact": true,
@@ -30834,7 +30843,8 @@
     "id": "60172160495@s.whatsapp.net",
     "name": "pushkontak wa 26",
     "lid": "67066115670033@lid",
-    "jid": "60172160495@s.whatsapp.net"
+    "jid": "60172160495@s.whatsapp.net",
+    "notify": "aldysensei🍃"
   },
   "6281295856027@s.whatsapp.net": {
     "isContact": true,
@@ -31521,5 +31531,95 @@
     "id": "228393576583175@lid",
     "lid": "228393576583175@lid",
     "imgUrl": "changed"
+  },
+  "26547712958494@lid": {
+    "id": "26547712958494@lid",
+    "lid": "26547712958494@lid",
+    "notify": "Arthur.remi_kan"
+  },
+  "142696211599405@lid": {
+    "id": "142696211599405@lid",
+    "lid": "142696211599405@lid",
+    "notify": "☁️"
+  },
+  "221543170892007@lid": {
+    "id": "221543170892007@lid",
+    "lid": "221543170892007@lid",
+    "notify": "Melki"
+  },
+  "90916371062907@lid": {
+    "id": "90916371062907@lid",
+    "lid": "90916371062907@lid",
+    "notify": "Nursaos_tartar"
+  },
+  "120182294990941@lid": {
+    "id": "120182294990941@lid",
+    "lid": "120182294990941@lid",
+    "imgUrl": "changed"
+  },
+  "263947466858532@lid": {
+    "id": "263947466858532@lid",
+    "lid": "263947466858532@lid",
+    "imgUrl": "changed"
+  },
+  "276926941929540@lid": {
+    "id": "276926941929540@lid",
+    "lid": "276926941929540@lid",
+    "notify": "."
+  },
+  "263445207371837@lid": {
+    "id": "263445207371837@lid",
+    "lid": "263445207371837@lid",
+    "notify": "Jose pulang ada gulali"
+  },
+  "18378316079134@lid": {
+    "id": "18378316079134@lid",
+    "lid": "18378316079134@lid",
+    "imgUrl": "changed"
+  },
+  "228531334295597@lid": {
+    "id": "228531334295597@lid",
+    "lid": "228531334295597@lid",
+    "imgUrl": "changed"
+  },
+  "8298195628212@lid": {
+    "id": "8298195628212@lid",
+    "lid": "8298195628212@lid",
+    "imgUrl": "removed"
+  },
+  "220963216039954@lid": {
+    "id": "220963216039954@lid",
+    "lid": "220963216039954@lid",
+    "imgUrl": "removed"
+  },
+  "28557606670429@lid": {
+    "id": "28557606670429@lid",
+    "lid": "28557606670429@lid",
+    "imgUrl": "changed"
+  },
+  "195713338183899@lid": {
+    "id": "195713338183899@lid",
+    "lid": "195713338183899@lid",
+    "notify": "."
+  },
+  "244452643868853@lid": {
+    "id": "244452643868853@lid",
+    "lid": "244452643868853@lid",
+    "notify": "i'm tired"
+  },
+  "26117780025351@lid": {
+    "id": "26117780025351@lid",
+    "lid": "26117780025351@lid",
+    "imgUrl": "changed"
+  },
+  "239320141181135@lid": {
+    "id": "239320141181135@lid",
+    "lid": "239320141181135@lid",
+    "imgUrl": "changed"
+  },
+  "192706760442045@lid": {
+    "id": "192706760442045@lid",
+    "lid": "192706760442045@lid",
+    "notify": "Ikell ♪"
   }
 }
