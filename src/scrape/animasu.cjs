@@ -384,13 +384,15 @@ async function getAiringStatus(jumlahPost = 40) {
                     ? Math.max(0, detail.totalSeri - epNum)
                     : null;
                 return {
-                    judul     : detail.judul || slug,
-                    musim     : detail.musim || '-',
-                    status    : detail.status || '-',
-                    epTerbaru : epNum || detail.latestEpNum || 0,
-                    totalSeri : detail.totalSeri || 0,
+                    judul       : detail.judul || slug,
+                    musim       : detail.musim || '-',
+                    status      : detail.status || '-',
+                    epTerbaru   : epNum || detail.latestEpNum || 0,
+                    totalSeri   : detail.totalSeri || 0,
                     sisaEp,
-                    url       : animeUrl,
+                    url         : animeUrl,
+                    latestEpUrl : detail.latestEpUrl || animeUrl,
+                    genre       : detail.genre || '',
                     postDate,
                 };
             })

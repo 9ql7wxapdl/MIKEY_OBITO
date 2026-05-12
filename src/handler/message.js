@@ -13421,8 +13421,20 @@ infoText += `╰═════════════════════�
 
                                 if (sub === 'status') {
                                         await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        let loadingMsg = null;
                                         try {
+                                                loadingMsg = await hisoka.sendMessage(m.from, {
+                                                        text: `⏳ *Memuat status anime...*\n` +
+                                                              `┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄\n` +
+                                                              `📡 Mengambil data realtime dari Animasu\n` +
+                                                              `🔄 Harap tunggu sebentar...`,
+                                                }, { quoted: m });
+
                                                 const daftarAnime = await getAiringStatus(40);
+
+                                                try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                                loadingMsg = null;
+
                                                 if (!daftarAnime.length) {
                                                         await tolak(hisoka, m, '📋 Belum ada anime yang terpantau dari Animasu saat ini.');
                                                         break;
@@ -13437,21 +13449,26 @@ infoText += `╰═════════════════════�
                                                 let txt = `╭─「 📺 *STATUS ANIME ANIMASU* 」\n`;
                                                 txt += `│ 🕐 _${waktu} WIB_\n`;
                                                 txt += `│ 📊 Total: *${daftarAnime.length} anime* terpantau\n`;
+                                                txt += `│ 📶 Sumber: _animasu.app (realtime)_\n`;
                                                 txt += `│ _(diurutkan: sisa episode terbanyak di atas)_\n`;
                                                 txt += `│\n`;
 
                                                 for (let i = 0; i < daftarAnime.length; i++) {
-                                                        const a    = daftarAnime[i];
-                                                        const no   = String(i + 1).padStart(2, '0');
-                                                        const epStr = a.totalSeri
+                                                        const a       = daftarAnime[i];
+                                                        const no      = String(i + 1).padStart(2, '0');
+                                                        const epStr   = a.totalSeri
                                                                 ? `Ep ${a.epTerbaru}/${a.totalSeri}`
                                                                 : `Ep ${a.epTerbaru || '?'}`;
                                                         const sisaStr = a.sisaEp !== null
                                                                 ? `Sisa *${a.sisaEp} ep*`
                                                                 : `Sisa *?*`;
-                                                        const musimStr = a.musim && a.musim !== '-' ? ` · ${a.musim}` : '';
+                                                        const musimStr = a.musim && a.musim !== '-' ? ` · _${a.musim}_` : '';
                                                         txt += `│ *${no}.* ${a.judul}\n`;
-                                                        txt += `│     ${epStr} | ${sisaStr}${musimStr}\n`;
+                                                        txt += `│     📺 ${epStr} | ${sisaStr}${musimStr}\n`;
+                                                        txt += `│     🔗 ${a.url}\n`;
+                                                        if (a.latestEpUrl && a.latestEpUrl !== a.url) {
+                                                                txt += `│     ▶️ Tonton Ep ${a.epTerbaru}: ${a.latestEpUrl}\n`;
+                                                        }
                                                         if (i < daftarAnime.length - 1) txt += `│\n`;
                                                 }
 
@@ -13459,6 +13476,9 @@ infoText += `╰═════════════════════�
                                                 await tolak(hisoka, m, txt);
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                         } catch (err) {
+                                                if (loadingMsg) {
+                                                        try { await hisoka.sendMessage(m.from, { delete: loadingMsg.key }); } catch (_) {}
+                                                }
                                                 await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
                                                 await tolak(hisoka, m, `❌ Gagal ambil status anime: ${err?.message || err}`);
                                         }
