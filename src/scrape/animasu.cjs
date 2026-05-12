@@ -295,19 +295,30 @@ async function cariEpisodeBaru(menitTerakhir = 8) {
 
 // ── SIMULASI (TEST) ───────────────────────────────────────────────────────────
 
-async function simulasi() {
-    const posts = await fetchRecentPosts(1);
-    if (!posts.length) throw new Error('Tidak ada post terbaru dari Animasu');
+async function simulasi(slugOverride = null) {
+    let animeSlug, epNum, postId, postDate;
 
-    const post      = posts[0];
-    const animeSlug = animeSlugDariPost(post);
-    const epNum     = nomorEpisodeDariPost(post);
-    const animeUrl  = `${BASE_URL}/anime/${animeSlug}/`;
-    const html      = await fetchHtml(animeUrl);
-    const detail    = parseDetailPage(html, animeUrl);
-    const data      = { postId: post.id, postDate: post.date, epNum, animeSlug, ...detail };
-    const caption   = buatCaption(data);
-    return { caption, urlGambar: data.cover || null };
+    if (slugOverride) {
+        animeSlug = slugOverride;
+        epNum     = 0;
+        postId    = 'sim-' + Date.now();
+        postDate  = new Date().toISOString();
+    } else {
+        const posts = await fetchRecentPosts(1);
+        if (!posts.length) throw new Error('Tidak ada post terbaru dari Animasu');
+        const post = posts[0];
+        animeSlug  = animeSlugDariPost(post);
+        epNum      = nomorEpisodeDariPost(post);
+        postId     = post.id;
+        postDate   = post.date;
+    }
+
+    const animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
+    const html     = await fetchHtml(animeUrl);
+    const detail   = parseDetailPage(html, animeUrl);
+    const data     = { postId, postDate, epNum, animeSlug, ...detail };
+    const caption  = buatCaption(data);
+    return { caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
@@ -334,7 +345,7 @@ function buatCaption(data) {
     const {
         judul, judulAlt, epNum, latestEpNum, latestEpUrl, totalEp, totalSeri,
         genre, status, rilis, jenis, durasi, studio, musim, rating,
-        sinopsis, trailerUrl, url,
+        sinopsis, trailerUrl, url, batchDownload,
     } = data;
 
     const ep  = epNum || latestEpNum || '?';
@@ -383,6 +394,23 @@ function buatCaption(data) {
         ['🎭 *Genre*   ', genre  ? `_${genre}_`  : null],
     ]);
 
+    // Blok batch download (jika tersedia)
+    let batchBlok = '';
+    if (batchDownload?.resolutions?.length) {
+        batchBlok += `\n${SEP}\n`;
+        batchBlok += `📦 *BATCH TERSEDIA!*\n`;
+        batchBlok += `${SEP2}\n`;
+        for (const r of batchDownload.resolutions) {
+            const mirrors = r.links.map(l => l.label).join(' · ');
+            batchBlok += `├ [${r.res}] ${mirrors}\n`;
+        }
+        // Link download langsung resolusi pertama
+        const firstLink = batchDownload.resolutions[0]?.links[0];
+        if (firstLink) {
+            batchBlok += `╰ 🔗 Download: ${firstLink.url}\n`;
+        }
+    }
+
     return (
         `🟢 *SUB INDO SUDAH TAYANG!*\n` +
         `${SEP}\n` +
@@ -402,7 +430,8 @@ function buatCaption(data) {
         `${SEP}\n` +
         `${trailerUrl ? `🎬 *PV*     : ${trailerUrl}\n` : ''}` +
         `▶️ *Tonton*  : ${latestEpUrl || url}\n` +
-        `🔗 *Anime*   : ${url}`
+        `🔗 *Anime*   : ${url}` +
+        batchBlok
     );
 }
 

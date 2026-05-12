@@ -29602,7 +29602,8 @@
     "id": "6289672284933@s.whatsapp.net",
     "name": "Durandal",
     "lid": "195584422055991@lid",
-    "jid": "6289672284933@s.whatsapp.net"
+    "jid": "6289672284933@s.whatsapp.net",
+    "notify": "Vinn"
   },
   "6281385846955@s.whatsapp.net": {
     "isContact": true,
@@ -31501,5 +31502,10 @@
     "id": "84636709445686@lid",
     "lid": "84636709445686@lid",
     "notify": "F"
+  },
+  "172640539001001@lid": {
+    "id": "172640539001001@lid",
+    "lid": "172640539001001@lid",
+    "imgUrl": "changed"
   }
 }
