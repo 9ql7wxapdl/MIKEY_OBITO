@@ -208,16 +208,33 @@ function parseBatchDownload(html) {
 
 // ── FETCH ─────────────────────────────────────────────────────────────────────
 
+async function fetchDenganRetry(fn, maxRetry = 3, delayMs = 3000) {
+    let lastErr;
+    for (let i = 0; i < maxRetry; i++) {
+        try {
+            return await fn();
+        } catch (e) {
+            lastErr = e;
+            if (i < maxRetry - 1) await new Promise(r => setTimeout(r, delayMs));
+        }
+    }
+    throw lastErr;
+}
+
 async function fetchHtml(url) {
-    const r = await axios.get(url, { headers: HEADERS, timeout: 15000 });
-    return r.data;
+    return fetchDenganRetry(async () => {
+        const r = await axios.get(url, { headers: HEADERS, timeout: 30000 });
+        return r.data;
+    });
 }
 
 async function fetchRecentPosts(count = 15) {
     // date_gmt dibutuhkan untuk filter waktu akurat; _embedded ditambah WP otomatis saat _embed dipakai
     const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,date_gmt,slug,title`;
-    const r   = await axios.get(url, { headers: HEADERS, timeout: 15000 });
-    return r.data;
+    return fetchDenganRetry(async () => {
+        const r = await axios.get(url, { headers: HEADERS, timeout: 30000 });
+        return r.data;
+    });
 }
 
 // Dapat anime slug dari post — pakai embedded category (lebih akurat dari slug parsing)

@@ -1,6 +1,15 @@
 {
   "errors": [
     {
+      "fingerprint": "Animasu::[Animasu] Error scheduler: timeout of Nms exceeded",
+      "source": "Animasu",
+      "message": "[Animasu] Error scheduler: timeout of 15000ms exceeded",
+      "stack": "Error: [Animasu] Error scheduler: timeout of 15000ms exceeded\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at runAnimasu (file:///home/runner/workspace/index.js:823:57)\n    at processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at runNextTicks (node:internal/process/task_queues:64:3)\n    at listOnTimeout (node:internal/timers:545:9)\n    at process.processTimers (node:internal/timers:519:7)",
+      "count": 2,
+      "firstSeen": "2026-05-12T13:34:23.061Z",
+      "lastSeen": "2026-05-12T13:36:04.438Z"
+    },
+    {
       "fingerprint": "InfoWibu::[InfoWibu] Error scheduler realtime: timeout of Nms exceeded",
       "source": "InfoWibu",
       "message": "[InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded",
