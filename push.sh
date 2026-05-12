@@ -3722,10 +3722,11 @@ action_rename_branch() {
 
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   if [ "$total_pages" -gt 1 ]; then
-    [ "$_RB_PAGE" -lt "$total_pages" ] && \
-      echo -e "  ${C_CYAN} n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya"
-    [ "$_RB_PAGE" -gt 1 ] && \
-      echo -e "  ${C_CYAN} p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya"
+    local _nav_rb=""
+    [ "$_RB_PAGE" -lt "$total_pages" ] && _nav_rb="${_nav_rb}  ${C_CYAN}n${C_RESET} › Berikutnya"
+    [ "$_RB_PAGE" -gt 1 ]              && _nav_rb="${_nav_rb}   ${C_CYAN}p${C_RESET} › Sebelumnya"
+    [ -n "$_nav_rb" ] && echo -e "$_nav_rb"
+    echo -e "  ${C_CYAN}f${C_RESET} › Awal   ${C_CYAN}l${C_RESET} › Akhir   ${C_DIM}h<angka> → loncat hal  (mis: h2)${C_RESET}"
   fi
   echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
@@ -3736,18 +3737,17 @@ action_rename_branch() {
   pick="${pick:-0}"
 
   case "$pick" in
-    n|N)
-      if [ "$_RB_PAGE" -lt "$total_pages" ]; then
-        _RB_PAGE=$(( _RB_PAGE + 1 )) action_rename_branch
+    n|N) _RB_PAGE=$(( _RB_PAGE < total_pages ? _RB_PAGE + 1 : _RB_PAGE )) action_rename_branch; return ;;
+    p|P) _RB_PAGE=$(( _RB_PAGE > 1 ? _RB_PAGE - 1 : 1 )) action_rename_branch; return ;;
+    f|F) _RB_PAGE=1 action_rename_branch; return ;;
+    l|L) _RB_PAGE=$total_pages action_rename_branch; return ;;
+    h*|H*)
+      local _pg_rb="${pick:1}"
+      if echo "$_pg_rb" | grep -qE '^[0-9]+$' && [ "$_pg_rb" -ge 1 ] && [ "$_pg_rb" -le "$total_pages" ]; then
+        _RB_PAGE=$_pg_rb action_rename_branch
       else
-        _RB_PAGE=$_RB_PAGE action_rename_branch
-      fi
-      return
-      ;;
-    p|P)
-      if [ "$_RB_PAGE" -gt 1 ]; then
-        _RB_PAGE=$(( _RB_PAGE - 1 )) action_rename_branch
-      else
+        echo -e "  ${C_RED}✖ Halaman tidak valid${C_RESET} ${C_DIM}(1–${total_pages})${C_RESET}"
+        sleep 1
         _RB_PAGE=$_RB_PAGE action_rename_branch
       fi
       return
@@ -4036,14 +4036,15 @@ action_delete_branch() {
 
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   if [ "$total_pages" -gt 1 ]; then
-    [ "$_DB_PAGE" -lt "$total_pages" ] && \
-      echo -e "  ${C_CYAN} n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya"
-    [ "$_DB_PAGE" -gt 1 ] && \
-      echo -e "  ${C_CYAN} p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya"
+    local _nav_db=""
+    [ "$_DB_PAGE" -lt "$total_pages" ] && _nav_db="${_nav_db}  ${C_CYAN}n${C_RESET} › Berikutnya"
+    [ "$_DB_PAGE" -gt 1 ]              && _nav_db="${_nav_db}   ${C_CYAN}p${C_RESET} › Sebelumnya"
+    [ -n "$_nav_db" ] && echo -e "$_nav_db"
+    echo -e "  ${C_CYAN}f${C_RESET} › Awal   ${C_CYAN}l${C_RESET} › Akhir   ${C_DIM}h<angka> → loncat hal  (mis: h2)${C_RESET}"
   fi
   echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_DIM}ketik nomor (1-${total})  •  multi: ${C_RESET}${C_BOLD}1,3${C_RESET}${C_DIM} / ${C_RESET}${C_BOLD}1 3${C_RESET}${C_DIM}  •  ${C_RESET}${C_BOLD}all${C_RESET}${C_DIM} = semua${C_RESET}"
+  echo -e "  ${C_DIM}nomor (1-${total})  •  multi: ${C_RESET}${C_BOLD}1,3${C_RESET}${C_DIM} / ${C_RESET}${C_BOLD}1 3${C_RESET}${C_DIM}  •  ${C_RESET}${C_BOLD}all${C_RESET}${C_DIM} = semua${C_RESET}"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
 
@@ -4052,18 +4053,17 @@ action_delete_branch() {
   pick="${pick:-0}"
 
   case "$pick" in
-    n|N)
-      if [ "$_DB_PAGE" -lt "$total_pages" ]; then
-        _DB_PAGE=$(( _DB_PAGE + 1 )) action_delete_branch
+    n|N) _DB_PAGE=$(( _DB_PAGE < total_pages ? _DB_PAGE + 1 : _DB_PAGE )) action_delete_branch; return ;;
+    p|P) _DB_PAGE=$(( _DB_PAGE > 1 ? _DB_PAGE - 1 : 1 )) action_delete_branch; return ;;
+    f|F) _DB_PAGE=1 action_delete_branch; return ;;
+    l|L) _DB_PAGE=$total_pages action_delete_branch; return ;;
+    h*|H*)
+      local _pg_db="${pick:1}"
+      if echo "$_pg_db" | grep -qE '^[0-9]+$' && [ "$_pg_db" -ge 1 ] && [ "$_pg_db" -le "$total_pages" ]; then
+        _DB_PAGE=$_pg_db action_delete_branch
       else
-        _DB_PAGE=$_DB_PAGE action_delete_branch
-      fi
-      return
-      ;;
-    p|P)
-      if [ "$_DB_PAGE" -gt 1 ]; then
-        _DB_PAGE=$(( _DB_PAGE - 1 )) action_delete_branch
-      else
+        echo -e "  ${C_RED}✖ Halaman tidak valid${C_RESET} ${C_DIM}(1–${total_pages})${C_RESET}"
+        sleep 1
         _DB_PAGE=$_DB_PAGE action_delete_branch
       fi
       return
@@ -4242,10 +4242,11 @@ show_menu() {
 
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   if [ "$total_pages" -gt 1 ]; then
-    [ "$_SM_PAGE" -lt "$total_pages" ] && \
-      echo -e "  ${C_CYAN} n${C_RESET} ${C_BOLD}›${C_RESET} Berikutnya"
-    [ "$_SM_PAGE" -gt 1 ] && \
-      echo -e "  ${C_CYAN} p${C_RESET} ${C_BOLD}›${C_RESET} Sebelumnya"
+    local _nav_line=""
+    [ "$_SM_PAGE" -lt "$total_pages" ] && _nav_line="${_nav_line}  ${C_CYAN}n${C_RESET} › Berikutnya"
+    [ "$_SM_PAGE" -gt 1 ]              && _nav_line="${_nav_line}   ${C_CYAN}p${C_RESET} › Sebelumnya"
+    [ -n "$_nav_line" ] && echo -e "$_nav_line"
+    echo -e "  ${C_CYAN}f${C_RESET} › Awal   ${C_CYAN}l${C_RESET} › Akhir   ${C_DIM}h<angka> → loncat hal  (mis: h3)${C_RESET}"
   fi
   echo -e "  ${C_YELLOW} A${C_RESET} ${C_BOLD}›${C_RESET} Semua branch"
   echo -e "  ${C_GREEN} D${C_RESET} ${C_BOLD}›${C_RESET} Default  ${C_DIM}(${DEFAULT_BRANCH})${C_RESET}"
@@ -4258,42 +4259,29 @@ show_menu() {
   choice="${choice:-D}"
 
   case "$choice" in
-    n|N)
-      if [ "$_SM_PAGE" -lt "$total_pages" ]; then
-        _SM_PAGE=$(( _SM_PAGE + 1 )) show_menu
+    n|N) _SM_PAGE=$(( _SM_PAGE < total_pages ? _SM_PAGE + 1 : _SM_PAGE )) show_menu; return ;;
+    p|P) _SM_PAGE=$(( _SM_PAGE > 1 ? _SM_PAGE - 1 : 1 )) show_menu; return ;;
+    f|F) _SM_PAGE=1 show_menu; return ;;
+    l|L) _SM_PAGE=$total_pages show_menu; return ;;
+    h*|H*)
+      local _pg_jump="${choice:1}"
+      if echo "$_pg_jump" | grep -qE '^[0-9]+$' && [ "$_pg_jump" -ge 1 ] && [ "$_pg_jump" -le "$total_pages" ]; then
+        _SM_PAGE=$_pg_jump show_menu
       else
-        show_menu
+        echo -e "  ${C_RED}✖ Halaman tidak valid${C_RESET} ${C_DIM}(1–${total_pages})${C_RESET}"
+        sleep 1
+        _SM_PAGE=$_SM_PAGE show_menu
       fi
       return
       ;;
-    p|P)
-      if [ "$_SM_PAGE" -gt 1 ]; then
-        _SM_PAGE=$(( _SM_PAGE - 1 )) show_menu
-      else
-        show_menu
-      fi
-      return
-      ;;
-    0|q|Q|exit)
-      goodbye_prompt
-      ;;
-    a|A)
-      SELECTED_BRANCHES=("${branches[@]}")
-      ;;
-    d|D|"")
-      SELECTED_BRANCHES=("$DEFAULT_BRANCH")
-      ;;
-    *[!0-9]*)
-      echo -e "${C_RED}✖ Pilihan tidak valid: '${choice}'${C_RESET}"
-      sleep 1
-      _SM_PAGE=$_SM_PAGE show_menu
-      return
-      ;;
+    0|q|Q|exit) goodbye_prompt ;;
+    a|A) SELECTED_BRANCHES=("${branches[@]}") ;;
+    d|D|"") SELECTED_BRANCHES=("$DEFAULT_BRANCH") ;;
     *)
-      if [ "$choice" -ge 1 ] && [ "$choice" -le "$total" ]; then
+      if echo "$choice" | grep -qE '^[0-9]+$' && [ "$choice" -ge 1 ] && [ "$choice" -le "$total" ]; then
         SELECTED_BRANCHES=("${branches[$((choice - 1))]}")
       else
-        echo -e "${C_RED}✖ Nomor ${choice} di luar range${C_RESET} ${C_DIM}(1-${total})${C_RESET}"
+        echo -e "  ${C_RED}✖ Pilihan tidak valid: '${choice}'${C_RESET}"
         sleep 1
         _SM_PAGE=$_SM_PAGE show_menu
         return
