@@ -405,6 +405,15 @@ function buatProgressBar(sekarang, total, panjang = 10) {
 const SEP  = '━━━━━━━━━━━━━━━━━━';
 const SEP2 = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄';
 
+// Buat baris info dengan ├ / ╰ otomatis — item kosong/null dilewati
+function buatBarisInfo(items) {
+    const valid = items.filter(([, val]) => val !== null && val !== undefined && val !== '' && val !== '-');
+    return valid.map(([label, val], i) => {
+        const prefix = i === valid.length - 1 ? '╰' : '├';
+        return `${prefix} ${label} : ${val}`;
+    }).join('\n');
+}
+
 // Format tanggal tayang berikutnya: ringkas untuk HP
 // Contoh: "Min, 17 Mei 23.00"
 function formatTanggalTayang(detikUnix) {
@@ -475,7 +484,31 @@ async function buatCaptionEpisode(item) {
         : `📺 *Ep ${epSekarang}*`;
     const barisEpBar  = progresBar ? `\`${progresBar}\`` : '';
 
-    const prodList = produsen !== '-' ? `╰ 🏭 _${produsen}_` : '';
+    const skorTeks = a.averageScore && a.meanScore
+        ? `${a.averageScore}%  📊 ${a.meanScore}%`
+        : a.averageScore ? `${a.averageScore}%`
+        : a.meanScore    ? `📊 ${a.meanScore}%`
+        : null;
+
+    const seksi1 = buatBarisInfo([
+        ['🗂️ *Format*  ', formatFull],
+        ['⏱️ *Durasi*  ', durasi || null],
+        ['📦 *Episode* ', totalEps > 0 ? `${totalEps} eps` : null],
+        ['📚 *Sumber*  ', sumber !== '-' ? `_${sumber}_` : null],
+        ['🗓️ *Mulai*   ', tanggalMulai !== '-' ? tanggalMulai : null],
+        ['🌸 *Musim*   ', musim !== '-' ? `_${musim}_` : null],
+        ['📡 *Status*  ', statusIndo !== '-' ? `_${statusIndo}_` : null],
+        ['🏢 *Studio*  ', studio !== '-' ? `_${studio}_` : null],
+        ['🏭 *Produser*', produsen !== '-' ? `_${produsen}_` : null],
+    ]);
+
+    const seksi2 = buatBarisInfo([
+        ['⭐ *Skor*    ', skorTeks],
+        ['👥 *Populer* ', popularitas !== '-' ? popularitas : null],
+        ['❤️ *Favorit* ', favorit !== '-' ? favorit : null],
+        ['🎭 *Genre*   ', semuaGenre !== '-' ? `_${semuaGenre}_` : null],
+        ['🏷️ *Hashtag* ', hashtag || null],
+    ]);
 
     return (
         `🔴 *REALTIME INFO WIBU!*\n` +
@@ -491,24 +524,12 @@ async function buatCaptionEpisode(item) {
         `${SEP}\n` +
         `📋 *Info Anime*\n` +
         `${SEP2}\n` +
-        `├ 🗂️ *Format*   : ${formatFull}\n` +
-        `├ ⏱️ *Durasi*   : ${durasi || '-'}\n` +
-        `├ 📦 *Episode*  : ${totalEps > 0 ? totalEps + ' eps' : '?'}\n` +
-        `├ 📚 *Sumber*   : _${sumber}_\n` +
-        `├ 🗓️ *Mulai*    : ${tanggalMulai}\n` +
-        `├ 🌸 *Musim*    : _${musim}_\n` +
-        `├ 📡 *Status*   : _${statusIndo}_\n` +
-        `├ 🏢 *Studio*   : _${studio}_\n` +
-        `${prodList ? prodList + '\n' : ''}` +
+        `${seksi1}\n` +
         `${SEP2}\n` +
-        `├ ⭐ *Skor*     : ${a.averageScore || '-'}%  📊 ${a.meanScore || '-'}%\n` +
-        `├ 👥 *Populer*  : ${popularitas}\n` +
-        `├ ❤️ *Favorit*  : ${favorit}\n` +
-        `├ 🎭 *Genre*    : _${semuaGenre}_\n` +
-        `╰ 🏷️ *Hashtag*  : _${hashtag || '-'}_\n` +
+        `${seksi2}\n` +
         `${SEP}\n` +
-        `${urlTrailer ? `🎬 *PV*  : ${urlTrailer}\n` : ''}` +
-        `🔗 *Link* : anilist.co/anime/${a.id || ''}\n` +
+        `${urlTrailer ? `🎬 *PV*   : ${urlTrailer}\n` : ''}` +
+        `🔗 *Link*  : anilist.co/anime/${a.id || ''}\n` +
         `🕐 _${waktuKirim} WIB_`
     );
 }
@@ -557,7 +578,32 @@ async function buatCaption(post, opsi = {}) {
     const deskripsi     = await terjemahkan(deskripsiAsli);
     const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
     const sinopsisBlock = deskripsi.split('\n').map(b => `> ${b}`).join('\n');
-    const prodList      = produsen !== '-' ? `╰ 🏭 _${produsen}_` : '';
+
+    const skorTeks = a.averageScore && a.meanScore
+        ? `${a.averageScore}%  📊 ${a.meanScore}%`
+        : a.averageScore ? `${a.averageScore}%`
+        : a.meanScore    ? `📊 ${a.meanScore}%`
+        : null;
+
+    const seksi1 = buatBarisInfo([
+        ['🗂️ *Format*  ', formatFull],
+        ['⏱️ *Durasi*  ', durasi || null],
+        ['📦 *Episode* ', a.episodes ? `${a.episodes} eps` : null],
+        ['📚 *Sumber*  ', sumber !== '-' ? `_${sumber}_` : null],
+        ['🗓️ *Mulai*   ', tanggalMulai !== '-' ? tanggalMulai : null],
+        ['🌸 *Musim*   ', musim !== '-' ? `_${musim}_` : null],
+        ['📡 *Status*  ', statusIndo !== '-' ? `_${statusIndo}_` : null],
+        ['🏢 *Studio*  ', studio !== '-' ? `_${studio}_` : null],
+        ['🏭 *Produser*', produsen !== '-' ? `_${produsen}_` : null],
+    ]);
+
+    const seksi2 = buatBarisInfo([
+        ['⭐ *Skor*    ', skorTeks],
+        ['👥 *Populer* ', popularitas !== '-' ? popularitas : null],
+        ['❤️ *Favorit* ', favorit !== '-' ? favorit : null],
+        ['🎭 *Genre*   ', semuaGenre !== '-' ? `_${semuaGenre}_` : null],
+        ['🏷️ *Hashtag* ', hashtag || null],
+    ]);
 
     return (
         `📢 *INFO WIBU*\n` +
@@ -572,24 +618,12 @@ async function buatCaption(post, opsi = {}) {
         `${SEP}\n` +
         `📋 *Info Anime*\n` +
         `${SEP2}\n` +
-        `├ 🗂️ *Format*   : ${formatFull}\n` +
-        `├ ⏱️ *Durasi*   : ${durasi || '-'}\n` +
-        `├ 📦 *Episode*  : ${totalEps}\n` +
-        `├ 📚 *Sumber*   : _${sumber}_\n` +
-        `├ 🗓️ *Mulai*    : ${tanggalMulai}\n` +
-        `├ 🌸 *Musim*    : _${musim}_\n` +
-        `├ 📡 *Status*   : _${statusIndo}_\n` +
-        `├ 🏢 *Studio*   : _${studio}_\n` +
-        `${prodList ? prodList + '\n' : ''}` +
+        `${seksi1}\n` +
         `${SEP2}\n` +
-        `├ ⭐ *Skor*     : ${a.averageScore || '-'}%  📊 ${a.meanScore || '-'}%\n` +
-        `├ 👥 *Populer*  : ${popularitas}\n` +
-        `├ ❤️ *Favorit*  : ${favorit}\n` +
-        `├ 🎭 *Genre*    : _${semuaGenre}_\n` +
-        `╰ 🏷️ *Hashtag*  : _${hashtag || '-'}_\n` +
+        `${seksi2}\n` +
         `${SEP}\n` +
-        `${urlTrailer ? `🎬 *PV*  : ${urlTrailer}\n` : ''}` +
-        `🔗 *Link* : anilist.co/anime/${a.id || ''}\n` +
+        `${urlTrailer ? `🎬 *PV*   : ${urlTrailer}\n` : ''}` +
+        `🔗 *Link*  : anilist.co/anime/${a.id || ''}\n` +
         `🕐 _${waktuKirim} WIB_`
     );
 }
