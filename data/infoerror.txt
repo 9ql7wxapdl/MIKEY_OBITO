@@ -8,31 +8,86 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 12/05/2026, 14.15.05  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 12/05/2026, 14.15.35  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
-  Total Jenis Error (unik)  : 31
-  Total Kejadian Error       : 112
+  Total Jenis Error (unik)  : 34
+  Total Kejadian Error       : 120
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [31 jenis, 112 kejadian total]
+  DAFTAR ERROR LENGKAP  [34 jenis, 120 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #001  —  console.error
+│  #001  —  command:vids
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  rate-overlimit
+│
+│  DETAIL
+│  Sumber      : command:vids
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 12/05/2026, 14.15.35
+│  Terakhir    : 12/05/2026, 14.15.35
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: rate-overlimit
+│     at assertNodeErrorFree (/home/runner/workspace/node_modules/socketon/lib/WABinary/generic-utils.js:55:15)
+│     at query (/home/runner/workspace/node_modules/socketon/lib/Socket/socket.js:170:48)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #002  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Handler] Error on command "vids":[39m rate-overlimit
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 12/05/2026, 14.15.35
+│  Terakhir    : 12/05/2026, 14.15.35
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Handler] Error on command "vids":[39m rate-overlimit
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778595293442:13760:25)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #003  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Vids] Error:[39m parse error: {"msg":"Invalid link","status":0,"status_code":"invalid_url","tracker":{"analyze_msg":"","analyze_status":2,"item_id":"","link":"https://www.youtube.com/watch?v=0wNWNiKf79Q\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q","site_name":""}}
+
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 12/05/2026, 14.15.31
+│  Terakhir    : 12/05/2026, 14.15.31
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Vids] Error:[39m parse error: {"msg":"Invalid link","status":0,"status_code":"invalid_url","tracker":{"analyze_msg":"","analyze_status":2,"item_id":"","link":"https://www.youtube.com/watch?v=0wNWNiKf79Q\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q","site_name":""}}
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778595293442:10784:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #004  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[Vids] Error:[39m Request failed with status code 403
 │
 │  DETAIL
 │  Sumber      : console.error
-│  Frekuensi   : 4x (duplikat digabung)
+│  Frekuensi   : 9x (duplikat digabung)
 │  Pertama     : 12/05/2026, 14.12.03
-│  Terakhir    : 12/05/2026, 14.15.05
+│  Terakhir    : 12/05/2026, 14.15.34
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [31m[Vids] Error:[39m Request failed with status code 403
@@ -41,7 +96,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #002  —  Animasu
+│  #005  —  Animasu
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Animasu] Error scheduler: timeout of 15000ms exceeded
@@ -59,7 +114,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #003  —  InfoWibu
+│  #006  —  InfoWibu
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded
@@ -77,7 +132,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #004  —  unhandledRejection
+│  #007  —  unhandledRejection
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'
@@ -95,7 +150,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #005  —  console.error
+│  #008  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[CrashGuard] UnhandledRejection (1 this minute):[39m ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'
@@ -113,7 +168,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #006  —  command:cosplay
+│  #009  —  command:cosplay
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Tidak ada hasil untuk "小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren". Coba kata kunci lain.
@@ -131,7 +186,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #007  —  console.error
+│  #010  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[Cosplay] Error:[39m Tidak ada hasil untuk "小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren". Coba kata kunci lain.
@@ -149,7 +204,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #008  —  command:cosplay
+│  #011  —  command:cosplay
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Tidak ada hasil untuk "fern-16". Coba kata kunci lain.
@@ -167,7 +222,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #009  —  console.error
+│  #012  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[Cosplay] Error:[39m Tidak ada hasil untuk "fern-16". Coba kata kunci lain.
@@ -185,7 +240,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #010  —  console.error
+│  #013  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibotSettings.js' does not provide an export named 'getJadibotAnticall'
@@ -203,7 +258,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #011  —  command:quoted
+│  #014  —  command:quoted
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  rate-overlimit
@@ -221,7 +276,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #012  —  console.error
+│  #015  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[Handler] Error on command "quoted":[39m rate-overlimit
@@ -239,7 +294,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #013  —  komiktap-update
+│  #016  —  komiktap-update
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  komiktapLatestUpdates is not a function
@@ -256,7 +311,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #014  —  KOMIKUPDATE
+│  #017  —  KOMIKUPDATE
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [KOMIKUPDATE] Error: komiktapLatestUpdates is not a function
@@ -274,7 +329,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #015  —  cosplay:fetch
+│  #018  —  cosplay:fetch
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Cannot access '_sendCosplayImages' before initialization
@@ -291,7 +346,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #016  —  Cosplay
+│  #019  —  Cosplay
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Cosplay] Error fetch post: Cannot access '_sendCosplayImages' before initialization
@@ -309,7 +364,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #017  —  Pixiv
+│  #020  —  Pixiv
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Pixiv] AI gagal: AI timeout
@@ -327,7 +382,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #018  —  command:pixiv
+│  #021  —  command:pixiv
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Tidak ada hasil ditemukan untuk query tersebut.
@@ -345,7 +400,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #019  —  console.error
+│  #022  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[Pixiv] Error:[39m Tidak ada hasil ditemukan untuk query tersebut.
@@ -363,7 +418,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #020  —  command:cosplay
+│  #023  —  command:cosplay
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  cmd is not defined
@@ -380,7 +435,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #021  —  console.error
+│  #024  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[Cosplay] Error:[39m cmd is not defined
@@ -398,7 +453,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #022  —  cosplay:fetch
+│  #025  —  cosplay:fetch
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Tidak ada media ditemukan di post ini.
@@ -416,7 +471,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #023  —  Cosplay
+│  #026  —  Cosplay
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.
@@ -434,7 +489,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #024  —  alqdl_auto
+│  #027  —  alqdl_auto
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Ep 01: gagal resolve → Request failed with status code 404
@@ -452,7 +507,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #025  —  ALQDL_AUTO
+│  #028  —  ALQDL_AUTO
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404
@@ -470,7 +525,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #026  —  alqdl_auto
+│  #029  —  alqdl_auto
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  Request failed with status code 403
@@ -488,7 +543,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #027  —  ALQDL_AUTO
+│  #030  —  ALQDL_AUTO
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [ALQDL_AUTO] Error: Request failed with status code 403
@@ -506,7 +561,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #028  —  console.error
+│  #031  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
@@ -524,7 +579,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #029  —  Backup
+│  #032  —  Backup
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [Backup] Gagal kirim ke 628968100xxxx Timed Out
@@ -542,7 +597,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #030  —  console.error
+│  #033  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
@@ -560,7 +615,7 @@
 └───────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
-│  #031  —  console.error
+│  #034  —  console.error
 ├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
 │  PESAN ERROR
 │  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
@@ -578,6 +633,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 31 jenis, 112 kejadian
-  Terakhir diperbarui: 12/05/2026, 14.15.05
+  End of Report  —  Total: 34 jenis, 120 kejadian
+  Terakhir diperbarui: 12/05/2026, 14.15.35
 ════════════════════════════════════════════════════════════════════════
