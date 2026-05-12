@@ -5406,8 +5406,7 @@
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
     "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily",
-    "verifiedName": "Wily"
+    "notify": "Wily"
   },
   "6287876011114@s.whatsapp.net": {
     "isContact": true,
@@ -14371,8 +14370,7 @@
     "name": "Hamdan",
     "lid": "239328697536578@lid",
     "jid": "6283134844523@s.whatsapp.net",
-    "notify": "Anda Siapa?",
-    "verifiedName": "Anda Siapa?"
+    "notify": "Anda Siapa?"
   },
   "6281289973507@s.whatsapp.net": {
     "isContact": true,
@@ -18732,8 +18730,7 @@
     "name": "[A]ツ",
     "lid": "1280101642395@lid",
     "jid": "6285163013550@s.whatsapp.net",
-    "notify": "Alma",
-    "verifiedName": "Alma"
+    "notify": "Alma"
   },
   "6287820661518@s.whatsapp.net": {
     "isContact": true,
@@ -31543,7 +31540,8 @@
   "26547712958494@lid": {
     "id": "26547712958494@lid",
     "lid": "26547712958494@lid",
-    "notify": "Arthur.remi_kan"
+    "notify": "Arthur.remi_kan",
+    "verifiedName": "Arthur.remi_kan"
   },
   "142696211599405@lid": {
     "id": "142696211599405@lid",
@@ -31635,5 +31633,15 @@
     "lid": "263483945930926@lid",
     "notify": "j",
     "verifiedName": "j"
+  },
+  "121560543273151@lid": {
+    "id": "121560543273151@lid",
+    "lid": "121560543273151@lid",
+    "imgUrl": "changed"
+  },
+  "90439193473170@lid": {
+    "id": "90439193473170@lid",
+    "lid": "90439193473170@lid",
+    "imgUrl": "changed"
   }
 }

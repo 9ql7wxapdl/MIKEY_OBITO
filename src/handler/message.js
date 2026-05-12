@@ -12087,7 +12087,14 @@ infoText += `╰═════════════════════�
                                 } catch (error) {
                                         console.error('\x1b[31m[Play] Error:\x1b[39m', error.message);
                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
-                                        await tolak(hisoka, m, `❌ Gagal mencari lagu: ${error.message?.substring(0, 200)}`);
+                                        const errMsg = error.message || '';
+                                        if (errMsg.includes('ENOSPC') || errMsg.includes('no space left')) {
+                                                const { clearTmpFolder } = await import('../helper/cleaner.js');
+                                                clearTmpFolder();
+                                                await tolak(hisoka, m, `❌ Disk server penuh! Otomatis membersihkan tmp...\nSilakan coba lagi dalam beberapa detik.`);
+                                        } else {
+                                                await tolak(hisoka, m, `❌ Gagal mencari lagu: ${errMsg?.substring(0, 200)}`);
+                                        }
                                 }
                                 break;
                         }
@@ -12163,6 +12170,14 @@ infoText += `╰═════════════════════�
                                                 caption: mp3Caption
                                         }, { quoted: m });
 
+                                        // Cek disk space sebelum download
+                                        const { getDiskUsage, clearTmpFolder: clearTmpForYtmp3 } = await import('../helper/cleaner.js');
+                                        const diskInfoYtmp3 = getDiskUsage();
+                                        if (diskInfoYtmp3.free < 80 * 1024 * 1024) {
+                                                console.log(`\x1b[33m[YTMP3]\x1b[39m Disk hampir penuh (${diskInfoYtmp3.free} bytes), membersihkan tmp...`);
+                                                clearTmpForYtmp3();
+                                        }
+
                                         const tmpId = Date.now();
                                         const tmpFile = path.join(process.cwd(), 'tmp', `ytmp3_${tmpId}.mp3`);
                                         const tmpTemplate = path.join(process.cwd(), 'tmp', `ytmp3_${tmpId}.%(ext)s`);
@@ -12196,8 +12211,23 @@ infoText += `╰═════════════════════�
                                         logCommand(m, hisoka, 'ytmp3');
                                 } catch (error) {
                                         console.error('\x1b[31m[YTMP3] Error:\x1b[39m', error.message);
+                                        // Cleanup tmp file jika ada error
+                                        try {
+                                                const tmpId2 = Date.now();
+                                                const possibleFiles = fs.readdirSync(path.join(process.cwd(), 'tmp')).filter(f => f.startsWith('ytmp3_'));
+                                                for (const f of possibleFiles) {
+                                                        try { fs.unlinkSync(path.join(process.cwd(), 'tmp', f)); } catch (_) {}
+                                                }
+                                        } catch (_) {}
                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
-                                        await tolak(hisoka, m, `❌ Gagal mengunduh audio: ${error.message?.substring(0, 200)}`);
+                                        const errMsg = error.message || '';
+                                        if (errMsg.includes('ENOSPC') || errMsg.includes('no space left')) {
+                                                const { clearTmpFolder } = await import('../helper/cleaner.js');
+                                                clearTmpFolder();
+                                                await tolak(hisoka, m, `❌ Disk server penuh! Otomatis membersihkan tmp...\nSilakan coba lagi dalam beberapa detik.`);
+                                        } else {
+                                                await tolak(hisoka, m, `❌ Gagal mengunduh audio: ${errMsg?.substring(0, 200)}`);
+                                        }
                                 }
                                 break;
                         }
@@ -12274,6 +12304,14 @@ infoText += `╰═════════════════════�
                                                 caption: mp4Caption
                                         }, { quoted: m });
 
+                                        // Cek disk space sebelum download
+                                        const { getDiskUsage: getDiskYtmp4, clearTmpFolder: clearTmpForYtmp4 } = await import('../helper/cleaner.js');
+                                        const diskInfoYtmp4 = getDiskYtmp4();
+                                        if (diskInfoYtmp4.free < 200 * 1024 * 1024) {
+                                                console.log(`\x1b[33m[YTMP4]\x1b[39m Disk hampir penuh (${diskInfoYtmp4.free} bytes), membersihkan tmp...`);
+                                                clearTmpForYtmp4();
+                                        }
+
                                         const tmpId = Date.now();
                                         const tmpFile = path.join(process.cwd(), 'tmp', `ytmp4_${tmpId}.mp4`);
                                         const tmpTemplate = path.join(process.cwd(), 'tmp', `ytmp4_${tmpId}.%(ext)s`);
@@ -12306,8 +12344,22 @@ infoText += `╰═════════════════════�
                                         logCommand(m, hisoka, 'ytmp4');
                                 } catch (error) {
                                         console.error('\x1b[31m[YTMP4] Error:\x1b[39m', error.message);
+                                        // Cleanup tmp file jika ada error
+                                        try {
+                                                const possibleFiles = fs.readdirSync(path.join(process.cwd(), 'tmp')).filter(f => f.startsWith('ytmp4_'));
+                                                for (const f of possibleFiles) {
+                                                        try { fs.unlinkSync(path.join(process.cwd(), 'tmp', f)); } catch (_) {}
+                                                }
+                                        } catch (_) {}
                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
-                                        await tolak(hisoka, m, `❌ Gagal mengunduh video: ${error.message?.substring(0, 200)}`);
+                                        const errMsg = error.message || '';
+                                        if (errMsg.includes('ENOSPC') || errMsg.includes('no space left')) {
+                                                const { clearTmpFolder } = await import('../helper/cleaner.js');
+                                                clearTmpFolder();
+                                                await tolak(hisoka, m, `❌ Disk server penuh! Otomatis membersihkan tmp...\nSilakan coba lagi dalam beberapa detik.`);
+                                        } else {
+                                                await tolak(hisoka, m, `❌ Gagal mengunduh video: ${errMsg?.substring(0, 200)}`);
+                                        }
                                 }
                                 break;
                         }
