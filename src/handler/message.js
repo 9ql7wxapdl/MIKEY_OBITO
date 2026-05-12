@@ -13361,6 +13361,106 @@ infoText += `╰═════════════════════�
                                 break;
                         }
 
+                        case 'infowibu2': {
+                                if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
+                                if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
+
+                                const { simulasi: simulasiAM } = _require(path.resolve('./src/scrape/animasu.cjs'));
+                                const cfgPathAM = path.join(process.cwd(), 'config.json');
+                                const sub = (query || '').trim().toLowerCase();
+                                const pfx = m.prefix || '.';
+
+                                const cfgAM = loadConfig();
+                                if (!cfgAM.animasu)        cfgAM.animasu        = { groups: {} };
+                                if (!cfgAM.animasu.groups) cfgAM.animasu.groups = {};
+
+                                if (!sub || sub === 'help') {
+                                        const aktif = cfgAM.animasu.groups[m.from]?.enabled === true;
+                                        await tolak(hisoka, m,
+                                                `╭─「 📺 *ANIMASU SUB INDO* 」\n` +
+                                                `│\n` +
+                                                `│ Status di grup ini: ${aktif ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
+                                                `│\n` +
+                                                `│ *Perintah:*\n` +
+                                                `│ • ${pfx}infowibu2 on — aktifkan\n` +
+                                                `│ • ${pfx}infowibu2 off — nonaktifkan\n` +
+                                                `│ • ${pfx}infowibu2 test — kirim test sekarang\n` +
+                                                `│ • ${pfx}infowibu2 status — lihat semua grup\n` +
+                                                `│\n` +
+                                                `│ 💡 Bot otomatis kirim notif saat episode\n` +
+                                                `│    baru Sub Indo sudah tersedia di Animasu.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                if (sub === 'on') {
+                                        cfgAM.animasu.groups[m.from] = { enabled: true, diubahPada: Date.now() };
+                                        fs.writeFileSync(cfgPathAM, JSON.stringify(cfgAM, null, 2));
+                                        await tolak(hisoka, m,
+                                                `✅ *Animasu Sub Indo aktif di grup ini!*\n\n` +
+                                                `Bot akan otomatis kirim notifikasi saat episode baru Sub Indo tersedia di Animasu.\n` +
+                                                `Ketik *${pfx}infowibu2 off* untuk menonaktifkan.`
+                                        );
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'infowibu2-on');
+                                        break;
+                                }
+
+                                if (sub === 'off') {
+                                        cfgAM.animasu.groups[m.from] = { enabled: false, diubahPada: Date.now() };
+                                        fs.writeFileSync(cfgPathAM, JSON.stringify(cfgAM, null, 2));
+                                        await tolak(hisoka, m,
+                                                `❌ *Animasu Sub Indo dinonaktifkan di grup ini.*\n\n` +
+                                                `Ketik *${pfx}infowibu2 on* untuk mengaktifkan kembali.`
+                                        );
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'infowibu2-off');
+                                        break;
+                                }
+
+                                if (sub === 'status') {
+                                        const semuaGrup = Object.entries(cfgAM.animasu.groups || {});
+                                        if (!semuaGrup.length) {
+                                                await tolak(hisoka, m, '📋 Belum ada grup yang dikonfigurasi.');
+                                                break;
+                                        }
+                                        let txt = `╭─「 📋 *STATUS ANIMASU* 」\n│\n`;
+                                        for (const [jid, data] of semuaGrup) {
+                                                const label = jid.replace('@g.us', '');
+                                                const icon  = data.enabled ? '✅' : '❌';
+                                                txt += `│ ${icon} ${label}\n`;
+                                        }
+                                        txt += `╰──────────────────────`;
+                                        await tolak(hisoka, m, txt);
+                                        break;
+                                }
+
+                                if (sub === 'test') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const hasil = await simulasiAM();
+                                                if (hasil.urlGambar) {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image: { url: hasil.urlGambar },
+                                                                caption: hasil.caption,
+                                                        }, { quoted: m });
+                                                } else {
+                                                        await tolak(hisoka, m, hasil.caption);
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'infowibu2-test');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch Animasu: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}infowibu2* untuk bantuan.`);
+                                break;
+                        }
+
                         default:
                                 break;
                 }

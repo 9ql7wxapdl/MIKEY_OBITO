@@ -777,7 +777,61 @@ async function main() {
                                 }, 15000);
                         }
                         /* =================== END AUTO INFOWIBU SCHEDULER =================== */
-                        
+
+                        /* ===================== AUTO ANIMASU SCHEDULER ===================== */
+                        if (global.animasuInterval) {
+                                clearInterval(global.animasuInterval);
+                                global.animasuInterval = null;
+                        }
+                        {
+                                const _am = _require(path.join(process.cwd(), 'src', 'scrape', 'animasu.cjs'));
+                                const AM_INTERVAL_MS = 5 * 60 * 1000;
+
+                                const runAnimasu = async () => {
+                                        try {
+                                                const daftarGrup = _am.getEnabledGroups();
+                                                if (!daftarGrup.length) return;
+
+                                                const episodeBaru = await _am.cariEpisodeBaru();
+                                                if (!episodeBaru.length) return;
+
+                                                for (const item of episodeBaru) {
+                                                        const caption   = _am.buatCaption(item);
+                                                        const urlGambar = _am.ambilUrlGambar(item);
+
+                                                        for (const jid of daftarGrup) {
+                                                                try {
+                                                                        if (urlGambar) {
+                                                                                await hisoka.sendMessage(jid, {
+                                                                                        image: { url: urlGambar },
+                                                                                        caption,
+                                                                                });
+                                                                        } else {
+                                                                                await hisoka.sendMessage(jid, { text: caption });
+                                                                        }
+                                                                        await new Promise(r => setTimeout(r, 2000));
+                                                                } catch (e) {
+                                                                        console.error(`[Animasu] Gagal kirim ke ${jid}:`, e?.message);
+                                                                }
+                                                        }
+
+                                                        _am.tandaiSudahKirim(item.postId);
+                                                        console.log(`[Animasu] ✅ Ep ${item.epNum} "${item.judul}" terkirim ke ${daftarGrup.length} grup`);
+                                                        await new Promise(r => setTimeout(r, 3000));
+                                                }
+                                        } catch (err) {
+                                                console.error('[Animasu] Error scheduler:', err?.message);
+                                        }
+                                };
+
+                                // Mulai 30 detik setelah start (setelah infowibu)
+                                setTimeout(() => {
+                                        runAnimasu();
+                                        global.animasuInterval = setInterval(runAnimasu, AM_INTERVAL_MS);
+                                }, 30000);
+                        }
+                        /* =================== END AUTO ANIMASU SCHEDULER =================== */
+
                         /* ===================== AUTO START SEMUA JADIBOT (STABIL) ===================== */
 const jadibotDir = path.join(process.cwd(), 'jadibot');
 
