@@ -4134,7 +4134,10 @@ show_menu() {
   echo ""
   echo -e "  ${C_DIM}repo  ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
   if [ "$total_pages" -gt 1 ]; then
-    echo -e "  ${C_DIM}hal   ${C_RESET}${C_BOLD}${_SM_PAGE}${C_DIM}/${total_pages}${C_RESET}  ${C_DIM}(${total} branch)${C_RESET}"
+    local _range_end_disp=$(( end ))
+    echo -e "  ${C_DIM}posisi${C_RESET} ${C_BOLD}$(( start + 1 ))–${_range_end_disp}${C_RESET}${C_DIM} dari ${total} branch  •  hal ${_SM_PAGE}/${total_pages}${C_RESET}"
+  else
+    echo -e "  ${C_DIM}total ${C_RESET}${C_BOLD}${total} branch${C_RESET}"
   fi
   echo ""
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
