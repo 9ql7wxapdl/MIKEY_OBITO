@@ -13368,7 +13368,7 @@ infoText += `╰═════════════════════�
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
-                                const { simulasi: simulasiAM, getAiringStatus } = _require(path.resolve('./src/scrape/animasu.cjs'));
+                                const { simulasi: simulasiAM, getAiringStatus, getEnabledGroups: getEnabledGroupsAM } = _require(path.resolve('./src/scrape/animasu.cjs'));
                                 const cfgPathAM = path.join(process.cwd(), 'config.json');
                                 const sub = (query || '').trim().toLowerCase();
                                 const pfx = m.prefix || '.';
@@ -13387,7 +13387,8 @@ infoText += `╰═════════════════════�
                                                 `│ *Perintah:*\n` +
                                                 `│ • ${pfx}animasu on — aktifkan\n` +
                                                 `│ • ${pfx}animasu off — nonaktifkan\n` +
-                                                `│ • ${pfx}animasu test — kirim test sekarang\n` +
+                                                `│ • ${pfx}animasu test — kirim test ke sini\n` +
+                                                `│ • ${pfx}animasu test grup — kirim test ke semua grup aktif\n` +
                                                 `│ • ${pfx}animasu status — lihat semua grup\n` +
                                                 `│\n` +
                                                 `│ 💡 Bot otomatis kirim notif saat episode\n` +
@@ -13496,6 +13497,53 @@ infoText += `╰═════════════════════�
                                                 }
                                                 await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
                                                 await tolak(hisoka, m, `❌ Gagal ambil status anime: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                if (sub === 'test grup') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const daftarGrup = getEnabledGroupsAM();
+                                                if (!daftarGrup.length) {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                        await tolak(hisoka, m, `❌ Belum ada grup yang mengaktifkan Animasu.\nKetik *${pfx}animasu on* di grup tujuan dulu.`);
+                                                        break;
+                                                }
+
+                                                const hasil = await simulasiAM();
+
+                                                // Kirim ke semua grup aktif
+                                                let berhasil = 0, gagal = 0;
+                                                for (const jid of daftarGrup) {
+                                                        try {
+                                                                if (hasil.urlGambar) {
+                                                                        await hisoka.sendMessage(jid, {
+                                                                                image: { url: hasil.urlGambar },
+                                                                                caption: hasil.caption,
+                                                                        });
+                                                                } else {
+                                                                        await hisoka.sendMessage(jid, { text: hasil.caption });
+                                                                }
+                                                                berhasil++;
+                                                                await new Promise(r => setTimeout(r, 1500));
+                                                        } catch (e) {
+                                                                gagal++;
+                                                                console.error(`[Animasu] Gagal kirim test ke ${jid}:`, e?.message);
+                                                        }
+                                                }
+
+                                                // Laporan ke pengirim perintah
+                                                await hisoka.sendMessage(m.from, {
+                                                        text: `✅ *Test Animasu selesai!*\n\n` +
+                                                              `📤 Terkirim ke: *${berhasil}/${daftarGrup.length} grup*` +
+                                                              (gagal ? `\n❌ Gagal: ${gagal} grup` : ''),
+                                                }, { quoted: m });
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'animasu-test-grup');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch Animasu: ${err?.message || err}`);
                                         }
                                         break;
                                 }
