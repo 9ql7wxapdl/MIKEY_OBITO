@@ -10708,14 +10708,14 @@ infoText += `╰═════════════════════�
 
                                         const { title, thumbnail, durationStr, author, videos, audios } = vidsResult;
 
-                                        // Pilih kualitas terbaik: utamakan 720P, fallback ke tertinggi
-                                        const preferredQualities = ['720P', '480P', '360P', '1080P', '240P', '144P'];
+                                        // Ambil video terbaik dari yang tersedia (hanya yang punya URL asli)
+                                        const preferredQualities = ['720P', '1080P', '480P', '360P', '240P', '144P', '2160P', '1440P'];
                                         let bestVideo = null;
                                         for (const q of preferredQualities) {
-                                                bestVideo = videos.find(v => v.quality === q && v.downloadUrl);
+                                                bestVideo = videos.find(v => v.quality === q);
                                                 if (bestVideo) break;
                                         }
-                                        if (!bestVideo) bestVideo = videos.find(v => v.downloadUrl) || null;
+                                        if (!bestVideo) bestVideo = videos[0] || null;
 
                                         // Audio terbaik: 128KBPS atau tertinggi
                                         const bestAudio = audios.find(a => a.quality === '128KBPS' && a.downloadUrl)

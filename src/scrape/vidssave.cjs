@@ -91,14 +91,17 @@ async function vidssave(link) {
     const resources = Array.isArray(data.resources) ? data.resources : [];
 
     for (const r of resources) {
+        const realUrl = (r.download_url && r.download_url.startsWith('http')) ? r.download_url : null;
+        if (!realUrl) continue;
+
         const item = {
             quality    : r.quality   || '',
             format     : r.format    || '',
             size       : r.size      || 0,
             sizeStr    : fmtSize(r.size),
             resourceId : r.resource_id || '',
-            downloadUrl: r.download_url || r.resource_content || '',
-            isFast     : !!r.isFast,
+            downloadUrl: realUrl,
+            downloadMode: r.download_mode || '',
         };
 
         if (r.type === 'video')       videos.push(item);
