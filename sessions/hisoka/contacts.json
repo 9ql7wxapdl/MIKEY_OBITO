@@ -13977,7 +13977,8 @@
     "id": "62895365483845@s.whatsapp.net",
     "name": "!poetra ardnsyh ( Donasi Jadi Bot )",
     "lid": "269655310643411@lid",
-    "jid": "62895365483845@s.whatsapp.net"
+    "jid": "62895365483845@s.whatsapp.net",
+    "notify": "Poetra"
   },
   "6282259034740@s.whatsapp.net": {
     "isContact": true,
@@ -31387,5 +31388,20 @@
     "id": "112460027719794@lid",
     "lid": "112460027719794@lid",
     "imgUrl": "changed"
+  },
+  "5231286976652@lid": {
+    "id": "5231286976652@lid",
+    "lid": "5231286976652@lid",
+    "imgUrl": "changed"
+  },
+  "237499041456266@lid": {
+    "id": "237499041456266@lid",
+    "lid": "237499041456266@lid",
+    "imgUrl": "changed"
+  },
+  "74797375574209@lid": {
+    "id": "74797375574209@lid",
+    "lid": "74797375574209@lid",
+    "notify": "🫪"
   }
 }

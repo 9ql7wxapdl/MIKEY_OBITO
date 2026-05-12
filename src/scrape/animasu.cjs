@@ -137,9 +137,14 @@ function parseDetailPage(html, animeUrl) {
     const latestEpUrl = epMatch ? epMatch[1] : '';
     const latestEpNum = epMatch ? parseInt(epMatch[2]) : 0;
 
-    // Hitung total episode yang tersedia
+    // Total episode yang sudah tersedia di Animasu (dari daftar episode)
     const allEps = [...html.matchAll(/<span class="lchx"><a href="[^"]+">Episode\s+(\d+)<\/a><\/span>/gi)];
     const totalEp = allEps.length;
+
+    // Total episode seri (dari field "Episode" di .spe, misal "13 Episode")
+    const totalSeriRaw = ambilField('Episode');
+    const totalSeriMatch = totalSeriRaw.match(/(\d+)/);
+    const totalSeri = totalSeriMatch ? parseInt(totalSeriMatch[1]) : 0;
 
     // Trailer YouTube embed
     const trailerMatch = html.match(/bixbox trailer[\s\S]*?<iframe[^>]+src="https:\/\/www\.youtube\.com\/embed\/([^"?/]+)/i);
@@ -148,7 +153,7 @@ function parseDetailPage(html, animeUrl) {
     return {
         judul, judulAlt, cover, genre, status, rilis, jenis,
         durasi, studio, musim, rating, sinopsis,
-        latestEpNum, latestEpUrl, totalEp, trailerUrl,
+        latestEpNum, latestEpUrl, totalEp, totalSeri, trailerUrl,
         url: animeUrl,
     };
 }
@@ -160,9 +165,9 @@ async function fetchHtml(url) {
     return r.data;
 }
 
-async function fetchRecentPosts(count = 10) {
-    // Catatan: jangan masukkan '_embedded' di _fields — WP menambahkannya otomatis saat _embed dipakai
-    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,slug,title`;
+async function fetchRecentPosts(count = 15) {
+    // date_gmt dibutuhkan untuk filter waktu akurat; _embedded ditambah WP otomatis saat _embed dipakai
+    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,date_gmt,slug,title`;
     const r   = await axios.get(url, { headers: HEADERS, timeout: 15000 });
     return r.data;
 }
@@ -201,12 +206,27 @@ function tandaiSudahKirim(id) {
 
 // ── CARI EPISODE BARU ─────────────────────────────────────────────────────────
 
-async function cariEpisodeBaru() {
-    const posts = await fetchRecentPosts(10);
+// menitTerakhir: batas waktu maksimum usia post yang dikirim (default 8 menit — sedikit lebih dari interval 5 menit)
+// Post yang lebih lama dari batas ini langsung ditandai "sudah dikirim" tanpa dikirim ke grup,
+// sehingga restart bot tidak menyebabkan spam episode lama.
+async function cariEpisodeBaru(menitTerakhir = 8) {
+    const posts = await fetchRecentPosts(15);
+    const batas = Date.now() - menitTerakhir * 60 * 1000;
     const baru  = [];
 
     for (const post of posts) {
         if (sudahDikirim(post.id)) continue;
+
+        // Gunakan date_gmt (UTC) agar perbandingan waktu akurat
+        const waktuPost = post.date_gmt
+            ? new Date(post.date_gmt + 'Z').getTime()
+            : new Date(post.date).getTime() - 7 * 3600 * 1000; // fallback kurangi UTC+7
+
+        if (waktuPost < batas) {
+            // Post terlalu lama — tandai sudah dikirim tapi JANGAN kirim ke grup
+            tandaiSudahKirim(post.id);
+            continue;
+        }
 
         const animeSlug = animeSlugDariPost(post);
         const epNum     = nomorEpisodeDariPost(post);
@@ -264,7 +284,7 @@ function potongSinopsis(teks, maks = 350) {
 
 function buatCaption(data) {
     const {
-        judul, judulAlt, epNum, latestEpNum, latestEpUrl, totalEp,
+        judul, judulAlt, epNum, latestEpNum, latestEpUrl, totalEp, totalSeri,
         genre, status, rilis, jenis, durasi, studio, musim, rating,
         sinopsis, trailerUrl, url,
     } = data;
@@ -273,11 +293,23 @@ function buatCaption(data) {
     const sinopsisBlock = potongSinopsis(sinopsis).split('\n').map(b => `> ${b}`).join('\n');
     const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
 
-    // Tampilkan "X/Y ep" hanya kalau anime sudah selesai tayang; kalau ongoing cukup "X ep tersedia"
-    const sedangTayang = (status || '').toLowerCase().includes('tayang') && !(status || '').toLowerCase().includes('selesai');
-    const epInfo = totalEp
-        ? (sedangTayang ? `${totalEp} ep tersedia` : `${totalEp} ep`)
-        : null;
+    const sedangTayang = (status || '').toLowerCase().includes('tayang') &&
+                         !(status || '').toLowerCase().includes('selesai');
+
+    // Header episode: "Ep 7/13" kalau total seri diketahui, kalau tidak "Ep 7"
+    const epHeader = totalSeri ? `${ep}/${totalSeri}` : String(ep);
+
+    // Baris info episode:
+    // - Kalau total seri ada: "7/13  (7 tersedia)"   atau  "13/13" kalau selesai
+    // - Kalau hanya totalEp:  "7 ep tersedia"        atau  "7 ep" kalau selesai
+    let epInfo = null;
+    if (totalSeri) {
+        epInfo = sedangTayang
+            ? `${ep}/${totalSeri}  _(${totalEp} tersedia)_`
+            : `${ep}/${totalSeri}`;
+    } else if (totalEp) {
+        epInfo = sedangTayang ? `${totalEp} ep tersedia` : `${totalEp} ep`;
+    }
 
     const seksi1 = buatBarisInfo([
         ['🗂️ *Jenis*   ', jenis  || null],
@@ -299,7 +331,7 @@ function buatCaption(data) {
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
         `${judulAlt ? `_${judulAlt}_\n` : ''}` +
-        `\n📺 *Episode ${ep}*${(totalEp && !sedangTayang) ? ` _(${ep}/${totalEp})_` : ''}\n` +
+        `\n📺 *Episode ${epHeader}*\n` +
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
         `${SEP}\n` +
