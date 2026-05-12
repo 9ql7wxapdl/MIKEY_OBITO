@@ -6263,6 +6263,7 @@ ${masaAktifLine}
 ├➤ *.tt [link]* — Download TikTok
 ├➤ *.ig [link]* — Download Instagram
 ├➤ *.fb [link]* — Download Facebook
+├➤ *.vids [link]* — Download video (multi-platform)
 ├➤ *.ytmp3 [link]* — YouTube → Audio
 ├➤ *.ytmp4 [link]* — YouTube → Video
 ╰➤ *.play [judul]* — Cari & download lagu
@@ -6397,6 +6398,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ├➤ *.tt [link]*  _→ TikTok video/audio_
 ├➤ *.ig [link]*  _→ Instagram reels/foto_
 ├➤ *.fb [link]*  _→ Facebook video_
+├➤ *.vids [link]*  _→ Download video multi-platform_
 ├➤ *.ytmp3 [link]*  _→ YouTube → MP3_
 ├➤ *.ytmp4 [link]*  _→ YouTube → MP4_
 ├➤ *.play [judul]*  _→ Cari & download lagu_
@@ -6557,6 +6559,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                                                         `.tt\n` +
                                                         `.ig\n` +
                                                         `.fb\n` +
+                                                        `.vids\n` +
                                                         `.ytmp3\n` +
                                                         `.ytmp4\n` +
                                                         `.play\n` +
@@ -6608,7 +6611,7 @@ listgroup | group
 sw/getsw | upswgc | sendstatus/swgc | readsw
 
 「 📥 *DOWNLOAD* 」
-tt | ig | fb | ytmp3 | ytmp4 | play
+tt | ig | fb | vids | ytmp3 | ytmp4 | play
 hd/remini/hdr | hdvid/hdvideo
 
 「 🔍 *INFO & CEK* 」
@@ -6867,6 +6870,8 @@ cekerror | cekerror reset | contact
 │   _Download reels/foto Instagram_
 ├➤ *.fb [link]*
 │   _Download video Facebook_
+├➤ *.vids [link]*
+│   _Download video multi-platform (YT/TT/IG/FB/X/dll)_
 ├➤ *.ytmp3 [link]*
 │   _YouTube → MP3 audio_
 ├➤ *.ytmp4 [link]*
@@ -10658,6 +10663,127 @@ infoText += `╰═════════════════════�
                                 } catch (error) {
                                         console.error('\x1b[31m[Facebook] Error:\x1b[39m', error.message);
                                         await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
+                        case 'vids':
+                        case 'vidssave':
+                        case 'vdown': {
+                                try {
+                                        if (!query) {
+                                                await tolak(hisoka, m,
+                                                        `╭═══〔 *📥 VIDS DOWNLOADER* 〕═══╮\n` +
+                                                        `│\n` +
+                                                        `│ Download video dari berbagai platform!\n` +
+                                                        `│ YouTube, TikTok, Instagram, Facebook,\n` +
+                                                        `│ Twitter/X, dan banyak lagi.\n` +
+                                                        `│\n` +
+                                                        `│ *Cara Pakai:*\n` +
+                                                        `│ • .vids [link video]\n` +
+                                                        `│\n` +
+                                                        `│ *Contoh:*\n` +
+                                                        `│ • .vids https://youtu.be/xxx\n` +
+                                                        `│ • .vids https://vt.tiktok.com/xxx\n` +
+                                                        `│ • .vids https://www.instagram.com/reel/xxx\n` +
+                                                        `│ • .vids https://fb.watch/xxx\n` +
+                                                        `│ • .vids https://x.com/user/status/xxx\n` +
+                                                        `│\n` +
+                                                        `╰══════════════════════════════════╯`
+                                                );
+                                                break;
+                                        }
+
+                                        const vidsUrl = query.trim();
+                                        if (!vidsUrl.startsWith('http://') && !vidsUrl.startsWith('https://')) {
+                                                await tolak(hisoka, m, '❌ Link tidak valid! Harus dimulai dengan https://');
+                                                break;
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        const loadingMsg = await tolak(hisoka, m, '⏳ Sedang mengambil info video...');
+
+                                        const { vidssave: vidssaveDl } = _require(path.resolve('./src/scrape/vidssave.cjs'));
+                                        const vidsResult = await vidssaveDl(vidsUrl);
+
+                                        const { title, thumbnail, durationStr, author, videos, audios } = vidsResult;
+
+                                        // Pilih kualitas terbaik: utamakan 720P, fallback ke tertinggi
+                                        const preferredQualities = ['720P', '480P', '360P', '1080P', '240P', '144P'];
+                                        let bestVideo = null;
+                                        for (const q of preferredQualities) {
+                                                bestVideo = videos.find(v => v.quality === q && v.downloadUrl);
+                                                if (bestVideo) break;
+                                        }
+                                        if (!bestVideo) bestVideo = videos.find(v => v.downloadUrl) || null;
+
+                                        // Audio terbaik: 128KBPS atau tertinggi
+                                        const bestAudio = audios.find(a => a.quality === '128KBPS' && a.downloadUrl)
+                                                || audios.find(a => a.downloadUrl)
+                                                || null;
+
+                                        if (!bestVideo && !bestAudio) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await m.reply({ edit: loadingMsg.key, text: '❌ Tidak ada media yang bisa diunduh dari link ini.' });
+                                                break;
+                                        }
+
+                                        const shortTitle = title.length > 60 ? title.substring(0, 60) + '...' : title;
+
+                                        let caption = `╭═══〔 *📥 VIDS DOWNLOADER* 〕═══╮\n`;
+                                        caption += `│\n`;
+                                        caption += `│ 📌 *${shortTitle}*\n`;
+                                        if (author) caption += `│ 👤 ${author}\n`;
+                                        if (durationStr && durationStr !== '0:00') caption += `│ ⏱️ ${durationStr}\n`;
+                                        if (bestVideo) caption += `│ 🎬 Kualitas: ${bestVideo.quality} (${bestVideo.sizeStr})\n`;
+                                        caption += `│\n`;
+                                        caption += `╰══════════════════════════════════╯`;
+
+                                        await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim video...' });
+
+                                        // Kirim thumbnail dulu kalau ada
+                                        if (thumbnail) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image: { url: thumbnail },
+                                                                caption
+                                                        }, { quoted: m });
+                                                } catch (_) {}
+                                        }
+
+                                        // Kirim video
+                                        if (bestVideo) {
+                                                try {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                video: { url: bestVideo.downloadUrl },
+                                                                caption: thumbnail ? '' : caption,
+                                                                mimetype: 'video/mp4'
+                                                        }, { quoted: m });
+                                                } catch (ve) {
+                                                        console.log('[Vids] video send failed:', ve.message);
+                                                        // Fallback: kirim audio jika video gagal
+                                                        if (bestAudio) {
+                                                                await hisoka.sendMessage(m.from, {
+                                                                        audio: { url: bestAudio.downloadUrl },
+                                                                        mimetype: 'audio/mpeg',
+                                                                        ptt: false
+                                                                }, { quoted: m });
+                                                        }
+                                                }
+                                        } else if (bestAudio) {
+                                                await hisoka.sendMessage(m.from, {
+                                                        audio: { url: bestAudio.downloadUrl },
+                                                        mimetype: 'audio/mpeg',
+                                                        ptt: false
+                                                }, { quoted: m });
+                                        }
+
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'vids');
+                                } catch (error) {
+                                        console.error('\x1b[31m[Vids] Error:\x1b[39m', error.message);
+                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                        await tolak(hisoka, m, `❌ Gagal mengunduh: ${error.message?.substring(0, 200)}`);
                                 }
                                 break;
                         }
