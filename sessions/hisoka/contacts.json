@@ -11829,7 +11829,8 @@
     "id": "6282265496001@s.whatsapp.net",
     "name": "! YZR| 𓆩YOZORA𓆪",
     "lid": "112460027719794@lid",
-    "jid": "6282265496001@s.whatsapp.net"
+    "jid": "6282265496001@s.whatsapp.net",
+    "notify": "𝙯𝙤𝙧𝙖"
   },
   "6283150720715@s.whatsapp.net": {
     "isContact": true,
@@ -31477,5 +31478,10 @@
     "id": "177739084640403@lid",
     "lid": "177739084640403@lid",
     "imgUrl": "changed"
+  },
+  "145247472513039@lid": {
+    "id": "145247472513039@lid",
+    "lid": "145247472513039@lid",
+    "imgUrl": "removed"
   }
 }

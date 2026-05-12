@@ -13465,9 +13465,21 @@ infoText += `╰═════════════════════�
                                                         const musimStr = a.musim && a.musim !== '-' ? ` · _${a.musim}_` : '';
                                                         txt += `│ *${no}.* ${a.judul}\n`;
                                                         txt += `│     📺 ${epStr} | ${sisaStr}${musimStr}\n`;
-                                                        txt += `│     🔗 ${a.url}\n`;
                                                         if (a.latestEpUrl && a.latestEpUrl !== a.url) {
-                                                                txt += `│     ▶️ Tonton Ep ${a.epTerbaru}: ${a.latestEpUrl}\n`;
+                                                                txt += `│     ▶️ *Tonton Ep ${a.epTerbaru}:* ${a.latestEpUrl}\n`;
+                                                        }
+                                                        if (a.batchDownload) {
+                                                                txt += `│     📦 *Batch Tersedia!*\n`;
+                                                                for (const r of a.batchDownload.resolutions) {
+                                                                        const mirrors = r.links.map(l => l.label).join(' · ');
+                                                                        txt += `│         [${r.res}] ${mirrors}\n`;
+                                                                }
+                                                                const firstRes = a.batchDownload.resolutions[0];
+                                                                if (firstRes?.links[0]) {
+                                                                        txt += `│         🔗 ${firstRes.links[0].url}\n`;
+                                                                }
+                                                        } else {
+                                                                txt += `│     🔗 ${a.url}\n`;
                                                         }
                                                         if (i < daftarAnime.length - 1) txt += `│\n`;
                                                 }

@@ -150,12 +150,60 @@ function parseDetailPage(html, animeUrl) {
     const trailerMatch = html.match(/bixbox trailer[\s\S]*?<iframe[^>]+src="https:\/\/www\.youtube\.com\/embed\/([^"?/]+)/i);
     const trailerUrl   = trailerMatch ? `https://www.youtube.com/watch?v=${trailerMatch[1]}` : '';
 
+    // Batch download — cari blok .soraddlx.soradlg yang mengandung "Batch"
+    const batchDownload = parseBatchDownload(html);
+
     return {
         judul, judulAlt, cover, genre, status, rilis, jenis,
         durasi, studio, musim, rating, sinopsis,
         latestEpNum, latestEpUrl, totalEp, totalSeri, trailerUrl,
+        batchDownload,
         url: animeUrl,
     };
+}
+
+// Parse batch download links dari HTML halaman anime animasu
+function parseBatchDownload(html) {
+    // Cari judul blok batch (tidak peduli nested div)
+    const batchTitleM = html.match(/<div class="sorattlx"[^>]*>\s*<h3>([\s\S]*?Download\s+Batch[\s\S]*?)<\/h3>/i);
+    if (!batchTitleM) return null;
+
+    const title = stripHtml(batchTitleM[1]).trim();
+
+    // Mulai dari posisi judul batch, ambil semua .soraurlx hingga blok berikutnya
+    const startIdx = batchTitleM.index;
+
+    // Batas akhir: blok batch berikutnya (soraddlx lain) atau akhir .mctnx
+    const afterBatch = html.slice(startIdx);
+    // Cari soraddlx berikutnya setelah blok ini (skip yg pertama = blok ini sendiri)
+    const nextBlockM = afterBatch.match(/(<div class="soraddlx[^"]*">[\s\S]*?<div class="sorattlx"[^>]*>[\s\S]*?<\/h3>)([\s\S]*)/);
+    // Ambil konten dari awal batch sampai blok .soraddlx berikutnya atau batas mctnx
+    let section = afterBatch;
+    const nextSoraddlxIdx = afterBatch.indexOf('<div class="soraddlx', 20);
+    if (nextSoraddlxIdx !== -1) section = afterBatch.slice(0, nextSoraddlxIdx);
+
+    // Parse tiap resolusi dari section ini
+    const resolutions = [];
+    const urlDivRe = /<div class="soraurlx">([\s\S]*?)<\/div>/gi;
+    let m;
+    while ((m = urlDivRe.exec(section)) !== null) {
+        const inner = m[1];
+        const resM  = inner.match(/<strong>([\s\S]*?)<\/strong>/i);
+        if (!resM) continue;
+        const res   = stripHtml(resM[1]).trim();
+        const links = [];
+        const linkRe = /<a\s+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/gi;
+        let lm;
+        while ((lm = linkRe.exec(inner)) !== null) {
+            const href  = lm[1].trim();
+            const label = stripHtml(lm[2]).trim();
+            if (href && label && href !== '#') links.push({ label, url: href });
+        }
+        if (links.length) resolutions.push({ res, links });
+    }
+
+    if (!resolutions.length) return null;
+    return { title, resolutions };
 }
 
 // ── FETCH ─────────────────────────────────────────────────────────────────────
@@ -384,15 +432,16 @@ async function getAiringStatus(jumlahPost = 40) {
                     ? Math.max(0, detail.totalSeri - epNum)
                     : null;
                 return {
-                    judul       : detail.judul || slug,
-                    musim       : detail.musim || '-',
-                    status      : detail.status || '-',
-                    epTerbaru   : epNum || detail.latestEpNum || 0,
-                    totalSeri   : detail.totalSeri || 0,
+                    judul         : detail.judul || slug,
+                    musim         : detail.musim || '-',
+                    status        : detail.status || '-',
+                    epTerbaru     : epNum || detail.latestEpNum || 0,
+                    totalSeri     : detail.totalSeri || 0,
                     sisaEp,
-                    url         : animeUrl,
-                    latestEpUrl : detail.latestEpUrl || animeUrl,
-                    genre       : detail.genre || '',
+                    url           : animeUrl,
+                    latestEpUrl   : detail.latestEpUrl || animeUrl,
+                    genre         : detail.genre || '',
+                    batchDownload : detail.batchDownload || null,
                     postDate,
                 };
             })
