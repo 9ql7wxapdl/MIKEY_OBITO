@@ -339,7 +339,16 @@ function buatCaption(data) {
 
     const ep  = epNum || latestEpNum || '?';
     const sinopsisBlock = potongSinopsis(sinopsis).split('\n').map(b => `> ${b}`).join('\n');
-    const waktuKirim    = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+
+    // Header tanggal & waktu realtime lengkap (WIB)
+    const sekarang = new Date();
+    const opsiHari = { timeZone: 'Asia/Jakarta', weekday: 'long' };
+    const opsiTgl  = { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' };
+    const opsiJam  = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
+    const namaHari = sekarang.toLocaleDateString('id-ID', opsiHari);
+    const tglLengkap = sekarang.toLocaleDateString('id-ID', opsiTgl);
+    const jamMenit   = sekarang.toLocaleTimeString('id-ID', opsiJam).replace('.', ':');
+    const headerWaktu = `${namaHari}, ${tglLengkap} · ${jamMenit} WIB`;
 
     const sedangTayang = (status || '').toLowerCase().includes('tayang') &&
                          !(status || '').toLowerCase().includes('selesai');
@@ -376,6 +385,8 @@ function buatCaption(data) {
 
     return (
         `🟢 *SUB INDO SUDAH TAYANG!*\n` +
+        `${SEP}\n` +
+        `📅 _${headerWaktu}_\n` +
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
         `${judulAlt ? `_${judulAlt}_\n` : ''}` +
@@ -391,8 +402,7 @@ function buatCaption(data) {
         `${SEP}\n` +
         `${trailerUrl ? `🎬 *PV*     : ${trailerUrl}\n` : ''}` +
         `▶️ *Tonton*  : ${latestEpUrl || url}\n` +
-        `🔗 *Anime*   : ${url}\n` +
-        `🕐 _${waktuKirim} WIB_`
+        `🔗 *Anime*   : ${url}`
     );
 }
 

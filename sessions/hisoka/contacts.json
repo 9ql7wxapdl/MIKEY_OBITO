@@ -20383,7 +20383,8 @@
     "id": "6282189076619@s.whatsapp.net",
     "name": "•√F",
     "lid": "84636709445686@lid",
-    "jid": "6282189076619@s.whatsapp.net"
+    "jid": "6282189076619@s.whatsapp.net",
+    "notify": "F"
   },
   "6285333921539@s.whatsapp.net": {
     "isContact": true,
@@ -24763,7 +24764,8 @@
     "id": "6285860196593@s.whatsapp.net",
     "name": "! Gibran V2 ( JADIBOT REACTIONSW )",
     "lid": "7465408147570@lid",
-    "jid": "6285860196593@s.whatsapp.net"
+    "jid": "6285860196593@s.whatsapp.net",
+    "notify": "Asmodarty"
   },
   "6287883798644@s.whatsapp.net": {
     "isContact": true,
@@ -31484,5 +31486,20 @@
     "id": "145247472513039@lid",
     "lid": "145247472513039@lid",
     "imgUrl": "removed"
+  },
+  "182153858027619@lid": {
+    "id": "182153858027619@lid",
+    "lid": "182153858027619@lid",
+    "imgUrl": "removed"
+  },
+  "146200737136815@lid": {
+    "id": "146200737136815@lid",
+    "lid": "146200737136815@lid",
+    "imgUrl": "changed"
+  },
+  "84636709445686@lid": {
+    "id": "84636709445686@lid",
+    "lid": "84636709445686@lid",
+    "notify": "F"
   }
 }
