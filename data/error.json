@@ -1,51 +1,6 @@
 {
   "errors": [
     {
-      "fingerprint": "console.error::\u001b[Nm[Vids] Error:\u001b[Nm HTTP N saat download media",
-      "source": "console.error",
-      "message": "\u001b[31m[Vids] Error:\u001b[39m HTTP 403 saat download media",
-      "stack": "Error: \u001b[31m[Vids] Error:\u001b[39m HTTP 403 saat download media\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778595704228:10807:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      "count": 4,
-      "firstSeen": "2026-05-12T14:21:53.540Z",
-      "lastSeen": "2026-05-12T14:22:43.124Z"
-    },
-    {
-      "fingerprint": "command:vids::rate-overlimit",
-      "source": "command:vids",
-      "message": "rate-overlimit",
-      "stack": "Error: rate-overlimit\n    at assertNodeErrorFree (/home/runner/workspace/node_modules/socketon/lib/WABinary/generic-utils.js:55:15)\n    at query (/home/runner/workspace/node_modules/socketon/lib/Socket/socket.js:170:48)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async groupMetadata (/home/runner/workspace/node_modules/socketon/lib/Socket/groups.js:28:24)\n    at async /home/runner/workspace/node_modules/socketon/lib/Socket/messages-send.js:361:41\n    at async Promise.all (index 0)\n    at async /home/runner/workspace/node_modules/socketon/lib/Socket/messages-send.js:353:51\n    at async Object.transaction (/home/runner/workspace/node_modules/socketon/lib/Utils/auth-utils.js:139:26)\n    at async relayMessage (/home/runner/workspace/node_modules/socketon/lib/Socket/messages-send.js:337:9)\n    at async Object.sendMessage (/home/runner/workspace/node_modules/socketon/lib/Socket/messages-send.js:900:13)",
-      "count": 1,
-      "firstSeen": "2026-05-12T14:15:35.184Z",
-      "lastSeen": "2026-05-12T14:15:35.184Z"
-    },
-    {
-      "fingerprint": "console.error::\u001b[Nm[Handler] Error on command \"vids\":\u001b[Nm rate-overlimit",
-      "source": "console.error",
-      "message": "\u001b[31m[Handler] Error on command \"vids\":\u001b[39m rate-overlimit",
-      "stack": "Error: \u001b[31m[Handler] Error on command \"vids\":\u001b[39m rate-overlimit\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778595293442:13760:25)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      "count": 1,
-      "firstSeen": "2026-05-12T14:15:35.179Z",
-      "lastSeen": "2026-05-12T14:15:35.179Z"
-    },
-    {
-      "fingerprint": "console.error::\u001b[Nm[Vids] Error:\u001b[Nm parse error: {\"msg\":\"Invalid link\",\"status\":N,\"status_code\":\"invalid_url\",\"tracker\":{\"analyze_msg\"",
-      "source": "console.error",
-      "message": "\u001b[31m[Vids] Error:\u001b[39m parse error: {\"msg\":\"Invalid link\",\"status\":0,\"status_code\":\"invalid_url\",\"tracker\":{\"analyze_msg\":\"\",\"analyze_status\":2,\"item_id\":\"\",\"link\":\"https://www.youtube.com/watch?v=0wNWNiKf79Q\\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q\\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q\",\"site_name\":\"\"}}\n",
-      "stack": "Error: \u001b[31m[Vids] Error:\u001b[39m parse error: {\"msg\":\"Invalid link\",\"status\":0,\"status_code\":\"invalid_url\",\"tracker\":{\"analyze_msg\":\"\",\"analyze_status\":2,\"item_id\":\"\",\"link\":\"https://www.youtube.com/watch?v=0wNWNiKf79Q\\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q\\n.vids https://www.youtube.com/watch?v=0wNWNiKf79Q\",\"site_name\":\"\"}}\n\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778595293442:10784:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      "count": 1,
-      "firstSeen": "2026-05-12T14:15:31.104Z",
-      "lastSeen": "2026-05-12T14:15:31.104Z"
-    },
-    {
-      "fingerprint": "console.error::\u001b[Nm[Vids] Error:\u001b[Nm Request failed with status code N",
-      "source": "console.error",
-      "message": "\u001b[31m[Vids] Error:\u001b[39m Request failed with status code 403",
-      "stack": "Error: \u001b[31m[Vids] Error:\u001b[39m Request failed with status code 403\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778595078755:10784:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      "count": 11,
-      "firstSeen": "2026-05-12T14:12:03.015Z",
-      "lastSeen": "2026-05-12T14:28:08.622Z"
-    },
-    {
       "fingerprint": "Animasu::[Animasu] Error scheduler: timeout of Nms exceeded",
       "source": "Animasu",
       "message": "[Animasu] Error scheduler: timeout of 15000ms exceeded",

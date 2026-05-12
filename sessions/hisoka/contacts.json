@@ -5931,8 +5931,7 @@
     "id": "6283121471949@s.whatsapp.net",
     "name": "Sigit",
     "lid": "127461811601572@lid",
-    "jid": "6283121471949@s.whatsapp.net",
-    "notify": "Sgt"
+    "jid": "6283121471949@s.whatsapp.net"
   },
   "6281271583278@s.whatsapp.net": {
     "isContact": true,
@@ -13576,9 +13575,7 @@
     "id": "6287766516011@s.whatsapp.net",
     "name": "Akbar 547",
     "lid": "248627335299292@lid",
-    "jid": "6287766516011@s.whatsapp.net",
-    "notify": "Abauu'u",
-    "verifiedName": "Abauu'u"
+    "jid": "6287766516011@s.whatsapp.net"
   },
   "60176214610@s.whatsapp.net": {
     "isContact": true,
@@ -14373,8 +14370,7 @@
     "name": "Hamdan",
     "lid": "239328697536578@lid",
     "jid": "6283134844523@s.whatsapp.net",
-    "notify": "Anda Siapa?",
-    "verifiedName": "Anda Siapa?"
+    "notify": "Anda Siapa?"
   },
   "6281289973507@s.whatsapp.net": {
     "isContact": true,
@@ -25108,9 +25104,7 @@
     "id": "6282268990535@s.whatsapp.net",
     "name": "√ Miku",
     "lid": "38642156306452@lid",
-    "jid": "6282268990535@s.whatsapp.net",
-    "notify": "Otaku Hakase",
-    "verifiedName": "Otaku Hakase"
+    "jid": "6282268990535@s.whatsapp.net"
   },
   "6285789578973@s.whatsapp.net": {
     "isContact": true,
@@ -31653,66 +31647,6 @@
   "221981173649433@lid": {
     "id": "221981173649433@lid",
     "lid": "221981173649433@lid",
-    "imgUrl": "removed"
-  },
-  "276054929362982@lid": {
-    "id": "276054929362982@lid",
-    "lid": "276054929362982@lid",
-    "imgUrl": "removed"
-  },
-  "211862515904558@lid": {
-    "id": "211862515904558@lid",
-    "lid": "211862515904558@lid",
-    "imgUrl": "removed"
-  },
-  "211119369134180@lid": {
-    "id": "211119369134180@lid",
-    "lid": "211119369134180@lid",
-    "imgUrl": "changed"
-  },
-  "4870711021709@lid": {
-    "id": "4870711021709@lid",
-    "lid": "4870711021709@lid",
-    "imgUrl": "changed"
-  },
-  "124167722692832@lid": {
-    "id": "124167722692832@lid",
-    "lid": "124167722692832@lid",
-    "imgUrl": "changed"
-  },
-  "173074884341802@lid": {
-    "id": "173074884341802@lid",
-    "lid": "173074884341802@lid",
-    "imgUrl": "changed"
-  },
-  "271210222997642@lid": {
-    "id": "271210222997642@lid",
-    "lid": "271210222997642@lid",
-    "imgUrl": "changed"
-  },
-  "111978991370378@lid": {
-    "id": "111978991370378@lid",
-    "lid": "111978991370378@lid",
-    "imgUrl": "changed"
-  },
-  "205170688397425@lid": {
-    "id": "205170688397425@lid",
-    "lid": "205170688397425@lid",
-    "imgUrl": "changed"
-  },
-  "222097204899919@lid": {
-    "id": "222097204899919@lid",
-    "lid": "222097204899919@lid",
-    "imgUrl": "removed"
-  },
-  "116643124506842@lid": {
-    "id": "116643124506842@lid",
-    "lid": "116643124506842@lid",
-    "imgUrl": "changed"
-  },
-  "254541438173270@lid": {
-    "id": "254541438173270@lid",
-    "lid": "254541438173270@lid",
     "imgUrl": "removed"
   }
 }
