@@ -1328,6 +1328,78 @@ fetch_branches() {
     | sort -u
 }
 
+# ===== Ambil branch diurutkan terbaru dulu (by commit date, paralel) =====
+# Output: satu nama branch per baris, terbaru di atas.
+# Fallback ke fetch_branches (alpha) kalau API gagal.
+fetch_branches_recent() {
+  local ignore_pattern=""
+  for b in $IGNORE_BRANCHES; do
+    [ -z "$ignore_pattern" ] && ignore_pattern="^${b}$" || ignore_pattern="${ignore_pattern}|^${b}$"
+  done
+  [ -z "$ignore_pattern" ] && ignore_pattern="^$"
+
+  # ── [1] Ambil semua branch + SHA ──────────────────────────────────────
+  local tmp_list
+  tmp_list=$(mktemp)
+  local http_code
+  http_code=$(curl -s -o "$tmp_list" -w "%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/branches?per_page=100" 2>/dev/null)
+
+  if [ "$http_code" != "200" ]; then
+    rm -f "$tmp_list"
+    fetch_branches
+    return
+  fi
+
+  local all_names=() all_shas=()
+  while IFS=$'\t' read -r _n _s; do
+    all_names+=("$_n"); all_shas+=("$_s")
+  done < <(node -e "
+    const d = require('fs').readFileSync('$tmp_list','utf8');
+    JSON.parse(d).forEach(b => console.log(b.name + '\t' + b.commit.sha));
+  " 2>/dev/null)
+  rm -f "$tmp_list"
+
+  if [ ${#all_names[@]} -eq 0 ]; then
+    fetch_branches; return
+  fi
+
+  # ── [2] Fetch tanggal commit tiap branch secara PARALEL ──────────────
+  local total=${#all_names[@]}
+  for (( i=0; i<total; i++ )); do
+    curl -s -o "/tmp/_fbr_${i}_$$.json" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/commits/${all_shas[$i]}" \
+      2>/dev/null &
+  done
+  wait
+
+  # ── [3] Kumpulkan "isodate<TAB>name" lalu sort descending ─────────────
+  local all_dated=()
+  for (( i=0; i<total; i++ )); do
+    local fname="/tmp/_fbr_${i}_$$.json"
+    local bdate=""
+    if [ -f "$fname" ]; then
+      bdate=$(grep -oE '"date"[[:space:]]*:[[:space:]]*"[^"]*"' "$fname" | head -1 \
+              | grep -oE '"[0-9]{4}-[^"]*"' | tr -d '"')
+      rm -f "$fname"
+    fi
+    all_dated+=("${bdate:-0000-00-00T00:00:00Z}"$'\t'"${all_names[$i]}")
+  done
+
+  # Sort descending → keluarkan hanya nama, filter ignore
+  printf '%s\n' "${all_dated[@]}" \
+    | sort -r \
+    | cut -f2 \
+    | grep -v '^$' \
+    | grep -Ev "$ignore_pattern"
+}
+
 # ===== Header banner =====
 banner() {
   clear >/dev/tty 2>/dev/null || true
@@ -3674,10 +3746,16 @@ action_rename_branch() {
   local _RB_PAGE="${_RB_PAGE:-1}"
   local _RB_PAGE_SIZE=8
 
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   ✏️   EDIT NAMA BRANCH          │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo -e "  ${C_DIM}▸ Memuat branch (terbaru dulu)...${C_RESET}"
+
   local branches=()
   while IFS= read -r b; do
     [ -n "$b" ] && branches+=("$b")
-  done < <(fetch_branches)
+  done < <(fetch_branches_recent)
 
   local total=${#branches[@]}
   if [ "$total" -eq 0 ]; then
@@ -3993,10 +4071,16 @@ action_delete_branch() {
   local _DB_PAGE="${_DB_PAGE:-1}"
   local _DB_PAGE_SIZE=8
 
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🗑️   HAPUS BRANCH              │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo -e "  ${C_DIM}▸ Memuat branch (terbaru dulu)...${C_RESET}"
+
   local branches=()
   while IFS= read -r b; do
     [ -n "$b" ] && [ "$b" != "$DEFAULT_BRANCH" ] && branches+=("$b")
-  done < <(fetch_branches)
+  done < <(fetch_branches_recent)
 
   local total=${#branches[@]}
 
@@ -4200,10 +4284,16 @@ show_menu() {
   local _SM_PAGE="${_SM_PAGE:-1}"
   local _SM_PAGE_SIZE=8
 
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   📤  UPLOAD — PILIH BRANCH      │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo -e "  ${C_DIM}▸ Memuat branch (terbaru dulu)...${C_RESET}"
+
   local branches=()
   while IFS= read -r b; do
     [ -n "$b" ] && branches+=("$b")
-  done < <(fetch_branches)
+  done < <(fetch_branches_recent)
 
   local total=${#branches[@]}
   local total_pages=$(( (total + _SM_PAGE_SIZE - 1) / _SM_PAGE_SIZE ))
