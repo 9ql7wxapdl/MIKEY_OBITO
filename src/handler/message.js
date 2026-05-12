@@ -10739,7 +10739,14 @@ infoText += `╰═════════════════════�
                                         caption += `│\n`;
                                         caption += `╰══════════════════════════════════╯`;
 
-                                        await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim video...' });
+                                        await m.reply({ edit: loadingMsg.key, text: '⬇️ Mengunduh media...' });
+
+                                        // Download URL ke Buffer di server kita (CDN URL tidak bisa di-fetch langsung oleh WhatsApp)
+                                        const fetchToBuffer = async (dlUrl) => {
+                                                const r = await fetch(dlUrl, { signal: AbortSignal.timeout(120000) });
+                                                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                                                return Buffer.from(await r.arrayBuffer());
+                                        };
 
                                         // Kirim thumbnail dulu kalau ada
                                         if (thumbnail) {
@@ -10751,29 +10758,36 @@ infoText += `╰═════════════════════�
                                                 } catch (_) {}
                                         }
 
-                                        // Kirim video
+                                        // Kirim video — download buffer dari CDN dulu, baru kirim ke WA
                                         if (bestVideo) {
                                                 try {
+                                                        const vBuf = await fetchToBuffer(bestVideo.downloadUrl);
                                                         await hisoka.sendMessage(m.from, {
-                                                                video: { url: bestVideo.downloadUrl },
+                                                                video: vBuf,
                                                                 caption: thumbnail ? '' : caption,
                                                                 mimetype: 'video/mp4'
                                                         }, { quoted: m });
                                                 } catch (ve) {
                                                         console.log('[Vids] video send failed:', ve.message);
-                                                        // Fallback: kirim audio jika video gagal
                                                         if (bestAudio) {
-                                                                await hisoka.sendMessage(m.from, {
-                                                                        audio: { url: bestAudio.downloadUrl },
-                                                                        mimetype: 'audio/mpeg',
-                                                                        ptt: false
-                                                                }, { quoted: m });
+                                                                try {
+                                                                        const aBuf = await fetchToBuffer(bestAudio.downloadUrl);
+                                                                        await hisoka.sendMessage(m.from, {
+                                                                                audio: aBuf,
+                                                                                mimetype: 'audio/mp4',
+                                                                                ptt: false
+                                                                        }, { quoted: m });
+                                                                } catch (ae) {
+                                                                        console.log('[Vids] audio fallback failed:', ae.message);
+                                                                        throw ve;
+                                                                }
                                                         }
                                                 }
                                         } else if (bestAudio) {
+                                                const aBuf = await fetchToBuffer(bestAudio.downloadUrl);
                                                 await hisoka.sendMessage(m.from, {
-                                                        audio: { url: bestAudio.downloadUrl },
-                                                        mimetype: 'audio/mpeg',
+                                                        audio: aBuf,
+                                                        mimetype: 'audio/mp4',
                                                         ptt: false
                                                 }, { quoted: m });
                                         }

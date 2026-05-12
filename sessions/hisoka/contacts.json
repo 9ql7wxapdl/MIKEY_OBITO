@@ -14373,7 +14373,8 @@
     "name": "Hamdan",
     "lid": "239328697536578@lid",
     "jid": "6283134844523@s.whatsapp.net",
-    "notify": "Anda Siapa?"
+    "notify": "Anda Siapa?",
+    "verifiedName": "Anda Siapa?"
   },
   "6281289973507@s.whatsapp.net": {
     "isContact": true,
@@ -31688,5 +31689,30 @@
     "id": "271210222997642@lid",
     "lid": "271210222997642@lid",
     "imgUrl": "changed"
+  },
+  "111978991370378@lid": {
+    "id": "111978991370378@lid",
+    "lid": "111978991370378@lid",
+    "imgUrl": "changed"
+  },
+  "205170688397425@lid": {
+    "id": "205170688397425@lid",
+    "lid": "205170688397425@lid",
+    "imgUrl": "changed"
+  },
+  "222097204899919@lid": {
+    "id": "222097204899919@lid",
+    "lid": "222097204899919@lid",
+    "imgUrl": "removed"
+  },
+  "116643124506842@lid": {
+    "id": "116643124506842@lid",
+    "lid": "116643124506842@lid",
+    "imgUrl": "changed"
+  },
+  "254541438173270@lid": {
+    "id": "254541438173270@lid",
+    "lid": "254541438173270@lid",
+    "imgUrl": "removed"
   }
 }

@@ -1,6 +1,15 @@
 {
   "errors": [
     {
+      "fingerprint": "console.error::\u001b[Nm[Vids] Error:\u001b[Nm HTTP N saat download media",
+      "source": "console.error",
+      "message": "\u001b[31m[Vids] Error:\u001b[39m HTTP 403 saat download media",
+      "stack": "Error: \u001b[31m[Vids] Error:\u001b[39m HTTP 403 saat download media\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778595704228:10807:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
+      "count": 4,
+      "firstSeen": "2026-05-12T14:21:53.540Z",
+      "lastSeen": "2026-05-12T14:22:43.124Z"
+    },
+    {
       "fingerprint": "command:vids::rate-overlimit",
       "source": "command:vids",
       "message": "rate-overlimit",
@@ -32,9 +41,9 @@
       "source": "console.error",
       "message": "\u001b[31m[Vids] Error:\u001b[39m Request failed with status code 403",
       "stack": "Error: \u001b[31m[Vids] Error:\u001b[39m Request failed with status code 403\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778595078755:10784:49)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)",
-      "count": 9,
+      "count": 11,
       "firstSeen": "2026-05-12T14:12:03.015Z",
-      "lastSeen": "2026-05-12T14:15:34.952Z"
+      "lastSeen": "2026-05-12T14:28:08.622Z"
     },
     {
       "fingerprint": "Animasu::[Animasu] Error scheduler: timeout of Nms exceeded",
