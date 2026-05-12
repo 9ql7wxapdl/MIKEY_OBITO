@@ -473,7 +473,8 @@
     "id": "6281345905196@s.whatsapp.net",
     "name": "pushkontak wa 21",
     "lid": "276926941929540@lid",
-    "jid": "6281345905196@s.whatsapp.net"
+    "jid": "6281345905196@s.whatsapp.net",
+    "notify": "."
   },
   "6285938381718@s.whatsapp.net": {
     "isContact": true,
@@ -20847,7 +20848,9 @@
     "id": "6285711200877@s.whatsapp.net",
     "name": "Naizo 👍",
     "lid": "168736715731040@lid",
-    "jid": "6285711200877@s.whatsapp.net"
+    "jid": "6285711200877@s.whatsapp.net",
+    "notify": "Albiverstappen",
+    "verifiedName": "Albiverstappen"
   },
   "6285314753030@s.whatsapp.net": {
     "isContact": true,
