@@ -9376,7 +9376,8 @@
     "id": "62895405718686@s.whatsapp.net",
     "name": "AM•ルウィン",
     "lid": "214928937980082@lid",
-    "jid": "62895405718686@s.whatsapp.net"
+    "jid": "62895405718686@s.whatsapp.net",
+    "notify": "Basic NPC"
   },
   "6283871419057@s.whatsapp.net": {
     "isContact": true,
@@ -31648,5 +31649,20 @@
     "id": "221981173649433@lid",
     "lid": "221981173649433@lid",
     "imgUrl": "removed"
+  },
+  "26590444556486@lid": {
+    "id": "26590444556486@lid",
+    "lid": "26590444556486@lid",
+    "imgUrl": "changed"
+  },
+  "102061374972084@lid": {
+    "id": "102061374972084@lid",
+    "lid": "102061374972084@lid",
+    "imgUrl": "changed"
+  },
+  "26736204996666@lid": {
+    "id": "26736204996666@lid",
+    "lid": "26736204996666@lid",
+    "imgUrl": "changed"
   }
 }
