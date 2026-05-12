@@ -550,10 +550,10 @@ function kapitalisasi(str) {
     return String(str || '').toLowerCase().replace(/^\w/, c => c.toUpperCase());
 }
 
-// Ambil URL gambar terbaik (banner > cover besar > cover kecil)
+// Ambil URL gambar terbaik (cover portrait lebih cocok di WhatsApp, banner terlalu lebar)
 function ambilUrlGambar(post) {
     const a = post.anime || post;
-    return a.bannerImage || a.coverImage?.extraLarge || a.coverImage?.large || null;
+    return a.coverImage?.extraLarge || a.coverImage?.large || a.bannerImage || null;
 }
 
 // ── SIMULASI / TES KIRIM ──────────────────────────────────────────────────────
