@@ -49,6 +49,7 @@ import { extractVoiceNotesFromText, extractSongsFromText, extractVideosFromText,
 import { getHistory, addToHistory, clearHistory, clearAllHistory, countHistory, getSessionKey, buildHistoryMeta, wrapCurrentUserMessage } from '../db/aiHistory.js';
 import { sendAIReply } from '../helper/aiReact.js';
 import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt } from '../helper/aiPrompt.js';
+import { buildIgVisionPrompt, buildIgCaptionPrompt, buildIgFallbackCaption } from '../helper/AiPromptIg.js';
 import { hashSticker, lookupSticker, saveSticker, incrementStickerSeen, buildStickerContextHint, getStickerMemoryStats } from '../helper/stickerMemory.js';
 import { getJadibotAntidel, getJadibotReadsw, getJadibotAnticall, getJadibotAnticallvid, setJadibotUserSetting, getJadibotNumber } from '../helper/jadibotSettings.js';
 
@@ -10465,57 +10466,70 @@ infoText += `╰═════════════════════�
 
                                         await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
 
-                                        // === Vision: analisis visual isi konten via Gemini ===
-                                        let igVisualDescription = '';
-                                        try {
-                                                // Cari thumbnail dari berbagai sumber:
-                                                // 1. Field cover/thumbnail dari vdraw atau API lain
-                                                // 2. First image media dari carousel
-                                                // 3. Cover dari vdraw response (cover_url, thumbnail_url, dsb)
-                                                let thumbUrl = igData.cover_url || igData.thumbnail_url || igData.cover || igData.thumb || igData.thumbnail || null;
+                                        // === STEP 1: Cari thumbnail/cover untuk vision analysis ===
+                                        let igThumbUrl = null;
 
-                                                // Jika vdraw return info array, cek apakah ada item gambar pertama
-                                                if (!thumbUrl && Array.isArray(mediaItems)) {
-                                                        const firstPhoto = mediaItems.find(it => it.media_format === 'image' || it.media_format === 'photo');
-                                                        if (firstPhoto) thumbUrl = firstPhoto.url || firstPhoto.src;
-                                                }
+                                        // Prioritas: cover di level igData → cover di level item → first photo item
+                                        igThumbUrl = igData.cover_url || igData.thumbnail_url || igData.cover || igData.thumb || igData.thumbnail || null;
 
-                                                // Jika masih tidak ada thumbnail, cek field cover di item pertama (vdraw return cover di sini)
-                                                if (!thumbUrl && Array.isArray(mediaItems) && mediaItems[0]) {
-                                                        const first = mediaItems[0];
-                                                        thumbUrl = first.cover || first.cover_url || first.thumbnail_url || first.thumbnail || null;
-                                                }
+                                        if (!igThumbUrl && Array.isArray(mediaItems) && mediaItems[0]) {
+                                                const first = mediaItems[0];
+                                                igThumbUrl = first.cover || first.cover_url || first.thumbnail_url || first.thumbnail || null;
+                                        }
 
-                                                if (thumbUrl) {
+                                        if (!igThumbUrl && Array.isArray(mediaItems)) {
+                                                const firstPhoto = mediaItems.find(it => it.media_format === 'image' || it.media_format === 'photo');
+                                                if (firstPhoto) igThumbUrl = firstPhoto.url || firstPhoto.src;
+                                        }
+
+                                        // === STEP 2: Vision — Gemini analisis visual thumbnail ===
+                                        let igVisualDesc = '';
+                                        if (igThumbUrl) {
+                                                try {
                                                         const { default: axiosLib } = await import('axios');
-                                                        const thumbRes = await axiosLib.get(thumbUrl, {
+                                                        const thumbRes = await axiosLib.get(igThumbUrl, {
                                                                 responseType: 'arraybuffer',
-                                                                timeout: 10000,
+                                                                timeout: 12000,
                                                                 headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36' },
                                                         });
                                                         const thumbBuf = Buffer.from(thumbRes.data);
                                                         if (thumbBuf.length > 500) {
-                                                                igVisualDescription = await gemini.askWithImage(
-                                                                        'Deskripsikan isi konten Instagram ini secara singkat, akurat, dan informatif dalam bahasa Indonesia. Sebutkan: apa yang terjadi atau ditampilkan, siapa orangnya (jika ada), suasana atau setting, dan hal penting lainnya yang terlihat. Maksimal 3 kalimat. Jangan bilang kamu AI.',
-                                                                        thumbBuf,
-                                                                        'image/jpeg'
-                                                                );
+                                                                const base64Thumb = thumbBuf.toString('base64');
+                                                                const mimeThumb = thumbRes.headers['content-type']?.split(';')[0] || 'image/jpeg';
+                                                                // Pakai gemini.chat() langsung agar bisa pilih model terbaik
+                                                                igVisualDesc = await gemini.chat({
+                                                                        model: 'gemini-2.5-flash',
+                                                                        contents: [{
+                                                                                role: 'user',
+                                                                                parts: [
+                                                                                        { inlineData: { mimeType: mimeThumb, data: base64Thumb } },
+                                                                                        { text: buildIgVisionPrompt() },
+                                                                                ],
+                                                                        }],
+                                                                });
                                                         }
-                                                }
-                                        } catch (_) {}
+                                                } catch (_) {}
+                                        }
 
-                                        // Generate AI caption dengan visual description
-                                        const aiCaptionPromiseIG = gemini.ask(buildVideoDownloadCaptionPrompt({
-                                                platform: 'Instagram',
-                                                author: username || 'Instagram',
-                                                likes: likes ? likes.toLocaleString() : '',
+                                        // === STEP 3: Generate caption final via AI ===
+                                        let finalCaptionIG = buildIgFallbackCaption({
+                                                username, likes: likes ? likes.toLocaleString() : '',
                                                 comments: comments ? comments.toLocaleString() : '',
-                                                description: caption || '',
-                                                visualDescription: igVisualDescription,
-                                        })).catch(() => null);
+                                                mediaType, caption,
+                                        });
 
-                                        const aiCaptionIG = await aiCaptionPromiseIG;
-                                        const finalCaptionIG = aiCaptionIG?.trim() || infoText;
+                                        try {
+                                                const captionPrompt = buildIgCaptionPrompt({
+                                                        username,
+                                                        caption,
+                                                        likes: likes ? likes.toLocaleString() : '',
+                                                        comments: comments ? comments.toLocaleString() : '',
+                                                        mediaType,
+                                                        visualDesc: igVisualDesc,
+                                                });
+                                                const aiCaptionIG = await gemini.ask(captionPrompt);
+                                                if (aiCaptionIG?.trim()) finalCaptionIG = aiCaptionIG.trim();
+                                        } catch (_) {}
 
                                         let firstVideoUrl = null;
 

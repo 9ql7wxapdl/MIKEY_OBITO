@@ -12672,7 +12672,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1957,
+    "size": 1955,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -19171,11 +19171,6 @@
         "admin": null
       },
       {
-        "id": "266739514384616@lid",
-        "jid": "266739514384616@lid",
-        "admin": null
-      },
-      {
         "id": "221526360064153@lid",
         "jid": "221526360064153@lid",
         "admin": null
@@ -22168,11 +22163,6 @@
       {
         "id": "201644839051289@lid",
         "jid": "201644839051289@lid",
-        "admin": null
-      },
-      {
-        "id": "65121032372472@lid",
-        "jid": "65121032372472@lid",
         "admin": null
       },
       {
