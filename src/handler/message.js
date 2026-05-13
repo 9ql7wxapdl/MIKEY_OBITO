@@ -13501,7 +13501,7 @@ infoText += `╰═════════════════════�
 
                                 const { simulasi: simulasiAM, getAiringStatus, getEnabledGroups: getEnabledGroupsAM } = _require(path.resolve('./src/scrape/animasu.cjs'));
                                 const cfgPathAM = path.join(process.cwd(), 'config.json');
-                                const sub = (query || '').trim().toLowerCase();
+                                const sub = (query || '').trim().toLowerCase().replace(/\s+/g, ' ');
                                 const pfx = m.prefix || '.';
 
                                 const cfgAM = loadConfig();
