@@ -5,9 +5,9 @@
       "source": "Animasu",
       "message": "[Animasu] ❌ Gagal fetch API posts: timeout of 30000ms exceeded",
       "stack": "Error: [Animasu] ❌ Gagal fetch API posts: timeout of 30000ms exceeded\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at Object.cariEpisodeBaru (/home/runner/workspace/src/scrape/animasu.cjs:376:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Timeout.runAnimasu [as _onTimeout] (file:///home/runner/workspace/index.js:795:69)",
-      "count": 3,
+      "count": 4,
       "firstSeen": "2026-05-13T07:39:14.914Z",
-      "lastSeen": "2026-05-13T07:47:56.282Z"
+      "lastSeen": "2026-05-13T09:13:49.462Z"
     },
     {
       "fingerprint": "console.error::\u001b[Nm[HotReload] Gagal load 'src/handler/message.js':\u001b[Nm The requested module '../helper/AiPromptIg.js' does not provide",
