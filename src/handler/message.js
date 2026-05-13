@@ -13667,15 +13667,9 @@ infoText += `╰═════════════════════�
                                                 let berhasil = 0, gagal = 0;
                                                 for (const jid of daftarGrup) {
                                                         try {
-                                                                if (hasil.imgBuffer) {
+                                                                if (hasil.urlGambar) {
                                                                         await hisoka.sendMessage(jid, {
-                                                                                image   : hasil.imgBuffer,
-                                                                                mimetype: 'image/jpeg',
-                                                                                caption : hasil.caption,
-                                                                        });
-                                                                } else if (hasil.urlGambar) {
-                                                                        await hisoka.sendMessage(jid, {
-                                                                                image  : { url: hasil.urlGambar },
+                                                                                image: { url: hasil.urlGambar },
                                                                                 caption: hasil.caption,
                                                                         });
                                                                 } else {
@@ -13708,15 +13702,9 @@ infoText += `╰═════════════════════�
                                         await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
                                         try {
                                                 const hasil = await simulasiAM();
-                                                if (hasil.imgBuffer) {
+                                                if (hasil.urlGambar) {
                                                         await hisoka.sendMessage(m.from, {
-                                                                image   : hasil.imgBuffer,
-                                                                mimetype: 'image/jpeg',
-                                                                caption : hasil.caption,
-                                                        }, { quoted: m });
-                                                } else if (hasil.urlGambar) {
-                                                        await hisoka.sendMessage(m.from, {
-                                                                image  : { url: hasil.urlGambar },
+                                                                image: { url: hasil.urlGambar },
                                                                 caption: hasil.caption,
                                                         }, { quoted: m });
                                                 } else {
@@ -13732,6 +13720,190 @@ infoText += `╰═════════════════════�
                                 }
 
                                 await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}animasu* untuk bantuan.`);
+                                break;
+                        }
+
+                        case 'tvone': {
+                                const { simulasi: simulasiTV, getEnabledGroups: getEnabledGroupsTV, setGroupEnabled: setGroupEnabledTV, getRecentLog: getRecentLogTV } = _require(path.resolve('./src/scrape/tvonenews.cjs'));
+                                const cfgPathTV = path.join(process.cwd(), 'config.json');
+                                const sub = (query || '').trim().toLowerCase().replace(/\s+/g, ' ');
+                                const pfx = m.prefix || '.';
+
+                                let cfgTV = {};
+                                try { cfgTV = JSON.parse(fs.readFileSync(cfgPathTV, 'utf-8')); } catch (_) {}
+                                if (!cfgTV.tvonenews)        cfgTV.tvonenews        = { groups: {} };
+                                if (!cfgTV.tvonenews.groups) cfgTV.tvonenews.groups = {};
+
+                                // ── HELP ──────────────────────────────────────────────────
+                                if (!sub || sub === 'help') {
+                                        const aktif = cfgTV.tvonenews.groups[m.from]?.enabled === true;
+                                        await tolak(hisoka, m,
+                                                `╭─「 📰 *TVONE NEWS* 」\n` +
+                                                `│\n` +
+                                                `│ Status di grup ini: ${aktif ? '🟢 *Aktif*' : '🔴 *Nonaktif*'}\n` +
+                                                `│\n` +
+                                                `│ Perintah:\n` +
+                                                `│ • ${pfx}tvone on — aktifkan notif berita\n` +
+                                                `│ • ${pfx}tvone off — nonaktifkan notif\n` +
+                                                `│ • ${pfx}tvone test — kirim test ke sini\n` +
+                                                `│ • ${pfx}tvone test grup — test ke semua grup aktif\n` +
+                                                `│ • ${pfx}tvone status — lihat semua grup\n` +
+                                                `│ • ${pfx}tvone log — 5 berita terakhir terkirim\n` +
+                                                `│\n` +
+                                                `│ 💡 Bot otomatis kirim notif setiap kali ada\n` +
+                                                `│    berita baru dari tvonenews.com (cek tiap 5 menit)\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                // ── ON ─────────────────────────────────────────────────────
+                                if (sub === 'on') {
+                                        const sebelumnya = cfgTV.tvonenews.groups[m.from]?.enabled === true;
+                                        setGroupEnabledTV(m.from, true);
+                                        await tolak(hisoka, m,
+                                                `╭─「 📰 *TVONE NEWS* 」\n` +
+                                                `│\n` +
+                                                `│ Sebelumnya : ${sebelumnya ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│ Sekarang   : 🟢 *Aktif*\n` +
+                                                `│\n` +
+                                                `│ ✅ Notifikasi berita terbaru akan dikirim\n` +
+                                                `│    ke grup ini setiap ada berita baru.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                // ── OFF ────────────────────────────────────────────────────
+                                if (sub === 'off') {
+                                        const sebelumnya = cfgTV.tvonenews.groups[m.from]?.enabled === true;
+                                        setGroupEnabledTV(m.from, false);
+                                        await tolak(hisoka, m,
+                                                `╭─「 📰 *TVONE NEWS* 」\n` +
+                                                `│\n` +
+                                                `│ Sebelumnya : ${sebelumnya ? '🟢 Aktif' : '🔴 Nonaktif'}\n` +
+                                                `│ Sekarang   : 🔴 *Nonaktif*\n` +
+                                                `│\n` +
+                                                `│ ⛔ Notifikasi berita dimatikan untuk grup ini.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                // ── STATUS ─────────────────────────────────────────────────
+                                if (sub === 'status') {
+                                        const semuaGrup = getEnabledGroupsTV();
+                                        const daftarGrupAll = cfgTV.tvonenews.groups || {};
+                                        const rows = Object.entries(daftarGrupAll)
+                                                .sort(([, a], [, b]) => (b.diubahPada || 0) - (a.diubahPada || 0))
+                                                .map(([jid, v]) => `${v.enabled ? '🟢' : '🔴'} ${jid}`);
+                                        await tolak(hisoka, m,
+                                                `╭─「 📰 *TVONE NEWS STATUS* 」\n` +
+                                                `│\n` +
+                                                `│ Total aktif : ${semuaGrup.length} grup\n` +
+                                                `│\n` +
+                                                (rows.length ? rows.map(r => `│ ${r}`).join('\n') + '\n' : `│ Belum ada grup terdaftar.\n`) +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                // ── LOG ────────────────────────────────────────────────────
+                                if (sub === 'log') {
+                                        const logs = getRecentLogTV(5);
+                                        if (!logs.length) {
+                                                await tolak(hisoka, m, `📭 Belum ada berita yang pernah dikirim.`);
+                                                break;
+                                        }
+                                        const baris = logs.map((l, i) =>
+                                                `${i + 1}. *${(l.judul || '-').slice(0, 60)}*\n` +
+                                                `   📂 ${l.kategori || '-'} | ✍️ ${l.penulis || '-'}\n` +
+                                                `   📅 ${l.tanggal || '-'}\n` +
+                                                `   👥 ${l.grupCount || 0} grup | ⏰ ${l.waktuKirim ? new Date(l.waktuKirim).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) : '-'}`
+                                        ).join('\n\n');
+                                        await tolak(hisoka, m, `📋 *5 Berita Terakhir Terkirim*\n\n${baris}`);
+                                        break;
+                                }
+
+                                // ── TEST GRUP ──────────────────────────────────────────────
+                                if (sub === 'test grup') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const daftarGrup = getEnabledGroupsTV();
+                                                if (!daftarGrup.length) {
+                                                        await tolak(hisoka, m, `❌ Belum ada grup yang mengaktifkan TVOne News.\nKetik *${pfx}tvone on* di grup tujuan dulu.`);
+                                                        break;
+                                                }
+
+                                                const hasil = await simulasiTV();
+                                                let berhasil = 0, gagal = 0;
+                                                for (const jid of daftarGrup) {
+                                                        try {
+                                                                if (hasil.imgBuffer) {
+                                                                        await hisoka.sendMessage(jid, {
+                                                                                image   : hasil.imgBuffer,
+                                                                                mimetype: 'image/jpeg',
+                                                                                caption : hasil.caption,
+                                                                        });
+                                                                } else if (hasil.urlGambar) {
+                                                                        await hisoka.sendMessage(jid, {
+                                                                                image  : { url: hasil.urlGambar },
+                                                                                caption: hasil.caption,
+                                                                        });
+                                                                } else {
+                                                                        await hisoka.sendMessage(jid, { text: hasil.caption });
+                                                                }
+                                                                berhasil++;
+                                                                await new Promise(r => setTimeout(r, 1500));
+                                                        } catch (e) {
+                                                                gagal++;
+                                                                console.error(`[TVOneNews] Gagal kirim test ke ${jid}:`, e?.message);
+                                                        }
+                                                }
+
+                                                await hisoka.sendMessage(m.from, {
+                                                        text: `✅ *Test TVOne News selesai!*\n\n` +
+                                                              `📤 Terkirim ke: *${berhasil}/${daftarGrup.length} grup*` +
+                                                              (gagal ? `\n❌ Gagal: ${gagal} grup` : ''),
+                                                }, { quoted: m });
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'tvone-test-grup');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch TVOne News: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                // ── TEST ───────────────────────────────────────────────────
+                                if (sub === 'test') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const hasil = await simulasiTV();
+                                                if (hasil.imgBuffer) {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image   : hasil.imgBuffer,
+                                                                mimetype: 'image/jpeg',
+                                                                caption : hasil.caption,
+                                                        }, { quoted: m });
+                                                } else if (hasil.urlGambar) {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image  : { url: hasil.urlGambar },
+                                                                caption: hasil.caption,
+                                                        }, { quoted: m });
+                                                } else {
+                                                        await tolak(hisoka, m, hasil.caption);
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'tvone-test');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch TVOne News: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}tvone* untuk bantuan.`);
                                 break;
                         }
 

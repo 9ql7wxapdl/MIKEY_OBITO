@@ -114,8 +114,8 @@
     "enabled": true,
     "groups": {
       "120363192554714254@g.us": {
-        "enabled": false,
-        "diubahPada": 1778659851967
+        "enabled": true,
+        "diubahPada": 1778658136255
       }
     }
   },
@@ -124,6 +124,14 @@
       "120363192554714254@g.us": {
         "enabled": true,
         "diubahPada": 1778658124881
+      }
+    }
+  },
+  "tvonenews": {
+    "groups": {
+      "120363192554714254@g.us": {
+        "enabled": true,
+        "diubahPada": 1778661774483
       }
     }
   }

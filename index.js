@@ -799,22 +799,9 @@ async function main() {
                                                         const caption   = _am.buatCaption(item);
                                                         const urlGambar = _am.ambilUrlGambar(item);
 
-                                                        // Download buffer dulu → kompatibel semua versi WA
-                                                        let imgBuffer = null;
-                                                        if (urlGambar) {
-                                                                imgBuffer = await _am.downloadImageBuffer(urlGambar);
-                                                        }
-
                                                         for (const jid of daftarGrup) {
                                                                 try {
-                                                                        if (imgBuffer) {
-                                                                                await hisoka.sendMessage(jid, {
-                                                                                        image   : imgBuffer,
-                                                                                        mimetype: 'image/jpeg',
-                                                                                        caption,
-                                                                                });
-                                                                        } else if (urlGambar) {
-                                                                                // Fallback ke URL jika buffer gagal download
+                                                                        if (urlGambar) {
                                                                                 await hisoka.sendMessage(jid, {
                                                                                         image: { url: urlGambar },
                                                                                         caption,
@@ -844,6 +831,72 @@ async function main() {
                                 }, 30000);
                         }
                         /* =================== END AUTO ANIMASU SCHEDULER =================== */
+
+                        /* ===================== AUTO TVONENEWS SCHEDULER ===================== */
+                        if (global.tvoneInterval) {
+                                clearInterval(global.tvoneInterval);
+                                global.tvoneInterval = null;
+                        }
+                        {
+                                const _tv = _require(path.join(process.cwd(), 'src', 'scrape', 'tvonenews.cjs'));
+                                const TV_INTERVAL_MS = 5 * 60 * 1000;
+
+                                const runTVOne = async () => {
+                                        try {
+                                                const daftarGrup = _tv.getEnabledGroups();
+                                                if (!daftarGrup.length) return;
+
+                                                const beritaBaru = await _tv.cariBeritaBaru();
+                                                if (!beritaBaru.length) return;
+
+                                                for (const item of beritaBaru) {
+                                                        const caption   = _tv.buatCaption(item);
+                                                        const urlGambar = item.cover || null;
+
+                                                        // Download buffer dulu → kompatibel semua versi WA
+                                                        let imgBuffer = null;
+                                                        if (urlGambar) {
+                                                                imgBuffer = await _tv.downloadImageBuffer(urlGambar);
+                                                        }
+
+                                                        for (const jid of daftarGrup) {
+                                                                try {
+                                                                        if (imgBuffer) {
+                                                                                await hisoka.sendMessage(jid, {
+                                                                                        image   : imgBuffer,
+                                                                                        mimetype: 'image/jpeg',
+                                                                                        caption,
+                                                                                });
+                                                                        } else if (urlGambar) {
+                                                                                await hisoka.sendMessage(jid, {
+                                                                                        image: { url: urlGambar },
+                                                                                        caption,
+                                                                                });
+                                                                        } else {
+                                                                                await hisoka.sendMessage(jid, { text: caption });
+                                                                        }
+                                                                        await new Promise(r => setTimeout(r, 2000));
+                                                                } catch (e) {
+                                                                        console.error(`[TVOneNews] Gagal kirim ke ${jid}:`, e?.message);
+                                                                }
+                                                        }
+
+                                                        _tv.tandaiDanLog(item, daftarGrup);
+                                                        console.log(`[TVOneNews] ✅ "${item.judul?.slice(0, 60)}" terkirim ke ${daftarGrup.length} grup`);
+                                                        await new Promise(r => setTimeout(r, 3000));
+                                                }
+                                        } catch (err) {
+                                                console.error('[TVOneNews] Error scheduler:', err?.message);
+                                        }
+                                };
+
+                                // Mulai 45 detik setelah start, lalu setiap 5 menit
+                                setTimeout(() => {
+                                        runTVOne();
+                                        global.tvoneInterval = setInterval(runTVOne, TV_INTERVAL_MS);
+                                }, 45000);
+                        }
+                        /* =================== END AUTO TVONENEWS SCHEDULER =================== */
 
                         /* ===================== AUTO START SEMUA JADIBOT (STABIL) ===================== */
 const jadibotDir = path.join(process.cwd(), 'jadibot');
