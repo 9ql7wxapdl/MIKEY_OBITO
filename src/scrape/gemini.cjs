@@ -7,7 +7,9 @@ const path  = require('path');
 const SIGNUP_URL = 'https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser?key=AIzaSyAxof8_SbpDcww38NEQRhNh0Pzvbphh-IQ';
 const CHAT_URL   = 'https://asia-northeast3-gemmy-ai-bdc03.cloudfunctions.net/gemini';
 
-const TOKEN_CACHE_FILE = path.join(process.cwd(), 'data', 'gemini_tokens_scrape.json');
+const TOKEN_CACHE_FILE = path.join(process.cwd(), 'data', 'gemini', 'tokens_scrape.json');
+const fs = require('fs');
+fs.mkdirSync(path.join(process.cwd(), 'data', 'gemini'), { recursive: true });
 
 const SIGNUP_HEADERS = {
     'accept-encoding':     'gzip',

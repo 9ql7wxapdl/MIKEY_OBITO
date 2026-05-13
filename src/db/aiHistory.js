@@ -4,13 +4,15 @@ import path from 'path';
 import fs from 'fs';
 
 const DATA_DIR             = path.join(process.cwd(), 'data');
-const AI_FILE              = path.join(DATA_DIR, 'ai_history.json');
+const AI_FILE              = path.join(DATA_DIR, 'ai', 'history.json');
 const OLD_HISTORY_DIR      = path.join(DATA_DIR, 'ai_history');
 const EXPIRE_MS            = 24 * 60 * 60 * 1000;
 const MAX_HISTORY_MESSAGES = 30;
 const MAX_TEXT_PER_MESSAGE = 1500;
 
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const AI_DIR = path.join(DATA_DIR, 'ai');
+if (!fs.existsSync(AI_DIR)) fs.mkdirSync(AI_DIR, { recursive: true });
 
 // ── Shared file read/write ──────────────────────────────
 

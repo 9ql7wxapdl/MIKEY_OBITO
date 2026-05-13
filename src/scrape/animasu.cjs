@@ -15,8 +15,9 @@ const axios = require('axios');
 const fs    = require('fs');
 const path  = require('path');
 
-const FILE_DATA   = path.join(process.cwd(), 'data', 'animasu.json');
-const FILE_LOG    = path.join(process.cwd(), 'data', 'animasu_log.json');
+const FILE_DATA   = path.join(process.cwd(), 'data', 'animasu', 'state.json');
+const FILE_LOG    = path.join(process.cwd(), 'data', 'animasu', 'log.json');
+fs.mkdirSync(path.join(process.cwd(), 'data', 'animasu'), { recursive: true });
 const FILE_CONFIG = path.join(process.cwd(), 'config.json');
 const BASE_URL    = 'https://v1.animasu.app';
 const API_POSTS   = `${BASE_URL}/wp-json/wp/v2/posts`;

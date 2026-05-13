@@ -3,7 +3,7 @@
 import fs from 'fs'
 import path from 'path'
 
-const JADIBOT_SETTINGS_PATH = path.join(process.cwd(), 'data', 'jadibot_settings.json')
+const JADIBOT_SETTINGS_PATH = path.join(process.cwd(), 'data', 'jadibot', 'settings.json')
 
 function ensureDir() {
   fs.mkdirSync(path.dirname(JADIBOT_SETTINGS_PATH), { recursive: true })

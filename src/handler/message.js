@@ -3646,7 +3646,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                 try {
                                         const Tmail = _require(path.resolve('./src/scrape/tmail.cjs'));
                                         const fs = _require('fs');
-                                        const TMAIL_DB = path.resolve('./data/tmail.json');
+                                        const TMAIL_DB = path.resolve('./data/tmail/db.json');
                                         if (!global.__tmailSessions) global.__tmailSessions = new Map();
                                         const sessions = global.__tmailSessions;
                                         const userId = m.sender || m.from;
@@ -3681,7 +3681,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                         // ===== Arsip permanen email yang pernah masuk =====
                                         // Disimpan terpisah dari sess. Walau user .tmdel, arsip TIDAK terhapus.
-                                        const TMAIL_ARCHIVE = path.resolve('./data/tmail_archive.json');
+                                        const TMAIL_ARCHIVE = path.resolve('./data/tmail/archive.json');
                                         const ARCHIVE_MAX_PER_USER = 50;
                                         const loadArchive = () => {
                                                 try {

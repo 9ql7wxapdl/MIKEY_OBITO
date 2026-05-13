@@ -159,7 +159,7 @@ function isJadibotSessionValid(number) {
 }
 
 /* ================= BOT ADMIN STATUS TRACKER ================= */
-kvMigrateFromJSON('botadmin', path.join(process.cwd(), 'data', 'botadmin.json'));
+kvMigrateFromJSON('botadmin', path.join(process.cwd(), 'data', 'system', 'botadmin.json'));
 
 function loadBotAdminData() {
   return kvGet('botadmin', {});

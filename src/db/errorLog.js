@@ -26,8 +26,8 @@ import { fileURLToPath } from 'url';
 
 const __dirname    = path.dirname(fileURLToPath(import.meta.url));
 const DATA_DIR     = path.join(__dirname, '../../data');
-const ERROR_FILE   = path.join(DATA_DIR, 'error.json');
-const INFO_TXT     = path.join(DATA_DIR, 'infoerror.txt');
+const ERROR_FILE   = path.join(DATA_DIR, 'system', 'error.json');
+const INFO_TXT     = path.join(DATA_DIR, 'system', 'infoerror.txt');
 
 const MAX_ERRORS = 200;
 
@@ -35,6 +35,8 @@ const MAX_ERRORS = 200;
 
 function ensureDir() {
     if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+    const SYS_DIR = path.join(DATA_DIR, 'system');
+    if (!fs.existsSync(SYS_DIR)) fs.mkdirSync(SYS_DIR, { recursive: true });
 }
 
 function ensureFile() {

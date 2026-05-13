@@ -15,7 +15,8 @@ const fs    = require('fs');
 const path  = require('path');
 
 // File dedup episode yang sudah dikirim (bukan pengaturan grup)
-const FILE_DATA  = path.join(process.cwd(), 'data', 'infowibu.json');
+const FILE_DATA  = path.join(process.cwd(), 'data', 'infowibu', 'state.json');
+fs.mkdirSync(path.join(process.cwd(), 'data', 'infowibu'), { recursive: true });
 // File konfigurasi utama bot — pengaturan grup disimpan di sini
 const FILE_CONFIG = path.join(process.cwd(), 'config.json');
 

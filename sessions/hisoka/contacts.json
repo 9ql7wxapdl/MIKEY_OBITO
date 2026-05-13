@@ -6233,7 +6233,8 @@
     "id": "62859106779529@s.whatsapp.net",
     "name": "𝐕𝐡𝐚𝐬𝐲𝐚 | 𝐍𝐨𝐚 𝐅𝐢𝐥𝐢𝐚𝐫𝐞𝐠𝐢𝐬",
     "lid": "250736164220991@lid",
-    "jid": "62859106779529@s.whatsapp.net"
+    "jid": "62859106779529@s.whatsapp.net",
+    "notify": "𝐕𝐡𝐚𝐬𝐲𝐚 | 𝐌𝐚𝐤𝐢𝐧𝐨𝐡𝐚𝐫𝐚"
   },
   "6281216151416@s.whatsapp.net": {
     "isContact": true,
@@ -30934,7 +30935,8 @@
     "id": "628388589625@s.whatsapp.net",
     "name": "Kameriarikato ( Donasi Bot )",
     "lid": "82828679200798@lid",
-    "jid": "628388589625@s.whatsapp.net"
+    "jid": "628388589625@s.whatsapp.net",
+    "notify": "𝙢𝙖𝙪𝙡𝙖𝙣𝙖 𝙣𝙜𝙚𝙣"
   },
   "6285721265243@s.whatsapp.net": {
     "isContact": true,
@@ -32199,5 +32201,25 @@
     "id": "162160936263906@lid",
     "lid": "162160936263906@lid",
     "notify": "8 Letters"
+  },
+  "69888127307946@lid": {
+    "id": "69888127307946@lid",
+    "lid": "69888127307946@lid",
+    "imgUrl": "removed"
+  },
+  "42112741585149@lid": {
+    "id": "42112741585149@lid",
+    "lid": "42112741585149@lid",
+    "imgUrl": "changed"
+  },
+  "136086105940063@lid": {
+    "id": "136086105940063@lid",
+    "lid": "136086105940063@lid",
+    "imgUrl": "removed"
+  },
+  "137838721032386@lid": {
+    "id": "137838721032386@lid",
+    "lid": "137838721032386@lid",
+    "imgUrl": "changed"
   }
 }

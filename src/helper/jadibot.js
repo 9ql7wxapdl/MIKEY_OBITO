@@ -52,7 +52,8 @@ const silentLogger = pino({ level: 'silent' })
 const PAIRING_TIMEOUT_MS = 3 * 60 * 1000 // 3 menit
 const DEFAULT_JADIBOT_DURATION_MS = 24 * 60 * 60 * 1000
 const MAX_TIMER_MS = 2147483647
-const JADIBOT_DATA_PATH = path.join(process.cwd(), 'data', 'jadibot_realtime.json')
+const JADIBOT_DATA_PATH = path.join(process.cwd(), 'data', 'jadibot', 'realtime.json')
+fs.mkdirSync(path.join(process.cwd(), 'data', 'jadibot'), { recursive: true })
 const JADIBOT_EXPIRY_WARNING_THRESHOLDS = [
   { ms: 10 * 60 * 1000, label: '10 menit' },
   { ms: 5 * 60 * 1000, label: '5 menit' },
