@@ -253,23 +253,25 @@ function parseDetailArtikel(html, url) {
             // Hapus tag script/style
             .replace(/<script[\s\S]*?<\/script>/gi, '')
             .replace(/<style[\s\S]*?<\/style>/gi, '')
+            // Hapus div "Baca Juga" (class rancak-bacajuga dan variannya)
+            .replace(/<div[^>]*rancak-bacajuga[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gi, '')
+            .replace(/<div[^>]*(?:baca-?juga|read-?also|related)[^>]*>[\s\S]*?<\/div>/gi, '')
             // Hapus div iklan/ads
-            .replace(/<div[^>]*(?:iklan|ads|advert|baca-juga|read-also|related)[^>]*>[\s\S]*?<\/div>/gi, '')
+            .replace(/<div[^>]*(?:iklan|ads|advert)[^>]*>[\s\S]*?<\/div>/gi, '')
             // Hapus blok "Artikel ini sudah tayang..."
-            .replace(/<[^>]*>Artikel ini sudah tayang[\s\S]*?<\/[^>]+>/gi, '')
+            .replace(/<[^>]+>\s*Artikel ini sudah tayang[\s\S]*?<\/[^>]+>/gi, '')
             // Hapus tag <aside>, <figure> sepenuhnya
             .replace(/<aside[\s\S]*?<\/aside>/gi, '')
             .replace(/<figure[\s\S]*?<\/figure>/gi, '');
 
         let teks = stripHtml(raw)
-            // Hapus noise teks setelah strip HTML
+            // Hapus sisa noise teks
             .replace(/ADVERTISEMENT/gi, '')
             .replace(/GULIR UNTUK LANJUT BACA/gi, '')
-            .replace(/Baca Juga\s[^\n]{0,200}/gi, '')
-            .replace(/Artikel ini sudah tayang[^\n]{0,400}/gi, '')
-            .replace(/Judul Artikel\s*:[^\n]{0,200}/gi, '')
-            .replace(/Link Artikel\s*:[^\n]{0,200}/gi, '')
-            .replace(/Oleh\s*:\s*Reporter[^\n]{0,200}/gi, '')
+            .replace(/Artikel ini sudah tayang[^.]*\./gi, '')
+            .replace(/Judul Artikel\s*:[^\n.]*[.\n]/gi, '')
+            .replace(/Link Artikel\s*:[^\n.]*[.\n]/gi, '')
+            .replace(/Oleh\s*:\s*Reporter[^\n.]*[.\n]/gi, '')
             .replace(/\s{2,}/g, ' ')
             .trim();
 
