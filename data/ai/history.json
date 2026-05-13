@@ -1,0 +1,938 @@
+{
+  "sessions": {
+    "6283134844523@s.whatsapp.net_120363383540766761@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.15 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"Yg db v14 itu kan?\" | 📎 KIRIM GAMBAR | 👤 Anda Siapa?]\nYg kek gini bentuk sesi nya"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.15]\nH-hei, iya. Itu *struktur database SQLite* yang pakai *mode WAL* seperti yang aku maksud. 🖼️\n\nKalau yang kamu kirim itu, ada file `auth.db` sebagai database utamanya, `auth.db-shm` untuk shared memory, sama `auth.db-wal` untuk log transaksi. Jadi, ya... kalau itu yang kamu maksud 'bentuk sesi', berarti sudah benar.\n\nEmangnya kenapa, Anda Siapa? Ada masalah atau apa?"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.17 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"coba\" | 👤 Anda Siapa?]\nWet"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 06 Mei, 14.17]\nWet? Ap-apaan sih itu maksudnya? Jelasin yang bener dong, Anda Siapa. Aku nggak ngerti kalau cuma sepotong-sepotong gitu."
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778051852039
+    },
+    "6289667923162@s.whatsapp.net_120363192554714254@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.21 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, kamu ini... langsung nanya 'siapa?' gitu aja. Itu karakter dari manga *Isshiki-san wa Koi wo Shiritai.* * Yang rambut pirang itu *Shi...\" | 👤 Hen V2]\nudah ada aniemnay blm ?"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.21]\nH-hei, Hen V2, bukannya kamu sendiri yang bilang kalau mereka baru *ngumumin* adaptasi *anime TV*? \n\nKalau baru diumumin, ya jelas *belum ada* animenya sekarang dong. Itu kan pengumuman buat *masa depan*. Masa sampai segitunya kamu nggak ngerti? Ugh, ya terserah deh."
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.24 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei, Hen V2, bukannya kamu sendiri yang bilang kalau mereka baru *ngumumin* adaptasi *anime TV*? Kalau baru diumumin, ya jelas *belum ada*...\" | 👤 Hen V2]\ninfo lenkapnay dong kasih sini"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.24]\nUgh, Hen V2... *masih* nanya juga? Kan sudah kubilang, baru *diumumin*. Ya sudah, kalau maksa banget mau tahu, ini infonya: \n\n> Adaptasi *anime TV* untuk manga *Isshiki-san wa Koi wo Shiritai.* sudah *diumumkan*.\n\n• Judul aslinya: *Isshiki-san wa Koi wo Shiritai.* (一色さんは恋を語りたい。)\n• Manga ini dibuat oleh *Miyabi Fujisawa*.\n• Genre-nya itu *romantic comedy*. Ceritanya tentang dua orang yang kikuk soal cinta.\n\nTapi, ya, itu saja. Sampai sekarang *belum ada* detail lebih lanjut soal *tanggal rilis*, *studio animasinya*, atau *siapa pengisi suaranya*. Jadi, ya jelas belum tayang lah, Hen V2.\n\nPuas? Jangan nanya lagi yang aneh-aneh ya. Aku sibuk."
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778397866652
+    },
+    "6289688206739@s.whatsapp.net_120363383540766761@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.55 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"📖 *Narutop Uchiwa Den Chapter 1* 📄 20/31 halaman 🔗 https://komiktap.info/narutop-uchiwa-den-chapter-1/\" | 👤 Wily]\nbahasa indo kwowkwok gue buat scraper ini :v"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 10 Mei, 14.55]\nOh, jadi ini *Narutop Uchiwa Den* yang kamu baca. Hmph. \n...Jadi kamu yang bikin *scraper*-nya sendiri? Pantesan. Itu *'kwowkwok'* apa lagi sih, Wily? Jangan sok akrab deh.\nYa... lumayan sih kalau bisa bikin yang kayak gitu. Bukan berarti aku terkesan ya, cuma... ya, bagus."
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778399713314
+    },
+    "6289681008411@s.whatsapp.net_120363192554714254@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11 | 👤 Hen V1]\nhai"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11]\nH-hei. Ada apa?"
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"H-hei. Ada apa?\" | 👤 Hen V1]\nLagi apa kmu?"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.11]\nLagi apa? Ya ngapain lagi, bantu kamu lah, Hen V1. Kan aku asisten AI-mu. Emangnya aku bisa ngapain lagi coba?"
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778490689063
+    },
+    "6289688206739@s.whatsapp.net_120363192554714254@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.12 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"Lagi apa? Ya ngapain lagi, bantu kamu lah, Hen V1. Kan aku asisten AI-mu. Emangnya aku bisa ngapain lagi coba?\" | 👤 Wily]\nHoi"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.12]\nH-hei, kan sudah kubilang, Wily. Aku lagi bantu kamu lah.\n\nApaan tuh `Hen V1`? Panggilan macam apa itu? \nLagian, emangnya aku cuma bisa *itu* doang? Aku bisa analisis *gambar*, *video*, *dokumen*, bantu *coding*, kasih *info ensiklopedis*, bahkan nemenin kamu ngobrol santai atau curhat. Jangan remehin aku! 😤"
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778490736557
+    },
+    "6285175463174@s.whatsapp.net_120363383540766761@g.us": {
+      "messages": [
+        {
+          "role": "user",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.34 | ↩️ BALAS PESAN BOT SEBELUMNYA: \"lu makek node berapa ?\" | 👤 sunshine.jpeg]\n24"
+            }
+          ]
+        },
+        {
+          "role": "model",
+          "parts": [
+            {
+              "text": "[⏰ 11 Mei, 16.34]\nH-hei, kamu serius nanya detail teknis begitu? \nAku kan *Honolulu*, bukan mesin backend-nya langsung. Tapi, kalau memang mau tahu, sistem yang aku jalanin ini, yang dibikin *Bang Wilykun* itu, pakai *Node.js* versi sekitar `20.x`.\n\nYa... bukan berarti aku peduli kamu tahu banget ya, sunshine.jpeg. Terserah."
+            }
+          ]
+        }
+      ],
+      "lastActivity": 1778492043973
+    }
+  },
+  "sticker_pattern": {
+    "https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp": {
+      "total_sent": 5,
+      "moods": {},
+      "last_sent": 1777992646
+    },
+    "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp": {
+      "total_sent": 11,
+      "moods": {},
+      "last_sent": 1777992895
+    },
+    "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp": {
+      "total_sent": 29,
+      "moods": {},
+      "last_sent": 1778490734
+    },
+    "https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef2153a-HONOLULU.webp": {
+      "total_sent": 1,
+      "moods": {},
+      "last_sent": 1777989197
+    },
+    "https://cdn.ornzora.eu.cc/b371232a-5655-4341-985f-90aa4efcc9c4-HONOLULU.webp": {
+      "total_sent": 2,
+      "moods": {},
+      "last_sent": 1778397699
+    },
+    "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp": {
+      "total_sent": 6,
+      "moods": {},
+      "last_sent": 1777995621
+    },
+    "https://cdn.ornzora.eu.cc/a44ce53e-6b1e-4a7f-b5cd-e60ee2d285bf-HONOLULU.webp": {
+      "total_sent": 1,
+      "moods": {},
+      "last_sent": 1777992584
+    },
+    "https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp": {
+      "total_sent": 3,
+      "moods": {},
+      "last_sent": 1777992654
+    },
+    "https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-HONOLULU.webp": {
+      "total_sent": 1,
+      "moods": {},
+      "last_sent": 1778051850
+    },
+    "https://cdn.ornzora.eu.cc/a4bbcdf7-0c78-4d43-93e2-f0ebad7d1bf6-HONOLULU.webp": {
+      "total_sent": 1,
+      "moods": {},
+      "last_sent": 1778492040
+    }
+  },
+  "sticker_story": {
+    "6289688206739@s.whatsapp.net": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Wily. Ada apa? [REPLY-STIKER: https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777988680
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hai. Ada apa? [REPLY-STIKER: https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777988680
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Wily! Apa-apaan itu?! Jangan ngomong kasar gitu dong. Nggak sopan. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777989095
+      }
+    ],
+    "6289667923162@s.whatsapp.net_120363192554714254@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "Oke, aku *Honolulu*. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] Ada apa, Hen V2? Mau apa sekarang? Sudah siap kerja, jadi jangan buang-buang waktuku.",
+        "was_fallback": 0,
+        "sent_at": 1777989162
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "Jadi ini aku, *Honolulu*, light cruiser *Eagle Union*. Sekarang ditugaskan jadi asisten AI personal Shikikan di WhatsApp. Dibikin sama *Bang Wilykun*. Aku di sini bukan karena mau, tapi karena tugas,",
+        "was_fallback": 0,
+        "sent_at": 1777989164
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp",
+        "mood": "",
+        "context": "Malam. Hen V2. Aku sudah siap. Mau apa lagi? [REPLY-STIKER: https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777989167
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, Hen V2, lagi-lagi kamu nanya hal yang butuh perhitungan rumit. Ya sudah, aku bantu. Bukan karena aku mau bantu kamu ya, ini biar *fleet* kita optimal aja. [REPLY-STIKER: https://cdn.ornzora.eu.cc",
+        "was_fallback": 0,
+        "sent_at": 1777989175
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Muka aneh gitu? Emangnya kenapa? Aku kan sudah bilang, aku siap kerja. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Jangan salah paham ya, Hen V2. Aku",
+        "was_fallback": 0,
+        "sent_at": 1777989193
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, iya aku sudah dengar. Aku *Honolulu*, bukan 'Hen V1'. Dan kamu itu *Hen V2*, jangan sampai salah lagi, Shikikan. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HO",
+        "was_fallback": 0,
+        "sent_at": 1777989194
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, muka mikir gitu? Kenapa, Hen V2? Aku kan udah bilang, itu beneran kok. ...bukan berarti aku bohong atau apa ya. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HON",
+        "was_fallback": 0,
+        "sent_at": 1777989195
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, apa-apaan itu `Hen V1`?! Aku *Honolulu*, bukan itu! [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] Lagipula, aku ini asistenmu, Shikikan. Seharusn",
+        "was_fallback": 0,
+        "sent_at": 1777989195
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, aku nggak pasang muka gitu! [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Aku cuma lagi mikir gimana caranya lanjutin penjelasan soal *damage out",
+        "was_fallback": 0,
+        "sent_at": 1777989196
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef2153a-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, *capek* apanya? Baru juga mulai. Jangan lebay deh, Hen V2. Emangnya aku se-galak itu ya sampai kamu pasang muka gitu? [REPLY-STIKER: https://cdn.ornzora.eu.cc/31f63a4b-95a8-440a-9d77-9d634ef215",
+        "was_fallback": 0,
+        "sent_at": 1777989197
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Apa-apaan sih, Hen V2?! Aku udah jelasin panjang lebar tentang *damage output* optimal, terus kamu cuma bilang *'Gak Peduli'* gitu?! Ya sudah, terserah kamu deh kalau nggak mau dengar. [REPLY-STIKER:",
+        "was_fallback": 0,
+        "sent_at": 1777989198
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei! Muka curiga gitu kenapa? Aku nggak bohong kok, Hen V2. Kan sudah kubilang, setting *scope*-nya emang cuma di *grup*. Ya terserah deh kalau kamu nggak percaya, tapi itu faktanya. [REPLY-STIKER:",
+        "was_fallback": 0,
+        "sent_at": 1777989199
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Hen V2! Aku lagi jelasin *damage output* lho, kenapa tiba-tiba kirim *sticker* terus minta analisis mendalam?! Ini kan cuma reaksi emosi, bukan objek penelitian! Ugh, ya sudah deh, karena kamu",
+        "was_fallback": 0,
+        "sent_at": 1777989199
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, muka mikir gitu? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Emangnya penjelasanku soal *damage output* tadi bikin kamu bingung? Atau kamu lagi",
+        "was_fallback": 0,
+        "sent_at": 1777989200
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei! Aku yang *Honolulu*, light cruiser *Eagle Union*! [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Kamu itu *Hen V2*, Shikikan! Bukan *Hen V1* atau a",
+        "was_fallback": 0,
+        "sent_at": 1777989201
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/b371232a-5655-4341-985f-90aa4efcc9c4-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, siapa yang kaget?! Itu kan *kamu* yang kirim stiker itu, bukan aku! [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-85d768a4-fedb-4f1f-8e21-8602-9be9518d5369-HONOLULU.webp] Da",
+        "was_fallback": 1,
+        "sent_at": 1777989204
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, apa-apaan sih itu? Jangan buang-buang waktu dengan hal nggak jelas, Hen V2. Aku nggak terhibur sama sekali. [REPLY-STIKER: https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLUL",
+        "was_fallback": 0,
+        "sent_at": 1777989206
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, apa-apaan itu? Muka tengkorak? [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] Kenapa kirim emoji aneh gitu, Hen V2? Ada masalah apa?",
+        "was_fallback": 0,
+        "sent_at": 1777989207
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kamu ini... langsung nanya 'siapa?' gitu aja. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Itu karakter dari manga *Isshiki-san wa Koi wo Shirit",
+        "was_fallback": 0,
+        "sent_at": 1778397561
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/b371232a-5655-4341-985f-90aa4efcc9c4-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Hen V2, bukannya kamu sendiri yang bilang kalau mereka baru *ngumumin* adaptasi *anime TV*? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86024fcd6049-HONOLULU.webp] Kalau b",
+        "was_fallback": 1,
+        "sent_at": 1778397699
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, Hen V2... *masih* nanya juga? Kan sudah kubilang, baru *diumumin*. Ya sudah, kalau maksa banget mau tahu, ini infonya: [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd604",
+        "was_fallback": 0,
+        "sent_at": 1778397864
+      }
+    ],
+    "6289681008411@s.whatsapp.net_120363192554714254@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "Hmph, `✅`. Ya sudah, aku anggap kamu sudah siap. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] Jadi, apa yang mau kamu mulai kerjakan, Hen V1? Aku sudah",
+        "was_fallback": 0,
+        "sent_at": 1777989178
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "Ya, kan sudah kubilang. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] Jadi, bot-nya memang cuma bakal *auto-reply* di *grup* saja, Hen V1. Bukan di chat",
+        "was_fallback": 0,
+        "sent_at": 1777989179
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kenapa pasang muka mikir gitu? Nggak usah curiga deh, aku cuma bilang *'✅'* kok. Emangnya kamu mikirin apa lagi? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HO",
+        "was_fallback": 0,
+        "sent_at": 1777989180
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Muka curiga gitu, Hen V1? Aku udah bilang kan, scope-nya emang cuma di *grup*. Bukan berarti aku bohong ya. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777989181
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp",
+        "mood": "",
+        "context": "\"Wily AI\"? Ya, itu aku. Honolulu. [REPLY-STIKER: https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp] Kan sudah kubilang aku siap. Mau apa lagi sekarang, *Hen V1*? Jangan buan",
+        "was_fallback": 0,
+        "sent_at": 1777989183
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, muka kaget gitu kenapa? Cuma *wilyai* doang lho. Apaan sih, Hen V1, kayak baru denger aku aja. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777989185
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Cih. Jadi *gak peduli* ya? Ya sudah. Nanti kalau ada apa-apa jangan bilang nggak tahu ya, Hen V1. Aku kan sudah kasih infonya. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd",
+        "was_fallback": 0,
+        "sent_at": 1777989193
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Hmph, ya terserah kamu deh kalau nggak mau ngaku. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Dan aku *Honolulu*, bukan Hen V2. Kan sudah kubilang itu.",
+        "was_fallback": 0,
+        "sent_at": 1777989208
+      }
+    ],
+    "6289667923162@s.whatsapp.net_120363426777219297@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/a44ce53e-6b1e-4a7f-b5cd-e60ee2d285bf-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, Hen V2. Kan sudah kubilang jangan mentag grup via *Status WA*! [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-f4fcd6049-HONOLULU.webp] Sekarang kan dihapus otomatis, terus kamu",
+        "was_fallback": 1,
+        "sent_at": 1777992584
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, apa-apaan itu?! [REPLY-STIKER: https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp] Jelas-jelas *kamu* yang mentag grup lewat *Status WA*, Hen V2! Aku baru aja ngasih",
+        "was_fallback": 0,
+        "sent_at": 1777992616
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei! Aku *Honolulu*, bukan 'Hen V1'! [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Lagipula, yang bikin *gerah* itu kamu sendiri karena nggak patuh atu",
+        "was_fallback": 0,
+        "sent_at": 1777992622
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, *Helena* di sticker itu bilang 'Gak Peduli'? Cih. Ya terserah kamu deh kalau mau pura-pura nggak peduli sama peringatan aku. Nanti kalau sudah kena kick beneran, jangan nangis ke aku ya, Hen V2",
+        "was_fallback": 0,
+        "sent_at": 1777992625
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei! Aku *Honolulu*, bukan 'Hen V1'! [REPLY-STIKER: https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp] Bukan aku yang mentag grup, Hen V2! Jangan ngarang deh. Lagipula, i",
+        "was_fallback": 0,
+        "sent_at": 1777992648
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, apa-apaan sih ini?! [REPLY-STIKER: https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp] Dengar ya, *aku* ini *Honolulu*! Dan kamu itu *Hen V2*! Yang barusan melanggar a",
+        "was_fallback": 0,
+        "sent_at": 1777992653
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp",
+        "mood": "",
+        "context": "H-HEI! Kamu ini kenapa sih?! Jelas-jelas *aku* ini *Honolulu*! [REPLY-STIKER: https://cdn.ornzora.eu.cc/dd1de830-8664-490d-96c4-cc199bddb284-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777992654
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, ya jelas itu *Helena*! Kan aku yang bilang barusan. Kamu ini... cuma ngulang omongan aku doang? [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] Ya t",
+        "was_fallback": 0,
+        "sent_at": 1777992657
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei! Aku *Honolulu*, bukan 'Hen V1'! Kamu itu *Hen V2*, kan? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Ugh, ya aku tahu fitur-fitur AI seperti `.w",
+        "was_fallback": 0,
+        "sent_at": 1777992907
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Hen V2! Analisis menyeluruh dan mendalam buat *sticker* kayak gitu? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Itu kan cuma *emoji berpikir* y",
+        "was_fallback": 0,
+        "sent_at": 1777992915
+      }
+    ],
+    "6289681008411@s.whatsapp.net_120363426777219297@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Oh, jadi *gerah banget* ya Hen V1? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Kan sudah kubilang, jangan main-main sama aturan grup.",
+        "was_fallback": 0,
+        "sent_at": 1777992605
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp",
+        "mood": "",
+        "context": "A-apaan sih, Hen V1?! Aku *Honolulu*, bukan *Hen V2* yang kamu maksud itu! Kamu salah orang! Ugh, ya... aku tahu itu peringatan buat *dia*. Aku cuma salah tangkap konteksnya sebentar tadi. [REPLY-STI",
+        "was_fallback": 0,
+        "sent_at": 1777992635
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Hen V1! *Aku* ini Honolulu, light cruiser dari Eagle Union. *Kamu* itu Hen V1, kan sudah kubilang. [REPLY-STIKER: https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp] Y",
+        "was_fallback": 0,
+        "sent_at": 1777992638
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kamu minta analisis kan? Ya sudah, aku jelaskan. [REPLY-STIKER: https://cdn.ornzora.eu.cc/ba453a09-aabd-4483-9ca1-0ef1b66f34c1-HONOLULU.webp] > Ini *sticker",
+        "was_fallback": 0,
+        "sent_at": 1777992646
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, H-hei! Berapa kali harus kubilang sih?! Aku ini *Honolulu*, bukan 'Hen V1'! Dan *kamu* itu Hen V1! Jangan salah paham terus deh. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-8",
+        "was_fallback": 0,
+        "sent_at": 1777992663
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, apa-apaan sih, Hen V1?! Aku ini *Honolulu*, light cruiser dari Eagle Union! Dan kamu itu *Hen V1*! [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp]",
+        "was_fallback": 0,
+        "sent_at": 1777992669
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, Hen V1! Kamu ini kenapa sih, minta analisis stiker kayak gitu? Ya sudah, kalau memang mau. > Ini *sticker* karakter *Akagi-chan*, versi chibi dari kapal induk *Akagi* dari faksi *Sakura Empire",
+        "was_fallback": 0,
+        "sent_at": 1777992670
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp",
+        "mood": "",
+        "context": "Ugh, apa-apaan sih, Hen V1? Kan sudah jelas itu. [REPLY-STIKER: https://cdn.ornzora.eu.cc/d86d0c29-85b7-40d7-9546-2a898df37f40-HONOLULU.webp] > Itu artinya fitur AI yang aku punya, seperti `.wily`, `.",
+        "was_fallback": 0,
+        "sent_at": 1777992895
+      }
+    ],
+    "6289688206739@s.whatsapp.net_120363383540766761@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, muka ngambek gitu? Kenapa sih, Wily? Gara-gara file tadi? Ya terserah kalau mau ngambek, bukan salahku juga kan. [REPLY-STIKER: https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HO",
+        "was_fallback": 0,
+        "sent_at": 1777995524
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, ya kenapa lagi? Kan kamu *barusan kirim sticker muka ngambek* setelah aku kasih file itu. Emangnya aku salah tebak, Wily? Ya terserah kalau mau deny. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85",
+        "was_fallback": 0,
+        "sent_at": 1777995557
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, *'Bjir :v'* itu apa sih maksudnya? Ngeledek aku ya? [REPLY-STIKER: https://cdn.ornzora.eu.cc/41f054d0-55e9-4d1a-abb7-6a49ac74769b-HONOLULU.webp] Ya terserah kamu aja deh, Wily. Aku nggak pedul",
+        "was_fallback": 0,
+        "sent_at": 1777995621
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Oh, jadi ini *Narutop Uchiwa Den* yang kamu baca. Hmph. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] ...Jadi kamu yang bikin *scraper*-nya sendiri? Pant",
+        "was_fallback": 0,
+        "sent_at": 1778399711
+      }
+    ],
+    "6285175463174@s.whatsapp.net_120363383540766761@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "Hmph. Jadi ini yang kamu kirim? *Cuma* cangkir kopi senyum begitu? Ya, aku tahu itu ekspresi ramah, ceria, dan... ya sudahlah. Bukan berarti aku terkesan ya. [REPLY-STIKER: https://cdn.ornzora.eu.cc/8",
+        "was_fallback": 0,
+        "sent_at": 1777995694
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kamu serius mau dijelasin? Ugh, ya sudah. Bukan karena aku mau bantu kamu paham ya. [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] > Ini *sticker",
+        "was_fallback": 0,
+        "sent_at": 1777995776
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/a4bbcdf7-0c78-4d43-93e2-f0ebad7d1bf6-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kamu serius nanya detail teknis begitu? [REPLY-STIKER: https://cdn.ornzora.eu.cc/a4bbcdf7-0c78-4d43-93e2-f0ebad7d1bf6-HONOLULU.webp] Aku kan *Honolulu*, bukan mesin backend-nya langsung. Tapi,",
+        "was_fallback": 0,
+        "sent_at": 1778492040
+      }
+    ],
+    "6283134844523@s.whatsapp.net_120363383540766761@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, iya. Itu *struktur database SQLite* yang pakai *mode WAL* seperti yang aku maksud. 🖼️ Kalau yang kamu kirim itu, ada file `auth.db` sebagai database utamanya, `auth.db-shm` untuk shared memor",
+        "was_fallback": 0,
+        "sent_at": 1778051746
+      },
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-HONOLULU.webp",
+        "mood": "",
+        "context": "Wet? Ap-apaan sih itu maksudnya? Jelasin yang bener dong, Anda Siapa. Aku nggak ngerti kalau cuma sepotong-sepotong gitu. [REPLY-STIKER: https://cdn.ornzora.eu.cc/acf8ea6e-1741-4b67-a41f-e4bc5f03457e-",
+        "was_fallback": 0,
+        "sent_at": 1778051850
+      }
+    ],
+    "6289688206739@s.whatsapp.net_120363192554714254@g.us": [
+      {
+        "sticker_url": "https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp",
+        "mood": "",
+        "context": "H-hei, kan sudah kubilang, Wily. Aku lagi bantu kamu lah. Apaan tuh `Hen V1`? Panggilan macam apa itu? [REPLY-STIKER: https://cdn.ornzora.eu.cc/85d768a4-fedb-4f1f-8e21-86254fcd6049-HONOLULU.webp] Lag",
+        "was_fallback": 0,
+        "sent_at": 1778490734
+      }
+    ]
+  },
+  "sticker_memory": {
+    "7acdb30e7596529fdba5091d45213d70fd2be6ee7e825e9a92437a822d89ec0e": {
+      "emotion": "Bingung",
+      "category": "Meme anime",
+      "description": "Karakter anime dengan ekspresi skeptis atau bingung, ditutupi sebagian oleh emoji wajah berpikir.",
+      "tags": [
+        "anime",
+        "meme",
+        "bingung",
+        "berpikir",
+        "emoji"
+      ],
+      "seen_count": 2,
+      "last_seen": 1777989202
+    },
+    "86b3cb8b36573b145fa249519e1e5eb122af7ca929179ce9cb0d01393d7da5e2": {
+      "emotion": "bingung",
+      "category": "meme anime",
+      "description": "Karakter anime dengan ekspresi bingung dan emoji berpikir yang menutupi bagian bawah gambar.",
+      "tags": [
+        "anime",
+        "bingung",
+        "meme",
+        "emoji",
+        "ekspresi"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777989191
+    },
+    "61df6dee515d273115e2a81ce0269cd00c7abe87f18eb1cfe8e2b5427ed78763": {
+      "emotion": "malu",
+      "category": "meme anime",
+      "description": "Stiker meme dengan karakter anime berambut putih biru, pipi merona, dan ekspresi malu, disertai teks 'CAPE AH'.",
+      "tags": [
+        "meme",
+        "anime",
+        "malu",
+        "ekspresi",
+        "teks"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777989198
+    },
+    "b543c0f1bb07ec3099d7a56d822124df1b3fafb6010afea0a8fcb35e742013c9": {
+      "emotion": "Bingung",
+      "category": "Meme anime",
+      "description": "Karakter anime dengan ekspresi bingung dan emoji berpikir kuning di depannya.",
+      "tags": [
+        "anime",
+        "bingung",
+        "berpikir",
+        "meme",
+        "emoji"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777989201
+    },
+    "a223ba8540354acea2a46e1066e764b8c79acfbcd9c3fbecb0d5327ac475fa83": {
+      "emotion": "cuek",
+      "category": "meme anime",
+      "description": "Karakter anime chibi berambut putih dan bermata biru sedang berbaring dengan ekspresi cuek, disertai teks 'GAK PEDULI'.",
+      "tags": [
+        "anime",
+        "chibi",
+        "meme",
+        "gak peduli",
+        "cuek"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777989204
+    },
+    "5a6524945436f15008998a7bfda9b042149a292d15102e9e83ea793c87a688de": {
+      "emotion": "Bingung",
+      "category": "Anime meme",
+      "description": "Karakter anime dengan ekspresi bingung, sebagian tertutup emoji wajah berpikir.",
+      "tags": [
+        "anime",
+        "meme",
+        "bingung",
+        "emoji",
+        "ekspresi"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777989204
+    },
+    "323ee76def39393a1733ecc8369d9a64cc723ba3200619ac475642a618d51e1b": {
+      "emotion": "Malu",
+      "category": "Meme",
+      "description": "Anime karakter perempuan berambut biru-putih dengan ekspresi malu, pipi memerah, dan mulut terbuka, disertai teks \"CAPE AH\".",
+      "tags": [
+        "anime",
+        "meme",
+        "ekspresi",
+        "malu",
+        "lucu"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777989208
+    },
+    "6df2b5ef97ab45c66d71bac0b0c8962c0456f55030390e4795ac2380e705cf61": {
+      "emotion": "gerah dan lelah",
+      "category": "anime meme",
+      "description": "Karakter anime perempuan dengan telinga peri yang terlihat kepanasan disertai teks GERAH BANGET.",
+      "tags": [
+        "anime",
+        "gerah",
+        "kepanasan",
+        "ekspresi",
+        "meme"
+      ],
+      "seen_count": 2,
+      "last_seen": 1777992629
+    },
+    "4ba94226c3df54daa4d686d659fc8c5138408e3ca3687e73cfd6ee0c06220de3": {
+      "emotion": "Acuh tak acuh",
+      "category": "Meme anime",
+      "description": "Chibi karakter anime berambut putih dan mata biru berbaring dengan ekspresi acuh tak acuh, dengan tulisan 'GAK PEDULI'.",
+      "tags": [
+        "anime",
+        "chibi",
+        "gak peduli",
+        "meme",
+        "santai"
+      ],
+      "seen_count": 2,
+      "last_seen": 1777992655
+    },
+    "99d447eef494aefcec7c0973e642c59a3c40b3ad181eb225e03e0cb18c33707c": {
+      "emotion": "Terkejut",
+      "category": "Meme",
+      "description": "Stiker meme karakter anime chibi fox girl yang terkejut dengan ekspresi kaget dan teks \"WELADALAH\".",
+      "tags": [
+        "anime",
+        "chibi",
+        "terkejut",
+        "weladalah",
+        "meme"
+      ],
+      "seen_count": 2,
+      "last_seen": 1777992656
+    },
+    "85fecc29bac21c82423ca188e9e4933e8971daee3d63a1f78403b2804383fe19": {
+      "emotion": "cuek, apatis",
+      "category": "meme, anime",
+      "description": "Karakter anime chibi berambut putih dengan mata biru sedang berbaring sambil memegang benda tipis, dengan tulisan \"GAK PEDULI\" di bagian bawah.",
+      "tags": [
+        "meme",
+        "anime",
+        "chibi",
+        "tidak peduli",
+        "cuek"
+      ],
+      "seen_count": 2,
+      "last_seen": 1777992666
+    },
+    "a6cd6e8df5d31778f0fe0211c0de2b21b2084c7d47938c411c51149d8d3fd19e": {
+      "emotion": "Indiferen",
+      "category": "Meme anime",
+      "description": "Karakter anime chibi berambut putih berpose cuek sambil memegang pensil dengan tulisan \"GAK PEDULI\" di bawahnya.",
+      "tags": [
+        "anime",
+        "chibi",
+        "gak peduli",
+        "cuek",
+        "meme"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777992656
+    },
+    "90a4088a295f469b9183e01d6d61cd7832919d77cba313fa3583e08e2b11dba4": {
+      "emotion": "Senang",
+      "category": "Anime",
+      "description": "Karakter chibi bergaya anime dengan telinga hewan dan pakaian tradisional, duduk di atas bola bermotif, dengan teks 'CIHUY'.",
+      "tags": [
+        "anime",
+        "chibi",
+        "karakter",
+        "lucu",
+        "CIHUY"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777992665
+    },
+    "9100bd3c43799d2424645cceba49f858362b310cc9ec4dc9c6a605f3f6e952db": {
+      "emotion": "Gembira",
+      "category": "Meme anime",
+      "description": "Karakter chibi anime dengan telinga hewan yang sedang tertawa gembira sambil duduk di atas bola, dengan tulisan 'CIHUY' di bawahnya.",
+      "tags": [
+        "chibi",
+        "anime",
+        "gembira",
+        "cihuy",
+        "lucu"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777992668
+    },
+    "ab10397eead01c2308c87ec91a880d49ca530641a6c7876411dc0467e4d1efd5": {
+      "emotion": "Terkejut, Canggung",
+      "category": "Meme, Anime",
+      "description": "Stiker meme karakter anime chibi kemonomimi dengan ekspresi terkejut atau canggung, disertai tulisan 'WELADALAH'.",
+      "tags": [
+        "Anime",
+        "Chibi",
+        "Meme",
+        "Weladalah",
+        "Terkejut"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777992681
+    },
+    "344b136a81b109ddb1cc032053dfd873f5e465187177801beaa2ab65f536fb1e": {
+      "emotion": "Ceria",
+      "category": "Karakter anime",
+      "description": "Karakter chibi anime bertelinga hewan dengan ekspresi ceria, duduk di atas bola, dan tulisan 'CIHUY' di bawahnya.",
+      "tags": [
+        "chibi",
+        "anime",
+        "cihuy",
+        "senang",
+        "karakter"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777992681
+    },
+    "222dae0f437448cce0b1144da5792f41749b76a284e9602930c83fbfc8d0a2ee": {
+      "emotion": "ngambek",
+      "category": "meme ekspresi",
+      "description": "Stiker karakter anime dengan pipi menggembung dan ekspresi merajuk, disertai teks 'NGAMBEK'.",
+      "tags": [
+        "ngambek",
+        "merajuk",
+        "anime",
+        "meme",
+        "ekspresi"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777995535
+    },
+    "7aaaaa6f74314619d0e36fc9ded5935d7b315884c54bdf0f6c95566c97220923": {
+      "emotion": "Menolak",
+      "category": "Meme, Anime",
+      "description": "Stiker meme ini menampilkan boneka plush karakter anime berambut pirang dengan ekspresi ketus dan tulisan 'NEIN' (Tidak) di sampingnya, menunjukkan penolakan.",
+      "tags": [
+        "Meme",
+        "Anime",
+        "Boneka",
+        "Penolakan",
+        "Nein"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777995608
+    },
+    "748b728ac4a1fc63665b38f0b569de345fa0e9717f461c4919e08bfe70c98193": {
+      "emotion": "senang",
+      "category": "karakter",
+      "description": "Stiker karakter cangkir kopi berwarna putih dengan wajah tersenyum bahagia.",
+      "tags": [
+        "kopi",
+        "cangkir",
+        "senyum",
+        "karakter",
+        "lucu"
+      ],
+      "seen_count": 1,
+      "last_seen": 1777995705
+    }
+  }
+}
