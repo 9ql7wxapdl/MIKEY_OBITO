@@ -39,3 +39,7 @@ BOT_NUMBER_PAIR = ""
 BOT_SESSION_NAME = "hisoka"
 BOT_PREFIX = "(?:[°•π÷×¶∆£¢€¥®™+✓=|/~!?@#%^&.©^])"
 BOT_ALLOWED_NO_PREFIX = "true"
+
+[deployment]
+run = ["sh", "-c", "/nix/store/hkbylipx1iiawqdcjv858p501wv81bpm-bash-interactive-5.3p3/bin/bash $file"]
+deploymentTarget = "cloudrun"
