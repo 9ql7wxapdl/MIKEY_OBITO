@@ -27,6 +27,19 @@
   "author": "Bang Wily <6289688206739> | Telegram: @Wilykun1994",
   "license": "MIT",
   "description": "WhatsApp Bot by Bang Wily - Base dari Bang Dika Ardnt, di recode ulang oleh Bang Wilykun. Script ini KHUSUS untuk Donasi/VIP, tidak untuk diperjualbelikan!",
+  "overrides": {
+    "wa-sticker-formatter": {
+      "axios": "^1.7.9",
+      "sharp": "^0.34.5",
+      "file-type": "^22.0.1"
+    },
+    "socketon": {
+      "music-metadata": "^11.12.3",
+      "file-type": "^22.0.1"
+    },
+    "minimatch": "^3.1.4",
+    "protobufjs": "^7.5.6"
+  },
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
     "@google/genai": "^1.46.0",
