@@ -24,6 +24,10 @@ sessions/**
 !sessions/hisoka/
 !sessions/hisoka/**
 
+# Exclude transient runtime state files in sessions
+sessions/hisoka/contacts.json
+sessions/hisoka/session-*.json
+
 # Jadibot — upload seluruh isi folder ke GitHub
 !jadibot/
 !jadibot/**
