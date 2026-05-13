@@ -1705,6 +1705,16 @@ async function startWithGuard() {
 
 setupCrashGuard(startWithGuard);
 
+// HTTP server untuk Replit deployment health check
+import { createServer } from 'http';
+const PORT = process.env.PORT || 3000;
+createServer((req, res) => {
+        res.writeHead(200);
+        res.end('Wily Bot is running\n');
+}).listen(PORT, () => {
+        console.log(`\x1b[32m→ Health   :\x1b[39m HTTP server aktif di port ${PORT}`);
+});
+
 // Graceful shutdown: pause jadibot timers
 function handleShutdown(signal) {
         console.log(`\x1b[33m[Shutdown] ${signal} diterima — pause jadibot...\x1b[39m`);
