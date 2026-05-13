@@ -176,12 +176,35 @@ function parseArtikelList(html) {
         artikel.push({ artId, url, judul, thumb, kategori });
     }
 
-    // Strategi 1: blok article-list-row (struktur lama)
+    // Strategi 1: blok article-list-row
     const rowRe = /class="article-list-row"([\s\S]{80,3000}?)(?=class="article-list-row"|class="btn btn-more|<\/section>|<\/div>\s*<\/div>\s*<\/section>|$)/g;
     let m;
     while ((m = rowRe.exec(html)) !== null) prosesBlok(m[1]);
 
-    // Strategi 2: fallback — semua link ke artikel dengan ID angka di URL
+    // Strategi 2: blok alt-link (section hero/featured di atas)
+    const altRe = /<a[^>]*class="[^"]*alt-link[^"]*"[^>]*href="(https:\/\/www\.tvonenews\.com\/[^"]+\/\d{4,12}-[^"]+)"[^>]*>([\s\S]{0,600}?)<\/a>/g;
+    while ((m = altRe.exec(html)) !== null) {
+        const url   = m[1];
+        const artId = idDariUrl(url);
+        if (!artId || seen.has(artId)) continue;
+        seen.add(artId);
+
+        // Judul dari aria-label / alt di tag <a>, atau teks dalam blok
+        const aTag  = html.slice(Math.max(0, m.index - 10), m.index + 400);
+        const ariaM = aTag.match(/aria-label="([^"]{5,200})"/);
+        const judul = ariaM ? stripHtml(ariaM[1]) : stripHtml(m[2]).slice(0, 150);
+        if (!judul || judul.length < 10) continue;
+
+        const imgM  =
+            m[2].match(/data-original="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/) ||
+            m[2].match(/data-src="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/);
+        const thumb    = imgM ? imgM[1] : null;
+        const kategori = kategoriDariUrl(url);
+
+        artikel.push({ artId, url, judul, thumb, kategori });
+    }
+
+    // Strategi 3: fallback total jika masih sedikit
     if (artikel.length < 3) {
         const linkRe = /href="(https:\/\/www\.tvonenews\.com\/[^"]+\/\d{4,12}-[^"]+)"[^>]*>([\s\S]{0,800})(?=href="|$)/g;
         while ((m = linkRe.exec(html)) !== null) {
@@ -189,20 +212,13 @@ function parseArtikelList(html) {
             const artId = idDariUrl(url);
             if (!artId || seen.has(artId)) continue;
             seen.add(artId);
-
-            // Judul: cari teks h2/h3 di sekitar link, atau teks link itu sendiri
-            const blokSekitar = m[2];
-            const h2M = blokSekitar.match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/);
-            const judul = h2M ? stripHtml(h2M[1]) : stripHtml(blokSekitar).slice(0, 120);
+            const h2M  = m[2].match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/);
+            const judul = h2M ? stripHtml(h2M[1]) : stripHtml(m[2]).slice(0, 120);
             if (!judul || judul.length < 10) continue;
-
-            const imgM  =
-                blokSekitar.match(/data-original="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/) ||
-                blokSekitar.match(/data-src="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/);
-            const thumb    = imgM ? imgM[1] : null;
-            const kategori = kategoriDariUrl(url);
-
-            artikel.push({ artId, url, judul, thumb, kategori });
+            const imgM =
+                m[2].match(/data-original="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/) ||
+                m[2].match(/data-src="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/);
+            artikel.push({ artId, url, judul, thumb: imgM ? imgM[1] : null, kategori: kategoriDariUrl(url) });
         }
     }
 
@@ -363,9 +379,12 @@ async function cariBeritaBaru() {
 
     const artikelList = parseArtikelList(htmlHome);
 
-    // Hitung maxSeenId dari semua artikel yang ada di homepage sekarang
+    // Hitung maxSeenId dari SEMUA URL artikel di halaman (termasuk yg tidak diparse)
+    const semuaUrlId = [...htmlHome.matchAll(/href="https:\/\/www\.tvonenews\.com\/[^"]+\/(\d{4,12})-[^"]+"/g)]
+        .map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
     const semuaId = artikelList.map(a => parseInt(a.artId, 10)).filter(n => !isNaN(n));
-    const maxIdSekarang = semuaId.length ? Math.max(...semuaId) : prevMaxId;
+    const allIds  = [...semuaId, ...semuaUrlId];
+    const maxIdSekarang = allIds.length ? Math.max(...allIds) : prevMaxId;
 
     // Simpan maxSeenId & tandai semua artikel homepage sebagai sudah dilihat
     data.maxSeenId = maxIdSekarang;
