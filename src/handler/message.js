@@ -13410,12 +13410,21 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'on') {
+                                        const sebelumnyaIW = cfgIW.infowibu.groups[m.from]?.enabled === true;
                                         cfgIW.infowibu.groups[m.from] = { enabled: true, diubahPada: Date.now() };
                                         fs.writeFileSync(cfgPathIW, JSON.stringify(cfgIW, null, 2));
                                         await tolak(hisoka, m,
-                                                `✅ *InfoWibu aktif di grup ini!*\n\n` +
-                                                `Bot akan otomatis kirim notifikasi episode baru secara realtime.\n` +
-                                                `Ketik *${pfx}infowibu off* untuk menonaktifkan.`
+                                                `╭─「 📺 *INFO WIBU* 」\n` +
+                                                `│\n` +
+                                                `│ Status sebelumnya : ${sebelumnyaIW ? '✅ *ON*' : '❌ *OFF*'}\n` +
+                                                `│ Status sekarang   : ✅ *ON*\n` +
+                                                `│\n` +
+                                                (sebelumnyaIW
+                                                        ? `│ ℹ️ Fitur ini sebelumnya sudah aktif,\n│    tidak ada perubahan.\n`
+                                                        : `│ ✅ Fitur berhasil diaktifkan!\n│    Bot akan kirim notif episode\n│    baru secara realtime ke grup ini.\n`) +
+                                                `│\n` +
+                                                `│ Ketik *${pfx}infowibu off* untuk menonaktifkan.\n` +
+                                                `╰──────────────────────`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                         logCommand(m, hisoka, 'infowibu-on');
@@ -13423,11 +13432,21 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'off') {
+                                        const sebelumnyaIW = cfgIW.infowibu.groups[m.from]?.enabled === true;
                                         cfgIW.infowibu.groups[m.from] = { enabled: false, diubahPada: Date.now() };
                                         fs.writeFileSync(cfgPathIW, JSON.stringify(cfgIW, null, 2));
                                         await tolak(hisoka, m,
-                                                `❌ *InfoWibu dinonaktifkan di grup ini.*\n\n` +
-                                                `Ketik *${pfx}infowibu on* untuk mengaktifkan kembali.`
+                                                `╭─「 📺 *INFO WIBU* 」\n` +
+                                                `│\n` +
+                                                `│ Status sebelumnya : ${sebelumnyaIW ? '✅ *ON*' : '❌ *OFF*'}\n` +
+                                                `│ Status sekarang   : ❌ *OFF*\n` +
+                                                `│\n` +
+                                                (sebelumnyaIW
+                                                        ? `│ ❌ Fitur berhasil dinonaktifkan.\n│    Bot tidak akan kirim notif lagi\n│    di grup ini.\n`
+                                                        : `│ ℹ️ Fitur ini sebelumnya sudah nonaktif,\n│    tidak ada perubahan.\n`) +
+                                                `│\n` +
+                                                `│ Ketik *${pfx}infowibu on* untuk mengaktifkan kembali.\n` +
+                                                `╰──────────────────────`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                         logCommand(m, hisoka, 'infowibu-off');
@@ -13511,12 +13530,21 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'on') {
+                                        const sebelumnyaAM = cfgAM.animasu.groups[m.from]?.enabled === true;
                                         cfgAM.animasu.groups[m.from] = { enabled: true, diubahPada: Date.now() };
                                         fs.writeFileSync(cfgPathAM, JSON.stringify(cfgAM, null, 2));
                                         await tolak(hisoka, m,
-                                                `✅ *Animasu Sub Indo aktif di grup ini!*\n\n` +
-                                                `Bot akan otomatis kirim notifikasi saat episode baru Sub Indo tersedia di Animasu.\n` +
-                                                `Ketik *${pfx}animasu off* untuk menonaktifkan.`
+                                                `╭─「 📺 *ANIMASU SUB INDO* 」\n` +
+                                                `│\n` +
+                                                `│ Status sebelumnya : ${sebelumnyaAM ? '✅ *ON*' : '❌ *OFF*'}\n` +
+                                                `│ Status sekarang   : ✅ *ON*\n` +
+                                                `│\n` +
+                                                (sebelumnyaAM
+                                                        ? `│ ℹ️ Fitur ini sebelumnya sudah aktif,\n│    tidak ada perubahan.\n`
+                                                        : `│ ✅ Fitur berhasil diaktifkan!\n│    Bot akan kirim notif otomatis\n│    saat episode Sub Indo baru tersedia.\n`) +
+                                                `│\n` +
+                                                `│ Ketik *${pfx}animasu off* untuk menonaktifkan.\n` +
+                                                `╰──────────────────────`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                         logCommand(m, hisoka, 'animasu-on');
@@ -13524,11 +13552,21 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'off') {
+                                        const sebelumnyaAM = cfgAM.animasu.groups[m.from]?.enabled === true;
                                         cfgAM.animasu.groups[m.from] = { enabled: false, diubahPada: Date.now() };
                                         fs.writeFileSync(cfgPathAM, JSON.stringify(cfgAM, null, 2));
                                         await tolak(hisoka, m,
-                                                `❌ *Animasu Sub Indo dinonaktifkan di grup ini.*\n\n` +
-                                                `Ketik *${pfx}animasu on* untuk mengaktifkan kembali.`
+                                                `╭─「 📺 *ANIMASU SUB INDO* 」\n` +
+                                                `│\n` +
+                                                `│ Status sebelumnya : ${sebelumnyaAM ? '✅ *ON*' : '❌ *OFF*'}\n` +
+                                                `│ Status sekarang   : ❌ *OFF*\n` +
+                                                `│\n` +
+                                                (sebelumnyaAM
+                                                        ? `│ ❌ Fitur berhasil dinonaktifkan.\n│    Bot tidak akan kirim notif lagi\n│    di grup ini.\n`
+                                                        : `│ ℹ️ Fitur ini sebelumnya sudah nonaktif,\n│    tidak ada perubahan.\n`) +
+                                                `│\n` +
+                                                `│ Ketik *${pfx}animasu on* untuk mengaktifkan kembali.\n` +
+                                                `╰──────────────────────`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                         logCommand(m, hisoka, 'animasu-off');
