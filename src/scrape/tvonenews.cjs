@@ -222,7 +222,6 @@ function parseArtikelList(html) {
         }
     }
 
-    console.log(`[TVOneNews] parseArtikelList → ditemukan ${artikel.length} artikel`);
     return artikel;
 }
 
@@ -398,13 +397,11 @@ async function cariBeritaBaru() {
     for (const art of artikelList) tandaiSudahKirim(art.artId);
 
     if (isFirstRun || prevMaxId === 0) {
-        console.log(`[TVOneNews] 🆕 First run — maxSeenId=${maxIdSekarang}, tidak kirim dulu`);
         return [];
     }
 
     // Artikel baru = semua ID > prevMaxId yang ada di halaman sekarang
     const idBaru = [...semuaUrlMap.keys()].filter(id => id > prevMaxId).sort((a, b) => a - b);
-    console.log(`[TVOneNews] prevMaxId=${prevMaxId}, maxIdSekarang=${maxIdSekarang}, artikel baru: ${idBaru.length}`);
 
     if (!idBaru.length) return [];
 

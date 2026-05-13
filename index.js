@@ -838,17 +838,19 @@ async function main() {
                                 global.tvoneInterval = null;
                         }
                         {
-                                const _tv = _require(path.join(process.cwd(), 'src', 'scrape', 'tvonenews.cjs'));
+                                const TV_TVPATH    = path.join(process.cwd(), 'src', 'scrape', 'tvonenews.cjs');
                                 const TV_INTERVAL_MS = 5 * 60 * 1000;
 
                                 const runTVOne = async () => {
                                         try {
+                                                // Selalu reload modul supaya perubahan langsung aktif
+                                                delete require.cache[require.resolve(TV_TVPATH)];
+                                                const _tv = _require(TV_TVPATH);
+
                                                 const daftarGrup = _tv.getEnabledGroups();
-                                                console.log(`[TVOneNews] Scheduler jalan — grup aktif: ${daftarGrup.length}`, daftarGrup);
                                                 if (!daftarGrup.length) return;
 
                                                 const beritaBaru = await _tv.cariBeritaBaru();
-                                                console.log(`[TVOneNews] Berita baru ditemukan: ${beritaBaru.length}`);
                                                 if (!beritaBaru.length) return;
 
                                                 for (const item of beritaBaru) {
@@ -883,7 +885,6 @@ async function main() {
                                                         }
 
                                                         _tv.tandaiDanLog(item, daftarGrup);
-                                                        console.log(`[TVOneNews] ✅ "${item.judul?.slice(0, 60)}" terkirim ke ${daftarGrup.length} grup`);
                                                 }
                                         } catch (err) {
                                                 console.error('[TVOneNews] Error scheduler:', err?.message);
