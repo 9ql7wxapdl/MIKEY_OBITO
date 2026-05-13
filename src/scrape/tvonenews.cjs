@@ -380,47 +380,53 @@ async function cariBeritaBaru() {
     const artikelList = parseArtikelList(htmlHome);
 
     // Hitung maxSeenId dari SEMUA URL artikel di halaman (termasuk yg tidak diparse)
-    const semuaUrlId = [...htmlHome.matchAll(/href="https:\/\/www\.tvonenews\.com\/[^"]+\/(\d{4,12})-[^"]+"/g)]
-        .map(m => parseInt(m[1], 10)).filter(n => !isNaN(n));
-    const semuaId = artikelList.map(a => parseInt(a.artId, 10)).filter(n => !isNaN(n));
-    const allIds  = [...semuaId, ...semuaUrlId];
-    const maxIdSekarang = allIds.length ? Math.max(...allIds) : prevMaxId;
+    // Kumpulkan SEMUA ID artikel dari seluruh halaman (termasuk yg tidak diparse)
+    const semuaUrlHits = [...htmlHome.matchAll(/href="(https:\/\/www\.tvonenews\.com\/[^"]+\/(\d{4,12})-[^"]+)"/g)];
+    const semuaUrlMap  = new Map(); // id → url
+    for (const hit of semuaUrlHits) {
+        const id = parseInt(hit[2], 10);
+        if (!isNaN(id) && !semuaUrlMap.has(id)) semuaUrlMap.set(id, hit[1]);
+    }
 
-    // Simpan maxSeenId & tandai semua artikel homepage sebagai sudah dilihat
+    // maxSeenId TIDAK PERNAH turun
+    const maxIdHalaman  = semuaUrlMap.size ? Math.max(...semuaUrlMap.keys()) : prevMaxId;
+    const maxIdSekarang = Math.max(prevMaxId, maxIdHalaman);
+
+    // Tandai semua artikel halaman sebagai sudah dilihat & simpan
     data.maxSeenId = maxIdSekarang;
     simpanData(data);
     for (const art of artikelList) tandaiSudahKirim(art.artId);
 
     if (isFirstRun || prevMaxId === 0) {
-        console.log(`[TVOneNews] 🆕 First run — maxSeenId=${maxIdSekarang}, tandai ${artikelList.length} artikel, tidak kirim dulu`);
+        console.log(`[TVOneNews] 🆕 First run — maxSeenId=${maxIdSekarang}, tidak kirim dulu`);
         return [];
     }
 
-    // Hanya artikel dengan ID > prevMaxId yang benar-benar baru
-    const artikelBaru = artikelList.filter(a => parseInt(a.artId, 10) > prevMaxId);
-    console.log(`[TVOneNews] prevMaxId=${prevMaxId}, maxIdSekarang=${maxIdSekarang}, artikel baru: ${artikelBaru.length}`);
+    // Artikel baru = semua ID > prevMaxId yang ada di halaman sekarang
+    const idBaru = [...semuaUrlMap.keys()].filter(id => id > prevMaxId).sort((a, b) => a - b);
+    console.log(`[TVOneNews] prevMaxId=${prevMaxId}, maxIdSekarang=${maxIdSekarang}, artikel baru: ${idBaru.length}`);
 
-    if (!artikelBaru.length) return [];
+    if (!idBaru.length) return [];
+
+    // Gabungkan dengan data parser jika ada, fallback ke fetch detail
+    const artikelByID = new Map(artikelList.map(a => [parseInt(a.artId, 10), a]));
 
     const baru = [];
-    for (const art of artikelBaru) {
+    for (const id of idBaru) {
+        const url  = semuaUrlMap.get(id);
+        const base = artikelByID.get(id) || { artId: String(id), url, judul: '', thumb: null, kategori: kategoriDariUrl(url) };
         try {
-            const htmlDetail = await fetchHtml(art.url);
-            const detail     = parseDetailArtikel(htmlDetail, art.url);
+            const htmlDetail = await fetchHtml(url);
+            const detail     = parseDetailArtikel(htmlDetail, url);
             baru.push({
-                ...art,
+                ...base,
                 ...detail,
-                cover: detail.cover || gambarHD(art.thumb) || art.thumb,
+                artId: String(id),
+                cover: detail.cover || gambarHD(base.thumb) || base.thumb,
             });
         } catch (e) {
-            console.warn(`[TVOneNews] ❌ Detail gagal (${art.artId}):`, e?.message);
-            baru.push({
-                ...art,
-                cover    : gambarHD(art.thumb) || art.thumb,
-                tanggal  : '',
-                penulis  : '',
-                ringkasan: '',
-            });
+            console.warn(`[TVOneNews] ❌ Detail gagal (${id}):`, e?.message);
+            baru.push({ ...base, cover: gambarHD(base.thumb) || base.thumb, tanggal: '', penulis: '', ringkasan: '' });
         }
     }
 
