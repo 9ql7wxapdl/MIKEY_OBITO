@@ -1709,8 +1709,25 @@ setupCrashGuard(startWithGuard);
 import { createServer } from 'http';
 const PORT = process.env.PORT || 3000;
 createServer((req, res) => {
-        res.writeHead(200);
-        res.end('Wily Bot is running\n');
+        if (req.url === '/robots.txt') {
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
+                res.end('User-agent: *\nDisallow: /\n');
+                return;
+        }
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wily Bot - WhatsApp Bot</title>
+<meta name="description" content="Wily Bot adalah WhatsApp bot otomatis dengan 199+ perintah, fitur AI, downloader media, dan banyak lagi.">
+</head>
+<body>
+<h1>Wily Bot</h1>
+<p>WhatsApp Bot is running.</p>
+</body>
+</html>`);
 }).listen(PORT, () => {
         console.log(`\x1b[32m→ Health   :\x1b[39m HTTP server aktif di port ${PORT}`);
 });
