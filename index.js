@@ -877,7 +877,6 @@ async function main() {
                                                                         } else {
                                                                                 await hisoka.sendMessage(jid, { text: caption });
                                                                         }
-                                                                        await new Promise(r => setTimeout(r, 2000));
                                                                 } catch (e) {
                                                                         console.error(`[TVOneNews] Gagal kirim ke ${jid}:`, e?.message);
                                                                 }
@@ -885,7 +884,6 @@ async function main() {
 
                                                         _tv.tandaiDanLog(item, daftarGrup);
                                                         console.log(`[TVOneNews] ✅ "${item.judul?.slice(0, 60)}" terkirim ke ${daftarGrup.length} grup`);
-                                                        await new Promise(r => setTimeout(r, 3000));
                                                 }
                                         } catch (err) {
                                                 console.error('[TVOneNews] Error scheduler:', err?.message);
