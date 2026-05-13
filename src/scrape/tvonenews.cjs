@@ -100,7 +100,7 @@ function stripHtml(teks) {
 }
 
 function idDariUrl(url) {
-    const m = url.match(/\/(\d{4,8})-/);
+    const m = url.match(/\/(\d{4,12})-/);
     return m ? m[1] : null;
 }
 
@@ -146,28 +146,27 @@ function parseArtikelList(html) {
     const artikel = [];
     const seen    = new Set();
 
-    // Cari blok article-list-row
-    const rowRe = /class="article-list-row"([\s\S]{80,3000}?)(?=class="article-list-row"|class="btn btn-more|<\/section>|<\/div>\s*<\/div>\s*<\/section>|$)/g;
-    let m;
-    while ((m = rowRe.exec(html)) !== null) {
-        const blok = m[1];
-
-        // URL artikel (harus ada ID angka)
-        const urlM = blok.match(/href="(https:\/\/www\.tvonenews\.com\/[^"]+\/\d{4,8}-[^"]+)"/);
-        if (!urlM) continue;
+    // Helper: proses satu blok HTML untuk ekstrak artikel
+    function prosesBlok(blok) {
+        // URL artikel (harus ada ID angka, range diperluas ke 4-12 digit)
+        const urlM = blok.match(/href="(https:\/\/www\.tvonenews\.com\/[^"]+\/\d{4,12}-[^"]+)"/);
+        if (!urlM) return;
         const url   = urlM[1].split('"')[0];
         const artId = idDariUrl(url);
-        if (!artId || seen.has(artId)) continue;
+        if (!artId || seen.has(artId)) return;
         seen.add(artId);
 
-        // Judul dari <h2>
-        const h2M = blok.match(/<h2[^>]*>([\s\S]*?)<\/h2>/);
-        if (!h2M) continue;
+        // Judul dari <h2> atau <h3>
+        const h2M = blok.match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/);
+        if (!h2M) return;
         const judul = stripHtml(h2M[1]);
-        if (!judul) continue;
+        if (!judul) return;
 
-        // Thumbnail (lazy-loaded pakai data-original)
-        const imgM  = blok.match(/data-original="(https:\/\/thumbs\.tvonenews\.com\/[^"]+)"/);
+        // Thumbnail — coba data-original, data-src, lalu src
+        const imgM  =
+            blok.match(/data-original="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/) ||
+            blok.match(/data-src="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/) ||
+            blok.match(/src="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+\.(?:jpg|jpeg|png|webp)[^"]*)"/i);
         const thumb = imgM ? imgM[1] : null;
 
         // Kategori
@@ -176,6 +175,38 @@ function parseArtikelList(html) {
 
         artikel.push({ artId, url, judul, thumb, kategori });
     }
+
+    // Strategi 1: blok article-list-row (struktur lama)
+    const rowRe = /class="article-list-row"([\s\S]{80,3000}?)(?=class="article-list-row"|class="btn btn-more|<\/section>|<\/div>\s*<\/div>\s*<\/section>|$)/g;
+    let m;
+    while ((m = rowRe.exec(html)) !== null) prosesBlok(m[1]);
+
+    // Strategi 2: fallback — semua link ke artikel dengan ID angka di URL
+    if (artikel.length < 3) {
+        const linkRe = /href="(https:\/\/www\.tvonenews\.com\/[^"]+\/\d{4,12}-[^"]+)"[^>]*>([\s\S]{0,800})(?=href="|$)/g;
+        while ((m = linkRe.exec(html)) !== null) {
+            const url   = m[1].split('"')[0];
+            const artId = idDariUrl(url);
+            if (!artId || seen.has(artId)) continue;
+            seen.add(artId);
+
+            // Judul: cari teks h2/h3 di sekitar link, atau teks link itu sendiri
+            const blokSekitar = m[2];
+            const h2M = blokSekitar.match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/);
+            const judul = h2M ? stripHtml(h2M[1]) : stripHtml(blokSekitar).slice(0, 120);
+            if (!judul || judul.length < 10) continue;
+
+            const imgM  =
+                blokSekitar.match(/data-original="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/) ||
+                blokSekitar.match(/data-src="(https?:\/\/(?:thumbs\.)?tvonenews\.com\/[^"]+)"/);
+            const thumb    = imgM ? imgM[1] : null;
+            const kategori = kategoriDariUrl(url);
+
+            artikel.push({ artId, url, judul, thumb, kategori });
+        }
+    }
+
+    console.log(`[TVOneNews] parseArtikelList → ditemukan ${artikel.length} artikel`);
     return artikel;
 }
 
@@ -215,7 +246,7 @@ function parseDetailArtikel(html, url) {
     if (!kategori) kategori = kategoriDariUrl(url);
 
     // Konten artikel — strip iklan & noise
-    const kontenM = html.match(/class="detail-content"[^>]*>([\s\S]{0,12000})/);
+    const kontenM = html.match(/class="detail-content"[^>]*>([\s\S]{0,20000})/);
     let ringkasan = '';
     if (kontenM) {
         const raw = kontenM[1]
@@ -225,8 +256,14 @@ function parseDetailArtikel(html, url) {
             .replace(/GULIR UNTUK LANJUT BACA\s*/gi, '')
             .replace(/<div[^>]*(?:iklan|ads|advert)[^>]*>[\s\S]*?<\/div>/gi, '');
         const teks = stripHtml(raw).replace(/\s{2,}/g, ' ').trim();
-        // Ambil 400 karakter pertama sebagai ringkasan
-        ringkasan = teks.length > 400 ? teks.slice(0, 400).trimEnd() + '...' : teks;
+        // Ambil hingga 800 karakter, potong di batas kata
+        if (teks.length > 800) {
+            const cut = teks.slice(0, 800);
+            const lastSpace = cut.lastIndexOf(' ');
+            ringkasan = (lastSpace > 600 ? cut.slice(0, lastSpace) : cut).trimEnd() + '...';
+        } else {
+            ringkasan = teks;
+        }
     }
 
     // Fallback: meta description

@@ -844,9 +844,11 @@ async function main() {
                                 const runTVOne = async () => {
                                         try {
                                                 const daftarGrup = _tv.getEnabledGroups();
+                                                console.log(`[TVOneNews] Scheduler jalan — grup aktif: ${daftarGrup.length}`, daftarGrup);
                                                 if (!daftarGrup.length) return;
 
                                                 const beritaBaru = await _tv.cariBeritaBaru();
+                                                console.log(`[TVOneNews] Berita baru ditemukan: ${beritaBaru.length}`);
                                                 if (!beritaBaru.length) return;
 
                                                 for (const item of beritaBaru) {
