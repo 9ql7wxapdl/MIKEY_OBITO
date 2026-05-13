@@ -844,7 +844,7 @@ async function main() {
                                 const runTVOne = async () => {
                                         try {
                                                 // Selalu reload modul supaya perubahan langsung aktif
-                                                delete require.cache[require.resolve(TV_TVPATH)];
+                                                delete _require.cache[_require.resolve(TV_TVPATH)];
                                                 const _tv = _require(TV_TVPATH);
 
                                                 const daftarGrup = _tv.getEnabledGroups();

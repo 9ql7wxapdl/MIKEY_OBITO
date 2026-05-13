@@ -1,6 +1,15 @@
 {
   "errors": [
     {
+      "fingerprint": "TVOneNews::[TVOneNews] Error scheduler: require is not defined",
+      "source": "TVOneNews",
+      "message": "[TVOneNews] Error scheduler: require is not defined",
+      "stack": "Error: [TVOneNews] Error scheduler: require is not defined\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at runTVOne (file:///home/runner/workspace/index.js:890:57)\n    at Timeout._onTimeout (file:///home/runner/workspace/index.js:896:41)\n    at listOnTimeout (node:internal/timers:581:17)\n    at process.processTimers (node:internal/timers:519:7)",
+      "count": 1,
+      "firstSeen": "2026-05-13T09:37:03.900Z",
+      "lastSeen": "2026-05-13T09:37:03.900Z"
+    },
+    {
       "fingerprint": "Animasu::[Animasu] ❌ Gagal fetch API posts: timeout of Nms exceeded",
       "source": "Animasu",
       "message": "[Animasu] ❌ Gagal fetch API posts: timeout of 30000ms exceeded",
