@@ -256,11 +256,13 @@ function parseDetailArtikel(html, url) {
             .replace(/GULIR UNTUK LANJUT BACA\s*/gi, '')
             .replace(/<div[^>]*(?:iklan|ads|advert)[^>]*>[\s\S]*?<\/div>/gi, '');
         const teks = stripHtml(raw).replace(/\s{2,}/g, ' ').trim();
-        // Ambil hingga 800 karakter, potong di batas kata
-        if (teks.length > 800) {
-            const cut = teks.slice(0, 800);
-            const lastSpace = cut.lastIndexOf(' ');
-            ringkasan = (lastSpace > 600 ? cut.slice(0, lastSpace) : cut).trimEnd() + '...';
+        const BATAS = 1500;
+        if (teks.length > BATAS) {
+            const cut      = teks.slice(0, BATAS);
+            const lastTitik = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
+            ringkasan = lastTitik > 800
+                ? cut.slice(0, lastTitik + 1).trimEnd()
+                : cut.slice(0, cut.lastIndexOf(' ')).trimEnd() + '...';
         } else {
             ringkasan = teks;
         }
