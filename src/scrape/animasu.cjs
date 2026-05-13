@@ -16,23 +16,47 @@ const fs    = require('fs');
 const path  = require('path');
 
 const FILE_DATA   = path.join(process.cwd(), 'data', 'animasu.json');
+const FILE_LOG    = path.join(process.cwd(), 'data', 'animasu_log.json');
 const FILE_CONFIG = path.join(process.cwd(), 'config.json');
 const BASE_URL    = 'https://v1.animasu.app';
 const API_POSTS   = `${BASE_URL}/wp-json/wp/v2/posts`;
 const HEADERS     = { 'User-Agent': 'Mozilla/5.0 (compatible; WilyBot/1.0)' };
 
-// ── BACA / SIMPAN ─────────────────────────────────────────────────────────────
+// Buffer waktu (ms) yang ditambahkan ke lastCheckTime saat menghitung batas usia post
+// Mencegah post yang terbit tepat di batas window terlewat akibat latensi jaringan
+const BUFFER_MS = 3 * 60 * 1000; // 3 menit
+// Berapa lama (ms) post gagal-fetch akan dicoba ulang sebelum diabaikan permanen
+const RETRY_TTL_MS = 30 * 60 * 1000; // 30 menit
+// Jangkauan awal (ms) saat belum ada lastCheckTime (misal: bot baru start)
+const INIT_WINDOW_MS = 30 * 60 * 1000; // 30 menit
+
+// ── BACA / SIMPAN DATA ────────────────────────────────────────────────────────
 
 function bacaData() {
     try {
         if (fs.existsSync(FILE_DATA)) return JSON.parse(fs.readFileSync(FILE_DATA, 'utf-8'));
     } catch (_) {}
-    return { idTerkirim: [] };
+    return { idTerkirim: [], idGagal: [], lastCheckTime: null };
 }
 
 function simpanData(data) {
     try { fs.writeFileSync(FILE_DATA, JSON.stringify(data, null, 2), 'utf-8'); } catch (_) {}
 }
+
+// ── BACA / SIMPAN LOG PENGIRIMAN ─────────────────────────────────────────────
+
+function bacaLog() {
+    try {
+        if (fs.existsSync(FILE_LOG)) return JSON.parse(fs.readFileSync(FILE_LOG, 'utf-8'));
+    } catch (_) {}
+    return { terkirim: [] };
+}
+
+function simpanLog(log) {
+    try { fs.writeFileSync(FILE_LOG, JSON.stringify(log, null, 2), 'utf-8'); } catch (_) {}
+}
+
+// ── BACA / SIMPAN CONFIG ──────────────────────────────────────────────────────
 
 function bacaConfig() {
     try {
@@ -88,23 +112,18 @@ function stripHtml(str) {
 // ── PARSE HALAMAN DETAIL ANIME ─────────────────────────────────────────────────
 
 function parseDetailPage(html, animeUrl) {
-    // Judul utama (strip "Sub Indo" suffix)
     const judulMatch = html.match(/<h1[^>]*itemprop="headline"[^>]*>([\s\S]*?)<\/h1>/i);
     const judul = judulMatch
         ? stripHtml(judulMatch[1]).replace(/\s*Sub\s*Indo\s*$/i, '').trim()
         : '';
 
-    // Judul alternatif
     const alterMatch = html.match(/<span class="alter">([\s\S]*?)<\/span>/i);
     const judulAlt = alterMatch ? stripHtml(alterMatch[1]) : '';
 
-    // Cover image — ambil dari div.thumb (portrait, bukan banner)
-    // Konversi WP Jetpack CDN (i{n}.wp.com) ke URL asli untuk kualitas penuh
     const coverMatch = html.match(/<div class="thumb"[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"/i);
     const coverRaw   = coverMatch ? coverMatch[1].split('?')[0] : '';
     const cover      = coverRaw.replace(/^https?:\/\/i\d+\.wp\.com\//, 'https://');
 
-    // Info fields dari div.spe
     const speMatch = html.match(/<div class="spe">([\s\S]*?)<\/div>/i);
     const speHtml  = speMatch ? speMatch[1] : '';
 
@@ -122,35 +141,28 @@ function parseDetailPage(html, animeUrl) {
     const studio = ambilField('Studio');
     const musim  = ambilField('Musim');
 
-    // Rating site
     const ratingMatch = html.match(/<strong>Rating\s+([0-9.]+)<\/strong>/i);
     const rating = ratingMatch ? ratingMatch[1] : '';
 
-    // Sinopsis
     const sinopsisMatch = html.match(/<span class="desc"[^>]*>([\s\S]*?)<\/span>\s*<\/div>/i);
     const sinopsis = sinopsisMatch
         ? stripHtml(sinopsisMatch[1]).replace(/\s{2,}/g, ' ').trim()
         : '';
 
-    // Episode terbaru (urutan pertama = paling baru)
     const epMatch    = html.match(/<span class="lchx"><a href="([^"]+)">Episode\s+(\d+)<\/a><\/span>/i);
     const latestEpUrl = epMatch ? epMatch[1] : '';
     const latestEpNum = epMatch ? parseInt(epMatch[2]) : 0;
 
-    // Total episode yang sudah tersedia di Animasu (dari daftar episode)
     const allEps = [...html.matchAll(/<span class="lchx"><a href="[^"]+">Episode\s+(\d+)<\/a><\/span>/gi)];
     const totalEp = allEps.length;
 
-    // Total episode seri (dari field "Episode" di .spe, misal "13 Episode")
     const totalSeriRaw = ambilField('Episode');
     const totalSeriMatch = totalSeriRaw.match(/(\d+)/);
     const totalSeri = totalSeriMatch ? parseInt(totalSeriMatch[1]) : 0;
 
-    // Trailer YouTube embed
     const trailerMatch = html.match(/bixbox trailer[\s\S]*?<iframe[^>]+src="https:\/\/www\.youtube\.com\/embed\/([^"?/]+)/i);
     const trailerUrl   = trailerMatch ? `https://www.youtube.com/watch?v=${trailerMatch[1]}` : '';
 
-    // Batch download — cari blok .soraddlx.soradlg yang mengandung "Batch"
     const batchDownload = parseBatchDownload(html);
 
     return {
@@ -162,27 +174,18 @@ function parseDetailPage(html, animeUrl) {
     };
 }
 
-// Parse batch download links dari HTML halaman anime animasu
 function parseBatchDownload(html) {
-    // Cari judul blok batch (tidak peduli nested div)
     const batchTitleM = html.match(/<div class="sorattlx"[^>]*>\s*<h3>([\s\S]*?Download\s+Batch[\s\S]*?)<\/h3>/i);
     if (!batchTitleM) return null;
 
     const title = stripHtml(batchTitleM[1]).trim();
-
-    // Mulai dari posisi judul batch, ambil semua .soraurlx hingga blok berikutnya
     const startIdx = batchTitleM.index;
-
-    // Batas akhir: blok batch berikutnya (soraddlx lain) atau akhir .mctnx
     const afterBatch = html.slice(startIdx);
-    // Cari soraddlx berikutnya setelah blok ini (skip yg pertama = blok ini sendiri)
-    const nextBlockM = afterBatch.match(/(<div class="soraddlx[^"]*">[\s\S]*?<div class="sorattlx"[^>]*>[\s\S]*?<\/h3>)([\s\S]*)/);
-    // Ambil konten dari awal batch sampai blok .soraddlx berikutnya atau batas mctnx
+
     let section = afterBatch;
     const nextSoraddlxIdx = afterBatch.indexOf('<div class="soraddlx', 20);
     if (nextSoraddlxIdx !== -1) section = afterBatch.slice(0, nextSoraddlxIdx);
 
-    // Parse tiap resolusi dari section ini
     const resolutions = [];
     const urlDivRe = /<div class="soraurlx">([\s\S]*?)<\/div>/gi;
     let m;
@@ -228,8 +231,7 @@ async function fetchHtml(url) {
     });
 }
 
-async function fetchRecentPosts(count = 15) {
-    // date_gmt dibutuhkan untuk filter waktu akurat; _embedded ditambah WP otomatis saat _embed dipakai
+async function fetchRecentPosts(count = 20) {
     const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,date_gmt,slug,title`;
     return fetchDenganRetry(async () => {
         const r = await axios.get(url, { headers: HEADERS, timeout: 30000 });
@@ -237,13 +239,13 @@ async function fetchRecentPosts(count = 15) {
     });
 }
 
-// Dapat anime slug dari post — pakai embedded category (lebih akurat dari slug parsing)
+// ── PARSE SLUG & EPISODE DARI POST ────────────────────────────────────────────
+
 function animeSlugDariPost(post) {
     try {
         const cats = post._embedded?.['wp:term']?.[0] || [];
         if (cats.length > 0 && cats[0].slug) return cats[0].slug;
     } catch (_) {}
-    // Fallback: strip "nonton-" prefix dan "-episode-N" suffix
     return (post.slug || '')
         .replace(/^nonton-/, '')
         .replace(/-episode-\d+.*$/, '');
@@ -264,48 +266,168 @@ function sudahDikirim(id) {
 function tandaiSudahKirim(id) {
     const data = bacaData();
     if (!data.idTerkirim) data.idTerkirim = [];
-    data.idTerkirim.unshift(String(id));
-    if (data.idTerkirim.length > 300) data.idTerkirim = data.idTerkirim.slice(0, 300);
-    simpanData(data);
+    if (!data.idTerkirim.includes(String(id))) {
+        data.idTerkirim.unshift(String(id));
+        if (data.idTerkirim.length > 300) data.idTerkirim = data.idTerkirim.slice(0, 300);
+        simpanData(data);
+    }
 }
 
-// ── CARI EPISODE BARU ─────────────────────────────────────────────────────────
+// Tandai sudah dikirim DAN catat ke log pengiriman
+function tandaiDanLog(item, grupList) {
+    tandaiSudahKirim(item.postId);
 
-// menitTerakhir: batas waktu maksimum usia post yang dikirim (default 8 menit — sedikit lebih dari interval 5 menit)
-// Post yang lebih lama dari batas ini langsung ditandai "sudah dikirim" tanpa dikirim ke grup,
-// sehingga restart bot tidak menyebabkan spam episode lama.
-async function cariEpisodeBaru(menitTerakhir = 8) {
-    const posts = await fetchRecentPosts(15);
-    const batas = Date.now() - menitTerakhir * 60 * 1000;
-    const baru  = [];
+    try {
+        const log = bacaLog();
+        if (!Array.isArray(log.terkirim)) log.terkirim = [];
+
+        // Hindari duplikat di log
+        const sudahAda = log.terkirim.some(e => String(e.postId) === String(item.postId));
+        if (!sudahAda) {
+            log.terkirim.unshift({
+                postId     : String(item.postId),
+                judul      : item.judul || item.animeSlug || '-',
+                epNum      : item.epNum || 0,
+                animeSlug  : item.animeSlug || '',
+                waktuPost  : item.postDate || null,
+                waktuKirim : new Date().toISOString(),
+                grupCount  : grupList.length,
+                grupList   : grupList,
+                cover      : item.cover || null,
+                url        : item.url || null,
+            });
+            if (log.terkirim.length > 300) log.terkirim = log.terkirim.slice(0, 300);
+            simpanLog(log);
+        }
+    } catch (e) {
+        console.warn('[Animasu] Gagal simpan log:', e?.message);
+    }
+}
+
+// Ambil log pengiriman terbaru (untuk command)
+function getRecentLog(jumlah = 20) {
+    const log = bacaLog();
+    return (log.terkirim || []).slice(0, jumlah);
+}
+
+// ── CARI EPISODE BARU (REALTIME FIXED) ────────────────────────────────────────
+//
+// Perubahan dari versi sebelumnya:
+// 1. Menggunakan lastCheckTime (disimpan di animasu.json) sebagai batas usia post,
+//    bukan fixed 8 menit. Sehingga tidak ada post yang terlewat meski bot restart.
+// 2. idGagal: post yang gagal fetch detail disimpan dan dicoba ulang check berikutnya
+//    selama maks RETRY_TTL_MS (30 menit) sebelum diabaikan permanen.
+// 3. Fetch 20 post (dari 15) untuk jangkauan lebih luas.
+
+async function cariEpisodeBaru() {
+    const now  = Date.now();
+    const data = bacaData();
+
+    // ── Hitung batas waktu ─────────────────────────────────────────────────────
+    // Pakai lastCheckTime - BUFFER_MS sebagai batas bawah
+    // Jika belum ada (bot baru start), pakai INIT_WINDOW_MS ke belakang
+    const lastCheck = data.lastCheckTime || (now - INIT_WINDOW_MS);
+    const batas     = lastCheck - BUFFER_MS;
+
+    // Simpan waktu check sekarang SEBELUM proses (agar check berikutnya punya referensi)
+    data.lastCheckTime = now;
+    if (!data.idTerkirim) data.idTerkirim = [];
+    if (!data.idGagal)    data.idGagal    = [];
+    simpanData(data);
+
+    const baru    = [];
+    const idGagalBaru = [];
+
+    // ── Retry post yang sebelumnya gagal fetch detail ─────────────────────────
+    for (const gagal of data.idGagal) {
+        if (sudahDikirim(gagal.id)) continue;
+
+        const usiaGagal = now - new Date(gagal.pertamaGagal).getTime();
+        if (usiaGagal > RETRY_TTL_MS) {
+            // Sudah terlalu lama → abaikan permanen
+            console.log(`[Animasu] ⏭️ Retry timeout: post ${gagal.id} "${gagal.slug}" diabaikan`);
+            tandaiSudahKirim(gagal.id);
+            continue;
+        }
+
+        try {
+            const animeUrl = `${BASE_URL}/anime/${gagal.slug}/`;
+            const html     = await fetchHtml(animeUrl);
+            const detail   = parseDetailPage(html, animeUrl);
+            console.log(`[Animasu] 🔄 Retry berhasil: "${gagal.slug}" ep ${gagal.epNum}`);
+            baru.push({
+                postId    : gagal.id,
+                postDate  : gagal.postDate,
+                epNum     : gagal.epNum,
+                animeSlug : gagal.slug,
+                ...detail,
+            });
+        } catch (e) {
+            console.warn(`[Animasu] 🔄 Retry masih gagal "${gagal.slug}":`, e?.message);
+            idGagalBaru.push(gagal); // masukkan lagi ke antrian retry
+        }
+    }
+
+    // ── Fetch & proses post terbaru dari API ──────────────────────────────────
+    let posts = [];
+    try {
+        posts = await fetchRecentPosts(20);
+    } catch (e) {
+        console.error('[Animasu] ❌ Gagal fetch API posts:', e?.message);
+    }
 
     for (const post of posts) {
         if (sudahDikirim(post.id)) continue;
 
-        // Gunakan date_gmt (UTC) agar perbandingan waktu akurat
+        // Waktu publikasi post (UTC)
         const waktuPost = post.date_gmt
             ? new Date(post.date_gmt + 'Z').getTime()
-            : new Date(post.date).getTime() - 7 * 3600 * 1000; // fallback kurangi UTC+7
+            : new Date(post.date).getTime() - 7 * 3600 * 1000;
 
         if (waktuPost < batas) {
-            // Post terlalu lama — tandai sudah dikirim tapi JANGAN kirim ke grup
+            // Post terlalu lama (sebelum check terakhir) — tandai tanpa kirim
+            const usiaMenit = Math.round((now - waktuPost) / 60000);
+            console.log(`[Animasu] ⏭️ Lewati lama: post ${post.id} "${post.slug}" (${usiaMenit}m lalu)`);
             tandaiSudahKirim(post.id);
             continue;
         }
 
         const animeSlug = animeSlugDariPost(post);
         const epNum     = nomorEpisodeDariPost(post);
-        if (!animeSlug) continue;
+        if (!animeSlug) {
+            console.warn(`[Animasu] ⚠️ Slug kosong untuk post ${post.id}, dilewati`);
+            tandaiSudahKirim(post.id);
+            continue;
+        }
 
         try {
             const animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
             const html     = await fetchHtml(animeUrl);
             const detail   = parseDetailPage(html, animeUrl);
-            baru.push({ postId: post.id, postDate: post.date, epNum, animeSlug, ...detail });
+            baru.push({
+                postId    : post.id,
+                postDate  : post.date,
+                epNum,
+                animeSlug,
+                ...detail,
+            });
         } catch (e) {
-            console.warn(`[Animasu] Gagal fetch detail "${animeSlug}":`, e?.message);
+            console.warn(`[Animasu] ❌ Gagal fetch detail "${animeSlug}":`, e?.message);
+            // Masukkan ke antrian retry — JANGAN langsung tandai sudahDikirim
+            idGagalBaru.push({
+                id          : String(post.id),
+                slug        : animeSlug,
+                epNum,
+                postDate    : post.date,
+                pertamaGagal: new Date().toISOString(),
+            });
         }
     }
+
+    // Simpan antrian retry terbaru
+    const dataFinal = bacaData();
+    dataFinal.idGagal = idGagalBaru;
+    simpanData(dataFinal);
 
     return baru;
 }
@@ -353,7 +475,7 @@ function buatBarisInfo(items) {
 
 function potongSinopsis(teks, maks = 350) {
     if (!teks || teks.length <= maks) return teks || '-';
-    const potong   = teks.slice(0, maks);
+    const potong    = teks.slice(0, maks);
     const lastSpace = potong.lastIndexOf(' ');
     return (lastSpace > 0 ? potong.slice(0, lastSpace) : potong) + '...';
 }
@@ -368,12 +490,11 @@ function buatCaption(data) {
     const ep  = epNum || latestEpNum || '?';
     const sinopsisBlock = potongSinopsis(sinopsis).split('\n').map(b => `> ${b}`).join('\n');
 
-    // Header tanggal & waktu realtime lengkap (WIB)
-    const sekarang = new Date();
-    const opsiHari = { timeZone: 'Asia/Jakarta', weekday: 'long' };
-    const opsiTgl  = { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' };
-    const opsiJam  = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
-    const namaHari = sekarang.toLocaleDateString('id-ID', opsiHari);
+    const sekarang   = new Date();
+    const opsiHari   = { timeZone: 'Asia/Jakarta', weekday: 'long' };
+    const opsiTgl    = { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' };
+    const opsiJam    = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
+    const namaHari   = sekarang.toLocaleDateString('id-ID', opsiHari);
     const tglLengkap = sekarang.toLocaleDateString('id-ID', opsiTgl);
     const jamMenit   = sekarang.toLocaleTimeString('id-ID', opsiJam).replace('.', ':');
     const headerWaktu = `${namaHari}, ${tglLengkap} · ${jamMenit} WIB`;
@@ -381,12 +502,8 @@ function buatCaption(data) {
     const sedangTayang = (status || '').toLowerCase().includes('tayang') &&
                          !(status || '').toLowerCase().includes('selesai');
 
-    // Header episode: "Ep 7/13" kalau total seri diketahui, kalau tidak "Ep 7"
     const epHeader = totalSeri ? `${ep}/${totalSeri}` : String(ep);
 
-    // Baris info episode:
-    // - Kalau total seri ada: "7/13  (7 tersedia)"   atau  "13/13" kalau selesai
-    // - Kalau hanya totalEp:  "7 ep tersedia"        atau  "7 ep" kalau selesai
     let epInfo = null;
     if (totalSeri) {
         epInfo = sedangTayang
@@ -411,7 +528,6 @@ function buatCaption(data) {
         ['🎭 *Genre*   ', genre  ? `_${genre}_`  : null],
     ]);
 
-    // Blok batch download (jika tersedia)
     let batchBlok = '';
     if (batchDownload?.resolutions?.length) {
         batchBlok += `\n${SEP}\n`;
@@ -421,7 +537,6 @@ function buatCaption(data) {
             const mirrors = r.links.map(l => l.label).join(' · ');
             batchBlok += `├ [${r.res}] ${mirrors}\n`;
         }
-        // Link download langsung resolusi pertama
         const firstLink = batchDownload.resolutions[0]?.links[0];
         if (firstLink) {
             batchBlok += `╰ 🔗 Download: ${firstLink.url}\n`;
@@ -461,7 +576,6 @@ function ambilUrlGambar(data) {
 async function getAiringStatus(jumlahPost = 40) {
     const posts = await fetchRecentPosts(jumlahPost);
 
-    // Kelompokkan post per anime slug — ambil nomor episode terbesar per slug
     const map = new Map();
     for (const post of posts) {
         const slug  = animeSlugDariPost(post);
@@ -474,11 +588,10 @@ async function getAiringStatus(jumlahPost = 40) {
 
     const slugList = [...map.values()];
 
-    // Fetch detail per anime secara paralel (max 6 sekaligus untuk hindari rate-limit)
     const BATCH = 6;
     const results = [];
     for (let i = 0; i < slugList.length; i += BATCH) {
-        const chunk = slugList.slice(i, i + BATCH);
+        const chunk   = slugList.slice(i, i + BATCH);
         const settled = await Promise.allSettled(
             chunk.map(async ({ slug, epNum, postDate }) => {
                 const animeUrl = `${BASE_URL}/anime/${slug}/`;
@@ -508,7 +621,6 @@ async function getAiringStatus(jumlahPost = 40) {
         if (i + BATCH < slugList.length) await new Promise(r => setTimeout(r, 500));
     }
 
-    // Sort: paling banyak sisa di atas; yang tidak diketahui (null) di bawah
     results.sort((a, b) => {
         if (a.sisaEp === null && b.sisaEp === null) return 0;
         if (a.sisaEp === null) return 1;
@@ -528,6 +640,8 @@ module.exports = {
     buatCaption,
     ambilUrlGambar,
     tandaiSudahKirim,
+    tandaiDanLog,
+    getRecentLog,
     simulasi,
     getAiringStatus,
 };

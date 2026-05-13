@@ -815,7 +815,7 @@ async function main() {
                                                                 }
                                                         }
 
-                                                        _am.tandaiSudahKirim(item.postId);
+                                                        _am.tandaiDanLog(item, daftarGrup);
                                                         console.log(`[Animasu] ✅ Ep ${item.epNum} "${item.judul}" terkirim ke ${daftarGrup.length} grup`);
                                                         await new Promise(r => setTimeout(r, 3000));
                                                 }
