@@ -10480,11 +10480,10 @@ infoText += `╰═════════════════════�
                                                         if (firstPhoto) thumbUrl = firstPhoto.url || firstPhoto.src;
                                                 }
 
-                                                // Jika masih tidak ada thumbnail dan ada cover di info pertama
+                                                // Jika masih tidak ada thumbnail, cek field cover di item pertama (vdraw return cover di sini)
                                                 if (!thumbUrl && Array.isArray(mediaItems) && mediaItems[0]) {
                                                         const first = mediaItems[0];
-                                                        // Untuk video: ada kalanya field cover_url di item level
-                                                        thumbUrl = first.cover_url || first.thumbnail_url || first.thumbnail || null;
+                                                        thumbUrl = first.cover || first.cover_url || first.thumbnail_url || first.thumbnail || null;
                                                 }
 
                                                 if (thumbUrl) {
