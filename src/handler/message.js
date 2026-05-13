@@ -10465,13 +10465,54 @@ infoText += `╰═════════════════════�
 
                                         await m.reply({ edit: loadingMsg.key, text: '✅ Berhasil! Mengirim media...' });
 
-                                        // Generate AI caption (paralel)
+                                        // === Vision: analisis visual isi konten via Gemini ===
+                                        let igVisualDescription = '';
+                                        try {
+                                                // Cari thumbnail dari berbagai sumber:
+                                                // 1. Field cover/thumbnail dari vdraw atau API lain
+                                                // 2. First image media dari carousel
+                                                // 3. Cover dari vdraw response (cover_url, thumbnail_url, dsb)
+                                                let thumbUrl = igData.cover_url || igData.thumbnail_url || igData.cover || igData.thumb || igData.thumbnail || null;
+
+                                                // Jika vdraw return info array, cek apakah ada item gambar pertama
+                                                if (!thumbUrl && Array.isArray(mediaItems)) {
+                                                        const firstPhoto = mediaItems.find(it => it.media_format === 'image' || it.media_format === 'photo');
+                                                        if (firstPhoto) thumbUrl = firstPhoto.url || firstPhoto.src;
+                                                }
+
+                                                // Jika masih tidak ada thumbnail dan ada cover di info pertama
+                                                if (!thumbUrl && Array.isArray(mediaItems) && mediaItems[0]) {
+                                                        const first = mediaItems[0];
+                                                        // Untuk video: ada kalanya field cover_url di item level
+                                                        thumbUrl = first.cover_url || first.thumbnail_url || first.thumbnail || null;
+                                                }
+
+                                                if (thumbUrl) {
+                                                        const { default: axiosLib } = await import('axios');
+                                                        const thumbRes = await axiosLib.get(thumbUrl, {
+                                                                responseType: 'arraybuffer',
+                                                                timeout: 10000,
+                                                                headers: { 'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36' },
+                                                        });
+                                                        const thumbBuf = Buffer.from(thumbRes.data);
+                                                        if (thumbBuf.length > 500) {
+                                                                igVisualDescription = await gemini.askWithImage(
+                                                                        'Deskripsikan isi konten Instagram ini secara singkat, akurat, dan informatif dalam bahasa Indonesia. Sebutkan: apa yang terjadi atau ditampilkan, siapa orangnya (jika ada), suasana atau setting, dan hal penting lainnya yang terlihat. Maksimal 3 kalimat. Jangan bilang kamu AI.',
+                                                                        thumbBuf,
+                                                                        'image/jpeg'
+                                                                );
+                                                        }
+                                                }
+                                        } catch (_) {}
+
+                                        // Generate AI caption dengan visual description
                                         const aiCaptionPromiseIG = gemini.ask(buildVideoDownloadCaptionPrompt({
                                                 platform: 'Instagram',
                                                 author: username || 'Instagram',
                                                 likes: likes ? likes.toLocaleString() : '',
                                                 comments: comments ? comments.toLocaleString() : '',
                                                 description: caption || '',
+                                                visualDescription: igVisualDescription,
                                         })).catch(() => null);
 
                                         const aiCaptionIG = await aiCaptionPromiseIG;

@@ -55,7 +55,7 @@ export function buildWilyFallbackUserPrompt(mediaType = '') {
     return 'Halo!';
 }
 
-export function buildVideoDownloadCaptionPrompt({ platform = '', title = '', author = '', duration = '', description = '', views = '', likes = '', comments = '' } = {}) {
+export function buildVideoDownloadCaptionPrompt({ platform = '', title = '', author = '', duration = '', description = '', views = '', likes = '', comments = '', visualDescription = '' } = {}) {
     const parts = [];
     if (title) parts.push(`Judul: "${title}"`);
     if (author) parts.push(`Channel/Author: ${author}`);
@@ -63,7 +63,8 @@ export function buildVideoDownloadCaptionPrompt({ platform = '', title = '', aut
     if (views) parts.push(`Views: ${views}`);
     if (likes) parts.push(`Likes: ${likes}`);
     if (comments) parts.push(`Comments: ${comments}`);
-    if (description) parts.push(`Deskripsi/Caption asli: ${description.substring(0, 400)}`);
+    if (description) parts.push(`Caption/deskripsi asli: ${description.substring(0, 400)}`);
+    if (visualDescription) parts.push(`Analisis visual isi konten (dari AI vision): ${visualDescription.substring(0, 500)}`);
 
     const emojiHint = platform === 'TikTok' ? '📱' : platform === 'Instagram' ? '📸' : platform === 'YouTube' ? '🎵' : '🎬';
 
@@ -74,8 +75,8 @@ Informasi konten:
 ${parts.join('\n')}
 
 Aturan WAJIB:
-1. Mulai dengan emoji relevan (${emojiHint}) dan judul dalam *bold*
-2. Tambahkan 1-2 kalimat komentar/deskripsi singkat yang akurat tentang konten ini
+1. Mulai dengan emoji relevan (${emojiHint}) dan nama akun/judul dalam *bold*
+2. Tulis 1-2 kalimat deskripsi yang akurat tentang ISI KONTEN — utamakan info dari "Analisis visual" jika ada, bukan hanya caption teks
 3. Jika ada info musik (judul lagu/artis), sebut dengan tepat
 4. Bahasa Indonesia santai dan natural, tidak kaku atau template
 5. Jangan buat info palsu di luar data yang diberikan
