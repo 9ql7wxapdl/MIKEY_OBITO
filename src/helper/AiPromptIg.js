@@ -2,114 +2,176 @@
 
 /**
  * ═══════════════════════════════════════════════════
- *  AI PROMPT — INSTAGRAM DOWNLOADER
+ *  AI PROMPT — INSTAGRAM DOWNLOADER (AiPromptIg.js)
  *  File khusus prompt AI untuk fitur .ig
  *
  *  Fungsi:
  *    1. buildIgVisionPrompt()       → prompt analisis visual thumbnail/cover
- *    2. buildIgCaptionPrompt(data)  → prompt generate caption WhatsApp
- *
- *  Cara kerja:
- *    - Bot ambil cover/thumbnail dari API Instagram
- *    - Dikirim ke Gemini Vision (buildIgVisionPrompt)
- *    - Hasil analisis visual + metadata → buildIgCaptionPrompt
- *    - Caption final dikirim bareng video di WhatsApp
+ *    2. buildIgCaptionPrompt(data)  → prompt generate caption WA lengkap
+ *    3. buildIgFallbackCaption(d)   → fallback caption kalau AI gagal
+ *    4. parseIgMetaHtml(html)       → ekstrak metadata dari HTML IG
+ *    5. formatIgLikes(n)            → format angka → "17K", "1.2M"
  * ═══════════════════════════════════════════════════
  */
 
 /**
- * Prompt untuk Gemini Vision — menganalisis thumbnail/cover Instagram.
- * Tujuan: deskripsikan ISI KONTEN VISUAL secara akurat, bukan tebak-tebakan.
- *
- * @returns {string} prompt string untuk askWithImage
+ * Format angka likes/views jadi readable: 17247 → "17,2K" | 1200000 → "1,2M"
  */
-export function buildIgVisionPrompt() {
-    return `Kamu adalah AI yang menganalisis konten visual dari Instagram Reel/Post.
-
-Lihat gambar ini dengan teliti, lalu jawab dengan format berikut (tidak perlu tulis labelnya):
-1. Apa yang terjadi atau ditampilkan? (aksi utama, kejadian, atau objek)
-2. Siapa yang ada di video? (orang, hewan, karakter — sebutkan ciri khas jika bisa)
-3. Di mana setting/latarnya? (dalam ruangan, outdoor, kafe, pantai, dll)
-4. Apa vibe/nuansa kontennya? (lucu, menggemaskan, edukatif, dramatis, estetik, dll)
-
-Aturan WAJIB:
-- Jawab dalam bahasa Indonesia
-- Akurat berdasarkan apa yang BENAR-BENAR terlihat di gambar — jangan mengarang
-- Jika ada hewan, sebutkan jenis hewannya secara spesifik (kucing, anjing, tupai, dll)
-- Jika ada makanan, sebutkan nama makanannya
-- Jika ada orang, deskripsikan apa yang sedang mereka lakukan
-- Ringkas tapi informatif: maksimal 3-4 kalimat
-- Jangan bilang kamu AI, jangan tulis label "Jawaban:" atau heading apapun`;
+export function formatIgCount(n) {
+    const num = Number(n);
+    if (!num || isNaN(num)) return '';
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace('.0', '') + 'M';
+    if (num >= 1_000)     return (num / 1_000).toFixed(1).replace('.0', '') + 'K';
+    return num.toLocaleString('id-ID');
 }
 
 /**
- * Prompt untuk generate caption WhatsApp setelah analisis visual selesai.
+ * Ekstrak metadata dari HTML Instagram (fb-crawler scrape).
+ * Return: { fullName, username, likes, comments, caption, hashtags }
+ */
+export function parseIgMetaHtml(html = '') {
+    const decode = s => s
+        .replace(/&quot;/g, '"').replace(/&#x27;/g, "'")
+        .replace(/&amp;/g, '&').replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>').replace(/&#x([0-9a-fA-F]+);/g, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+        .replace(/&[a-z]+;/g, '');
+
+    const ogTitle = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/)?.[1] || '';
+    const ogDesc  = html.match(/<meta[^>]+property="og:description"[^>]+content="([^"]+)"/)?.[1] || '';
+
+    const decoded = decode(ogTitle + ' ' + ogDesc);
+
+    // Nama lengkap: "Ilham Nur Farobby di Instagram:"
+    const fullName = decode(ogTitle).match(/^([^:]+?)\s+di Instagram/i)?.[1]?.trim() || '';
+
+    // username: "farobbyilham pada May 8"
+    const username = decode(ogDesc).match(/[-–]\s*([a-zA-Z0-9_.]+)\s+pada\s+/i)?.[1]
+        || decode(ogDesc).match(/[-–]\s*([a-zA-Z0-9_.]+)\s+on\s+/i)?.[1]
+        || '';
+
+    // Likes: "17K likes" atau "17.247 likes"
+    const likesRaw = decode(ogDesc).match(/([\d.,]+[KkMm]?)\s*(?:likes|suka)/i)?.[1] || '';
+    const likes = likesRaw.replace(',', '.').toUpperCase();
+
+    // Comments
+    const commentsRaw = decode(ogDesc).match(/([\d.,]+[KkMm]?)\s*(?:comments|komentar)/i)?.[1] || '';
+    const comments = commentsRaw;
+
+    // Caption: ambil dari kutipan
+    const rawCaption = decode(ogDesc).replace(/^[\d.,KkMm]+\s+likes.*?:\s*"?/i, '').replace(/"?\s*$/, '').trim();
+
+    // Hashtags
+    const hashtags = (rawCaption.match(/#\w+/g) || []).slice(0, 5);
+
+    return { fullName, username, likes, comments, caption: rawCaption, hashtags };
+}
+
+/**
+ * Prompt untuk Gemini Vision — analisis thumbnail/cover Instagram.
+ * Dipanggil dengan gemini.chat({ model: 'gemini-2.5-flash', ... })
+ */
+export function buildIgVisionPrompt() {
+    return `Kamu adalah AI spesialis analisis konten visual Instagram.
+
+Analisis gambar ini dengan teliti dan jawab 4 hal berikut (jawab langsung tanpa label/heading):
+
+1. *Aksi utama*: Apa yang sedang terjadi atau ditampilkan? (spesifik, akurat)
+2. *Subjek*: Siapa atau apa yang ada di sini? (orang, hewan, objek — sebut spesifik. Contoh: "pria muda berkacamata", "kucing oranye", "tupai tanah abu-abu")
+3. *Setting*: Di mana latarnya? (dalam ruangan, outdoor, kafe, alam, dll)
+4. *Vibe/nuansa*: Apa suasananya? (lucu, menggemaskan, menegangkan, estetik, edukatif, absurd, dll)
+
+Aturan WAJIB:
+- Bahasa Indonesia, akurat berdasarkan yang BENAR-BENAR terlihat
+- Jangan mengarang, jangan tebak-tebakan
+- Jika ada hewan → sebut nama jenisnya secara spesifik
+- Jika ada makanan → sebut nama makanannya
+- Jika ada teks di gambar → sebut isinya
+- Maksimal 3-4 kalimat total, ringkas dan to the point
+- Jangan tulis "Berdasarkan gambar..." atau label apapun
+- Jangan bilang kamu AI`;
+}
+
+/**
+ * Prompt generate caption WhatsApp — pakai formatting WA: *bold* _italic_ \`code\` > quote
  *
- * @param {object} data
- * @param {string} data.username        - username akun Instagram (@xxx)
- * @param {string} data.caption         - caption asli dari IG (bisa kosong)
- * @param {string} data.likes           - jumlah likes (string, bisa kosong)
- * @param {string} data.comments        - jumlah comments (string, bisa kosong)
- * @param {string} data.mediaType       - 'reel' | 'video' | 'photo' | 'carousel'
- * @param {string} data.visualDesc      - hasil analisis visual dari Gemini Vision
- * @returns {string} prompt string untuk gemini.ask()
+ * @param {object} d
+ * @param {string} d.fullName      - Nama lengkap kreator ("Ilham Nur Farobby")
+ * @param {string} d.username      - Username IG ("farobbyilham")
+ * @param {string} d.likes         - Likes formatted ("17K")
+ * @param {string} d.comments      - Comments ("436")
+ * @param {string} d.caption       - Caption asli dari IG
+ * @param {string[]} d.hashtags    - Array hashtag ["#hantavirus", "#tikus"]
+ * @param {string} d.music         - Nama lagu (kosong kalau tidak ada)
+ * @param {string} d.musicArtist   - Nama artis musik
+ * @param {string} d.mediaType     - "reel" | "photo" | "carousel"
+ * @param {string} d.visualDesc    - Hasil analisis visual dari Gemini Vision
  */
 export function buildIgCaptionPrompt({
+    fullName = '',
     username = '',
-    caption = '',
     likes = '',
     comments = '',
+    caption = '',
+    hashtags = [],
+    music = '',
+    musicArtist = '',
     mediaType = 'reel',
     visualDesc = '',
 } = {}) {
     const isReel = mediaType === 'reel' || mediaType === 'video';
     const isPhoto = mediaType === 'photo' || mediaType === 'image';
-    const isCarousel = mediaType === 'carousel' || mediaType === 'album';
+    const emoji = isReel ? '🎬' : isPhoto ? '📸' : '🖼️';
+    const typeLabel = isReel ? 'Reel/Video' : isPhoto ? 'Foto' : 'Album';
 
-    const contentTypeLabel = isReel ? 'Reel/Video' : isCarousel ? 'Album/Carousel' : 'Foto';
-    const emoji = isReel ? '🎬' : isCarousel ? '🖼️' : '📸';
+    const displayName = fullName
+        ? `${fullName}${username ? ' (@' + username + ')' : ''}`
+        : username ? `@${username}` : 'Instagram';
 
     const parts = [];
-    if (username) parts.push(`Akun: @${username}`);
-    if (likes) parts.push(`Likes: ${likes}`);
-    if (comments) parts.push(`Comments: ${comments}`);
-    if (caption) parts.push(`Caption asli dari IG: "${caption.substring(0, 300)}"`);
+    parts.push(`Sumber: ${displayName}`);
+    if (likes)    parts.push(`Likes: ${likes}`);
+    if (comments) parts.push(`Komentar: ${comments}`);
+    if (music)    parts.push(`Musik: "${music}"${musicArtist ? ' — ' + musicArtist : ''}`);
+    if (caption)  parts.push(`Caption asli: "${caption.substring(0, 300)}"`);
+    if (hashtags.length) parts.push(`Hashtag: ${hashtags.join(' ')}`);
 
-    const metaBlock = parts.length > 0
-        ? `\nMetadata:\n${parts.map(p => `- ${p}`).join('\n')}`
-        : '';
-
+    const metaBlock = parts.map(p => `- ${p}`).join('\n');
     const visualBlock = visualDesc
-        ? `\nAnalisis visual konten (dari AI Vision — INI YANG PALING PENTING):\n"${visualDesc.substring(0, 600)}"`
+        ? `\nAnalisis Visual (PRIORITAS UTAMA — dari AI Vision):\n"${visualDesc.substring(0, 600)}"`
         : '';
 
-    return `Kamu adalah asisten bot WhatsApp bernama Wily yang cerdas dan natural.
-Tugasmu: buat caption WhatsApp untuk ${contentTypeLabel} Instagram yang baru diunduh.
+    return `Kamu adalah Wily, asisten bot WhatsApp yang cerdas, natural, dan sedikit bercanda.
+Tugasmu: buat caption WhatsApp untuk ${typeLabel} Instagram yang baru diunduh.
+
+DATA KONTEN:
 ${metaBlock}${visualBlock}
 
-ATURAN CAPTION (WAJIB DIIKUTI):
-1. Mulai dengan emoji ${emoji} dan nama akun dalam *bold* (contoh: ${emoji} *@${username || 'instagram'}*)
-2. Lanjut 1-2 kalimat yang menggambarkan ISI KONTEN — **WAJIB berdasarkan analisis visual di atas**, bukan tebak-tebakan
-3. Jika kontennya lucu/menggemaskan/unik → boleh tambah komentar santai yang nyambung (bisa ngakak dikit, kasual)
-4. Jika ada info likes/comments yang banyak → bisa sebut sekilas (opsional, jangan kaku)
-5. Bahasa Indonesia santai, natural, tidak kaku — seperti orang ngirim video ke teman
-6. DILARANG: mengarang info yang tidak ada di data, menyebut hal yang tidak terlihat di konten
-7. DILARANG: caption generik seperti "kompilasi momen indah", "bikin hati adem", atau frasa klise sejenisnya
-8. DILARANG: sertakan URL atau link
-9. DILARANG: bilang kamu AI
-10. Maksimal 4 baris total — ringkas tapi berkarakter
+FORMAT CAPTION (ikuti persis):
+Baris 1  : ${emoji} *[Nama/Username dalam bold]* — sertakan @username jika ada
+Baris 2-3: Deskripsi isi konten 1-2 kalimat — *WAJIB berdasarkan Analisis Visual*, bukan mengarang
+           Boleh pakai _italic_ untuk kata kunci menarik, dan \`monospace\` untuk istilah/nama spesifik
+Baris 4  : (opsional) Komentar santai/reaksi singkat yang nyambung — boleh lucu/ngakak kalau kontennya memang lucu
+Baris 5  : > ❤️ [likes]  💬 [comments] — pakai format quote WA (tanda >) untuk stats engagement
+           (hanya tampilkan baris ini jika ada data likes/comments)
+
+ATURAN KETAT:
+1. WAJIB gunakan formatting WA: *bold* untuk nama/judul, _italic_ untuk penekanan, \`backtick\` untuk nama spesifik/istilah, > untuk baris stats
+2. Deskripsi konten HARUS berdasarkan Analisis Visual — jika visual bilang tupai, tulis tupai; JANGAN tulis "kompilasi momen indah" atau frasa generik
+3. Jika ada info musik → sebut di baris sendiri dengan emoji 🎵
+4. Bahasa Indonesia santai, tidak kaku, terasa seperti kawan ngirim video
+5. DILARANG mengarang fakta di luar data yang diberikan
+6. DILARANG sertakan URL atau link
+7. DILARANG bilang kamu AI
+8. Maksimal 5-6 baris total
 
 Caption:`;
 }
 
 /**
- * Fallback caption sederhana jika Gemini gagal total.
- * Berbasis metadata saja, tidak ada AI.
- *
- * @param {object} data - sama dengan buildIgCaptionPrompt
- * @returns {string}
+ * Fallback caption sederhana jika AI total gagal.
  */
 export function buildIgFallbackCaption({
+    fullName = '',
     username = '',
     likes = '',
     comments = '',
@@ -117,11 +179,12 @@ export function buildIgFallbackCaption({
     caption = '',
 } = {}) {
     const emoji = mediaType === 'reel' || mediaType === 'video' ? '🎬' : '📸';
-    let text = `${emoji} *${username ? '@' + username : 'Instagram'}*\n`;
-    if (caption) text += caption.substring(0, 150) + (caption.length > 150 ? '...' : '') + '\n';
+    const name = fullName ? `*${fullName}*${username ? ' (@' + username + ')' : ''}` : username ? `*@${username}*` : '*Instagram*';
+    let text = `${emoji} ${name}\n`;
+    if (caption) text += caption.substring(0, 120) + (caption.length > 120 ? '...' : '') + '\n';
     const stats = [];
     if (likes) stats.push(`❤️ ${likes}`);
     if (comments) stats.push(`💬 ${comments}`);
-    if (stats.length) text += stats.join('  ');
+    if (stats.length) text += `> ${stats.join('  ')}`;
     return text.trim();
 }

@@ -49,7 +49,7 @@ import { extractVoiceNotesFromText, extractSongsFromText, extractVideosFromText,
 import { getHistory, addToHistory, clearHistory, clearAllHistory, countHistory, getSessionKey, buildHistoryMeta, wrapCurrentUserMessage } from '../db/aiHistory.js';
 import { sendAIReply } from '../helper/aiReact.js';
 import { buildSmartAlbumCaptionPrompt, buildSmartImageHistoryPrompt, buildSmartImageWaitPrompt, buildWilyAICommandPrompt, buildWilyFallbackUserPrompt, buildWilyMediaUserPrompt, buildWilyVisionContextPrompt, buildVideoDownloadCaptionPrompt, buildStickerAnalysisExtractionPrompt } from '../helper/aiPrompt.js';
-import { buildIgVisionPrompt, buildIgCaptionPrompt, buildIgFallbackCaption } from '../helper/AiPromptIg.js';
+import { buildIgVisionPrompt, buildIgCaptionPrompt, buildIgFallbackCaption, parseIgMetaHtml, formatIgCount } from '../helper/AiPromptIg.js';
 import { hashSticker, lookupSticker, saveSticker, incrementStickerSeen, buildStickerContextHint, getStickerMemoryStats } from '../helper/stickerMemory.js';
 import { getJadibotAntidel, getJadibotReadsw, getJadibotAnticall, getJadibotAnticallvid, setJadibotUserSetting, getJadibotNumber } from '../helper/jadibotSettings.js';
 
@@ -10407,57 +10407,61 @@ infoText += `╰═════════════════════�
                                                 throw new Error('No data from vdraw');
                                         }
 
-                                        let igData = null;
-                                        // Primary: vdraw.ai
-                                        try { igData = await fetchVdraw(igUrl); } catch (_) {}
+                                        // Fetch media (vdraw) + metadata (archive.lick) + meta scrape — paralel
+                                        const [vdrawResult, archiveResult, metaHtmlResult] = await Promise.allSettled([
+                                                fetchVdraw(igUrl),
+                                                fetch(`https://archive.lick.eu.org/api/download/instagram?url=${encodeURIComponent(igUrl)}`, { signal: AbortSignal.timeout(12000) })
+                                                        .then(r => r.json()).catch(() => null),
+                                                fetch(igUrl, {
+                                                        signal: AbortSignal.timeout(10000),
+                                                        headers: {
+                                                                'User-Agent': 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+                                                                'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
+                                                        },
+                                                }).then(r => r.text()).catch(() => ''),
+                                        ]);
 
-                                        // Fallback APIs jika vdraw gagal
-                                        if (!igData) {
-                                                const fallbackApis = [
-                                                        `https://archive.lick.eu.org/api/download/instagram?url=${encodeURIComponent(igUrl)}`,
-                                                        `https://api.cenedril.net/api/dl/ig?url=${encodeURIComponent(igUrl)}`,
-                                                        `https://api.agatz.xyz/api/instagram?url=${encodeURIComponent(igUrl)}`,
-                                                ];
-                                                for (const apiUrl of fallbackApis) {
-                                                        try {
-                                                                const res = await fetch(apiUrl, { signal: AbortSignal.timeout(12000) });
-                                                                const json = await res.json();
-                                                                if (json.status && json.result) {
-                                                                        const r = json.result;
-                                                                        igData = {
-                                                                                media_type: r.isVideo ? 'video' : 'photo',
-                                                                                info: (r.url || []).map(u => ({
-                                                                                        url: typeof u === 'object' ? (u.url || u.src) : u,
-                                                                                        media_format: r.isVideo ? 'video' : 'image',
-                                                                                })),
-                                                                                _fallback: true,
-                                                                                _caption: r.caption || '',
-                                                                                _username: r.username || '',
-                                                                                _likes: r.like || 0,
-                                                                                _comments: r.comment || 0,
-                                                                        };
-                                                                        break;
-                                                                }
-                                                        } catch (_) {}
-                                                }
+                                        let igData = vdrawResult.status === 'fulfilled' ? vdrawResult.value : null;
+                                        const archiveJson = archiveResult.status === 'fulfilled' ? archiveResult.value : null;
+                                        const metaHtml = metaHtmlResult.status === 'fulfilled' ? metaHtmlResult.value : '';
+
+                                        // Jika vdraw gagal, fallback ke archive.lick untuk media URL
+                                        if (!igData && archiveJson?.status && archiveJson?.result) {
+                                                const r = archiveJson.result;
+                                                igData = {
+                                                        media_type: r.isVideo ? 'reel' : 'photo',
+                                                        info: (r.url || []).map(u => ({
+                                                                url: typeof u === 'object' ? (u.url || u.src) : u,
+                                                                media_format: r.isVideo ? 'video' : 'image',
+                                                        })),
+                                                };
                                         }
 
-                                        if (!igData || !igData.info || igData.info.length === 0) {
+                                        if (!igData?.info?.length) {
                                                 await m.reply({ edit: loadingMsg.key, text: '❌ Gagal mengunduh. Pastikan link benar dan akun tidak private, lalu coba lagi.' });
                                                 break;
                                         }
 
                                         const mediaItems = igData.info;
-                                        const mediaType = igData.media_type || 'video';
-                                        const caption = igData._caption || '';
-                                        const username = igData._username || '';
-                                        const likes = igData._likes || 0;
-                                        const comments = igData._comments || 0;
+                                        const mediaType = igData.media_type || 'reel';
+
+                                        // Metadata: gabung dari archive.lick + meta scrape
+                                        const archiveMeta = archiveJson?.result || {};
+                                        const parsedMeta  = parseIgMetaHtml(metaHtml);
+
+                                        const fullName = parsedMeta.fullName || '';
+                                        const username = archiveMeta.username || parsedMeta.username || '';
+                                        const caption  = archiveMeta.caption  || parsedMeta.caption  || '';
+                                        const hashtags = parsedMeta.hashtags  || [];
+                                        const likesNum   = archiveMeta.like    || 0;
+                                        const commentsNum = archiveMeta.comment || 0;
+                                        const likesStr   = parsedMeta.likes   || (likesNum ? formatIgCount(likesNum) : '');
+                                        const commentsStr = commentsNum ? formatIgCount(commentsNum) : (parsedMeta.comments || '');
 
                                         let infoText = `╭═══ *INSTAGRAM DOWNLOADER* ═══╮\n`;
-                                        if (username) infoText += `│ 👤 @${username}\n`;
-                                        if (likes) infoText += `│ ❤️ ${likes.toLocaleString()} likes\n`;
-                                        if (comments) infoText += `│ 💬 ${comments.toLocaleString()} comments\n`;
+                                        if (fullName || username) infoText += `│ 👤 ${fullName ? fullName + (username ? ' (@' + username + ')' : '') : '@' + username}\n`;
+                                        if (likesStr) infoText += `│ ❤️ ${likesStr} likes\n`;
+                                        if (commentsStr) infoText += `│ 💬 ${commentsStr} comments\n`;
                                         if (caption) {
                                                 const shortCaption = caption.length > 200 ? caption.substring(0, 200) + '...' : caption;
                                                 infoText += `│\n│ 📝 ${shortCaption}\n`;
@@ -10513,17 +10517,19 @@ infoText += `╰═════════════════════�
 
                                         // === STEP 3: Generate caption final via AI ===
                                         let finalCaptionIG = buildIgFallbackCaption({
-                                                username, likes: likes ? likes.toLocaleString() : '',
-                                                comments: comments ? comments.toLocaleString() : '',
+                                                fullName, username,
+                                                likes: likesStr, comments: commentsStr,
                                                 mediaType, caption,
                                         });
 
                                         try {
                                                 const captionPrompt = buildIgCaptionPrompt({
+                                                        fullName,
                                                         username,
                                                         caption,
-                                                        likes: likes ? likes.toLocaleString() : '',
-                                                        comments: comments ? comments.toLocaleString() : '',
+                                                        hashtags,
+                                                        likes: likesStr,
+                                                        comments: commentsStr,
                                                         mediaType,
                                                         visualDesc: igVisualDesc,
                                                 });
