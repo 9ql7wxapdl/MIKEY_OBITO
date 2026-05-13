@@ -30132,7 +30132,9 @@
     "id": "6288233564018@s.whatsapp.net",
     "name": "街。 Nur",
     "lid": "169810138779863@lid",
-    "jid": "6288233564018@s.whatsapp.net"
+    "jid": "6288233564018@s.whatsapp.net",
+    "notify": "CILL SI PENJAHAT.",
+    "verifiedName": "CILL SI PENJAHAT."
   },
   "6285752216750@s.whatsapp.net": {
     "isContact": true,
@@ -32177,5 +32179,20 @@
     "id": "209942816534560@lid",
     "lid": "209942816534560@lid",
     "imgUrl": "removed"
+  },
+  "58665562312717@lid": {
+    "id": "58665562312717@lid",
+    "lid": "58665562312717@lid",
+    "imgUrl": "changed"
+  },
+  "257569255858242@lid": {
+    "id": "257569255858242@lid",
+    "lid": "257569255858242@lid",
+    "imgUrl": "changed"
+  },
+  "82828679200798@lid": {
+    "id": "82828679200798@lid",
+    "lid": "82828679200798@lid",
+    "notify": "𝙢𝙖𝙪𝙡𝙖𝙣𝙖 𝙣𝙜𝙚𝙣"
   }
 }

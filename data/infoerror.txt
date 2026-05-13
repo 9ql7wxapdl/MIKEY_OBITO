@@ -8,18 +8,18 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 13/05/2026, 07.39.14  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 13/05/2026, 07.47.56  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
   Total Jenis Error (unik)  : 32
-  Total Kejadian Error       : 115
+  Total Kejadian Error       : 117
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [32 jenis, 115 kejadian total]
+  DAFTAR ERROR LENGKAP  [32 jenis, 117 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
@@ -30,9 +30,9 @@
 │
 │  DETAIL
 │  Sumber      : Animasu
-│  Frekuensi   : 1x (baru terjadi)
+│  Frekuensi   : 3x (duplikat digabung)
 │  Pertama     : 13/05/2026, 07.39.14
-│  Terakhir    : 13/05/2026, 07.39.14
+│  Terakhir    : 13/05/2026, 07.47.56
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [Animasu] ❌ Gagal fetch API posts: timeout of 30000ms exceeded
@@ -596,6 +596,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 32 jenis, 115 kejadian
-  Terakhir diperbarui: 13/05/2026, 07.39.14
+  End of Report  —  Total: 32 jenis, 117 kejadian
+  Terakhir diperbarui: 13/05/2026, 07.47.56
 ════════════════════════════════════════════════════════════════════════
