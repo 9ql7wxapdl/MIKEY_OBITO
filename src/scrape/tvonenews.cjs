@@ -246,21 +246,38 @@ function parseDetailArtikel(html, url) {
     if (!kategori) kategori = kategoriDariUrl(url);
 
     // Konten artikel — strip iklan & noise
-    const kontenM = html.match(/class="detail-content"[^>]*>([\s\S]{0,20000})/);
+    const kontenM = html.match(/class="detail-content"[^>]*>([\s\S]{0,25000})/);
     let ringkasan = '';
     if (kontenM) {
         const raw = kontenM[1]
+            // Hapus tag script/style
             .replace(/<script[\s\S]*?<\/script>/gi, '')
             .replace(/<style[\s\S]*?<\/style>/gi, '')
-            .replace(/ADVERTISEMENT\s*/gi, '')
-            .replace(/GULIR UNTUK LANJUT BACA\s*/gi, '')
-            .replace(/<div[^>]*(?:iklan|ads|advert)[^>]*>[\s\S]*?<\/div>/gi, '');
-        const teks = stripHtml(raw).replace(/\s{2,}/g, ' ').trim();
+            // Hapus div iklan/ads
+            .replace(/<div[^>]*(?:iklan|ads|advert|baca-juga|read-also|related)[^>]*>[\s\S]*?<\/div>/gi, '')
+            // Hapus blok "Artikel ini sudah tayang..."
+            .replace(/<[^>]*>Artikel ini sudah tayang[\s\S]*?<\/[^>]+>/gi, '')
+            // Hapus tag <aside>, <figure> sepenuhnya
+            .replace(/<aside[\s\S]*?<\/aside>/gi, '')
+            .replace(/<figure[\s\S]*?<\/figure>/gi, '');
+
+        let teks = stripHtml(raw)
+            // Hapus noise teks setelah strip HTML
+            .replace(/ADVERTISEMENT/gi, '')
+            .replace(/GULIR UNTUK LANJUT BACA/gi, '')
+            .replace(/Baca Juga\s[^\n]{0,200}/gi, '')
+            .replace(/Artikel ini sudah tayang[^\n]{0,400}/gi, '')
+            .replace(/Judul Artikel\s*:[^\n]{0,200}/gi, '')
+            .replace(/Link Artikel\s*:[^\n]{0,200}/gi, '')
+            .replace(/Oleh\s*:\s*Reporter[^\n]{0,200}/gi, '')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
+
         const BATAS = 1500;
         if (teks.length > BATAS) {
-            const cut      = teks.slice(0, BATAS);
+            const cut       = teks.slice(0, BATAS);
             const lastTitik = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '));
-            ringkasan = lastTitik > 800
+            ringkasan = lastTitik > 600
                 ? cut.slice(0, lastTitik + 1).trimEnd()
                 : cut.slice(0, cut.lastIndexOf(' ')).trimEnd() + '...';
         } else {
