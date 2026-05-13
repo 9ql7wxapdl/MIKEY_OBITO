@@ -123,7 +123,9 @@ function parseDetailPage(html, animeUrl) {
 
     const coverMatch = html.match(/<div class="thumb"[^>]*>[\s\S]*?<img[^>]+src="([^"]+)"/i);
     const coverRaw   = coverMatch ? coverMatch[1].split('?')[0] : '';
-    const cover      = coverRaw.replace(/^https?:\/\/i\d+\.wp\.com\//, 'https://');
+    // Strip WordPress resize suffix e.g. "-225x318" → dapatkan gambar ukuran penuh
+    const coverHD    = coverRaw.replace(/-\d+x\d+(\.[a-z]+)$/i, '$1');
+    const cover      = coverHD.replace(/^https?:\/\/i\d+\.wp\.com\//, 'https://');
 
     const speMatch = html.match(/<div class="spe">([\s\S]*?)<\/div>/i);
     const speHtml  = speMatch ? speMatch[1] : '';
@@ -233,11 +235,44 @@ async function fetchHtml(url) {
 }
 
 async function fetchRecentPosts(count = 20) {
-    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,date_gmt,slug,title`;
+    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm,wp%3Afeaturedmedia&_fields=id,date,date_gmt,slug,title,featured_media`;
     return fetchDenganRetry(async () => {
         const r = await axios.get(url, { headers: HEADERS, timeout: 30000 });
         return r.data;
     });
+}
+
+// ── AMBIL COVER HD DARI EMBED FEATURED MEDIA ──────────────────────────────────
+// Menggunakan data embed dari REST API (lebih reliabel & resolusi penuh)
+
+function ambilCoverDariPost(post) {
+    try {
+        const media = post._embedded?.['wp:featuredmedia']?.[0];
+        if (!media) return null;
+        const sizes = media?.media_details?.sizes;
+        if (sizes?.full?.source_url)  return sizes.full.source_url;
+        if (sizes?.large?.source_url) return sizes.large.source_url;
+        if (media.source_url)         return media.source_url;
+    } catch (_) {}
+    return null;
+}
+
+// ── DOWNLOAD GAMBAR SEBAGAI BUFFER ────────────────────────────────────────────
+// Kirim buffer ke WA lebih kompatibel di semua versi WA (lama/baru/iOS/Android)
+
+async function downloadImageBuffer(url) {
+    if (!url) return null;
+    try {
+        const r = await axios.get(url, {
+            headers      : { ...HEADERS, Accept: 'image/*' },
+            responseType : 'arraybuffer',
+            timeout      : 20000,
+        });
+        return Buffer.from(r.data);
+    } catch (e) {
+        console.warn('[Animasu] ⚠️ Gagal download gambar:', e?.message);
+        return null;
+    }
 }
 
 // ── PARSE SLUG & EPISODE DARI POST ────────────────────────────────────────────
@@ -405,12 +440,15 @@ async function cariEpisodeBaru() {
             const animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
             const html     = await fetchHtml(animeUrl);
             const detail   = parseDetailPage(html, animeUrl);
+            // Prioritaskan cover HD dari embed API; fallback ke scrape HTML
+            const coverApi = ambilCoverDariPost(post);
             baru.push({
                 postId    : post.id,
                 postDate  : post.date,
                 epNum,
                 animeSlug,
                 ...detail,
+                cover     : coverApi || detail.cover,
             });
         } catch (e) {
             console.warn(`[Animasu] ❌ Gagal fetch detail "${animeSlug}":`, e?.message);
@@ -438,6 +476,7 @@ async function cariEpisodeBaru() {
 async function simulasi(slugOverride = null) {
     let animeSlug, epNum, postId, postDate;
 
+    let postRef = null;
     if (slugOverride) {
         animeSlug = slugOverride;
         epNum     = 0;
@@ -446,19 +485,24 @@ async function simulasi(slugOverride = null) {
     } else {
         const posts = await fetchRecentPosts(1);
         if (!posts.length) throw new Error('Tidak ada post terbaru dari Animasu');
-        const post = posts[0];
-        animeSlug  = animeSlugDariPost(post);
-        epNum      = nomorEpisodeDariPost(post);
-        postId     = post.id;
-        postDate   = post.date;
+        postRef    = posts[0];
+        animeSlug  = animeSlugDariPost(postRef);
+        epNum      = nomorEpisodeDariPost(postRef);
+        postId     = postRef.id;
+        postDate   = postRef.date;
     }
 
     const animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
     const html     = await fetchHtml(animeUrl);
     const detail   = parseDetailPage(html, animeUrl);
-    const data     = { postId, postDate, epNum, animeSlug, ...detail };
+    // Cover HD: coba dari API embed dulu, fallback ke scrape HTML
+    const coverApi = postRef ? ambilCoverDariPost(postRef) : null;
+    const data     = { postId, postDate, epNum, animeSlug, ...detail, cover: coverApi || detail.cover };
     const caption  = buatCaption(data);
-    return { caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
+    const urlGambar = data.cover || null;
+    // Download buffer sekarang supaya caller bisa langsung kirim
+    const imgBuffer = await downloadImageBuffer(urlGambar);
+    return { caption, urlGambar, imgBuffer, batchDownload: detail.batchDownload || null };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
@@ -640,6 +684,7 @@ module.exports = {
     cariEpisodeBaru,
     buatCaption,
     ambilUrlGambar,
+    downloadImageBuffer,
     tandaiSudahKirim,
     tandaiDanLog,
     getRecentLog,

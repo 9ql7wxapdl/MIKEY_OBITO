@@ -13667,9 +13667,15 @@ infoText += `╰═════════════════════�
                                                 let berhasil = 0, gagal = 0;
                                                 for (const jid of daftarGrup) {
                                                         try {
-                                                                if (hasil.urlGambar) {
+                                                                if (hasil.imgBuffer) {
                                                                         await hisoka.sendMessage(jid, {
-                                                                                image: { url: hasil.urlGambar },
+                                                                                image   : hasil.imgBuffer,
+                                                                                mimetype: 'image/jpeg',
+                                                                                caption : hasil.caption,
+                                                                        });
+                                                                } else if (hasil.urlGambar) {
+                                                                        await hisoka.sendMessage(jid, {
+                                                                                image  : { url: hasil.urlGambar },
                                                                                 caption: hasil.caption,
                                                                         });
                                                                 } else {
@@ -13702,9 +13708,15 @@ infoText += `╰═════════════════════�
                                         await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
                                         try {
                                                 const hasil = await simulasiAM();
-                                                if (hasil.urlGambar) {
+                                                if (hasil.imgBuffer) {
                                                         await hisoka.sendMessage(m.from, {
-                                                                image: { url: hasil.urlGambar },
+                                                                image   : hasil.imgBuffer,
+                                                                mimetype: 'image/jpeg',
+                                                                caption : hasil.caption,
+                                                        }, { quoted: m });
+                                                } else if (hasil.urlGambar) {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image  : { url: hasil.urlGambar },
                                                                 caption: hasil.caption,
                                                         }, { quoted: m });
                                                 } else {

@@ -799,9 +799,22 @@ async function main() {
                                                         const caption   = _am.buatCaption(item);
                                                         const urlGambar = _am.ambilUrlGambar(item);
 
+                                                        // Download buffer dulu → kompatibel semua versi WA
+                                                        let imgBuffer = null;
+                                                        if (urlGambar) {
+                                                                imgBuffer = await _am.downloadImageBuffer(urlGambar);
+                                                        }
+
                                                         for (const jid of daftarGrup) {
                                                                 try {
-                                                                        if (urlGambar) {
+                                                                        if (imgBuffer) {
+                                                                                await hisoka.sendMessage(jid, {
+                                                                                        image   : imgBuffer,
+                                                                                        mimetype: 'image/jpeg',
+                                                                                        caption,
+                                                                                });
+                                                                        } else if (urlGambar) {
+                                                                                // Fallback ke URL jika buffer gagal download
                                                                                 await hisoka.sendMessage(jid, {
                                                                                         image: { url: urlGambar },
                                                                                         caption,

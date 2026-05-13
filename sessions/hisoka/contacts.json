@@ -2518,7 +2518,8 @@
     "id": "6285754553096@s.whatsapp.net",
     "name": "√ASI-125",
     "lid": "169797337784433@lid",
-    "jid": "6285754553096@s.whatsapp.net"
+    "jid": "6285754553096@s.whatsapp.net",
+    "notify": "Maury.Denver ƒт『𝐂.𝐈.𝐇』"
   },
   "6283153755611@s.whatsapp.net": {
     "isContact": true,
@@ -32221,5 +32222,25 @@
     "id": "137838721032386@lid",
     "lid": "137838721032386@lid",
     "imgUrl": "changed"
+  },
+  "25534083899555@lid": {
+    "id": "25534083899555@lid",
+    "lid": "25534083899555@lid",
+    "imgUrl": "changed"
+  },
+  "265403712434410@lid": {
+    "id": "265403712434410@lid",
+    "lid": "265403712434410@lid",
+    "imgUrl": "changed"
+  },
+  "279645572333743@lid": {
+    "id": "279645572333743@lid",
+    "lid": "279645572333743@lid",
+    "imgUrl": "removed"
+  },
+  "13637024542822@lid": {
+    "id": "13637024542822@lid",
+    "lid": "13637024542822@lid",
+    "imgUrl": "removed"
   }
 }
