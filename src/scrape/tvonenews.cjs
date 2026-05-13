@@ -34,7 +34,7 @@ function bacaData() {
     try {
         if (fs.existsSync(FILE_DATA)) return JSON.parse(fs.readFileSync(FILE_DATA, 'utf-8'));
     } catch (_) {}
-    return { idTerkirim: [], lastCheckTime: null };
+    return { idTerkirim: [], lastCheckTime: null, maxSeenId: 0 };
 }
 
 function simpanData(data) {
@@ -327,11 +327,10 @@ async function cariBeritaBaru() {
     const now  = Date.now();
     const data = bacaData();
 
-    // Pertama kali run → tandai semua yang ada, TIDAK kirim (hindari spam)
+    const prevMaxId = parseInt(data.maxSeenId || 0, 10);
     const isFirstRun = !data.lastCheckTime;
     data.lastCheckTime = now;
     if (!data.idTerkirim) data.idTerkirim = [];
-    simpanData(data);
 
     let htmlHome = '';
     try {
@@ -343,28 +342,38 @@ async function cariBeritaBaru() {
 
     const artikelList = parseArtikelList(htmlHome);
 
-    if (isFirstRun) {
-        for (const art of artikelList) tandaiSudahKirim(art.artId);
-        console.log(`[TVOneNews] 🆕 First run — tandai ${artikelList.length} artikel sebagai sudah dilihat`);
+    // Hitung maxSeenId dari semua artikel yang ada di homepage sekarang
+    const semuaId = artikelList.map(a => parseInt(a.artId, 10)).filter(n => !isNaN(n));
+    const maxIdSekarang = semuaId.length ? Math.max(...semuaId) : prevMaxId;
+
+    // Simpan maxSeenId & tandai semua artikel homepage sebagai sudah dilihat
+    data.maxSeenId = maxIdSekarang;
+    simpanData(data);
+    for (const art of artikelList) tandaiSudahKirim(art.artId);
+
+    if (isFirstRun || prevMaxId === 0) {
+        console.log(`[TVOneNews] 🆕 First run — maxSeenId=${maxIdSekarang}, tandai ${artikelList.length} artikel, tidak kirim dulu`);
         return [];
     }
 
-    const baru = [];
-    for (const art of artikelList) {
-        if (sudahDikirim(art.artId)) continue;
+    // Hanya artikel dengan ID > prevMaxId yang benar-benar baru
+    const artikelBaru = artikelList.filter(a => parseInt(a.artId, 10) > prevMaxId);
+    console.log(`[TVOneNews] prevMaxId=${prevMaxId}, maxIdSekarang=${maxIdSekarang}, artikel baru: ${artikelBaru.length}`);
 
+    if (!artikelBaru.length) return [];
+
+    const baru = [];
+    for (const art of artikelBaru) {
         try {
             const htmlDetail = await fetchHtml(art.url);
             const detail     = parseDetailArtikel(htmlDetail, art.url);
             baru.push({
                 ...art,
                 ...detail,
-                // Detail override, tapi cover dari detail lebih baik
                 cover: detail.cover || gambarHD(art.thumb) || art.thumb,
             });
         } catch (e) {
             console.warn(`[TVOneNews] ❌ Detail gagal (${art.artId}):`, e?.message);
-            // Pakai data list saja
             baru.push({
                 ...art,
                 cover    : gambarHD(art.thumb) || art.thumb,
@@ -373,7 +382,6 @@ async function cariBeritaBaru() {
                 ringkasan: '',
             });
         }
-        await new Promise(r => setTimeout(r, 1200));
     }
 
     return baru;
