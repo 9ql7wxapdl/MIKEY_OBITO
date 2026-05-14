@@ -11151,7 +11151,8 @@
     "id": "6287860371877@s.whatsapp.net",
     "name": "! Fuma Kotaro",
     "lid": "200356231442552@lid",
-    "jid": "6287860371877@s.whatsapp.net"
+    "jid": "6287860371877@s.whatsapp.net",
+    "notify": "Fuma Kotaro"
   },
   "62882018264557@s.whatsapp.net": {
     "isContact": true,
@@ -27162,7 +27163,8 @@
     "id": "18258961472@s.whatsapp.net",
     "name": "Hamdan [ NOKOS ]",
     "lid": "54392187277397@lid",
-    "jid": "18258961472@s.whatsapp.net"
+    "jid": "18258961472@s.whatsapp.net",
+    "notify": "Anda Siapa??"
   },
   "6281291049902@s.whatsapp.net": {
     "isContact": true,
@@ -31666,7 +31668,8 @@
   "263483945930926@lid": {
     "id": "263483945930926@lid",
     "lid": "263483945930926@lid",
-    "notify": "j"
+    "notify": "j",
+    "verifiedName": "j"
   },
   "121560543273151@lid": {
     "id": "121560543273151@lid",
@@ -32434,5 +32437,21 @@
     "id": "71666193461309@lid",
     "lid": "71666193461309@lid",
     "imgUrl": "removed"
+  },
+  "114091511263254@lid": {
+    "id": "114091511263254@lid",
+    "lid": "114091511263254@lid",
+    "imgUrl": "changed"
+  },
+  "203482682359955@lid": {
+    "id": "203482682359955@lid",
+    "lid": "203482682359955@lid",
+    "imgUrl": "removed"
+  },
+  "239328697536578@lid": {
+    "id": "239328697536578@lid",
+    "lid": "239328697536578@lid",
+    "notify": "Anda Siapa?",
+    "verifiedName": "Anda Siapa?"
   }
 }

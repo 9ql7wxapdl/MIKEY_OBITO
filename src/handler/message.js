@@ -9000,6 +9000,84 @@ if (isJadibot) text += jadibotNote;
                                 break;
                         }
 
+                        case 'ceksw': {
+                                if (!isMainBot(hisoka)) return;
+                                if (!m.isOwner) return;
+                                try {
+                                        const swStatsPath = path.join(process.cwd(), 'data', 'system', 'swstats.json');
+                                        let stats = {};
+                                        if (fs.existsSync(swStatsPath)) {
+                                                try { stats = JSON.parse(fs.readFileSync(swStatsPath, 'utf-8')); } catch {}
+                                        }
+
+                                        const entries = Object.values(stats);
+                                        if (entries.length === 0) {
+                                                await tolak(hisoka, m,
+                                                        `╭══『 📊 *CEK SW STATS* 』══╮\n` +
+                                                        `│\n` +
+                                                        `│ ⚠️ Belum ada data SW yang tercatat.\n` +
+                                                        `│\n` +
+                                                        `│ _Pastikan Auto Read Story aktif_\n` +
+                                                        `│ _ketik .readsw untuk cek status_\n` +
+                                                        `│\n` +
+                                                        `╰══════════════════════════╯`
+                                                );
+                                                break;
+                                        }
+
+                                        const sorted = entries.sort((a, b) =>
+                                                (b.reactions || 0) - (a.reactions || 0) ||
+                                                (b.reads || 0) - (a.reads || 0)
+                                        );
+                                        const top10 = sorted.slice(0, 10);
+                                        const totalReads = entries.reduce((s, e) => s + (e.reads || 0), 0);
+                                        const totalReactions = entries.reduce((s, e) => s + (e.reactions || 0), 0);
+                                        const maxReaction = Math.max(...top10.map(x => x.reactions || 0), 1);
+
+                                        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+                                        const now = new Date().toLocaleString('id-ID', {
+                                                timeZone: 'Asia/Jakarta',
+                                                hour: '2-digit', minute: '2-digit',
+                                                day: '2-digit', month: 'short', year: 'numeric'
+                                        });
+
+                                        let text = `╭══『 📊 *TOP REACTION SW* 』══╮\n`;
+                                        text += `│\n`;
+                                        text += `│ 🕐 *Update:* ${now} WIB\n`;
+                                        text += `│ 👥 *Total orang:* ${entries.length}\n`;
+                                        text += `│ 👁️ *Total read:* ${totalReads}\n`;
+                                        text += `│ ✨ *Total reaction:* ${totalReactions}\n`;
+                                        text += `│\n`;
+                                        text += `├──『 🏆 *TOP ${top10.length} TERBANYAK* 』\n`;
+                                        text += `│\n`;
+
+                                        for (let i = 0; i < top10.length; i++) {
+                                                const e = top10[i];
+                                                const medal = medals[i];
+                                                const pct = totalReactions > 0
+                                                        ? ((e.reactions || 0) / totalReactions * 100).toFixed(1)
+                                                        : '0.0';
+                                                const barLen = Math.round(((e.reactions || 0) / maxReaction) * 8);
+                                                const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
+                                                text += `│ ${medal} *${e.name || e.number}*\n`;
+                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%)\n`;
+                                                text += `│    👁️ Read: ${e.reads || 0}  [${bar}]\n`;
+                                                if (i < top10.length - 1) text += `│\n`;
+                                        }
+
+                                        text += `│\n`;
+                                        text += `╰══════════════════════════╯\n`;
+                                        text += `_💾 Data realtime • tersimpan di data/system_`;
+
+                                        await tolak(hisoka, m, text);
+                                        logCommand(m, hisoka, 'ceksw');
+                                } catch (error) {
+                                        console.error('\x1b[31m[CekSW] Error:\x1b[39m', error.message);
+                                        await tolak(hisoka, m, `❌ Error: ${error.message}`);
+                                }
+                                break;
+                        }
+
                         case 'telegram':
                         case 'tele': {
                                 if (!isMainBot(hisoka)) return;

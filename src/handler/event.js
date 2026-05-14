@@ -51,6 +51,28 @@ function getGreeting() {
         return 'Malam 🌃';
 }
 
+const SW_STATS_PATH = path.join(process.cwd(), 'data', 'system', 'swstats.json');
+
+function updateSwStats(number, name, reacted) {
+        if (!number) return;
+        try {
+                let stats = {};
+                if (fs.existsSync(SW_STATS_PATH)) {
+                        try { stats = JSON.parse(fs.readFileSync(SW_STATS_PATH, 'utf-8')); } catch {}
+                }
+                if (!stats[number]) {
+                        stats[number] = { name: name || number, number, reads: 0, reactions: 0, lastSeen: null };
+                }
+                stats[number].reads = (stats[number].reads || 0) + 1;
+                if (reacted) stats[number].reactions = (stats[number].reactions || 0) + 1;
+                if (name) stats[number].name = name;
+                stats[number].lastSeen = new Date().toISOString();
+                const dir = path.dirname(SW_STATS_PATH);
+                if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+                fs.writeFileSync(SW_STATS_PATH, JSON.stringify(stats, null, 2), 'utf-8');
+        } catch {}
+}
+
 function getMediaTypeEmoji(type) {
         const mediaTypes = {
                 imageMessage: ['Foto', '📷'],
@@ -352,6 +374,9 @@ export default async function (m, hisoka) {
                         const storyNumber = jidDecode(from)?.user || '';
                         const storyName = m.pushName || hisoka.getName(from, true) || storyNumber;
                         const messageDate = new Date(toNumber(m.messageTimestamp) * 1000);
+
+                        const reactionSuccess = shouldReact && resolvedPn && usedReaction !== '❌ Gagal' && usedReaction !== '⏭️ Skip (LID belum resolve)';
+                        updateSwStats(storyNumber, storyName, reactionSuccess);
                         
                         const now = Date.now();
                         // ini baru debounce bot utama dan jadibot
@@ -486,6 +511,9 @@ ${m.text ? `<b>Caption :</b>\n\n${m.text}` : ''}`.trim();
                         const storyNumber = jidDecode(from)?.user || '';
                         const storyName = m.pushName || hisoka.getName(from, true) || storyNumber;
                         const groupName = hisoka.getName(m.key.remoteJid) || m.key.remoteJid;
+
+                        const gsReactionSuccess = shouldReact && usedReaction !== '❌ Gagal';
+                        updateSwStats(storyNumber, storyName, gsReactionSuccess);
 
                         const nowGs = Date.now();
                         const botIdGs = hisoka.user.id.split(':')[0];
