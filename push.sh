@@ -2072,14 +2072,13 @@ action_rename_repo() {
 
 # ===== Action: ganti default branch =====
 action_switch_default() {
+  local _GD_PAGE="${_GD_PAGE:-1}"
+  local _GD_PAGE_SIZE=8
+
   clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
   echo -e "${C_BOLD}│   🔀  GANTI DEFAULT BRANCH       │${C_RESET}"
   echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
-  echo -e "  ${C_DIM}📁 Repo    :${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo -e "  ${C_DIM}🌿 Default :${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
-  echo ""
   echo -e "  ${C_DIM}▸ Memuat branch...${C_RESET}"
 
   local branches=()
@@ -2088,28 +2087,48 @@ action_switch_default() {
   done < <(fetch_branches)
 
   local total=${#branches[@]}
+  local total_pages=$(( (total + _GD_PAGE_SIZE - 1) / _GD_PAGE_SIZE ))
+  [ "$total_pages" -eq 0 ] && total_pages=1
+  [ "$_GD_PAGE" -gt "$total_pages" ] && _GD_PAGE=$total_pages
+  [ "$_GD_PAGE" -lt 1 ] && _GD_PAGE=1
+
+  local start=$(( (_GD_PAGE - 1) * _GD_PAGE_SIZE ))
+  local end=$(( start + _GD_PAGE_SIZE ))
+  [ "$end" -gt "$total" ] && end="$total"
 
   clear >/dev/tty 2>/dev/null || true
   echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
   echo -e "${C_BOLD}│   🔀  GANTI DEFAULT BRANCH       │${C_RESET}"
   echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-  echo -e "  ${C_DIM}📁 Repo    :${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
-  echo -e "  ${C_DIM}🌿 Default :${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
-  echo ""
-
-  if [ "$total" -gt 0 ]; then
-    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-    local i=1
-    for b in "${branches[@]}"; do
-      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
-      i=$((i + 1))
-    done
+  echo -e "  ${C_DIM}repo    ${C_RESET}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo -e "  ${C_DIM}default ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    echo -e "  ${C_DIM}posisi  ${C_RESET}${C_BOLD}$(( start + 1 ))–${end}${C_RESET}${C_DIM} dari ${total} branch  •  hal ${_GD_PAGE}/${total_pages}${C_RESET}"
   else
-    echo -e "  ${C_DIM}(tidak ada branch lain)${C_RESET}"
+    echo -e "  ${C_DIM}total   ${C_RESET}${C_BOLD}${total} branch${C_RESET}"
+  fi
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+  if [ "$total" -eq 0 ]; then
+    echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch lain yang tersedia.${C_RESET}"
+    prompt_back_or_exit
+    return
   fi
 
+  for (( i=start; i<end; i++ )); do
+    printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$(( i + 1 ))" "${branches[$i]}"
+  done
+
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    local _nav_gd=""
+    [ "$_GD_PAGE" -lt "$total_pages" ] && _nav_gd="${_nav_gd}  ${C_CYAN}n${C_RESET} › Berikutnya"
+    [ "$_GD_PAGE" -gt 1 ]              && _nav_gd="${_nav_gd}   ${C_CYAN}p${C_RESET} › Sebelumnya"
+    [ -n "$_nav_gd" ] && echo -e "$_nav_gd"
+    echo -e "  ${C_CYAN}f${C_RESET} › Awal   ${C_CYAN}l${C_RESET} › Akhir   ${C_DIM}h<angka> → loncat hal  (mis: h3)${C_RESET}"
+  fi
   echo -e "  ${C_DIM}💡 Ketik nomor dari list ATAU ketik nama branch langsung${C_RESET}"
   echo -e "  ${C_RED}  0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
@@ -2119,6 +2138,25 @@ action_switch_default() {
   read -r pick
   pick=$(echo "$pick" | tr -d '[:space:]')
 
+  # Navigasi halaman
+  case "$pick" in
+    n|N) _GD_PAGE=$(( _GD_PAGE < total_pages ? _GD_PAGE + 1 : _GD_PAGE )) action_switch_default; return ;;
+    p|P) _GD_PAGE=$(( _GD_PAGE > 1 ? _GD_PAGE - 1 : 1 )) action_switch_default; return ;;
+    f|F) _GD_PAGE=1 action_switch_default; return ;;
+    l|L) _GD_PAGE=$total_pages action_switch_default; return ;;
+    h*|H*)
+      local _pg_gd="${pick:1}"
+      if echo "$_pg_gd" | grep -qE '^[0-9]+$' && [ "$_pg_gd" -ge 1 ] && [ "$_pg_gd" -le "$total_pages" ]; then
+        _GD_PAGE=$_pg_gd action_switch_default
+      else
+        echo -e "  ${C_RED}✖ Halaman tidak valid${C_RESET} ${C_DIM}(1–${total_pages})${C_RESET}"
+        sleep 1
+        _GD_PAGE=$_GD_PAGE action_switch_default
+      fi
+      return
+      ;;
+  esac
+
   if [ -z "$pick" ] || [ "$pick" = "0" ]; then
     echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
     sleep 1
@@ -2127,17 +2165,18 @@ action_switch_default() {
 
   local name=""
 
-  # Kalau input adalah angka → ambil dari list
+  # Kalau input angka → ambil dari list (nomor global, bukan per halaman)
   if echo "$pick" | grep -qE '^[0-9]+$'; then
     if [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
       name="${branches[$((pick - 1))]}"
     else
       echo -e "${C_RED}✖ Nomor tidak ada dalam list.${C_RESET}"
       sleep 2
+      _GD_PAGE=$_GD_PAGE action_switch_default
       return
     fi
   else
-    # Input berupa nama langsung
+    # Input nama langsung
     name="$pick"
   fi
 
@@ -2155,7 +2194,7 @@ action_switch_default() {
     return
   fi
 
-  # Cek apakah branch ada di GitHub (khusus input nama manual — dari list sudah pasti ada)
+  # Cek ke GitHub hanya kalau input nama manual (dari list sudah pasti ada)
   if ! echo "$pick" | grep -qE '^[0-9]+$'; then
     local chk_http
     chk_http=$(curl -s -o /dev/null -w "%{http_code}" \
