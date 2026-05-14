@@ -9149,7 +9149,7 @@ if (isJadibot) text += jadibotNote;
                                                 const barLen = totalReactions > 0 ? Math.max(1, Math.round(((e.reactions || 0) / totalReactions) * 8)) : 0;
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                 text += `│ ${medal} *${e.name || e.number}*  ${swDot}\n`;
-                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%) [${bar}]\n`;
+                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}) [${bar}]\n`;
                                                 text += `│    👁️ Total read: ${e.reads || 0}\n`;
                                                 if (i < top10.length - 1) text += `│\n`;
                                         }
@@ -9163,8 +9163,7 @@ if (isJadibot) text += jadibotNote;
                                                 for (let i = 0; i < sortedEmojis.length; i++) {
                                                         const [emoji, count] = sortedEmojis[i];
                                                         const pct = fmtPct(count, totalEmojiUsed);
-                                                        const num = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
-                                                        text += `│ ${num} ${emoji}  ×${count}  (${pct}%)\n`;
+                                                        text += `│ ${medals[i]} ${emoji}  ×${count}  (${pct})\n`;
                                                 }
                                                 text += `│\n`;
                                         }
