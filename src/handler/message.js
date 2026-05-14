@@ -9112,17 +9112,17 @@ if (isJadibot) text += jadibotNote;
                                         });
 
                                         let text = `╭══『 📊 *TOP REACTION SW* 』══╮\n`;
-                                        text += `│\n`;
-                                        text += `│ 🕐 *Update:* ${now} WIB\n`;
-                                        text += `│ 👥 *Total orang:* ${entries.length}\n`;
-                                        text += `│ 🟢 *SW aktif sekarang:* ${totalActiveSW} story\n`;
-                                        text += `│ 👁️ *Total read:* ${totalReads}\n`;
-                                        text += `│ ✨ *Total reaction:* ${totalReactions}\n`;
-                                        text += `│\n`;
+                                        text += `>\n`;
+                                        text += `> 🕐 *Update:* ${now} WIB\n`;
+                                        text += `> 👥 *Total orang:* ${entries.length}\n`;
+                                        text += `> 🟢 *SW aktif sekarang:* *${totalActiveSW}* story\n`;
+                                        text += `> 👁️ *Total read:* *${totalReads}*\n`;
+                                        text += `> ✨ *Total reaction:* *${totalReactions}*\n`;
+                                        text += `>\n`;
 
                                         if (topBySW.length > 0) {
                                                 text += `├──『 🟢 *SW AKTIF SEKARANG* 』\n`;
-                                                text += `│  _otomatis berkurang saat expire/hapus_\n`;
+                                                text += `_otomatis berkurang saat expire/hapus_\n`;
                                                 text += `│\n`;
                                                 for (let i = 0; i < topBySW.length; i++) {
                                                         const e = topBySW[i];
@@ -9131,7 +9131,7 @@ if (isJadibot) text += jadibotNote;
                                                         const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                         const medal = medals[i];
                                                         text += `│ ${medal} *${e.name || e.number}*\n`;
-                                                        text += `│    🟢 Aktif: *${active}* SW  [${bar}]\n`;
+                                                        text += `│    🟢 Aktif: *${active}* SW  \`[${bar}]\`\n`;
                                                         if (i < topBySW.length - 1) text += `│\n`;
                                                 }
                                                 text += `│\n`;
@@ -9144,13 +9144,13 @@ if (isJadibot) text += jadibotNote;
                                                 const e = top10[i];
                                                 const medal = medals[i];
                                                 const active = getActiveSW(e);
-                                                const swDot = active > 0 ? `🟢 ${active} SW` : `⚪ 0 SW`;
+                                                const swDot = active > 0 ? `🟢 *${active} SW*` : `⚪ _0 SW_`;
                                                 const pct = fmtPct(e.reactions || 0, totalReactions);
                                                 const barLen = totalReactions > 0 ? Math.max(1, Math.round(((e.reactions || 0) / totalReactions) * 8)) : 0;
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                 text += `│ ${medal} *${e.name || e.number}*  ${swDot}\n`;
-                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}) [${bar}]\n`;
-                                                text += `│    👁️ Total read: ${e.reads || 0}\n`;
+                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct})  \`[${bar}]\`\n`;
+                                                text += `│    👁️ Total read: *${e.reads || 0}*\n`;
                                                 if (i < top10.length - 1) text += `│\n`;
                                         }
 
@@ -9163,7 +9163,7 @@ if (isJadibot) text += jadibotNote;
                                                 for (let i = 0; i < sortedEmojis.length; i++) {
                                                         const [emoji, count] = sortedEmojis[i];
                                                         const pct = fmtPct(count, totalEmojiUsed);
-                                                        text += `│ ${medals[i]} ${emoji}  ×${count}  (${pct})\n`;
+                                                        text += `│ ${medals[i]} ${emoji}  *×${count}*  (${pct})\n`;
                                                 }
                                                 text += `│\n`;
                                         }
