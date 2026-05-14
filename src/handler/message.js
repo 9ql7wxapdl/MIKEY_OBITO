@@ -9115,14 +9115,13 @@ if (isJadibot) text += jadibotNote;
                                         text += `│\n`;
 
                                         if (topBySW.length > 0) {
-                                                const maxSW = getActiveSW(topBySW[0]) || 1;
                                                 text += `├──『 🟢 *SW AKTIF SEKARANG* 』\n`;
                                                 text += `│  _otomatis berkurang saat expire/hapus_\n`;
                                                 text += `│\n`;
                                                 for (let i = 0; i < topBySW.length; i++) {
                                                         const e = topBySW[i];
                                                         const active = getActiveSW(e);
-                                                        const barLen = Math.round((active / maxSW) * 8);
+                                                        const barLen = totalActiveSW > 0 ? Math.max(1, Math.round((active / totalActiveSW) * 8)) : 0;
                                                         const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                         const medal = medals[i];
                                                         text += `│ ${medal} *${e.name || e.number}*\n`;
@@ -9143,7 +9142,7 @@ if (isJadibot) text += jadibotNote;
                                                 const pct = totalReactions > 0
                                                         ? ((e.reactions || 0) / totalReactions * 100).toFixed(1)
                                                         : '0.0';
-                                                const barLen = Math.round(((e.reactions || 0) / maxReaction) * 8);
+                                                const barLen = totalReactions > 0 ? Math.max(1, Math.round(((e.reactions || 0) / totalReactions) * 8)) : 0;
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                 text += `│ ${medal} *${e.name || e.number}*  ${swDot}\n`;
                                                 text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%) [${bar}]\n`;
