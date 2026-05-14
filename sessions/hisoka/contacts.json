@@ -13910,7 +13910,8 @@
     "id": "6281222884622@s.whatsapp.net",
     "name": "Alfian",
     "lid": "23274595578098@lid",
-    "jid": "6281222884622@s.whatsapp.net"
+    "jid": "6281222884622@s.whatsapp.net",
+    "notify": "~ Alfian"
   },
   "6281294428296@s.whatsapp.net": {
     "isContact": true,
@@ -32351,5 +32352,20 @@
     "id": "40557376237650@lid",
     "lid": "40557376237650@lid",
     "imgUrl": "changed"
+  },
+  "23274595578098@lid": {
+    "id": "23274595578098@lid",
+    "lid": "23274595578098@lid",
+    "notify": "~ Alfian"
+  },
+  "129334601846925@lid": {
+    "id": "129334601846925@lid",
+    "lid": "129334601846925@lid",
+    "notify": "╰っホム┌Ryuuka┐/⁠ᐠ⁠｡⁠ꞈ⁠｡⁠ᐟ⁠\\"
+  },
+  "195748050256060@lid": {
+    "id": "195748050256060@lid",
+    "lid": "195748050256060@lid",
+    "imgUrl": "removed"
   }
 }

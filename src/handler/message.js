@@ -6443,16 +6443,20 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 │   _Cari info & lirik lagu_
 ├➤ *.geniusdetail [id]*
 │   _Detail lagu Genius_
-╰➤ *.whatsmusik / .wmusik*
-   _Kenali judul lagu dari audio_
+├➤ *.whatsmusik / .wmusik*
+│   _Kenali judul lagu dari audio_
+├➤ *.shazam / .tebaklagu*
+│   _Alias kenali lagu (sama dengan .wmusik)_
+╰➤ *.speedtest / .speed / .cekspeed*
+   _Cek kecepatan internet realtime_
 
 ╭─「 🤖 *AI CHAT* 」
 │
 ├➤ *.ai / .tanya [pesan]*
 │   _Chat dengan AI (Gemini/Llama)_
-├➤ *.mymemory*
-│   _Lihat riwayat percakapan AI_
-╰➤ *.forgetme*
+├➤ *.mymemory / .myprofile*
+│   _Lihat riwayat & profil memori AI_
+╰➤ *.forgetme / .resetmemory*
    _Reset memori AI_
 
 ╭─「 🎌 *ANIME & MANGA* 」
@@ -6520,13 +6524,17 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ├➤ *.swgrup / .statusgroup*  _→ Kirim status ke grup_
 ├➤ *.infowibu*  _→ Auto info wibu di grup_
 ├➤ *.animasu*  _→ Auto notif Sub Indo Animasu_
+├➤ *.tvone*  _→ Auto berita TVOne News di grup_
 ├➤ *.wilyai on/off*  _→ AI auto-reply_
 ├➤ *.wily / .simi*  _→ AI manual_
 ├➤ *.setreactapi [key]*  _→ Set API react_
+├➤ *.cekreact / .reactinfo*  _→ Cek saldo & info React API_
 ├➤ *.addemoji / .delemoji / .listemoji*
+├➤ *.ram*  _→ Cek detail RAM & memory bot_
 ├➤ *.upbot*  _→ Update & restart bot_
 ├➤ *.backup*  _→ Backup sesi bot_
 ├➤ *.ceksesi*  _→ Cek status sesi_
+├➤ *.sessionstat*  _→ Statistik detail file sesi_
 ├➤ *.eval / .bash*  _→ Eksekusi kode/command_
 ├➤ *.dbstats / .sessiondb*  _→ Statistik database_
 ├➤ *.listcontact*  _→ Daftar kontak bot_
@@ -6536,7 +6544,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 📌 _Ketik_ *.settingmenu* _| .downloadmenu_
 📌 _Ketik_ *.groupmenu* _| .jadibotmenu_
-📌 _Ketik_ *.ownermenu* _untuk sub-menu lengkap_
+📌 _Ketik_ *.statusmenu* _| .ownermenu_
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 `;
