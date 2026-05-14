@@ -2080,23 +2080,65 @@ action_switch_default() {
   echo -e "  ${C_DIM}📁 Repo    :${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
   echo -e "  ${C_DIM}🌿 Default :${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
   echo ""
-  echo -e "  ${C_DIM}💡 Tips: ketik nama branch yang sudah ada di GitHub.${C_RESET}"
-  echo -e "  ${C_DIM}   Contoh: ReadswDika-V18.0${C_RESET}"
-  echo -e "  ${C_DIM}   Contoh: main${C_RESET}"
+  echo -e "  ${C_DIM}▸ Memuat branch...${C_RESET}"
+
+  local branches=()
+  while IFS= read -r b; do
+    [ -n "$b" ] && [ "$b" != "$DEFAULT_BRANCH" ] && branches+=("$b")
+  done < <(fetch_branches)
+
+  local total=${#branches[@]}
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🔀  GANTI DEFAULT BRANCH       │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  printf "  ${C_BOLD}Nama branch default baru ▸ ${C_RESET}"
+  echo -e "  ${C_DIM}📁 Repo    :${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo -e "  ${C_DIM}🌿 Default :${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  echo ""
 
-  local name
-  read -r name
-  name=$(echo "$name" | tr -d '[:space:]')
+  if [ "$total" -gt 0 ]; then
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    local i=1
+    for b in "${branches[@]}"; do
+      printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
+      i=$((i + 1))
+    done
+  else
+    echo -e "  ${C_DIM}(tidak ada branch lain)${C_RESET}"
+  fi
 
-  if [ -z "$name" ] || [ "$name" = "0" ]; then
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_DIM}💡 Ketik nomor dari list ATAU ketik nama branch langsung${C_RESET}"
+  echo -e "  ${C_RED}  0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}Nomor / nama branch ▸ ${C_RESET}"
+
+  local pick
+  read -r pick
+  pick=$(echo "$pick" | tr -d '[:space:]')
+
+  if [ -z "$pick" ] || [ "$pick" = "0" ]; then
     echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
     sleep 1
     return
+  fi
+
+  local name=""
+
+  # Kalau input adalah angka → ambil dari list
+  if echo "$pick" | grep -qE '^[0-9]+$'; then
+    if [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
+      name="${branches[$((pick - 1))]}"
+    else
+      echo -e "${C_RED}✖ Nomor tidak ada dalam list.${C_RESET}"
+      sleep 2
+      return
+    fi
+  else
+    # Input berupa nama langsung
+    name="$pick"
   fi
 
   # Validasi nama (hanya alfanumerik, -, _, /, .)
@@ -2113,19 +2155,21 @@ action_switch_default() {
     return
   fi
 
-  # Cek apakah branch ada di GitHub
-  local chk_http
-  chk_http=$(curl -s -o /dev/null -w "%{http_code}" \
-    -H "Authorization: token ${TOKEN}" \
-    -H "Accept: application/vnd.github+json" \
-    -H "X-GitHub-Api-Version: 2022-11-28" \
-    "https://api.github.com/repos/${USER}/${REPO}/git/ref/heads/${name}" \
-    2>/dev/null)
-  if [ "$chk_http" != "200" ]; then
-    echo -e "${C_RED}✖ Branch '${name}' tidak ditemukan di GitHub.${C_RESET}"
-    echo -e "  ${C_DIM}   Pastikan nama branch sudah benar dan sudah ada di remote.${C_RESET}"
-    sleep 2
-    return
+  # Cek apakah branch ada di GitHub (khusus input nama manual — dari list sudah pasti ada)
+  if ! echo "$pick" | grep -qE '^[0-9]+$'; then
+    local chk_http
+    chk_http=$(curl -s -o /dev/null -w "%{http_code}" \
+      -H "Authorization: token ${TOKEN}" \
+      -H "Accept: application/vnd.github+json" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/${USER}/${REPO}/git/ref/heads/${name}" \
+      2>/dev/null)
+    if [ "$chk_http" != "200" ]; then
+      echo -e "${C_RED}✖ Branch '${name}' tidak ditemukan di GitHub.${C_RESET}"
+      echo -e "  ${C_DIM}   Pastikan nama branch sudah benar dan sudah ada di remote.${C_RESET}"
+      sleep 2
+      return
+    fi
   fi
 
   local new_default="$name"
