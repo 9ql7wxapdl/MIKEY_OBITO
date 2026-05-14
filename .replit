@@ -22,12 +22,12 @@ args = "WhatsApp Bot"
 name = "WhatsApp Bot"
 author = "agent"
 
+[workflows.workflow.metadata]
+outputType = "console"
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm start"
-
-[workflows.workflow.metadata]
-outputType = "console"
 
 [userenv]
 
