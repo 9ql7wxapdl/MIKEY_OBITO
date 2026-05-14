@@ -3426,7 +3426,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'testnet': {
                                 try {
                                         const msg = await m.reply('🌐 _Mengukur kecepatan internet... harap tunggu ~5 detik_');
-                                        const _st   = require(path.join(process.cwd(), 'src', 'scrape', 'speedtest.cjs'));
+                                        const _st   = _require(path.resolve('./src/scrape/speedtest.cjs'));
                                         const hasil   = await _st.jalankanSpeedtest();
                                         const caption = _st.buatCaption(hasil);
                                         const imgBuf  = await _st.buatGambar(hasil);
