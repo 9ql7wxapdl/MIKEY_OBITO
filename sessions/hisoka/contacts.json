@@ -32467,8 +32467,7 @@
   "176549462564879@lid": {
     "id": "176549462564879@lid",
     "lid": "176549462564879@lid",
-    "notify": "Cosmouz",
-    "verifiedName": "Cosmouz"
+    "notify": "Cosmouz"
   },
   "277545551413278@lid": {
     "id": "277545551413278@lid",
@@ -32478,5 +32477,10 @@
   "6283123405940@s.whatsapp.net": {
     "id": "6283123405940@s.whatsapp.net",
     "notify": "rawrrrr"
+  },
+  "273469174468614@lid": {
+    "id": "273469174468614@lid",
+    "lid": "273469174468614@lid",
+    "notify": "Liu Jing (刘静)"
   }
 }
