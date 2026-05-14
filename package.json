@@ -52,6 +52,7 @@
     "qrcode-terminal": "^0.12.0",
     "sharp": "^0.34.5",
     "socketon": "github:hitlabmodv2/bailyeswily",
+    "speedtest-net": "^2.2.0",
     "wa-sticker-formatter": "^4.4.4",
     "youtubei.js": "^17.0.1",
     "yt-search": "^2.13.1"
