@@ -1,3 +1,48 @@
+🤖 *WILY BOT — V17.4*
+_📅 14 Mei 2026_
+📦 1 Update | 🔧 1 Bug Fix
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 *BUG FIX*
+
+> 🎯 *No-Prefix Command — Respons Tidak Akurat (Extra Words)*
+> Command tanpa prefix merespons meski ada kata tambahan di belakangnya
+> Contoh: mengetik `info dulu` atau `ping bla bla` tanpa prefix → bot merespons
+> Harusnya command no-prefix hanya merespons kalau diketik *persis* tanpa kata tambahan
+> Diperbaiki dengan menambahkan guard `if (!m.prefix && m.query) break` di setiap command standalone
+> Command yang butuh query (seperti `tanya`, `cuaca`, dll) tidak terpengaruh
+> Berlaku di bot utama maupun userjadibot — handler sama (`message.js`)
+>
+> *Command standalone yang kini dilindungi (26 guard total):*
+> ├ `info`
+> ├ `ping` / `p`
+> ├ `menu` / `allmenu` / `settingmenu` / `groupmenu` / `statusmenu` / `downloadmenu`
+> ├ `jadibotmenu` / `ownermenu`
+> ├ `owner` / `own`
+> ├ `listbot`
+> ├ `memori` / `memory` / `mymemory` / `myprofile`
+> ├ `lupakanaku` / `resetmemori` / `resetmemory` / `forgetme`
+> ├ `speedtest` / `speed` / `cekspeed` / `testnet`
+> ├ `ram`
+> ├ `group` / `listgroup`
+> ├ `contact` / `listcontact`
+> ├ `dbstats` / `sessiondb` / `sessionstat`
+> ├ `nhrand`
+> ├ `komikupdate` / `komikup`
+> ├ `kusoupdate` / `kusonimeupdate` / `animeupdate`
+> ├ `alqupdate` / `alqanimeupdate`
+> ├ `cekreact` / `reactinfo`
+> ├ `backup`
+> ╰ `ceksesi`
+>
+> File: `src/handler/message.js`, `src/helper/inject.js`
+
+━━━━━━━━━━━━━━━━━━━━━━
+🤖 *Wily-Bot* | *V17.4* | _14 Mei 2026_
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 🤖 *WILY BOT — V17.3*
 _📅 14 Mei 2026_
 📦 9 Update | 🔧 5 Bug Fix | ✨ 1 Fitur Baru | 🚀 3 Improvement

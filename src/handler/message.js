@@ -3490,6 +3490,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'dbstats':
                         case 'sessiondb':
                         case 'sessionstat': {
+                                if (!m.prefix && m.query) break;
                                 if (!m.isOwner) return;
                                 try {
                                         const readSessionStats = (sessionDir) => {
@@ -3576,6 +3577,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         case 'group':
                         case 'listgroup': {
+                                if (!m.prefix && m.query) break;
                                 const groups = Object.values(await hisoka.groupFetchAllParticipating());
                                 groups.map(g => hisoka.groups.write(g.id, g));
 
@@ -3597,6 +3599,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         case 'contact':
                         case 'listcontact': {
+                                if (!m.prefix && m.query) break;
                                 const contacts = Array.from(hisoka.contacts.values()).filter(c => c.id);
                                 let text = '*Total:*\n\n';
                                 text += `- All Contacts: ${contacts.length}\n`;
@@ -4417,6 +4420,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         }
 
                         case 'nhrand': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const pfx = m.prefix || '.';
                                         const { nhentaiRandom, nhentaiCover, formatGalleryInfo } = _require(path.resolve('./src/scrape/nhentai.cjs'));
@@ -4829,6 +4833,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         case 'komikupdate':
                         case 'komikup': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const { komiktapLatestUpdates } = _require(path.resolve('./src/scrape/komiktap.cjs'));
                                         const ax = _require('axios');
@@ -5100,6 +5105,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'kusoupdate':
                         case 'kusonimeupdate':
                         case 'animeupdate': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const _kusoPath2 = path.resolve('./src/scrape/kusonime.cjs');
                                         delete _require.cache[_kusoPath2];
@@ -5273,6 +5279,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         case 'alqupdate':
                         case 'alqanimeupdate': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const _alqPath2 = path.resolve('./src/scrape/alqanime.cjs');
                                         delete _require.cache[_alqPath2];
@@ -7628,6 +7635,7 @@ _📖 Story berhasil diambil!_`;
                         }
 
                         case 'ram': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const { formatBytes, getCurrentMemoryUsage, getSystemMemoryInfo } = await import('../helper/memoryMonitor.js');
                                         
@@ -10058,6 +10066,7 @@ hasil += `╰══════════════════════�
 
                         case 'cekreact':
                         case 'reactinfo': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const config = loadConfig();
                                         const reactConfig = config.reactApi || {};
@@ -11602,6 +11611,7 @@ infoText += `╰═════════════════════�
                                 break;
 
                         case 'backup': {
+                                if (!m.prefix && m.query) break;
                                 if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
 
@@ -11803,6 +11813,7 @@ infoText += `╰═════════════════════�
                                 break;
 
                         case 'ceksesi': {
+                                if (!m.prefix && m.query) break;
                                 if (!m.isOwner) return;
                                 try {
                                         const sesiDir = path.join(process.cwd(), 'sessions', process.env.BOT_SESSION_NAME || 'hisoka');
