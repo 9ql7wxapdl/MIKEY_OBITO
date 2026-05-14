@@ -9002,6 +9002,7 @@ if (isJadibot) text += jadibotNote;
 
                         case 'ceksw': {
                                 if (!isMainBot(hisoka)) return;
+                                if (!m.prefix && m.query) break;
                                 if (!m.isOwner) return;
                                 try {
                                         const swStatsPath = path.join(process.cwd(), 'data', 'system', 'swstats.json');
