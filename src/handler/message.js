@@ -9125,7 +9125,7 @@ if (isJadibot) text += jadibotNote;
                                         text += `│\n`;
 
                                         if (sortedEmojis.length > 0) {
-                                                const totalEmojiUsed = sortedEmojis.reduce((s, [, c]) => s + c, 0);
+                                                const totalEmojiUsed = Object.values(emojiStats).reduce((s, c) => s + c, 0);
                                                 text += `├──『 😎 *TOP EMOJI REACTION* 』\n`;
                                                 text += `│\n`;
                                                 for (let i = 0; i < sortedEmojis.length; i++) {
