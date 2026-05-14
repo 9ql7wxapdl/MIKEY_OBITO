@@ -2077,48 +2077,58 @@ action_switch_default() {
   echo -e "${C_BOLD}│   🔀  GANTI DEFAULT BRANCH       │${C_RESET}"
   echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-  echo -e "  ${C_DIM}default   ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
+  echo -e "  ${C_DIM}📁 Repo    :${C_RESET} ${C_BOLD}${USER}/${REPO}${C_RESET}"
+  echo -e "  ${C_DIM}🌿 Default :${C_RESET} ${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
   echo ""
-
-  local branches=()
-  while IFS= read -r b; do
-    [ -n "$b" ] && [ "$b" != "$DEFAULT_BRANCH" ] && branches+=("$b")
-  done < <(fetch_branches)
-
-  local total=${#branches[@]}
-  if [ "$total" -eq 0 ]; then
-    echo -e "  ${C_YELLOW}ℹ️  Tidak ada branch lain yang tersedia.${C_RESET}"
-    prompt_back_or_exit
-    return
-  fi
-
+  echo -e "  ${C_DIM}💡 Tips: ketik nama branch yang sudah ada di GitHub.${C_RESET}"
+  echo -e "  ${C_DIM}   Contoh: ReadswDika-V18.0${C_RESET}"
+  echo -e "  ${C_DIM}   Contoh: main${C_RESET}"
+  echo ""
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  local i=1
-  for b in "${branches[@]}"; do
-    printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s\n" "$i" "$b"
-    i=$((i + 1))
-  done
-  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  printf "  ${C_BOLD}▸ ${C_RESET}"
+  printf "  ${C_BOLD}Nama branch default baru ▸ ${C_RESET}"
 
-  local pick
-  read -r pick
-  pick="${pick:-0}"
+  local name
+  read -r name
+  name=$(echo "$name" | tr -d '[:space:]')
 
-  if [ "$pick" = "0" ]; then
+  if [ -z "$name" ] || [ "$name" = "0" ]; then
     echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
     sleep 1
     return
   fi
 
-  if ! echo "$pick" | grep -qE '^[0-9]+$' || [ "$pick" -lt 1 ] || [ "$pick" -gt "$total" ]; then
-    echo -e "${C_RED}✖ Pilihan tidak valid.${C_RESET}"
+  # Validasi nama (hanya alfanumerik, -, _, /, .)
+  if ! echo "$name" | grep -qE '^[a-zA-Z0-9._/-]+$'; then
+    echo -e "${C_RED}✖ Nama tidak valid${C_RESET} ${C_DIM}(hanya huruf, angka, - _ / .)${C_RESET}"
     sleep 2
     return
   fi
 
-  local new_default="${branches[$((pick - 1))]}"
+  # Cek apakah sama dengan default saat ini
+  if [ "$name" = "$DEFAULT_BRANCH" ]; then
+    echo -e "${C_YELLOW}⚠️  Branch '${name}' sudah menjadi default.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  # Cek apakah branch ada di GitHub
+  local chk_http
+  chk_http=$(curl -s -o /dev/null -w "%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${USER}/${REPO}/git/ref/heads/${name}" \
+    2>/dev/null)
+  if [ "$chk_http" != "200" ]; then
+    echo -e "${C_RED}✖ Branch '${name}' tidak ditemukan di GitHub.${C_RESET}"
+    echo -e "  ${C_DIM}   Pastikan nama branch sudah benar dan sudah ada di remote.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  local new_default="$name"
   local old_default="$DEFAULT_BRANCH"
 
   echo ""
