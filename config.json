@@ -130,8 +130,8 @@
   "tvonenews": {
     "groups": {
       "120363192554714254@g.us": {
-        "enabled": true,
-        "diubahPada": 1778661774483
+        "enabled": false,
+        "diubahPada": 1778734847132
       }
     }
   }

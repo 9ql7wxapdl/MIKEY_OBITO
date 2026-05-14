@@ -39,15 +39,3 @@ BOT_NUMBER_PAIR = ""
 BOT_SESSION_NAME = "hisoka"
 BOT_PREFIX = "(?:[°•π÷×¶∆£¢€¥®™+✓=|/~!?@#%^&.©^])"
 BOT_ALLOWED_NO_PREFIX = "true"
-
-[deployment]
-run = ["node", "index.js"]
-deploymentTarget = "vm"
-
-[postMerge]
-path = "scripts/post-merge.sh"
-timeoutMs = 120000
-
-[[ports]]
-localPort = 3000
-externalPort = 80

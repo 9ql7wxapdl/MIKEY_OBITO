@@ -233,11 +233,22 @@ async function fetchHtml(url) {
 }
 
 async function fetchRecentPosts(count = 20) {
-    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,date_gmt,slug,title`;
+    const url = `${API_POSTS}?per_page=${count}&_embed=wp%3Aterm&_fields=id,date,date_gmt,slug,title,link`;
     return fetchDenganRetry(async () => {
         const r = await axios.get(url, { headers: HEADERS, timeout: 30000 });
         return r.data;
     });
+}
+
+// Ambil URL anime yang benar dari halaman episode (fallback saat slug 404)
+async function fetchAnimeUrlFromEpisodePage(postLink) {
+    try {
+        const html = await axios.get(postLink, { headers: HEADERS, timeout: 20000 }).then(r => r.data);
+        const m = html.match(/href="(https:\/\/v1\.animasu\.app\/anime\/[^"]+)"/);
+        return m ? m[1].replace(/\/$/, '') + '/' : null;
+    } catch (_) {
+        return null;
+    }
 }
 
 // ── PARSE SLUG & EPISODE DARI POST ────────────────────────────────────────────
@@ -352,9 +363,22 @@ async function cariEpisodeBaru() {
         }
 
         try {
-            const animeUrl = `${BASE_URL}/anime/${gagal.slug}/`;
-            const html     = await fetchHtml(animeUrl);
-            const detail   = parseDetailPage(html, animeUrl);
+            let animeUrl = `${BASE_URL}/anime/${gagal.slug}/`;
+            let html;
+            try {
+                html = await fetchHtml(animeUrl);
+            } catch (e404) {
+                // Fallback: cari URL anime dari halaman episode
+                if (gagal.postLink) {
+                    const realUrl = await fetchAnimeUrlFromEpisodePage(gagal.postLink);
+                    if (realUrl && realUrl !== animeUrl) {
+                        console.log(`[Animasu] 🔄 Fallback URL: ${realUrl}`);
+                        animeUrl = realUrl;
+                        html = await fetchHtml(animeUrl);
+                    } else throw e404;
+                } else throw e404;
+            }
+            const detail = parseDetailPage(html, animeUrl);
             console.log(`[Animasu] 🔄 Retry berhasil: "${gagal.slug}" ep ${gagal.epNum}`);
             baru.push({
                 postId    : gagal.id,
@@ -402,9 +426,22 @@ async function cariEpisodeBaru() {
         }
 
         try {
-            const animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
-            const html     = await fetchHtml(animeUrl);
-            const detail   = parseDetailPage(html, animeUrl);
+            let animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
+            let html;
+            try {
+                html = await fetchHtml(animeUrl);
+            } catch (e404) {
+                // Fallback: cari URL anime yang benar dari halaman episode
+                if (post.link) {
+                    const realUrl = await fetchAnimeUrlFromEpisodePage(post.link);
+                    if (realUrl && realUrl !== animeUrl) {
+                        console.log(`[Animasu] 🔍 Fallback URL ditemukan: ${realUrl}`);
+                        animeUrl = realUrl;
+                        html = await fetchHtml(animeUrl);
+                    } else throw e404;
+                } else throw e404;
+            }
+            const detail = parseDetailPage(html, animeUrl);
             baru.push({
                 postId    : post.id,
                 postDate  : post.date,
@@ -420,6 +457,7 @@ async function cariEpisodeBaru() {
                 slug        : animeSlug,
                 epNum,
                 postDate    : post.date,
+                postLink    : post.link || null,
                 pertamaGagal: new Date().toISOString(),
             });
         }
