@@ -9005,12 +9005,30 @@ if (isJadibot) text += jadibotNote;
                                 if (!m.isOwner) return;
                                 try {
                                         const swStatsPath = path.join(process.cwd(), 'data', 'system', 'swstats.json');
+
+                                        if (query && query.trim().toLowerCase() === 'reset') {
+                                                if (fs.existsSync(swStatsPath)) fs.writeFileSync(swStatsPath, '{}', 'utf-8');
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                await tolak(hisoka, m,
+                                                        `╭══『 🗑️ *RESET SW STATS* 』══╮\n` +
+                                                        `│\n` +
+                                                        `│ ✅ Data berhasil direset!\n` +
+                                                        `│ Semua data mulai dari 0 lagi.\n` +
+                                                        `│\n` +
+                                                        `╰══════════════════════════╯`
+                                                );
+                                                logCommand(m, hisoka, 'ceksw reset');
+                                                break;
+                                        }
+
                                         let stats = {};
                                         if (fs.existsSync(swStatsPath)) {
                                                 try { stats = JSON.parse(fs.readFileSync(swStatsPath, 'utf-8')); } catch {}
                                         }
 
-                                        const entries = Object.values(stats);
+                                        const emojiStats = stats._emojiStats || {};
+                                        const entries = Object.values(stats).filter(e => e && e.number);
+
                                         if (entries.length === 0) {
                                                 await tolak(hisoka, m,
                                                         `╭══『 📊 *CEK SW STATS* 』══╮\n` +
@@ -9025,7 +9043,7 @@ if (isJadibot) text += jadibotNote;
                                                 break;
                                         }
 
-                                        const sorted = entries.sort((a, b) =>
+                                        const sorted = [...entries].sort((a, b) =>
                                                 (b.reactions || 0) - (a.reactions || 0) ||
                                                 (b.reads || 0) - (a.reads || 0)
                                         );
@@ -9033,6 +9051,10 @@ if (isJadibot) text += jadibotNote;
                                         const totalReads = entries.reduce((s, e) => s + (e.reads || 0), 0);
                                         const totalReactions = entries.reduce((s, e) => s + (e.reactions || 0), 0);
                                         const maxReaction = Math.max(...top10.map(x => x.reactions || 0), 1);
+
+                                        const sortedEmojis = Object.entries(emojiStats)
+                                                .sort((a, b) => b[1] - a[1])
+                                                .slice(0, 8);
 
                                         const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
                                         const now = new Date().toLocaleString('id-ID', {
@@ -9048,7 +9070,7 @@ if (isJadibot) text += jadibotNote;
                                         text += `│ 👁️ *Total read:* ${totalReads}\n`;
                                         text += `│ ✨ *Total reaction:* ${totalReactions}\n`;
                                         text += `│\n`;
-                                        text += `├──『 🏆 *TOP ${top10.length} TERBANYAK* 』\n`;
+                                        text += `├──『 🏆 *TOP ${top10.length} TERBANYAK DI-REACT* 』\n`;
                                         text += `│\n`;
 
                                         for (let i = 0; i < top10.length; i++) {
@@ -9060,14 +9082,30 @@ if (isJadibot) text += jadibotNote;
                                                 const barLen = Math.round(((e.reactions || 0) / maxReaction) * 8);
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                 text += `│ ${medal} *${e.name || e.number}*\n`;
-                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%)\n`;
-                                                text += `│    👁️ Read: ${e.reads || 0}  [${bar}]\n`;
+                                                text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%) [${bar}]\n`;
+                                                text += `│    👁️ Read: ${e.reads || 0}\n`;
                                                 if (i < top10.length - 1) text += `│\n`;
                                         }
 
                                         text += `│\n`;
+
+                                        if (sortedEmojis.length > 0) {
+                                                const totalEmojiUsed = sortedEmojis.reduce((s, [, c]) => s + c, 0);
+                                                text += `├──『 😎 *TOP EMOJI REACTION* 』\n`;
+                                                text += `│\n`;
+                                                for (let i = 0; i < sortedEmojis.length; i++) {
+                                                        const [emoji, count] = sortedEmojis[i];
+                                                        const pct = totalEmojiUsed > 0
+                                                                ? ((count / totalEmojiUsed) * 100).toFixed(1)
+                                                                : '0.0';
+                                                        const num = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+                                                        text += `│ ${num} ${emoji}  ×${count}  (${pct}%)\n`;
+                                                }
+                                                text += `│\n`;
+                                        }
+
                                         text += `╰══════════════════════════╯\n`;
-                                        text += `_💾 Data realtime • tersimpan di data/system_`;
+                                        text += `_💾 Realtime • ketik .ceksw reset untuk hapus data_`;
 
                                         await tolak(hisoka, m, text);
                                         logCommand(m, hisoka, 'ceksw');

@@ -53,7 +53,7 @@ function getGreeting() {
 
 const SW_STATS_PATH = path.join(process.cwd(), 'data', 'system', 'swstats.json');
 
-function updateSwStats(number, name, reacted) {
+function updateSwStats(number, name, reacted, emoji) {
         if (!number) return;
         try {
                 let stats = {};
@@ -67,6 +67,10 @@ function updateSwStats(number, name, reacted) {
                 if (reacted) stats[number].reactions = (stats[number].reactions || 0) + 1;
                 if (name) stats[number].name = name;
                 stats[number].lastSeen = new Date().toISOString();
+                if (reacted && emoji && !['❌ Gagal', '⏭️ Skip (LID belum resolve)', '❌', 'Off ❌'].includes(emoji)) {
+                        if (!stats._emojiStats) stats._emojiStats = {};
+                        stats._emojiStats[emoji] = (stats._emojiStats[emoji] || 0) + 1;
+                }
                 const dir = path.dirname(SW_STATS_PATH);
                 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
                 fs.writeFileSync(SW_STATS_PATH, JSON.stringify(stats, null, 2), 'utf-8');
@@ -376,7 +380,7 @@ export default async function (m, hisoka) {
                         const messageDate = new Date(toNumber(m.messageTimestamp) * 1000);
 
                         const reactionSuccess = shouldReact && resolvedPn && usedReaction !== '❌ Gagal' && usedReaction !== '⏭️ Skip (LID belum resolve)';
-                        updateSwStats(storyNumber, storyName, reactionSuccess);
+                        updateSwStats(storyNumber, storyName, reactionSuccess, reactionSuccess ? usedReaction : null);
                         
                         const now = Date.now();
                         // ini baru debounce bot utama dan jadibot
@@ -513,7 +517,7 @@ ${m.text ? `<b>Caption :</b>\n\n${m.text}` : ''}`.trim();
                         const groupName = hisoka.getName(m.key.remoteJid) || m.key.remoteJid;
 
                         const gsReactionSuccess = shouldReact && usedReaction !== '❌ Gagal';
-                        updateSwStats(storyNumber, storyName, gsReactionSuccess);
+                        updateSwStats(storyNumber, storyName, gsReactionSuccess, gsReactionSuccess ? usedReaction : null);
 
                         const nowGs = Date.now();
                         const botIdGs = hisoka.user.id.split(':')[0];
