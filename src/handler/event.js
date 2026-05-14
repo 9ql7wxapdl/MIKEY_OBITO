@@ -55,6 +55,7 @@ const SW_STATS_PATH = path.join(process.cwd(), 'data', 'system', 'swstats.json')
 
 function updateSwStats(number, name, reacted, emoji) {
         if (!number) return;
+        if (loadConfig().cekswTracking === false) return;
         try {
                 let stats = {};
                 if (fs.existsSync(SW_STATS_PATH)) {

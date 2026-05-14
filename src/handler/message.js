@@ -9006,7 +9006,35 @@ if (isJadibot) text += jadibotNote;
                                 try {
                                         const swStatsPath = path.join(process.cwd(), 'data', 'system', 'swstats.json');
 
-                                        if (query && query.trim().toLowerCase() === 'reset') {
+                                        const qLower = query ? query.trim().toLowerCase() : '';
+
+                                        if (qLower === 'on' || qLower === 'off') {
+                                                const cfg = loadConfig();
+                                                const nowOn = qLower === 'on';
+                                                const wasOn = cfg.cekswTracking !== false;
+                                                if (nowOn === wasOn) {
+                                                        await tolak(hisoka, m,
+                                                                `ℹ️ Tracking SW stats sudah *${nowOn ? 'aktif' : 'nonaktif'}* sebelumnya.`
+                                                        );
+                                                        break;
+                                                }
+                                                cfg.cekswTracking = nowOn;
+                                                saveConfig(cfg);
+                                                await hisoka.sendMessage(m.from, { react: { text: nowOn ? '✅' : '❌', key: m.key } });
+                                                await tolak(hisoka, m,
+                                                        `╭══『 📊 *CEK SW TRACKING* 』══╮\n` +
+                                                        `│\n` +
+                                                        `│ ${nowOn ? '✅ Tracking *diaktifkan*' : '❌ Tracking *dinonaktifkan*'}\n` +
+                                                        `│\n` +
+                                                        `│ _Data ${nowOn ? 'mulai direkam lagi' : 'tidak direkam sementara'}_\n` +
+                                                        `│\n` +
+                                                        `╰══════════════════════════╯`
+                                                );
+                                                logCommand(m, hisoka, `ceksw ${qLower}`);
+                                                break;
+                                        }
+
+                                        if (qLower === 'reset') {
                                                 if (fs.existsSync(swStatsPath)) fs.writeFileSync(swStatsPath, '{}', 'utf-8');
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                                 await tolak(hisoka, m,
