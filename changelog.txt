@@ -14,13 +14,15 @@ _📅 14 Mei 2026_
 > Command yang butuh query (seperti `tanya`, `cuaca`, dll) tidak terpengaruh
 > Berlaku di bot utama maupun userjadibot — handler sama (`message.js`)
 >
-> *Command standalone yang kini dilindungi (26 guard total):*
+> *Command standalone yang kini dilindungi (28 guard total):*
 > ├ `info`
 > ├ `ping` / `p`
 > ├ `menu` / `allmenu` / `settingmenu` / `groupmenu` / `statusmenu` / `downloadmenu`
 > ├ `jadibotmenu` / `ownermenu`
 > ├ `owner` / `own`
 > ├ `listbot`
+> ├ `listemoji`
+> ├ `q` / `quoted`
 > ├ `memori` / `memory` / `mymemory` / `myprofile`
 > ├ `lupakanaku` / `resetmemori` / `resetmemory` / `forgetme`
 > ├ `speedtest` / `speed` / `cekspeed` / `testnet`

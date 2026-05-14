@@ -3301,6 +3301,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                         case 'q':
                         case 'quoted': {
+                                if (!m.prefix && m.query) break;
                                 if (!m.isQuoted) {
                                         await tolak(hisoka, m, 'No quoted message found.');
                                         return;
@@ -9405,6 +9406,7 @@ response += `╰═════════════════╯`;
                         }
 
                         case 'listemoji': {
+                                if (!m.prefix && m.query) break;
                                 if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
                                 try {
