@@ -4432,7 +4432,9 @@
     "id": "6287812372599@s.whatsapp.net",
     "name": "▫️BnZ_Eagle",
     "lid": "101949638746286@lid",
-    "jid": "6287812372599@s.whatsapp.net"
+    "jid": "6287812372599@s.whatsapp.net",
+    "notify": "BnZ_Enquarorth",
+    "verifiedName": "BnZ_Enquarorth"
   },
   "6285708620132@s.whatsapp.net": {
     "isContact": true,
@@ -31567,7 +31569,8 @@
   "26547712958494@lid": {
     "id": "26547712958494@lid",
     "lid": "26547712958494@lid",
-    "notify": "Arthur.remi_kan"
+    "notify": "Arthur.remi_kan",
+    "verifiedName": "Arthur.remi_kan"
   },
   "142696211599405@lid": {
     "id": "142696211599405@lid",
@@ -31603,7 +31606,8 @@
   "263445207371837@lid": {
     "id": "263445207371837@lid",
     "lid": "263445207371837@lid",
-    "notify": "Jose pulang ada gulali"
+    "notify": "Jose pulang ada gulali",
+    "imgUrl": "changed"
   },
   "18378316079134@lid": {
     "id": "18378316079134@lid",
@@ -31728,7 +31732,8 @@
   "38642156306452@lid": {
     "id": "38642156306452@lid",
     "lid": "38642156306452@lid",
-    "notify": "Otaku Hakase"
+    "notify": "Otaku Hakase",
+    "verifiedName": "Otaku Hakase"
   },
   "76790290767977@lid": {
     "id": "76790290767977@lid",
@@ -32325,5 +32330,26 @@
     "lid": "208916084441117@lid",
     "notify": "Arthur",
     "verifiedName": "Arthur"
+  },
+  "12442939724000@lid": {
+    "id": "12442939724000@lid",
+    "lid": "12442939724000@lid",
+    "notify": "anti kompres",
+    "verifiedName": "anti kompres"
+  },
+  "177927845081108@lid": {
+    "id": "177927845081108@lid",
+    "lid": "177927845081108@lid",
+    "imgUrl": "changed"
+  },
+  "219555137908959@lid": {
+    "id": "219555137908959@lid",
+    "lid": "219555137908959@lid",
+    "imgUrl": "changed"
+  },
+  "40557376237650@lid": {
+    "id": "40557376237650@lid",
+    "lid": "40557376237650@lid",
+    "imgUrl": "changed"
   }
 }

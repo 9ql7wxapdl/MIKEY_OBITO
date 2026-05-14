@@ -197,6 +197,129 @@ async function jalankanSpeedtest() {
     };
 }
 
+// ── GENERATE GAMBAR THUMBNAIL ─────────────────────────────────────────────────
+
+function dlColor(mbps) {
+    if (mbps === null) return '#ef4444';
+    if (mbps >= 100)  return '#22c55e';
+    if (mbps >= 50)   return '#84cc16';
+    if (mbps >= 20)   return '#eab308';
+    if (mbps >= 5)    return '#f97316';
+    return '#ef4444';
+}
+function pingColor(ms) {
+    if (ms === null) return '#ef4444';
+    if (ms < 20)  return '#22c55e';
+    if (ms < 50)  return '#84cc16';
+    if (ms < 100) return '#eab308';
+    return '#ef4444';
+}
+
+function buatSvg(hasil) {
+    const { meta, ping, download, upload, durasi } = hasil;
+
+    const dlVal  = download !== null ? formatMbps(download) : 'N/A';
+    const ulVal  = upload   !== null ? formatMbps(upload)   : 'N/A';
+    const pgVal  = ping     ? `${ping.avg} ms`              : 'N/A';
+    const jitter = ping     ? `${ping.jitter} ms`           : '-';
+
+    const dlC = dlColor(download);
+    const ulC = dlColor(upload);
+    const pgC = pingColor(ping?.avg ?? null);
+
+    const isp    = (meta.isp || '-').replace(/AS\d+\s*/i, '').slice(0, 28);
+    const lokasi = [meta.kota, meta.negara].filter(v => v && v !== '-').join(', ') || '-';
+    const ip     = meta.ip || '-';
+    const waktu  = new Date().toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' });
+
+    return `<svg width="640" height="360" xmlns="http://www.w3.org/2000/svg" font-family="Arial,sans-serif">
+  <!-- background gradient -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#0f0c29"/>
+      <stop offset="50%"  stop-color="#1a1060"/>
+      <stop offset="100%" stop-color="#24243e"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"  stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="640" height="360" fill="url(#bg)"/>
+
+  <!-- header bar -->
+  <rect x="0" y="0" width="640" height="52" fill="#141330" opacity="0.8"/>
+  <circle cx="28" cy="26" r="14" fill="#141330" stroke="#6366f1" stroke-width="2"/>
+  <text x="28" y="31" text-anchor="middle" font-size="15" fill="#6366f1" font-weight="bold">⚡</text>
+  <text x="50" y="33" font-size="18" fill="white" font-weight="bold">INTERNET SPEED TEST</text>
+  <text x="620" y="33" text-anchor="end" font-size="11" fill="#94a3b8">speed.cloudflare.com</text>
+
+  <!-- 3 metric cards -->
+  <!-- DOWNLOAD -->
+  <rect x="24" y="72" width="184" height="150" rx="14" fill="url(#card)" stroke="${dlC}" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="116" y="100" text-anchor="middle" font-size="12" fill="#94a3b8" letter-spacing="2">DOWNLOAD</text>
+  <text x="116" y="148" text-anchor="middle" font-size="34" fill="${dlC}" font-weight="bold">${dlVal.replace(' Mbps','').replace(' Gbps','')}</text>
+  <text x="116" y="170" text-anchor="middle" font-size="13" fill="${dlC}" opacity="0.8">${dlVal.includes('Gbps') ? 'Gbps' : 'Mbps'}</text>
+  <rect x="44" y="182" width="${Math.min(144, download ? Math.round((Math.min(download,1000)/1000)*144) : 0)}" height="5" rx="3" fill="${dlC}" opacity="0.7"/>
+  <rect x="44" y="182" width="144" height="5" rx="3" fill="none" stroke="${dlC}" stroke-width="1" opacity="0.2"/>
+  <text x="116" y="208" text-anchor="middle" font-size="11" fill="${dlC}">${labelKualitas(download).teks}</text>
+
+  <!-- UPLOAD -->
+  <rect x="228" y="72" width="184" height="150" rx="14" fill="url(#card)" stroke="${ulC}" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="320" y="100" text-anchor="middle" font-size="12" fill="#94a3b8" letter-spacing="2">UPLOAD</text>
+  <text x="320" y="148" text-anchor="middle" font-size="34" fill="${ulC}" font-weight="bold">${ulVal.replace(' Mbps','').replace(' Gbps','')}</text>
+  <text x="320" y="170" text-anchor="middle" font-size="13" fill="${ulC}" opacity="0.8">${ulVal.includes('Gbps') ? 'Gbps' : 'Mbps'}</text>
+  <rect x="248" y="182" width="${Math.min(144, upload ? Math.round((Math.min(upload,1000)/1000)*144) : 0)}" height="5" rx="3" fill="${ulC}" opacity="0.7"/>
+  <rect x="248" y="182" width="144" height="5" rx="3" fill="none" stroke="${ulC}" stroke-width="1" opacity="0.2"/>
+  <text x="320" y="208" text-anchor="middle" font-size="11" fill="${ulC}">${labelKualitas(upload).teks}</text>
+
+  <!-- PING -->
+  <rect x="432" y="72" width="184" height="150" rx="14" fill="url(#card)" stroke="${pgC}" stroke-width="1.5" stroke-opacity="0.5"/>
+  <text x="524" y="100" text-anchor="middle" font-size="12" fill="#94a3b8" letter-spacing="2">PING</text>
+  <text x="524" y="148" text-anchor="middle" font-size="34" fill="${pgC}" font-weight="bold">${ping ? ping.avg : 'N/A'}</text>
+  <text x="524" y="170" text-anchor="middle" font-size="13" fill="${pgC}" opacity="0.8">ms</text>
+  <text x="481" y="198" text-anchor="middle" font-size="10" fill="#64748b">MIN</text>
+  <text x="481" y="210" text-anchor="middle" font-size="11" fill="${pgC}">${ping ? ping.min+'ms' : '-'}</text>
+  <text x="524" y="198" text-anchor="middle" font-size="10" fill="#64748b">MAX</text>
+  <text x="524" y="210" text-anchor="middle" font-size="11" fill="${pgC}">${ping ? ping.max+'ms' : '-'}</text>
+  <text x="567" y="198" text-anchor="middle" font-size="10" fill="#64748b">JITTER</text>
+  <text x="567" y="210" text-anchor="middle" font-size="11" fill="${pgC}">${jitter}</text>
+
+  <!-- info bar bawah -->
+  <rect x="0" y="240" width="640" height="120" fill="#0d0b25" opacity="0.6"/>
+  <line x1="0" y1="240" x2="640" y2="240" stroke="#6366f1" stroke-width="1" opacity="0.3"/>
+
+  <!-- ISP -->
+  <text x="32" y="268" font-size="10" fill="#64748b">ISP</text>
+  <text x="32" y="284" font-size="13" fill="#e2e8f0" font-weight="bold">${isp}</text>
+
+  <!-- LOKASI -->
+  <text x="240" y="268" font-size="10" fill="#64748b">LOKASI</text>
+  <text x="240" y="284" font-size="13" fill="#e2e8f0">${lokasi}</text>
+
+  <!-- IP -->
+  <text x="450" y="268" font-size="10" fill="#64748b">IP ADDRESS</text>
+  <text x="450" y="284" font-size="13" fill="#e2e8f0">${ip}</text>
+
+  <!-- divider -->
+  <line x1="24" y1="298" x2="616" y2="298" stroke="#334155" stroke-width="1"/>
+
+  <!-- footer -->
+  <text x="32" y="320" font-size="10" fill="#475569">DURASI TEST</text>
+  <text x="32" y="336" font-size="12" fill="#94a3b8">${durasi}s</text>
+  <text x="320" y="336" text-anchor="middle" font-size="11" fill="#475569">${waktu} WIB</text>
+  <text x="608" y="320" text-anchor="end" font-size="10" fill="#475569">WILY BOT</text>
+  <text x="608" y="336" text-anchor="end" font-size="12" fill="#6366f1">Speed Test</text>
+</svg>`;
+}
+
+async function buatGambar(hasil) {
+    const sharp = require('sharp');
+    const svg   = buatSvg(hasil);
+    return await sharp(Buffer.from(svg)).png().toBuffer();
+}
+
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
 
 const SEP  = '━━━━━━━━━━━━━━━━━━━━';
@@ -255,6 +378,8 @@ async function simulasi() {
 module.exports = {
     jalankanSpeedtest,
     buatCaption,
+    buatGambar,
+    buatSvg,
     simulasi,
     ukurPing,
     ukurDownload,

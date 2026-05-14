@@ -3426,22 +3426,17 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'testnet': {
                                 try {
                                         const msg = await m.reply('🌐 _Mengukur kecepatan internet... harap tunggu ~5 detik_');
-                                        const _st = require(path.join(process.cwd(), 'src', 'scrape', 'speedtest.cjs'));
+                                        const _st   = require(path.join(process.cwd(), 'src', 'scrape', 'speedtest.cjs'));
                                         const hasil   = await _st.jalankanSpeedtest();
                                         const caption = _st.buatCaption(hasil);
+                                        const imgBuf  = await _st.buatGambar(hasil);
 
-                                        let ppUrl;
-                                        try { ppUrl = await hisoka.profilePictureUrl(hisoka.user.id, 'image'); } catch { ppUrl = null; }
-
-                                        if (ppUrl) {
-                                                await hisoka.sendMessage(m.from, {
-                                                        image  : { url: ppUrl },
-                                                        caption,
-                                                }, { quoted: m });
-                                                await hisoka.sendMessage(m.from, { delete: msg.key });
-                                        } else {
-                                                await m.reply({ edit: msg.key, text: caption });
-                                        }
+                                        await hisoka.sendMessage(m.from, {
+                                                image   : imgBuf,
+                                                mimetype: 'image/png',
+                                                caption,
+                                        }, { quoted: m });
+                                        await hisoka.sendMessage(m.from, { delete: msg.key });
                                         logCommand(m, hisoka, 'speedtest');
                                 } catch (err) {
                                         console.error('[speedtest] Error:', err.message);

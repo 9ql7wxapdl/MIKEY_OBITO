@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "dPTgiSyGvcZkOpaOQhCl0"
+uri = "file://attached_assets/speedtest_preview.png"
+type = "image"
+title = "Preview Gambar Speedtest"
