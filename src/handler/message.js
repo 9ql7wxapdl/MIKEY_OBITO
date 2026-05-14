@@ -11614,7 +11614,6 @@ infoText += `╰═════════════════════�
                                 break;
 
                         case 'backup': {
-                                if (!m.prefix && m.query) break;
                                 if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
 
