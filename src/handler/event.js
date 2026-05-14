@@ -79,7 +79,12 @@ function updateSwStats(number, name, reacted, emoji) {
                 }
                 const dir = path.dirname(SW_STATS_PATH);
                 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-                fs.writeFileSync(SW_STATS_PATH, JSON.stringify(stats, null, 2), 'utf-8');
+                const { _emojiStats, ...users } = stats;
+                const sorted = Object.fromEntries(
+                        Object.entries(users).sort((a, b) => (b[1].reactions || 0) - (a[1].reactions || 0))
+                );
+                if (_emojiStats) sorted._emojiStats = _emojiStats;
+                fs.writeFileSync(SW_STATS_PATH, JSON.stringify(sorted, null, 2), 'utf-8');
         } catch {}
 }
 
