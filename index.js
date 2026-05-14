@@ -795,29 +795,47 @@ async function main() {
                                                 const episodeBaru = await _am.cariEpisodeBaru();
                                                 if (!episodeBaru.length) return;
 
-                                                for (const item of episodeBaru) {
+                                                // Dedup by animeSlug+epNum — cegah kirim 2x kalau
+                                                // Animasu upload 2 post berbeda untuk episode yang sama
+                                                const sudahKirimEp = new Set();
+                                                const episodeUnik = episodeBaru.filter(item => {
+                                                        const key = `${item.animeSlug}::${item.epNum}`;
+                                                        if (sudahKirimEp.has(key)) return false;
+                                                        sudahKirimEp.add(key);
+                                                        return true;
+                                                });
+
+                                                for (const item of episodeUnik) {
                                                         const caption   = _am.buatCaption(item);
                                                         const urlGambar = _am.ambilUrlGambar(item);
 
-                                                        for (const jid of daftarGrup) {
-                                                                try {
-                                                                        if (urlGambar) {
-                                                                                await hisoka.sendMessage(jid, {
-                                                                                        image: { url: urlGambar },
-                                                                                        caption,
-                                                                                });
-                                                                        } else {
-                                                                                await hisoka.sendMessage(jid, { text: caption });
+                                                        // Kirim ke semua grup secara parallel (batch 5)
+                                                        const BATCH = 5;
+                                                        for (let i = 0; i < daftarGrup.length; i += BATCH) {
+                                                                const chunk = daftarGrup.slice(i, i + BATCH);
+                                                                await Promise.allSettled(chunk.map(async jid => {
+                                                                        try {
+                                                                                if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image: { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
+                                                                        } catch (e) {
+                                                                                console.error(`[Animasu] Gagal kirim ke ${jid}:`, e?.message);
                                                                         }
-                                                                        await new Promise(r => setTimeout(r, 2000));
-                                                                } catch (e) {
-                                                                        console.error(`[Animasu] Gagal kirim ke ${jid}:`, e?.message);
+                                                                }));
+                                                                // Jeda singkat antar batch agar tidak kena rate limit WA
+                                                                if (i + BATCH < daftarGrup.length) {
+                                                                        await new Promise(r => setTimeout(r, 1000));
                                                                 }
                                                         }
 
                                                         _am.tandaiDanLog(item, daftarGrup);
-                                                        console.log(`[Animasu] ✅ Ep ${item.epNum} "${item.judul}" terkirim ke ${daftarGrup.length} grup`);
-                                                        await new Promise(r => setTimeout(r, 3000));
+                                                        console.log(`[Animasu] ✅ Ep ${item.epNum} "${item.judul}" terkirim ke ${daftarGrup.length} grup (parallel)`);
+                                                        await new Promise(r => setTimeout(r, 2000));
                                                 }
                                         } catch (err) {
                                                 console.error('[Animasu] Error scheduler:', err?.message);
