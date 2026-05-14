@@ -6334,212 +6334,140 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 
 ╭─「 🤖 *AUTO FITUR* 」
-│  _Aktif otomatis tanpa perintah_
-│
 ├➤ *.typing on/off*
-│   _Bot kirim efek "sedang mengetik"_
 ├➤ *.recording on/off*
-│   _Bot kirim efek "sedang merekam"_
 ├➤ *.online on/off*
-│   _Bot selalu tampil online_
 ├➤ *.readsw on/off*
-│   _Auto baca & reaksi story kontak_
 ├➤ *.telegram on/off*
-│   _Forward pesan/story ke Telegram_
 ├➤ *.autocleaner on/off*
-│   _Bersihkan file temp otomatis_
 ╰➤ *.sessioncleaner on/off*
-   _Bersihkan sesi stale otomatis_
 
 ╭─「 🛡️ *ANTI FITUR* 」
-│  _Perlindungan otomatis bot_
-│
 ├➤ *.antidel on/off*
-│   _Tangkap & simpan pesan dihapus_
-│   ├ *.antidel private on/off*  _→ Private chat_
-│   ├ *.antidel group on/off*  _→ Grup_
-│   ├ *.antidel all on/off*  _→ Semua chat_
+│   ├ *.antidel private on/off*
+│   ├ *.antidel group on/off*
+│   ├ *.antidel all on/off*
 │   ╰ *.antidel sendto self/chat/both*
-│
-├➤ *.anticall on/off*  _(.ac)_
-│   _Tolak otomatis panggilan suara_
-│   ├ *.anticall msg [teks]*  _→ Atur pesan tolak_
-│   ├ *.anticall add [nomor]*  _→ Whitelist nomor_
-│   ├ *.anticall del [nomor]*  _→ Hapus whitelist_
-│   ╰ *.anticall list*  _→ Lihat whitelist_
-│
-├➤ *.anticallvid on/off*  _(.acv)_
-│   _Tolak otomatis panggilan video_
-│   ├ *.anticallvid msg [teks]*  _→ Atur pesan tolak_
-│   ├ *.anticallvid add [nomor]*  _→ Whitelist nomor_
-│   ├ *.anticallvid del [nomor]*  _→ Hapus whitelist_
-│   ╰ *.anticallvid list*  _→ Lihat whitelist_
-│
-╰➤ *.antitagsw on/off*  _[khusus grup]_
-   _Blokir tag spam di story_
-   ├ *.antitagsw global on/off*  _→ Semua grup_
-   ├ *.antitagsw status*  _→ Cek status_
-   ╰ *.antitagsw reset*  _→ Reset setting_
+├➤ *.anticall / .ac on/off*
+│   ├ *.anticall msg [teks]*
+│   ├ *.anticall add/del [nomor]*
+│   ╰ *.anticall list*
+├➤ *.anticallvid / .acv on/off*
+│   ├ *.anticallvid msg [teks]*
+│   ├ *.anticallvid add/del [nomor]*
+│   ╰ *.anticallvid list*
+╰➤ *.antitagsw on/off*
+   ├ *.antitagsw global on/off*
+   ├ *.antitagsw status*
+   ╰ *.antitagsw reset*
 
 ╭─「 💬 *PESAN & STICKER* 」
-│
-├➤ *.s / .sticker*  _→ Buat sticker_
-├➤ *.toimg*  _→ Sticker jadi gambar_
-├➤ *.stickerly [query/link]*  _→ Cari sticker_
-├➤ *.stickerpack [query]*  _→ Download pack sticker_
-├➤ *.rvo / .viewonce*  _→ Buka pesan sekali lihat_
-├➤ *.quoted / .q*  _→ Ambil pesan yang di-reply_
-╰➤ *.react / .reaksi*  _→ Kirim reaksi ke pesan_
+├➤ *.s / .sticker*
+├➤ *.toimg*
+├➤ *.stickerly [query/link]*
+├➤ *.stickerpack [query]*
+├➤ *.rvo / .viewonce*
+├➤ *.quoted / .q*
+╰➤ *.react / .reaksi*
 
 ╭─「 👥 *FITUR GRUP* 」
-│  _Khusus digunakan di dalam grup_
-│
 ├➤ *.hidetag / .ht [teks]*
-│   _Tag semua member tanpa notif_
 ├➤ *.ghosttag / .gt [teks]*
-│   _Tag member tanpa terlihat_
 ├➤ *.welcome on/off*
-│   _Pesan sambutan member baru_
 ├➤ *.goodbye on/off*
-│   _Pesan perpisahan member keluar_
 ├➤ *.welgod on/off*
-│   _Welcome + Goodbye sekaligus_
-├➤ *.listgroup*  _→ Daftar semua grup bot_
-╰➤ *.group*  _→ Info grup saat ini_
+├➤ *.listgroup*
+╰➤ *.group*
 
 ╭─「 📡 *STATUS & STORY* 」
-│
 ├➤ *.sw / .getsw*
-│   _Ambil media dari story_
 ├➤ *.upswgc [caption]*
-│   _Upload story ke semua grup_
 ├➤ *.sendstatus / .swgc*
-│   _Kirim status ke kontak/grup_
 ╰➤ *.antitagsw on/off*
-   _Blokir tag spam di story_
 
 ╭─「 📥 *DOWNLOAD* 」
-│
-├➤ *.tt [link]*  _→ TikTok video/audio_
-├➤ *.ig [link]*  _→ Instagram reels/foto_
-├➤ *.fb [link]*  _→ Facebook video_
-├➤ *.ytmp3 [link]*  _→ YouTube → MP3_
-├➤ *.ytmp4 [link]*  _→ YouTube → MP4_
-├➤ *.play [judul]*  _→ Cari & download lagu_
-├➤ *.hd / .remini*  _→ Perjelas foto blur_
-╰➤ *.hdvid / .hdvideo*  _→ Perjelas video blur_
+├➤ *.tt [link]*
+├➤ *.ig [link]*
+├➤ *.fb [link]*
+├➤ *.ytmp3 [link]*
+├➤ *.ytmp4 [link]*
+├➤ *.play [judul]*
+├➤ *.hd / .remini*
+╰➤ *.hdvid / .hdvideo*
 
 ╭─「 🔍 *INFO & CEK* 」
-│
 ├➤ *.cekhp / .spechp [merk HP]*
-│   _Cek spesifikasi HP realtime_
 ├➤ *.bandingkan [HP1] vs [HP2]*
-│   _Bandingkan 2 HP side-by-side_
 ├➤ *.cuaca [kota/daerah]*
-│   _Cek cuaca & prakiraan realtime_
 ├➤ *.ba / .bluearchive [nama]*
-│   _Info karakter Blue Archive_
 ├➤ *.genius / .carilagu [judul]*
-│   _Cari info & lirik lagu_
 ├➤ *.geniusdetail [id]*
-│   _Detail lagu Genius_
-├➤ *.whatsmusik / .wmusik*
-│   _Kenali judul lagu dari audio_
-├➤ *.shazam / .tebaklagu*
-│   _Alias kenali lagu (sama dengan .wmusik)_
+├➤ *.whatsmusik / .wmusik / .shazam*
 ╰➤ *.speedtest / .speed / .cekspeed*
-   _Cek kecepatan internet realtime_
 
 ╭─「 🤖 *AI CHAT* 」
-│
 ├➤ *.ai / .tanya [pesan]*
-│   _Chat dengan AI (Gemini/Llama)_
 ├➤ *.mymemory / .myprofile*
-│   _Lihat riwayat & profil memori AI_
 ╰➤ *.forgetme / .resetmemory*
-   _Reset memori AI_
 
 ╭─「 🎌 *ANIME & MANGA* 」
-│
 ├➤ *.kusonime / .anime [judul]*
-│   _Cari info & download anime_
-├➤ *.kusonimeupdate*  _→ Update terbaru_
+├➤ *.kusonimeupdate*
 ├➤ *.alq / .alqanime [judul]*
-│   _Cari anime dari AlqAnime_
-├➤ *.alqupdate*  _→ Update terbaru_
-├➤ *.alqdl [link]*  _→ Download anime_
+├➤ *.alqupdate*
+├➤ *.alqdl [link]*
 ├➤ *.komik / .komiktap [judul]*
-│   _Cari manga/komik_
-├➤ *.komikinfo [url]*  _→ Info manga_
-├➤ *.komikget [url chapter]*  _→ Baca chapter_
-╰➤ *.komikupdate*  _→ Update komik terbaru_
+├➤ *.komikinfo [url]*
+├➤ *.komikget [url chapter]*
+╰➤ *.komikupdate*
 
 ╭─「 🔞 *KONTEN 18+* 」
-│  _⚠️ Gunakan dengan bijak_
-│
 ├➤ *.nh / .nhentai [judul/kode]*
-│   _Cari di nhentai_
-├➤ *.nhget [id]*  _→ Detail by ID_
-├➤ *.nhrand*  _→ Konten random_
-├➤ *.nhdl [id]*  _→ Download semua halaman_
+├➤ *.nhget [id]*
+├➤ *.nhrand*
+├➤ *.nhdl [id]*
 ├➤ *.cosplay [query]*
-│   _Cari foto cosplay_
-├➤ *.cosplayrandom*  _→ Cosplay random_
+├➤ *.cosplayrandom*
 ╰➤ *.pixivr18 [query]*
-   _Ilustrasi R18 dari Pixiv_
 
 ╭─「 🌐 *WEB & TOOLS* 」
-│
 ├➤ *.ss / .screenshot [link]*
-│   _Screenshot halaman web_
 ├➤ *.ssweb / .webinfo [link]*
-│   _Scrape info dari website_
 ├➤ *.pixiv [query]*
-│   _Ilustrasi anime Pixiv (SFW)_
 ├➤ *.tmail / .tempmail*
-│   _Buat email sementara_
-├➤ *.tminbox*  _→ Cek inbox tempmail_
-├➤ *.tmread [id]*  _→ Baca email_
-├➤ *.tmwait*  _→ Tunggu email masuk_
-╰➤ *.tmdel*  _→ Hapus tempmail_
+├➤ *.tminbox*
+├➤ *.tmread [id]*
+├➤ *.tmwait*
+╰➤ *.tmdel*
 
 ╭─「 🤖 *JADIBOT* 」
-│  _Jadikan nomor lain sebagai bot_
-│
 ├➤ *.jadibot [nomor] [durasi]*
-│   _Contoh: .jadibot 628xxx 1j_
 ├➤ *.stopbot [nomor]*
-│   _Hentikan jadibot_
 ├➤ *.listbot*
-│   _Daftar jadibot aktif_
 ╰➤ *.jadibotmenu*
-   _Menu lengkap jadibot_
 
 ╭─「 👑 *OWNER ONLY* 」
-│  _🔒 Khusus pemilik bot_
-│
 ├➤ *.listowner / .addowner / .delowner*
-├➤ *.all [teks]*  _→ Tag semua grup_
-├➤ *.ac / .acv*  _→ Anti call/video_
-├➤ *.swgrup / .statusgroup*  _→ Kirim status ke grup_
-├➤ *.infowibu*  _→ Auto info wibu di grup_
-├➤ *.animasu*  _→ Auto notif Sub Indo Animasu_
-├➤ *.tvone*  _→ Auto berita TVOne News di grup_
-├➤ *.wilyai on/off*  _→ AI auto-reply_
-├➤ *.wily / .simi*  _→ AI manual_
-├➤ *.setreactapi [key]*  _→ Set API react_
-├➤ *.cekreact / .reactinfo*  _→ Cek saldo & info React API_
+├➤ *.all [teks]*
+├➤ *.swgrup / .statusgroup*
+├➤ *.infowibu*
+├➤ *.animasu*
+├➤ *.tvone*
+├➤ *.wilyai on/off*
+├➤ *.wily / .simi*
+├➤ *.setreactapi [key]*
+├➤ *.cekreact / .reactinfo*
 ├➤ *.addemoji / .delemoji / .listemoji*
-├➤ *.ram*  _→ Cek detail RAM & memory bot_
-├➤ *.upbot*  _→ Update & restart bot_
-├➤ *.backup*  _→ Backup sesi bot_
-├➤ *.ceksesi*  _→ Cek status sesi_
-├➤ *.sessionstat*  _→ Statistik detail file sesi_
-├➤ *.eval / .bash*  _→ Eksekusi kode/command_
-├➤ *.dbstats / .sessiondb*  _→ Statistik database_
-├➤ *.listcontact*  _→ Daftar kontak bot_
-├➤ *.cekerror*  _→ Cek log error bot_
-╰➤ *.contact*  _→ Info kontak bot_
+├➤ *.ram*
+├➤ *.upbot*
+├➤ *.backup*
+├➤ *.ceksesi*
+├➤ *.sessionstat*
+├➤ *.eval / .bash*
+├➤ *.dbstats / .sessiondb*
+├➤ *.listcontact*
+├➤ *.cekerror*
+╰➤ *.contact*
 
 ▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰▰
 📌 _Ketik_ *.settingmenu* _| .downloadmenu_
