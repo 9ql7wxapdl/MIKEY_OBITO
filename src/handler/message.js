@@ -9085,8 +9085,6 @@ if (isJadibot) text += jadibotNote;
                                         text += `│ ✨ *Total reaction:* ${totalReactions}\n`;
                                         text += `│\n`;
 
-                                        const fmtNum = (num) => num ? `+${num}` : '';
-
                                         if (topBySW.length > 0) {
                                                 const maxSW = getActiveSW(topBySW[0]) || 1;
                                                 text += `├──『 🟢 *SW AKTIF SEKARANG* 』\n`;
@@ -9099,7 +9097,6 @@ if (isJadibot) text += jadibotNote;
                                                         const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                         const medal = medals[i];
                                                         text += `│ ${medal} *${e.name || e.number}*\n`;
-                                                        text += `│    📱 ${fmtNum(e.number)}\n`;
                                                         text += `│    🟢 Aktif: *${active}* SW  [${bar}]\n`;
                                                         if (i < topBySW.length - 1) text += `│\n`;
                                                 }
@@ -9120,7 +9117,6 @@ if (isJadibot) text += jadibotNote;
                                                 const barLen = Math.round(((e.reactions || 0) / maxReaction) * 8);
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                 text += `│ ${medal} *${e.name || e.number}*  ${swDot}\n`;
-                                                text += `│    📱 ${fmtNum(e.number)}\n`;
                                                 text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%) [${bar}]\n`;
                                                 text += `│    👁️ Total read: ${e.reads || 0}\n`;
                                                 if (i < top10.length - 1) text += `│\n`;
