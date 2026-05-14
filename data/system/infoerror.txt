@@ -1,0 +1,727 @@
+════════════════════════════════════════════════════════════════════════
+  ██╗███╗   ██╗███████╗ ██████╗     ███████╗██████╗ ██████╗  ██████╗ ██████╗
+  ██║████╗  ██║██╔════╝██╔═══██╗    ██╔════╝██╔══██╗██╔══██╗██╔═══██╗██╔══██╗
+  ██║██╔██╗ ██║█████╗  ██║   ██║    █████╗  ██████╔╝██████╔╝██║   ██║██████╔╝
+  ██║██║╚██╗██║██╔══╝  ██║   ██║    ██╔══╝  ██╔══██╗██╔══██╗██║   ██║██╔══██╗
+  ██║██║ ╚████║██║     ╚██████╔╝    ███████╗██║  ██║██║  ██║╚██████╔╝██║  ██║
+  ╚═╝╚═╝  ╚═══╝╚═╝      ╚═════╝     ╚══════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝
+════════════════════════════════════════════════════════════════════════
+  FILE     : infoerror.txt
+  Bot      : Wily Bot
+  Update   : 14/05/2026, 07.18.00  (realtime — diperbarui otomatis setiap ada error)
+════════════════════════════════════════════════════════════════════════
+
+  RINGKASAN
+────────────────────────────────────────────────────────────────────────
+  Total Jenis Error (unik)  : 39
+  Total Kejadian Error       : 157
+  Maks. Simpan               : 200 jenis error
+  Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
+  Urutan                     : Terbaru di atas
+
+  DAFTAR ERROR LENGKAP  [39 jenis, 157 kejadian total]
+────────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #001  —  speedtest
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [speedtest] Error: require is not defined
+│
+│  DETAIL
+│  Sumber      : speedtest
+│  Frekuensi   : 4x (duplikat digabung)
+│  Pertama     : 14/05/2026, 07.15.16
+│  Terakhir    : 14/05/2026, 07.18.00
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [speedtest] Error: require is not defined
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778742866164:3447:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #002  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Groups] Gagal fetch grup:[39m Timed Out
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 14/05/2026, 05.04.34
+│  Terakhir    : 14/05/2026, 05.04.34
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Groups] Gagal fetch grup:[39m Timed Out
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at EventEmitter.<anonymous> (file:///home/runner/workspace/index.js:648:41)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #003  —  unhandledRejection
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Connection Closed
+│
+│  DETAIL
+│  Sumber      : unhandledRejection
+│  Frekuensi   : 5x (duplikat digabung)
+│  Pertama     : 14/05/2026, 05.03.39
+│  Terakhir    : 14/05/2026, 05.06.42
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Connection Closed
+│     at sendRawMessage (/home/runner/workspace/node_modules/socketon/lib/Socket/socket.js:63:19)
+│     at sendNode (/home/runner/workspace/node_modules/socketon/lib/Socket/socket.js:82:16)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #004  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[CrashGuard] UnhandledRejection (1 this minute):[39m Connection Closed
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 5x (duplikat digabung)
+│  Pertama     : 14/05/2026, 05.03.39
+│  Terakhir    : 14/05/2026, 05.06.42
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[CrashGuard] UnhandledRejection (1 this minute):[39m Connection Closed
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at process.<anonymous> (file:///home/runner/workspace/src/helper/crashGuard.js:131:17)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #005  —  Animasu
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Animasu] Gagal kirim ke 120363192554714254@g.us: Connection Closed
+│
+│  DETAIL
+│  Sumber      : Animasu
+│  Frekuensi   : 5x (duplikat digabung)
+│  Pertama     : 14/05/2026, 04.57.07
+│  Terakhir    : 14/05/2026, 04.57.26
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Animasu] Gagal kirim ke 120363192554714254@g.us: Connection Closed
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at runAnimasu (file:///home/runner/workspace/index.js:814:81)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #006  —  TVOneNews
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [TVOneNews] Gagal kirim ke 120363192554714254@g.us: Connection Closed
+│
+│  DETAIL
+│  Sumber      : TVOneNews
+│  Frekuensi   : 18x (duplikat digabung)
+│  Pertama     : 14/05/2026, 04.56.45
+│  Terakhir    : 14/05/2026, 04.59.16
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [TVOneNews] Gagal kirim ke 120363192554714254@g.us: Connection Closed
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at runTVOne (file:///home/runner/workspace/index.js:883:81)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #007  —  TVOneNews
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [TVOneNews] Error scheduler: require is not defined
+│
+│  DETAIL
+│  Sumber      : TVOneNews
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 13/05/2026, 09.37.03
+│  Terakhir    : 13/05/2026, 09.37.03
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [TVOneNews] Error scheduler: require is not defined
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at runTVOne (file:///home/runner/workspace/index.js:890:57)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #008  —  Animasu
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Animasu] ❌ Gagal fetch API posts: timeout of 30000ms exceeded
+│
+│  DETAIL
+│  Sumber      : Animasu
+│  Frekuensi   : 4x (duplikat digabung)
+│  Pertama     : 13/05/2026, 07.39.14
+│  Terakhir    : 13/05/2026, 09.13.49
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Animasu] ❌ Gagal fetch API posts: timeout of 30000ms exceeded
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at Object.cariEpisodeBaru (/home/runner/workspace/src/scrape/animasu.cjs:376:17)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #009  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/AiPromptIg.js' does not provide an export named 'formatIgCount'
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 13/05/2026, 04.46.22
+│  Terakhir    : 13/05/2026, 04.47.19
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/AiPromptIg.js' does not provide an export named 'formatIgCount'
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #010  —  Animasu
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Animasu] Error scheduler: timeout of 15000ms exceeded
+│
+│  DETAIL
+│  Sumber      : Animasu
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 12/05/2026, 13.34.23
+│  Terakhir    : 12/05/2026, 13.36.04
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Animasu] Error scheduler: timeout of 15000ms exceeded
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at runAnimasu (file:///home/runner/workspace/index.js:823:57)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #011  —  InfoWibu
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded
+│
+│  DETAIL
+│  Sumber      : InfoWibu
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 13.39.00
+│  Terakhir    : 11/05/2026, 13.39.00
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [InfoWibu] Error scheduler realtime: timeout of 15000ms exceeded
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at runInfoWibu (file:///home/runner/workspace/index.js:769:57)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #012  —  unhandledRejection
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'
+│
+│  DETAIL
+│  Sumber      : unhandledRejection
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 13.02.23
+│  Terakhir    : 11/05/2026, 13.02.23
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'
+│     at async open (node:internal/fs/promises:634:25)
+│     at async writeFile (node:internal/fs/promises:1206:14)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #013  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[CrashGuard] UnhandledRejection (1 this minute):[39m ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 13.02.23
+│  Terakhir    : 11/05/2026, 13.02.23
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[CrashGuard] UnhandledRejection (1 this minute):[39m ENOENT: no such file or directory, open '/home/runner/workspace/sessions/hisoka/creds.json'
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at process.<anonymous> (file:///home/runner/workspace/src/helper/crashGuard.js:131:17)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #014  —  command:cosplay
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Tidak ada hasil untuk "小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren". Coba kata kunci lain.
+│
+│  DETAIL
+│  Sumber      : command:cosplay
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 10.17.19
+│  Terakhir    : 11/05/2026, 10.17.19
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Tidak ada hasil untuk "小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren". Coba kata kunci lain.
+│     at cosplayteleSearch (/home/runner/workspace/src/scrape/cosplaytele.cjs:93:15)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #015  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Cosplay] Error:[39m Tidak ada hasil untuk "小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren". Coba kata kunci lain.
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 10.17.19
+│  Terakhir    : 11/05/2026, 10.17.19
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Cosplay] Error:[39m Tidak ada hasil untuk "小丁 (Xiao Ding) cosplay Fern – Sousou no Frieren". Coba kata kunci lain.
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778494278172:5581:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #016  —  command:cosplay
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Tidak ada hasil untuk "fern-16". Coba kata kunci lain.
+│
+│  DETAIL
+│  Sumber      : command:cosplay
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 10.16.46
+│  Terakhir    : 11/05/2026, 10.16.46
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Tidak ada hasil untuk "fern-16". Coba kata kunci lain.
+│     at cosplayteleSearch (/home/runner/workspace/src/scrape/cosplaytele.cjs:93:15)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #017  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Cosplay] Error:[39m Tidak ada hasil untuk "fern-16". Coba kata kunci lain.
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 11/05/2026, 10.16.46
+│  Terakhir    : 11/05/2026, 10.16.46
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Cosplay] Error:[39m Tidak ada hasil untuk "fern-16". Coba kata kunci lain.
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778494278172:5581:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #018  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibotSettings.js' does not provide an export named 'getJadibotAnticall'
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 11/05/2026, 09.17.31
+│  Terakhir    : 11/05/2026, 09.19.20
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibotSettings.js' does not provide an export named 'getJadibotAnticall'
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #019  —  command:quoted
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  rate-overlimit
+│
+│  DETAIL
+│  Sumber      : command:quoted
+│  Frekuensi   : 28x (duplikat digabung)
+│  Pertama     : 10/05/2026, 09.04.30
+│  Terakhir    : 10/05/2026, 09.04.32
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: rate-overlimit
+│     at assertNodeErrorFree (/home/runner/workspace/node_modules/socketon/lib/WABinary/generic-utils.js:55:15)
+│     at query (/home/runner/workspace/node_modules/socketon/lib/Socket/socket.js:170:48)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #020  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Handler] Error on command "quoted":[39m rate-overlimit
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 28x (duplikat digabung)
+│  Pertama     : 10/05/2026, 09.04.30
+│  Terakhir    : 10/05/2026, 09.04.32
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Handler] Error on command "quoted":[39m rate-overlimit
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778403352125:13107:25)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #021  —  komiktap-update
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  komiktapLatestUpdates is not a function
+│
+│  DETAIL
+│  Sumber      : komiktap-update
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 10/05/2026, 08.08.10
+│  Terakhir    : 10/05/2026, 08.08.21
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  TypeError: komiktapLatestUpdates is not a function
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778400479035:4688:61)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #022  —  KOMIKUPDATE
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [KOMIKUPDATE] Error: komiktapLatestUpdates is not a function
+│
+│  DETAIL
+│  Sumber      : KOMIKUPDATE
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 10/05/2026, 08.08.10
+│  Terakhir    : 10/05/2026, 08.08.21
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [KOMIKUPDATE] Error: komiktapLatestUpdates is not a function
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778400479035:4741:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #023  —  cosplay:fetch
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Cannot access '_sendCosplayImages' before initialization
+│
+│  DETAIL
+│  Sumber      : cosplay:fetch
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 10.08.57
+│  Terakhir    : 09/05/2026, 10.08.57
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  ReferenceError: Cannot access '_sendCosplayImages' before initialization
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778321315372:2718:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #024  —  Cosplay
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Cosplay] Error fetch post: Cannot access '_sendCosplayImages' before initialization
+│
+│  DETAIL
+│  Sumber      : Cosplay
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 10.08.57
+│  Terakhir    : 09/05/2026, 10.08.57
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Cosplay] Error fetch post: Cannot access '_sendCosplayImages' before initialization
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778321315372:2759:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #025  —  Pixiv
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Pixiv] AI gagal: AI timeout
+│
+│  DETAIL
+│  Sumber      : Pixiv
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 09/05/2026, 10.07.18
+│  Terakhir    : 10/05/2026, 08.55.21
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Pixiv] AI gagal: AI timeout
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at analyzeIllustration (/home/runner/workspace/src/scrape/pixiv.cjs:24:17)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #026  —  command:pixiv
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Tidak ada hasil ditemukan untuk query tersebut.
+│
+│  DETAIL
+│  Sumber      : command:pixiv
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 10.06.28
+│  Terakhir    : 09/05/2026, 10.06.28
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Tidak ada hasil ditemukan untuk query tersebut.
+│     at pixivSearch (/home/runner/workspace/src/scrape/pixiv.cjs:60:32)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #027  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Pixiv] Error:[39m Tidak ada hasil ditemukan untuk query tersebut.
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 10.06.28
+│  Terakhir    : 09/05/2026, 10.06.28
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Pixiv] Error:[39m Tidak ada hasil ditemukan untuk query tersebut.
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778321026441:4006:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #028  —  command:cosplay
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  cmd is not defined
+│
+│  DETAIL
+│  Sumber      : command:cosplay
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 09/05/2026, 10.02.53
+│  Terakhir    : 09/05/2026, 10.03.31
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  ReferenceError: cmd is not defined
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778320910822:4805:58)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #029  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[Cosplay] Error:[39m cmd is not defined
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 09/05/2026, 10.02.53
+│  Terakhir    : 09/05/2026, 10.03.31
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[Cosplay] Error:[39m cmd is not defined
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778320910822:4943:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #030  —  cosplay:fetch
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Tidak ada media ditemukan di post ini.
+│
+│  DETAIL
+│  Sumber      : cosplay:fetch
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 09.18.22
+│  Terakhir    : 09/05/2026, 09.18.22
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Tidak ada media ditemukan di post ini.
+│     at cosplayteleGetPost (/home/runner/workspace/src/scrape/cosplaytele.cjs:98:15)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #031  —  Cosplay
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.
+│
+│  DETAIL
+│  Sumber      : Cosplay
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 09/05/2026, 09.18.22
+│  Terakhir    : 09/05/2026, 09.18.22
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Cosplay] Error fetch post: Tidak ada media ditemukan di post ini.
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778318255149:2775:49)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #032  —  alqdl_auto
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Ep 01: gagal resolve → Request failed with status code 404
+│
+│  DETAIL
+│  Sumber      : alqdl_auto
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 06/05/2026, 08.08.25
+│  Terakhir    : 06/05/2026, 08.08.25
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: Ep 01: gagal resolve → Request failed with status code 404
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778054819065:2504:79)
+│     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #033  —  ALQDL_AUTO
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404
+│
+│  DETAIL
+│  Sumber      : ALQDL_AUTO
+│  Frekuensi   : 1x (baru terjadi)
+│  Pertama     : 06/05/2026, 08.08.25
+│  Terakhir    : 06/05/2026, 08.08.25
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [ALQDL_AUTO] Error: Ep 01: gagal resolve → Request failed with status code 404
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778054819065:2604:65)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #034  —  alqdl_auto
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  Request failed with status code 403
+│
+│  DETAIL
+│  Sumber      : alqdl_auto
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 06/05/2026, 07.24.40
+│  Terakhir    : 06/05/2026, 08.19.25
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  AxiosError: Request failed with status code 403
+│     at settle (/home/runner/workspace/node_modules/axios/dist/node/axios.cjs:2049:12)
+│     at RedirectableRequest.handleResponse (/home/runner/workspace/node_modules/axios/dist/node/axios.cjs:3550:9)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #035  —  ALQDL_AUTO
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [ALQDL_AUTO] Error: Request failed with status code 403
+│
+│  DETAIL
+│  Sumber      : ALQDL_AUTO
+│  Frekuensi   : 3x (duplikat digabung)
+│  Pertama     : 06/05/2026, 07.24.40
+│  Terakhir    : 06/05/2026, 08.19.25
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [ALQDL_AUTO] Error: Request failed with status code 403
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1778052096234:2559:65)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #036  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 05/05/2026, 09.15.11
+│  Terakhir    : 06/05/2026, 08.22.55
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[CrashGuard] Message handler timed out (120s), skipping.[39m
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at file:///home/runner/workspace/index.js:1320:57
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #037  —  Backup
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [Backup] Gagal kirim ke 628968100xxxx Timed Out
+│
+│  DETAIL
+│  Sumber      : Backup
+│  Frekuensi   : 2x (duplikat digabung)
+│  Pertama     : 05/05/2026, 09.14.15
+│  Terakhir    : 05/05/2026, 09.15.16
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [Backup] Gagal kirim ke 628968100xxxx Timed Out
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at default (file:///home/runner/workspace/src/handler/message.js?t=1777970797566:9658:57)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #038  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 10x (duplikat digabung)
+│  Pertama     : 05/05/2026, 08.09.24
+│  Terakhir    : 13/05/2026, 04.47.19
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[HotReload] ✗ Gagal reload 'src/handler/message.js', pakai versi lama.[39m
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at Timeout._onTimeout (file:///home/runner/workspace/src/helper/hotReload.js:102:29)
+└───────────────────────────────────────────────────────────────────────
+
+┌───────────────────────────────────────────────────────────────────────
+│  #039  —  console.error
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│  PESAN ERROR
+│  [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
+│
+│  DETAIL
+│  Sumber      : console.error
+│  Frekuensi   : 4x (duplikat digabung)
+│  Pertama     : 05/05/2026, 08.09.24
+│  Terakhir    : 06/05/2026, 06.10.48
+│
+│  STACK TRACE (3 baris pertama)
+│  ▶  Error: [31m[HotReload] Gagal load 'src/handler/message.js':[39m The requested module '../helper/jadibot.js' does not provide an export named 'setPermanentJadibot'
+│     at console.error (file:///home/runner/workspace/index.js:352:27)
+│     at loadModule (file:///home/runner/workspace/src/helper/hotReload.js:73:17)
+└───────────────────────────────────────────────────────────────────────
+
+════════════════════════════════════════════════════════════════════════
+  End of Report  —  Total: 39 jenis, 157 kejadian
+  Terakhir diperbarui: 14/05/2026, 07.18.00
+════════════════════════════════════════════════════════════════════════

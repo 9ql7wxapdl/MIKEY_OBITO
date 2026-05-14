@@ -3435,16 +3435,6 @@ export default async function ({ message, type: messagesType }, hisoka) {
                                                 image   : imgBuf,
                                                 mimetype: 'image/png',
                                                 caption,
-                                                contextInfo: {
-                                                        externalAdReply: {
-                                                                showAdAttribution: false,
-                                                                title      : '🌐 Cloudflare Speed Test',
-                                                                body       : 'speed.cloudflare.com',
-                                                                sourceUrl  : 'https://speed.cloudflare.com',
-                                                                mediaType  : 1,
-                                                                renderLargerThumbnail: false,
-                                                        },
-                                                },
                                         }, { quoted: m });
                                         await hisoka.sendMessage(m.from, { delete: msg.key });
                                         logCommand(m, hisoka, 'speedtest');

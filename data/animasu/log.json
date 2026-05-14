@@ -1,0 +1,88 @@
+{
+  "terkirim": [
+    {
+      "postId": "236674",
+      "judul": "Tadaima, Ojamasaremasu!",
+      "epNum": 6,
+      "animeSlug": "tadaima-ojamasaremasu",
+      "waktuPost": "2026-05-13T20:47:38",
+      "waktuKirim": "2026-05-14T04:57:26.647Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "cover": "https://v1.animasu.app/wp-content/uploads/2026/04/156106.jpg",
+      "url": "https://v1.animasu.app/anime/tadaima-ojamasaremasu/"
+    },
+    {
+      "postId": "236675",
+      "judul": "Megami “Isekai Tensei Nani ni Naritai desu ka” Ore “Yuusha no Rokkotsu de”",
+      "epNum": 6,
+      "animeSlug": "megami-isekai-tensei-nani-ni-naritai-desu-ka-ore-yuusha-no-rokkotsu-de",
+      "waktuPost": "2026-05-13T20:49:50",
+      "waktuKirim": "2026-05-14T04:57:22.246Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "cover": "https://v1.animasu.app/wp-content/uploads/2026/04/156005.jpg",
+      "url": "https://v1.animasu.app/anime/megami-isekai-tensei-nani-ni-naritai-desu-ka-ore-yuusha-no-rokkotsu-de/"
+    },
+    {
+      "postId": "236684",
+      "judul": "Dorohedoro Season 2",
+      "epNum": 9,
+      "animeSlug": "dorohedoro-season-2",
+      "waktuPost": "2026-05-13T23:30:49",
+      "waktuKirim": "2026-05-14T04:57:17.167Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "cover": "https://v1.animasu.app/wp-content/uploads/2026/04/155354.jpg",
+      "url": "https://v1.animasu.app/anime/dorohedoro-season-2/"
+    },
+    {
+      "postId": "236688",
+      "judul": "Otaku ni Yasashii Gal wa Inai!?",
+      "epNum": 6,
+      "animeSlug": "otaku-ni-yasashii-gal-wa-inai",
+      "waktuPost": "2026-05-14T00:41:42",
+      "waktuKirim": "2026-05-14T04:57:12.196Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "cover": "https://v1.animasu.app/wp-content/uploads/2026/04/155456.jpg",
+      "url": "https://v1.animasu.app/anime/otaku-ni-yasashii-gal-wa-inai/"
+    },
+    {
+      "postId": "236692",
+      "judul": "Nigashita Sakana wa Ookikatta ga Tsuriageta Sakana ga Ookisugita Ken",
+      "epNum": 7,
+      "animeSlug": "nigashita-sakana-wa-ookikatta-ga-tsuriageta-sakana-ga-ookisugita-ken",
+      "waktuPost": "2026-05-14T01:10:15",
+      "waktuKirim": "2026-05-14T04:57:07.573Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "cover": "https://v1.animasu.app/wp-content/uploads/2026/04/155068.jpg",
+      "url": "https://v1.animasu.app/anime/nigashita-sakana-wa-ookikatta-ga-tsuriageta-sakana-ga-ookisugita-ken/"
+    },
+    {
+      "postId": "sim-999",
+      "judul": "Spy x Family",
+      "epNum": 7,
+      "animeSlug": "spy-x-family",
+      "waktuPost": "2026-05-13T07:38:17.618Z",
+      "waktuKirim": "2026-05-13T07:38:17.623Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "cover": "https://example.com/cover.jpg",
+      "url": "https://v1.animasu.app/anime/spy-x-family/"
+    }
+  ]
+}

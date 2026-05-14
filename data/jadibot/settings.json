@@ -1,0 +1,15 @@
+{
+  "6289667923162": {
+    "anticall": {
+      "enabled": true,
+      "message": "",
+      "whitelist": []
+    },
+    "updatedAt": 1778493531425,
+    "anticallvid": {
+      "enabled": true,
+      "message": "",
+      "whitelist": []
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "bots": {
+    "6289681008411": {
+      "number": "6289681008411",
+      "createdAt": 1778490608251,
+      "updatedAt": 1778576576419,
+      "expiresAt": 1781089566698,
+      "durationMs": 2592000000,
+      "durationText": "30 hari",
+      "status": "active",
+      "isPaused": true,
+      "connectedAt": 1778491999201,
+      "pausedAt": 1778579079976,
+      "pausedRemainingMs": 2510486722
+    },
+    "6289667923162": {
+      "number": "6289667923162",
+      "createdAt": 1778493178773,
+      "updatedAt": 1778576576419,
+      "expiresAt": 1781090588686,
+      "durationMs": 2592000000,
+      "durationText": "30 hari",
+      "status": "active",
+      "isPaused": true,
+      "pausedAt": 1778579079976,
+      "pausedRemainingMs": 2511508710
+    }
+  }
+}
