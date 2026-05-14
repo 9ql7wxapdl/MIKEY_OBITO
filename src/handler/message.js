@@ -9098,6 +9098,12 @@ if (isJadibot) text += jadibotNote;
                                                 .sort((a, b) => b[1] - a[1])
                                                 .slice(0, 10);
 
+                                        const fmtPct = (val, total) => {
+                                                if (!total) return '0%';
+                                                const p = (val / total) * 100;
+                                                return p >= 10 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
+                                        };
+
                                         const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
                                         const now = new Date().toLocaleString('id-ID', {
                                                 timeZone: 'Asia/Jakarta',
@@ -9139,9 +9145,7 @@ if (isJadibot) text += jadibotNote;
                                                 const medal = medals[i];
                                                 const active = getActiveSW(e);
                                                 const swDot = active > 0 ? `🟢 ${active} SW` : `⚪ 0 SW`;
-                                                const pct = totalReactions > 0
-                                                        ? ((e.reactions || 0) / totalReactions * 100).toFixed(1)
-                                                        : '0.0';
+                                                const pct = fmtPct(e.reactions || 0, totalReactions);
                                                 const barLen = totalReactions > 0 ? Math.max(1, Math.round(((e.reactions || 0) / totalReactions) * 8)) : 0;
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
                                                 text += `│ ${medal} *${e.name || e.number}*  ${swDot}\n`;
@@ -9158,9 +9162,7 @@ if (isJadibot) text += jadibotNote;
                                                 text += `│\n`;
                                                 for (let i = 0; i < sortedEmojis.length; i++) {
                                                         const [emoji, count] = sortedEmojis[i];
-                                                        const pct = totalEmojiUsed > 0
-                                                                ? ((count / totalEmojiUsed) * 100).toFixed(1)
-                                                                : '0.0';
+                                                        const pct = fmtPct(count, totalEmojiUsed);
                                                         const num = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
                                                         text += `│ ${num} ${emoji}  ×${count}  (${pct}%)\n`;
                                                 }
