@@ -9043,6 +9043,13 @@ if (isJadibot) text += jadibotNote;
                                                 break;
                                         }
 
+                                        const nowTs = Date.now();
+                                        const SW_TTL = 24 * 60 * 60 * 1000;
+
+                                        const getActiveSW = (e) => Array.isArray(e.activeSW)
+                                                ? e.activeSW.filter(t => nowTs - t < SW_TTL).length
+                                                : 0;
+
                                         const sorted = [...entries].sort((a, b) =>
                                                 (b.reactions || 0) - (a.reactions || 0) ||
                                                 (b.reads || 0) - (a.reads || 0)
@@ -9051,6 +9058,12 @@ if (isJadibot) text += jadibotNote;
                                         const totalReads = entries.reduce((s, e) => s + (e.reads || 0), 0);
                                         const totalReactions = entries.reduce((s, e) => s + (e.reactions || 0), 0);
                                         const maxReaction = Math.max(...top10.map(x => x.reactions || 0), 1);
+                                        const totalActiveSW = entries.reduce((s, e) => s + getActiveSW(e), 0);
+
+                                        const topBySW = [...entries]
+                                                .filter(e => getActiveSW(e) > 0)
+                                                .sort((a, b) => getActiveSW(b) - getActiveSW(a))
+                                                .slice(0, 5);
 
                                         const sortedEmojis = Object.entries(emojiStats)
                                                 .sort((a, b) => b[1] - a[1])
@@ -9067,23 +9080,45 @@ if (isJadibot) text += jadibotNote;
                                         text += `│\n`;
                                         text += `│ 🕐 *Update:* ${now} WIB\n`;
                                         text += `│ 👥 *Total orang:* ${entries.length}\n`;
+                                        text += `│ 🟢 *SW aktif sekarang:* ${totalActiveSW} story\n`;
                                         text += `│ 👁️ *Total read:* ${totalReads}\n`;
                                         text += `│ ✨ *Total reaction:* ${totalReactions}\n`;
                                         text += `│\n`;
+
+                                        if (topBySW.length > 0) {
+                                                const maxSW = getActiveSW(topBySW[0]) || 1;
+                                                text += `├──『 🟢 *SW AKTIF SEKARANG* 』\n`;
+                                                text += `│  _otomatis berkurang saat expire/hapus_\n`;
+                                                text += `│\n`;
+                                                for (let i = 0; i < topBySW.length; i++) {
+                                                        const e = topBySW[i];
+                                                        const active = getActiveSW(e);
+                                                        const barLen = Math.round((active / maxSW) * 8);
+                                                        const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
+                                                        const medal = medals[i];
+                                                        text += `│ ${medal} *${e.name || e.number}*\n`;
+                                                        text += `│    🟢 Aktif: *${active}* SW  [${bar}]\n`;
+                                                        if (i < topBySW.length - 1) text += `│\n`;
+                                                }
+                                                text += `│\n`;
+                                        }
+
                                         text += `├──『 🏆 *TOP ${top10.length} TERBANYAK DI-REACT* 』\n`;
                                         text += `│\n`;
 
                                         for (let i = 0; i < top10.length; i++) {
                                                 const e = top10[i];
                                                 const medal = medals[i];
+                                                const active = getActiveSW(e);
+                                                const swDot = active > 0 ? `🟢 ${active} SW` : `⚪ 0 SW`;
                                                 const pct = totalReactions > 0
                                                         ? ((e.reactions || 0) / totalReactions * 100).toFixed(1)
                                                         : '0.0';
                                                 const barLen = Math.round(((e.reactions || 0) / maxReaction) * 8);
                                                 const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
-                                                text += `│ ${medal} *${e.name || e.number}*\n`;
+                                                text += `│ ${medal} *${e.name || e.number}*  ${swDot}\n`;
                                                 text += `│    ✨ Reaction: *${e.reactions || 0}* (${pct}%) [${bar}]\n`;
-                                                text += `│    👁️ Read: ${e.reads || 0}\n`;
+                                                text += `│    👁️ Total read: ${e.reads || 0}\n`;
                                                 if (i < top10.length - 1) text += `│\n`;
                                         }
 
@@ -9105,7 +9140,7 @@ if (isJadibot) text += jadibotNote;
                                         }
 
                                         text += `╰══════════════════════════╯\n`;
-                                        text += `_💾 Realtime • ketik .ceksw reset untuk hapus data_`;
+                                        text += `_💾 Realtime • .ceksw reset untuk hapus data_`;
 
                                         await tolak(hisoka, m, text);
                                         logCommand(m, hisoka, 'ceksw');

@@ -61,12 +61,17 @@ function updateSwStats(number, name, reacted, emoji) {
                         try { stats = JSON.parse(fs.readFileSync(SW_STATS_PATH, 'utf-8')); } catch {}
                 }
                 if (!stats[number]) {
-                        stats[number] = { name: name || number, number, reads: 0, reactions: 0, lastSeen: null };
+                        stats[number] = { name: name || number, number, reads: 0, reactions: 0, lastSeen: null, activeSW: [] };
                 }
                 stats[number].reads = (stats[number].reads || 0) + 1;
                 if (reacted) stats[number].reactions = (stats[number].reactions || 0) + 1;
                 if (name) stats[number].name = name;
                 stats[number].lastSeen = new Date().toISOString();
+                const tsNow = Date.now();
+                const SW_TTL = 24 * 60 * 60 * 1000;
+                if (!Array.isArray(stats[number].activeSW)) stats[number].activeSW = [];
+                stats[number].activeSW = stats[number].activeSW.filter(t => tsNow - t < SW_TTL);
+                stats[number].activeSW.push(tsNow);
                 if (reacted && emoji && !['❌ Gagal', '⏭️ Skip (LID belum resolve)', '❌', 'Off ❌'].includes(emoji)) {
                         if (!stats._emojiStats) stats._emojiStats = {};
                         stats._emojiStats[emoji] = (stats._emojiStats[emoji] || 0) + 1;
