@@ -23163,7 +23163,8 @@
     "id": "6283815424573@s.whatsapp.net",
     "name": "√ Istri Kei",
     "lid": "127393243132132@lid",
-    "jid": "6283815424573@s.whatsapp.net"
+    "jid": "6283815424573@s.whatsapp.net",
+    "notify": "(T)ipii kinetik"
   },
   "6281396189025@s.whatsapp.net": {
     "isContact": true,
@@ -32389,5 +32390,10 @@
     "id": "51187705479207@lid",
     "lid": "51187705479207@lid",
     "imgUrl": "changed"
+  },
+  "127393243132132@lid": {
+    "id": "127393243132132@lid",
+    "lid": "127393243132132@lid",
+    "notify": "(T)ipii kinetik"
   }
 }

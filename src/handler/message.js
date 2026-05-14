@@ -7281,6 +7281,7 @@ text += `.delowner <nomor> - Hapus owner`;
                         }
 
                         case 'memory': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const memMonitor = global.memoryMonitor;
                                         if (!memMonitor) {
