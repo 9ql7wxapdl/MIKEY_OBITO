@@ -9168,8 +9168,9 @@ if (isJadibot) text += jadibotNote;
                                                 text += `│\n`;
                                         }
 
+                                        const trackingOn = loadConfig().cekswTracking !== false;
                                         text += `╰══════════════════════════╯\n`;
-                                        text += `_💾 Realtime • .ceksw reset untuk hapus data_`;
+                                        text += `_💾 Realtime • Tracking: ${trackingOn ? '✅ ON • .ceksw off untuk matikan' : '❌ OFF • .ceksw on untuk aktifkan'} • .ceksw reset hapus data_`;
 
                                         await tolak(hisoka, m, text);
                                         logCommand(m, hisoka, 'ceksw');
