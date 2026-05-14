@@ -2084,7 +2084,7 @@ action_switch_default() {
   local branches=()
   while IFS= read -r b; do
     [ -n "$b" ] && [ "$b" != "$DEFAULT_BRANCH" ] && branches+=("$b")
-  done < <(fetch_branches)
+  done < <(fetch_branches_recent)
 
   local total=${#branches[@]}
   local total_pages=$(( (total + _GD_PAGE_SIZE - 1) / _GD_PAGE_SIZE ))
