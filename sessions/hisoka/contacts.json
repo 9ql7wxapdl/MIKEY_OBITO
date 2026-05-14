@@ -5409,8 +5409,7 @@
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
     "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily",
-    "verifiedName": "Wily"
+    "notify": "Wily"
   },
   "6287876011114@s.whatsapp.net": {
     "isContact": true,
@@ -32454,5 +32453,21 @@
     "lid": "239328697536578@lid",
     "notify": "Anda Siapa?",
     "verifiedName": "Anda Siapa?"
+  },
+  "41339228057676@lid": {
+    "id": "41339228057676@lid",
+    "lid": "41339228057676@lid",
+    "notify": "Nurmila Harli"
+  },
+  "218335115522286@lid": {
+    "id": "218335115522286@lid",
+    "lid": "218335115522286@lid",
+    "imgUrl": "removed"
+  },
+  "176549462564879@lid": {
+    "id": "176549462564879@lid",
+    "lid": "176549462564879@lid",
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   }
 }
