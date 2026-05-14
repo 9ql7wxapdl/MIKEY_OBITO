@@ -3281,6 +3281,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'memory':
                         case 'mymemory':
                         case 'myprofile': {
+                                if (!m.prefix && m.query) break;
                                 const mem = loadUserMemory(m.sender);
                                 await m.reply(memoryToReadable(mem));
                                 logCommand(m, hisoka, 'memori');
@@ -3291,6 +3292,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'resetmemori':
                         case 'resetmemory':
                         case 'forgetme': {
+                                if (!m.prefix && m.query) break;
                                 clearUserMemory(m.sender);
                                 await m.reply('> *🧠 Memori AI tentang kamu sudah dihapus*\n\n_AI bakal mulai pelan-pelan kenal kamu lagi dari awal._');
                                 logCommand(m, hisoka, 'lupakanaku');
@@ -3323,6 +3325,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
 
                                 case 'p':
                                 case 'ping' : {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const msg = await tolak(hisoka, m, '⏳ _Checking..._');
                                         const latency = Math.abs(Date.now() - m.messageTimestamp * 1000);
@@ -3424,6 +3427,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         case 'speed':
                         case 'cekspeed':
                         case 'testnet': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const msg = await m.reply('🌐 _Mengukur kecepatan internet... harap tunggu ~5 detik_');
                                         const _st   = _require(path.resolve('./src/scrape/speedtest.cjs'));
@@ -6223,6 +6227,7 @@ export default async function ({ message, type: messagesType }, hisoka) {
                         }
 
                         case 'menu': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         // ── JADIBOT: tampilkan menu khusus tanpa thumbnail ──
                                         if (hisoka?.isMainBot === false) {
@@ -6534,6 +6539,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
                         }
 
                         case 'allmenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -6623,6 +6629,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'settingmenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -6695,6 +6702,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'groupmenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -6759,6 +6767,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'statusmenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -6809,6 +6818,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'downloadmenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -6877,6 +6887,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'jadibotmenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -6919,6 +6930,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'ownermenu': {
+                                if (!m.prefix && m.query) break;
                                 const cfg      = loadConfig();
                                 const botReply = cfg.botReply || {};
                                 const botName  = botReply.botName || 'Wily Bot';
@@ -7226,6 +7238,7 @@ text += `\n_Gunakan command masing-masing fitur untuk mengubah pengaturan, ${use
 
                         case 'owner':
                         case 'own': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const config = loadConfig();
                                         const owners = config.owners || [];
@@ -11902,6 +11915,7 @@ infoText += `╰═════════════════════�
                         }
 
                         case 'listbot': {
+                                if (!m.prefix && m.query) break;
                                 if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
 
