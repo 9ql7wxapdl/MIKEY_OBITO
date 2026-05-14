@@ -1,3 +1,82 @@
+🤖 *WILY BOT — V17.3*
+_📅 14 Mei 2026_
+📦 9 Update | 🔧 5 Bug Fix | ✨ 1 Fitur Baru | 🚀 3 Improvement
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🔧 *BUG FIX*
+
+> 🎌 *Animasu — URL Anime Season Ke-2/3 Selalu 404*
+> Slug di URL Animasu tidak konsisten untuk season lanjutan
+> Contoh: anime pakai `-s2` bukan `-season-2`, atau slug beda total
+> Ditambahkan `fetchAnimeUrlFromEpisodePage()` sebagai fallback
+> Fungsi ambil URL anime asli dari halaman episode langsung
+> Berlaku di `cariEpisodeBaru()`, `simulasi()`, `getAiringStatus()`
+
+> 🔁 *Animasu — Fungsi simulasi() Tidak Pakai Fallback URL*
+> `simulasi()` langsung crash kalau slug anime 404
+> Kini pakai fallback URL sama seperti `cariEpisodeBaru()`
+
+> 📊 *Animasu — getAiringStatus() Diam-diam Drop Anime Season*
+> Anime season ke-2/3 selalu gagal fetch dan dibuang tanpa error
+> `postLink` tidak disimpan di map sehingga fallback tidak bisa jalan
+> Kini `postLink` disimpan di map dan fallback aktif untuk semua entry
+
+> 📨 *Animasu — Notifikasi Episode Sama Muncul 2 Kali*
+> Animasu terkadang upload 2 post berbeda untuk 1 episode yang sama
+> Kedua post punya ID berbeda sehingga lolos dedup `idTerkirim`
+> Kini dedup tambahan by `animeSlug + epNum` sebelum kirim
+
+> ⚡ *Speedtest — require is not defined di message.js*
+> `message.js` pakai ES module, tidak bisa pakai `require()` langsung
+> Command `.speedtest` error saat pertama dijalankan
+> Diganti ke `_require()` (createRequire) sesuai pola file lain
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 *IMPROVEMENT / OPTIMASI*
+
+> 📡 *Notifikasi Grup — Kirim Parallel, Bukan Satu-satu*
+> Sebelumnya kirim ke grup satu per satu dengan jeda 2 detik
+> 10 grup = ~20 detik, sekarang jadi ~2 detik
+> Berlaku untuk 3 scheduler: Animasu, InfoWibu, TVOneNews
+> Implementasi: batch 5 grup sekaligus via `Promise.allSettled()`
+> Jeda 1 detik antar batch untuk cegah rate limit WhatsApp
+
+> 📋 *Menu Bot — 8 Command Ditambahkan ke Kategori yang Tepat*
+> Banyak command aktif tapi tidak tampil di `.menu`
+> Ditambahkan ke kategori yang sesuai:
+> ├ 🔍 Info & Cek  : `.speedtest` `.speed` `.cekspeed`
+> ├ 🔍 Info & Cek  : `.shazam` `.tebaklagu` (alias .whatsmusik)
+> ├ 🤖 AI Chat     : `.myprofile` (alias .mymemory)
+> ├ 🤖 AI Chat     : `.resetmemory` (alias .forgetme)
+> ├ 👑 Owner Only  : `.tvone` — auto berita TVOne di grup
+> ├ 👑 Owner Only  : `.cekreact` `.reactinfo` — cek saldo React API
+> ├ 👑 Owner Only  : `.ram` — cek detail RAM & memory bot
+> ├ 👑 Owner Only  : `.sessionstat` — statistik file sesi
+> ╰ Footer menu   : `.statusmenu` ditambahkan ke daftar sub-menu
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+✨ *FITUR BARU*
+
+> 🌐 *Internet Speed Test — Command .speedtest*
+> Test kecepatan internet bot secara realtime
+> Menggunakan Cloudflare Speed Server (speed.cloudflare.com)
+> Tanpa library biner eksternal — murni axios
+> Mengukur: Download Mbps, Upload Mbps, Ping avg/min/max/jitter
+> Info koneksi: ISP, kota, negara, IP address
+> Thumbnail: gambar PNG custom dibuat real-time (SVG → PNG via sharp)
+> Warna kartu berubah sesuai hasil: hijau cepat, merah lambat
+> Selesai dalam ~3–5 detik
+> Alias aktif: `.speedtest` `.speed` `.cekspeed` `.testnet`
+> File: `src/scrape/speedtest.cjs`
+
+━━━━━━━━━━━━━━━━━━━━━━
+🤖 *Wily-Bot* | *V17.3* | _14 Mei 2026_
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 🤖 *WILY BOT — V16*
 _📅 11 Mei 2026_
 📦 6 Update | 🔧 4 Bug Fix | ✨ 2 Fitur Baru

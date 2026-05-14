@@ -6,3 +6,9 @@ id = "dPTgiSyGvcZkOpaOQhCl0"
 uri = "file://attached_assets/speedtest_preview.png"
 type = "image"
 title = "Preview Gambar Speedtest"
+
+[[outputs]]
+id = "UzayOkpM2iHxz6sRzCa8e"
+uri = "file://changelog.txt"
+type = "text"
+title = "changelog.txt — V17.3"
