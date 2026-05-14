@@ -9067,7 +9067,7 @@ if (isJadibot) text += jadibotNote;
 
                                         const sortedEmojis = Object.entries(emojiStats)
                                                 .sort((a, b) => b[1] - a[1])
-                                                .slice(0, 8);
+                                                .slice(0, 10);
 
                                         const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
                                         const now = new Date().toLocaleString('id-ID', {
