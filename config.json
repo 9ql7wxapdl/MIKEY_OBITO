@@ -87,12 +87,12 @@
   },
   "memoryMonitor": {
     "enabled": true,
-    "limitMB": 900,
+    "limitMB": 1000,
     "checkIntervalMs": 30000,
     "logIntervalMs": 300000,
     "logUsage": true,
     "autoDetectLimit": true,
-    "autoDetectPercentage": 1000
+    "autoDetectPercentage": 100
   },
   "welcomeGoodbye": {
     "enabled": false,

@@ -474,13 +474,14 @@ async function cariEpisodeBaru() {
 // ── SIMULASI (TEST) ───────────────────────────────────────────────────────────
 
 async function simulasi(slugOverride = null) {
-    let animeSlug, epNum, postId, postDate;
+    let animeSlug, epNum, postId, postDate, postLink;
 
     if (slugOverride) {
         animeSlug = slugOverride;
         epNum     = 0;
         postId    = 'sim-' + Date.now();
         postDate  = new Date().toISOString();
+        postLink  = null;
     } else {
         const posts = await fetchRecentPosts(1);
         if (!posts.length) throw new Error('Tidak ada post terbaru dari Animasu');
@@ -489,13 +490,25 @@ async function simulasi(slugOverride = null) {
         epNum      = nomorEpisodeDariPost(post);
         postId     = post.id;
         postDate   = post.date;
+        postLink   = post.link || null;
     }
 
-    const animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
-    const html     = await fetchHtml(animeUrl);
-    const detail   = parseDetailPage(html, animeUrl);
-    const data     = { postId, postDate, epNum, animeSlug, ...detail };
-    const caption  = buatCaption(data);
+    let animeUrl = `${BASE_URL}/anime/${animeSlug}/`;
+    let html;
+    try {
+        html = await fetchHtml(animeUrl);
+    } catch (e404) {
+        if (postLink) {
+            const realUrl = await fetchAnimeUrlFromEpisodePage(postLink);
+            if (realUrl && realUrl !== animeUrl) {
+                animeUrl = realUrl;
+                html = await fetchHtml(animeUrl);
+            } else throw e404;
+        } else throw e404;
+    }
+    const detail  = parseDetailPage(html, animeUrl);
+    const data    = { postId, postDate, epNum, animeSlug, ...detail };
+    const caption = buatCaption(data);
     return { caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
 }
 
@@ -621,7 +634,7 @@ async function getAiringStatus(jumlahPost = 40) {
         const epNum = nomorEpisodeDariPost(post);
         if (!slug) continue;
         if (!map.has(slug) || epNum > map.get(slug).epNum) {
-            map.set(slug, { slug, epNum, postDate: post.date });
+            map.set(slug, { slug, epNum, postDate: post.date, postLink: post.link || null });
         }
     }
 
@@ -632,9 +645,20 @@ async function getAiringStatus(jumlahPost = 40) {
     for (let i = 0; i < slugList.length; i += BATCH) {
         const chunk   = slugList.slice(i, i + BATCH);
         const settled = await Promise.allSettled(
-            chunk.map(async ({ slug, epNum, postDate }) => {
-                const animeUrl = `${BASE_URL}/anime/${slug}/`;
-                const html     = await fetchHtml(animeUrl);
+            chunk.map(async ({ slug, epNum, postDate, postLink }) => {
+                let animeUrl = `${BASE_URL}/anime/${slug}/`;
+                let html;
+                try {
+                    html = await fetchHtml(animeUrl);
+                } catch (e404) {
+                    if (postLink) {
+                        const realUrl = await fetchAnimeUrlFromEpisodePage(postLink);
+                        if (realUrl && realUrl !== animeUrl) {
+                            animeUrl = realUrl;
+                            html = await fetchHtml(animeUrl);
+                        } else throw e404;
+                    } else throw e404;
+                }
                 const detail   = parseDetailPage(html, animeUrl);
                 const sisaEp   = (detail.totalSeri && epNum)
                     ? Math.max(0, detail.totalSeri - epNum)
