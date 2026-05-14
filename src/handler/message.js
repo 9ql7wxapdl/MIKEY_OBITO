@@ -7002,6 +7002,7 @@ cekerror | cekerror reset | contact
                         }
 
                         case 'info': {
+                                if (!m.prefix && m.query) break;
                                 try {
                                         const config = loadConfig();
                                         
