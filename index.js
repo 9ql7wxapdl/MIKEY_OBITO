@@ -741,26 +741,32 @@ async function main() {
                                                         const caption  = await _iw.buatCaptionEpisode(item);
                                                         const urlGambar = _iw.ambilUrlGambar(item);
 
-                                                        for (const jid of daftarGrup) {
-                                                                try {
-                                                                        if (urlGambar) {
-                                                                                await hisoka.sendMessage(jid, {
-                                                                                        image: { url: urlGambar },
-                                                                                        caption,
-                                                                                });
-                                                                        } else {
-                                                                                await hisoka.sendMessage(jid, { text: caption });
+                                                        // Kirim ke semua grup secara parallel (batch 5)
+                                                        const IW_BATCH = 5;
+                                                        for (let i = 0; i < daftarGrup.length; i += IW_BATCH) {
+                                                                const chunk = daftarGrup.slice(i, i + IW_BATCH);
+                                                                await Promise.allSettled(chunk.map(async jid => {
+                                                                        try {
+                                                                                if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image: { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
+                                                                        } catch (e) {
+                                                                                console.error(`[InfoWibu] Gagal kirim ke ${jid}:`, e?.message);
                                                                         }
-                                                                        // Jeda 2 detik antar grup supaya tidak kena rate limit
-                                                                        await new Promise(r => setTimeout(r, 2000));
-                                                                } catch (e) {
-                                                                        console.error(`[InfoWibu] Gagal kirim ke ${jid}:`, e?.message);
+                                                                }));
+                                                                if (i + IW_BATCH < daftarGrup.length) {
+                                                                        await new Promise(r => setTimeout(r, 1000));
                                                                 }
                                                         }
 
                                                         // Tandai episode ini sudah dikirim supaya tidak dikirim ulang
                                                         _iw.tandaiSudahKirim(item.idUnik);
-                                                        console.log(`[InfoWibu] ✅ Ep ${item.episode} "${item.anime?.title?.romaji}" terkirim ke ${daftarGrup.length} grup`);
+                                                        console.log(`[InfoWibu] ✅ Ep ${item.episode} "${item.anime?.title?.romaji}" terkirim ke ${daftarGrup.length} grup (parallel)`);
 
                                                         // Jeda 3 detik antar episode
                                                         await new Promise(r => setTimeout(r, 3000));
@@ -881,28 +887,37 @@ async function main() {
                                                                 imgBuffer = await _tv.downloadImageBuffer(urlGambar);
                                                         }
 
-                                                        for (const jid of daftarGrup) {
-                                                                try {
-                                                                        if (imgBuffer) {
-                                                                                await hisoka.sendMessage(jid, {
-                                                                                        image   : imgBuffer,
-                                                                                        mimetype: 'image/jpeg',
-                                                                                        caption,
-                                                                                });
-                                                                        } else if (urlGambar) {
-                                                                                await hisoka.sendMessage(jid, {
-                                                                                        image: { url: urlGambar },
-                                                                                        caption,
-                                                                                });
-                                                                        } else {
-                                                                                await hisoka.sendMessage(jid, { text: caption });
+                                                        // Kirim ke semua grup secara parallel (batch 5)
+                                                        const TV_BATCH = 5;
+                                                        for (let i = 0; i < daftarGrup.length; i += TV_BATCH) {
+                                                                const chunk = daftarGrup.slice(i, i + TV_BATCH);
+                                                                await Promise.allSettled(chunk.map(async jid => {
+                                                                        try {
+                                                                                if (imgBuffer) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image   : imgBuffer,
+                                                                                                mimetype: 'image/jpeg',
+                                                                                                caption,
+                                                                                        });
+                                                                                } else if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image: { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
+                                                                        } catch (e) {
+                                                                                console.error(`[TVOneNews] Gagal kirim ke ${jid}:`, e?.message);
                                                                         }
-                                                                } catch (e) {
-                                                                        console.error(`[TVOneNews] Gagal kirim ke ${jid}:`, e?.message);
+                                                                }));
+                                                                if (i + TV_BATCH < daftarGrup.length) {
+                                                                        await new Promise(r => setTimeout(r, 1000));
                                                                 }
                                                         }
 
                                                         _tv.tandaiDanLog(item, daftarGrup);
+                                                        console.log(`[TVOneNews] ✅ "${item.judul?.slice(0,50)}" terkirim ke ${daftarGrup.length} grup (parallel)`);
                                                 }
                                         } catch (err) {
                                                 console.error('[TVOneNews] Error scheduler:', err?.message);
