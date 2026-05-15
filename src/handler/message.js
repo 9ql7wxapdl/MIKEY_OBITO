@@ -9132,11 +9132,10 @@ if (isJadibot) text += jadibotNote;
 
                                         if (topBySW.length > 0) {
                                                 text += `├──『 🟢 *SW AKTIF SEKARANG* 』\n`;
-                                                text += `│  _otomatis berkurang saat expire/hapus_\n`;
                                                 for (let i = 0; i < topBySW.length; i++) {
                                                         const e = topBySW[i];
                                                         const active = getActiveSW(e);
-                                                        text += `│ ${medals[i]} *${e.name || e.number}*  *${active}* SW\n`;
+                                                        text += `│ *${medals[i]} ${e.name || e.number}* : ${active} SW\n`;
                                                 }
                                                 text += `│\n`;
                                         }
@@ -9145,7 +9144,7 @@ if (isJadibot) text += jadibotNote;
                                         for (let i = 0; i < top10.length; i++) {
                                                 const e = top10[i];
                                                 const pct = fmtPct(e.reactions || 0, totalReactions);
-                                                text += `│ ${medals[i]} *${e.name || e.number}*  ×*${e.reactions || 0}* (${pct})\n`;
+                                                text += `│ ${medals[i]} ${e.name || e.number} : ×${e.reactions || 0} (${pct})\n`;
                                         }
                                         text += `│\n`;
 
@@ -9162,7 +9161,8 @@ if (isJadibot) text += jadibotNote;
 
                                         const trackingOn = loadConfig().cekswTracking !== false;
                                         text += `╰══════════════════════════╯\n`;
-                                        text += `_💾 Realtime • Tracking: ${trackingOn ? '✅ ON • .ceksw off untuk matikan' : '❌ OFF • .ceksw on untuk aktifkan'} • .ceksw reset hapus data_`;
+                                        text += `_💾 Realtime • Tracking: ${trackingOn ? '✅ ON • .ceksw off untuk matikan' : '❌ OFF • .ceksw on untuk aktifkan'} • .ceksw reset hapus data_\n`;
+                                        text += `_⏳ SW aktif otomatis berkurang saat expire/dihapus_`;
 
                                         await tolak(hisoka, m, text);
                                         logCommand(m, hisoka, 'ceksw');
