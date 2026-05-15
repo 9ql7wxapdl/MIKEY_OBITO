@@ -2953,7 +2953,8 @@
     "id": "6281374976765@s.whatsapp.net",
     "name": "√tita💅",
     "lid": "195713338183899@lid",
-    "jid": "6281374976765@s.whatsapp.net"
+    "jid": "6281374976765@s.whatsapp.net",
+    "notify": "."
   },
   "6287748574387@s.whatsapp.net": {
     "isContact": true,
@@ -9982,7 +9983,9 @@
     "id": "6285188150676@s.whatsapp.net",
     "name": "γυς ρου [ NOKOS 2 ]",
     "lid": "3638558740716@lid",
-    "jid": "6285188150676@s.whatsapp.net"
+    "jid": "6285188150676@s.whatsapp.net",
+    "notify": "pou",
+    "verifiedName": "pou"
   },
   "6281213919851@s.whatsapp.net": {
     "isContact": true,
@@ -31394,5 +31397,10 @@
     "id": "247816089800940@lid",
     "lid": "247816089800940@lid",
     "imgUrl": "removed"
+  },
+  "92401960022085@lid": {
+    "id": "92401960022085@lid",
+    "lid": "92401960022085@lid",
+    "imgUrl": "changed"
   }
 }

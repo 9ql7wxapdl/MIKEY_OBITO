@@ -195,6 +195,47 @@ async function fetchHtmlArtikel(url) {
     });
 }
 
+// Ambil ID anime HANYA dari dalam konten artikel (bukan sidebar/nav)
+function parseAnimeIds(html) {
+    // Isolasi hanya bagian <div class="content clearfix"> supaya tidak ambil sidebar
+    const kontenM = html.match(/class="content clearfix"[^>]*>([\s\S]{0,30000}?)<\/div>\s*(?=<div|<section|<footer|<aside)/);
+    const target  = kontenM ? kontenM[1] : html;
+
+    const ids = new Set();
+    const re  = /href="https?:\/\/(?:www\.)?myanimelist\.net\/anime\/(\d+)(?:\/[^"]*)?"/g;
+    let m;
+    while ((m = re.exec(target)) !== null) ids.add(m[1]);
+    return [...ids].slice(0, 3);
+}
+
+// Fetch info anime dari Jikan API (official MAL API, tanpa key)
+async function fetchAnimeInfo(animeId) {
+    try {
+        const r = await axios.get(`https://api.jikan.moe/v4/anime/${animeId}`, {
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            timeout: 10000,
+        });
+        const d = r.data?.data;
+        if (!d) return null;
+        return {
+            id      : d.mal_id,
+            judul   : d.title_english || d.title || '',
+            judulJP : d.title_japanese || '',
+            tipe    : d.type || '',
+            episode : d.episodes ? `${d.episodes} eps` : (d.status === 'Currently Airing' ? 'Ongoing' : '?'),
+            status  : d.status || '',
+            tayang  : d.aired?.string || '',
+            genre   : (d.genres || []).map(g => g.name).join(', ') || '',
+            studio  : (d.studios || []).map(s => s.name).join(', ') || '',
+            skor    : d.score ? `⭐ ${d.score}` : '-',
+            url     : d.url || `https://myanimelist.net/anime/${animeId}`,
+            gambar  : d.images?.jpg?.image_url || null,
+        };
+    } catch (_) {
+        return null;
+    }
+}
+
 // Ambil teks konten penuh dari halaman artikel MAL
 function parseKontenArtikel(html) {
     // Konten ada di <div class="content clearfix">
@@ -260,23 +301,32 @@ function getRecentLog(jumlah = 20) {
 // ── ENRICH: FETCH KONTEN PENUH + TERJEMAHKAN ─────────────────────────────────
 
 async function enrichItem(item) {
-    // Fetch halaman artikel untuk konten penuh
+    // Fetch halaman artikel untuk konten penuh + link anime
     let kontenPenuh = item.deskripsi || '';
+    let animeIds    = [];
     try {
         const html = await fetchHtmlArtikel(item.url);
         const parsed = parseKontenArtikel(html);
-        if (parsed && parsed.length > kontenPenuh.length) {
-            kontenPenuh = parsed;
-        }
+        if (parsed && parsed.length > kontenPenuh.length) kontenPenuh = parsed;
+        animeIds = parseAnimeIds(html);
     } catch (e) {
-        console.warn(`[MALNews] ⚠️ Gagal fetch detail artikel, pakai RSS desc: ${e?.message}`);
+        console.warn(`[MALNews] ⚠️ Gagal fetch detail artikel: ${e?.message}`);
+    }
+
+    // Fetch info anime dari Jikan (paralel, max 3)
+    // Rate limit Jikan: 3 req/detik — tambah delay kecil antar request
+    const animeInfoList = [];
+    for (const id of animeIds) {
+        const info = await fetchAnimeInfo(id);
+        if (info) animeInfoList.push(info);
+        if (animeIds.length > 1) await new Promise(r => setTimeout(r, 400));
     }
 
     const [judulID, deskripsiID] = await Promise.all([
         terjemahkan(item.judul),
         terjemahkan(kontenPenuh),
     ]);
-    return { ...item, kontenPenuh, judulID, deskripsiID };
+    return { ...item, kontenPenuh, judulID, deskripsiID, animeInfoList };
 }
 
 // ── CARI BERITA BARU (REALTIME) ───────────────────────────────────────────────
@@ -385,7 +435,7 @@ function formatTanggal(pubDate) {
 }
 
 function buatCaption(item) {
-    const { judulID, judul, deskripsiID, deskripsi, pubDate, url } = item;
+    const { judulID, judul, deskripsiID, deskripsi, pubDate, url, animeInfoList } = item;
 
     const sekarang    = new Date();
     const opsiHari    = { timeZone: 'Asia/Jakarta', weekday: 'long' };
@@ -404,6 +454,27 @@ function buatCaption(item) {
         ? isiTampil.split('\n').map(l => `> ${l.trim()}`).filter(l => l !== '>').join('\n')
         : '';
 
+    // Blok info anime (hanya kalau ada)
+    let animeBlock = '';
+    const animes = Array.isArray(animeInfoList) ? animeInfoList : [];
+    if (animes.length > 0) {
+        animeBlock += `${SEP}\n🎌 *Info Anime Terkait*\n${SEP2}\n`;
+        for (const a of animes) {
+            const rows = [];
+            if (a.judul)   rows.push(`├ 🎬 *Judul*   : ${a.judul}${a.judulJP ? ` (${a.judulJP})` : ''}`);
+            if (a.tipe)    rows.push(`├ 📺 *Tipe*    : ${a.tipe}`);
+            if (a.episode) rows.push(`├ 🎞️ *Episode* : ${a.episode}`);
+            if (a.status)  rows.push(`├ 🔄 *Status*  : ${a.status}`);
+            if (a.tayang)  rows.push(`├ 📅 *Tayang*  : ${a.tayang}`);
+            if (a.genre)   rows.push(`├ 🏷️ *Genre*   : ${a.genre}`);
+            if (a.studio)  rows.push(`├ 🏢 *Studio*  : ${a.studio}`);
+            if (a.skor && a.skor !== '-') rows.push(`├ ⭐ *Skor*    : ${a.skor}`);
+            if (a.url)     rows.push(`╰ 🔗 *Link*    : ${a.url}`);
+            animeBlock += rows.join('\n') + '\n';
+            if (animes.indexOf(a) < animes.length - 1) animeBlock += `${SEP2}\n`;
+        }
+    }
+
     return (
         `📰 *BERITA TERBARU — MYANIMELIST*\n` +
         `${SEP}\n` +
@@ -411,6 +482,7 @@ function buatCaption(item) {
         `${SEP}\n\n` +
         `*${judulTampil}*\n\n` +
         (isiBlock ? `📖 *Ringkasan*\n${isiBlock}\n\n` : '') +
+        animeBlock +
         `${SEP}\n` +
         `📋 *Info Berita*\n` +
         `${SEP2}\n` +
