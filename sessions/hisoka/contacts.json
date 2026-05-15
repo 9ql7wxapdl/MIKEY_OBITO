@@ -61,7 +61,8 @@
     "name": "Feli",
     "lid": "263483945930926@lid",
     "jid": "6282393354095@s.whatsapp.net",
-    "notify": "j"
+    "notify": "j",
+    "verifiedName": "j"
   },
   "212699767515@s.whatsapp.net": {
     "isContact": true,
@@ -31443,7 +31444,7 @@
     "id": "97968623505429@lid",
     "lid": "97968623505429@lid",
     "notify": "Hen V2",
-    "imgUrl": "removed"
+    "imgUrl": "changed"
   },
   "265948669960432@lid": {
     "id": "265948669960432@lid",
@@ -32341,8 +32342,7 @@
   "208916084441117@lid": {
     "id": "208916084441117@lid",
     "lid": "208916084441117@lid",
-    "notify": "Arthur",
-    "verifiedName": "Arthur"
+    "notify": "Arthur"
   },
   "12442939724000@lid": {
     "id": "12442939724000@lid",
@@ -32744,6 +32744,36 @@
   "137482205151384@lid": {
     "id": "137482205151384@lid",
     "lid": "137482205151384@lid",
+    "imgUrl": "removed"
+  },
+  "6282291580701@s.whatsapp.net": {
+    "id": "6282291580701@s.whatsapp.net",
+    "notify": "vicky",
+    "verifiedName": "vicky"
+  },
+  "202766026834051@lid": {
+    "id": "202766026834051@lid",
+    "lid": "202766026834051@lid",
+    "imgUrl": "changed"
+  },
+  "21655292235792@lid": {
+    "id": "21655292235792@lid",
+    "lid": "21655292235792@lid",
+    "imgUrl": "changed"
+  },
+  "233294419476571@lid": {
+    "id": "233294419476571@lid",
+    "lid": "233294419476571@lid",
+    "imgUrl": "changed"
+  },
+  "252574393495576@lid": {
+    "id": "252574393495576@lid",
+    "lid": "252574393495576@lid",
+    "imgUrl": "changed"
+  },
+  "253501854773486@lid": {
+    "id": "253501854773486@lid",
+    "lid": "253501854773486@lid",
     "imgUrl": "removed"
   }
 }

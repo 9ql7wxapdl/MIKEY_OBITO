@@ -381,11 +381,8 @@ async function simulasi() {
 const SEP  = '━━━━━━━━━━━━━━━━━━';
 const SEP2 = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄';
 
-function potongSinopsis(teks, maks = 350) {
-    if (!teks || teks.length <= maks) return teks || '-';
-    const potong    = teks.slice(0, maks);
-    const lastSpace = potong.lastIndexOf(' ');
-    return (lastSpace > 0 ? potong.slice(0, lastSpace) : potong) + '...';
+function potongSinopsis(teks) {
+    return (teks || '-').trim();
 }
 
 function buatBarisInfo(items) {
