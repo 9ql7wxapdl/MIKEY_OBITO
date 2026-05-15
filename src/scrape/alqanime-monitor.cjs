@@ -499,36 +499,72 @@ function ambilUrlGambar(data) {
 
 // ── KIRIM INTERAKTIF (dengan tombol URL via Button class) ─────────────────────
 
+function buatBodyRingkas(item) {
+    const { judul, epNum, info = {}, genres = [] } = item;
+
+    const ep        = epNum || '?';
+    const totalSeri = info.Episode ? parseInt(info.Episode) || 0 : 0;
+    const epHeader  = totalSeri ? `${ep}/${totalSeri}` : String(ep);
+
+    const sekarang   = new Date();
+    const opsiHari   = { timeZone: 'Asia/Jakarta', weekday: 'long' };
+    const opsiTgl    = { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' };
+    const opsiJam    = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
+    const namaHari   = sekarang.toLocaleDateString('id-ID', opsiHari);
+    const tglLengkap = sekarang.toLocaleDateString('id-ID', opsiTgl);
+    const jamMenit   = sekarang.toLocaleTimeString('id-ID', opsiJam).replace('.', ':');
+
+    const baris = [];
+    if (info.Tipe)   baris.push(`🗂️ ${info.Tipe}`);
+    if (info.Durasi) baris.push(`⏱️ ${info.Durasi}`);
+    if (info.Studio) baris.push(`🏢 ${info.Studio}`);
+    if (info.Status) baris.push(`📡 ${info.Status}`);
+    const scoreGenre = [
+        info.Score ? `⭐ ${info.Score}/10` : null,
+        genres.length ? `🎭 ${genres.slice(0, 3).join(', ')}` : null,
+    ].filter(Boolean).join(' · ');
+
+    return (
+        `🔴 *RILISAN BARU — ALQANIME*\n` +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `🎌 *${judul || '?'}*\n` +
+        `📺 Episode *${epHeader}*\n` +
+        (baris.length ? `\n${baris.join('\n')}\n` : '') +
+        (scoreGenre   ? `${scoreGenre}\n` : '') +
+        `━━━━━━━━━━━━━━━━━━\n` +
+        `📅 _${namaHari}, ${tglLengkap} · ${jamMenit} WIB_`
+    );
+}
+
 async function kirimInteraktif(item, jid, hisoka) {
     try {
         const { Button } = require('../lib/Button.cjs');
 
-        const caption   = buatCaption(item);
+        const body      = buatBodyRingkas(item);
         const urlGambar = ambilUrlGambar(item);
 
         const btn = new Button()
-            .setBody(caption)
+            .setBody(body)
             .setFooter('⚡ alqanime.net');
 
-        // Tombol 1 — selalu ada: halaman episode (tonton + download)
+        // Tombol 1 — cta_url: buka halaman episode (tonton + download)
         btn.addUrl('▶️ Tonton / Download', item.url || 'https://alqanime.net', false);
 
-        // Tombol 2 — link download langsung resolusi terbaik (jika ada)
+        // Tombol 2 — cta_copy: salin link download langsung resolusi terbaik
         const epTerbaru = (item.episodes || [])[0];
         if (epTerbaru?.links) {
-            const resolusiPrioritas = ['1080p', '720p', '480p', '360p'];
             let dlUrl = null;
-            for (const res of resolusiPrioritas) {
+            for (const res of ['720p', '480p', '1080p', '360p']) {
                 if (epTerbaru.links[res]) { dlUrl = epTerbaru.links[res]; break; }
             }
             if (!dlUrl) {
                 const firstKey = Object.keys(epTerbaru.links)[0];
                 if (firstKey) dlUrl = epTerbaru.links[firstKey];
             }
-            if (dlUrl) btn.addUrl('⬇️ Download Langsung', dlUrl, false);
+            if (dlUrl) btn.addCopy('⬇️ Salin Link Download', dlUrl);
         }
 
-        // Tombol 3 — MyAnimeList (jika tersedia)
+        // Tombol 3 — cta_url: halaman MyAnimeList (jika tersedia)
         if (item.malUrl) {
             btn.addUrl('🌟 Info MyAnimeList', item.malUrl, false);
         }
