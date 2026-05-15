@@ -634,9 +634,23 @@ async function kirimInteraktif(item, jid, hisoka) {
 
         const btn = new Button()
             .setBody(caption)
-            .setFooter('⚡ animasu.net')
-            .addUrl('▶️ Tonton Sekarang', item.latestEpUrl || item.url || 'https://animasu.net', false)
-            .addUrl('🔗 Laman Anime', item.url || 'https://animasu.net', false);
+            .setFooter('⚡ animasu.net');
+
+        // Tombol 1 — selalu ada: tonton episode terbaru
+        btn.addUrl('▶️ Tonton Sekarang', item.latestEpUrl || item.url || 'https://animasu.net', false);
+
+        // Tombol 2 — kontekstual: trailer jika ada, kalau tidak batch download, kalau tidak laman anime
+        const batchUrl = item.batchDownload?.resolutions?.[0]?.links?.[0]?.url;
+        if (item.trailerUrl) {
+            btn.addUrl('🎬 Tonton Trailer', item.trailerUrl, false);
+        } else if (batchUrl) {
+            btn.addUrl('📦 Batch Download', batchUrl, false);
+        }
+
+        // Tombol 3 — halaman anime (selalu, kalau berbeda dari ep URL)
+        if (item.url && item.url !== item.latestEpUrl) {
+            btn.addUrl('🔗 Halaman Anime', item.url, false);
+        }
 
         if (urlGambar) {
             try {

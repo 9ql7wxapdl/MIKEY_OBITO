@@ -508,9 +508,27 @@ async function kirimInteraktif(item, jid, hisoka) {
 
         const btn = new Button()
             .setBody(caption)
-            .setFooter('⚡ alqanime.net')
-            .addUrl('▶️ Tonton / Download', item.url || 'https://alqanime.net', false);
+            .setFooter('⚡ alqanime.net');
 
+        // Tombol 1 — selalu ada: halaman episode (tonton + download)
+        btn.addUrl('▶️ Tonton / Download', item.url || 'https://alqanime.net', false);
+
+        // Tombol 2 — link download langsung resolusi terbaik (jika ada)
+        const epTerbaru = (item.episodes || [])[0];
+        if (epTerbaru?.links) {
+            const resolusiPrioritas = ['1080p', '720p', '480p', '360p'];
+            let dlUrl = null;
+            for (const res of resolusiPrioritas) {
+                if (epTerbaru.links[res]) { dlUrl = epTerbaru.links[res]; break; }
+            }
+            if (!dlUrl) {
+                const firstKey = Object.keys(epTerbaru.links)[0];
+                if (firstKey) dlUrl = epTerbaru.links[firstKey];
+            }
+            if (dlUrl) btn.addUrl('⬇️ Download Langsung', dlUrl, false);
+        }
+
+        // Tombol 3 — MyAnimeList (jika tersedia)
         if (item.malUrl) {
             btn.addUrl('🌟 Info MyAnimeList', item.malUrl, false);
         }
