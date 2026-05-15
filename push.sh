@@ -5439,9 +5439,10 @@ _sr_apply_switch() {
   sed -i "s|^USER=.*|USER=\"${_new_user}\"|" "$0" 2>/dev/null || true
   sed -i "s|^REPO=.*|REPO=\"${_new_repo}\"|" "$0" 2>/dev/null || true
 
-  # Perbarui remote URL lokal
+  # Perbarui remote URL lokal + variabel REMOTE_URL di memory
   local _new_remote_url="https://${_new_user}:${TOKEN}@github.com/${_new_user}/${_new_repo}.git"
   git remote set-url origin "$_new_remote_url" 2>/dev/null || true
+  REMOTE_URL="$_new_remote_url"
 
   # Auto-detect DEFAULT_BRANCH dari repo baru via GitHub API
   echo -e "  ${C_CYAN}▸${C_RESET} Mendeteksi default branch repo baru..."
@@ -5463,16 +5464,36 @@ _sr_apply_switch() {
   if [ -n "$_new_default" ]; then
     DEFAULT_BRANCH="$_new_default"
     sed -i "s|^DEFAULT_BRANCH=.*|DEFAULT_BRANCH=\"${_new_default}\"|" "$0" 2>/dev/null || true
-    echo -e "  ${C_GREEN}✅ DEFAULT_BRANCH otomatis diperbarui:${C_RESET} ${C_DIM}${_old_default}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_default}${C_RESET}"
+    echo -e "  ${C_GREEN}✅ DEFAULT_BRANCH:${C_RESET} ${C_DIM}${_old_default}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_default}${C_RESET}"
   else
     echo -e "  ${C_YELLOW}⚠️  Gagal deteksi default branch, DEFAULT_BRANCH tetap: ${DEFAULT_BRANCH}${C_RESET}"
+  fi
+
+  # Fetch remote baru agar data branch & tracking up-to-date
+  echo -e "  ${C_CYAN}▸${C_RESET} Fetching repo baru dari GitHub..."
+  git fetch origin --quiet 2>/dev/null || true
+
+  # Update upstream tracking branch → pakai DEFAULT_BRANCH repo baru
+  # Ini yang bikin angka ahead/behind di banner jadi akurat
+  local _cur_branch
+  _cur_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [ -n "$_cur_branch" ] && [ -n "$DEFAULT_BRANCH" ]; then
+    # Cek apakah branch DEFAULT_BRANCH ada di remote baru
+    if git ls-remote --exit-code --heads origin "$DEFAULT_BRANCH" >/dev/null 2>&1; then
+      git branch --set-upstream-to="origin/${DEFAULT_BRANCH}" "$_cur_branch" 2>/dev/null || true
+      echo -e "  ${C_GREEN}✅ Upstream tracking:${C_RESET} ${C_DIM}@{u}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}origin/${DEFAULT_BRANCH}${C_RESET}"
+    else
+      # Branch tidak ada di repo baru — hapus upstream agar tidak error di banner
+      git branch --unset-upstream "$_cur_branch" 2>/dev/null || true
+      echo -e "  ${C_YELLOW}⚠️  Branch '${DEFAULT_BRANCH}' belum ada di repo baru — upstream di-reset${C_RESET}"
+    fi
   fi
 
   echo ""
   echo -e "  ${C_GREEN}✅ Repo aktif berhasil diganti!${C_RESET}"
   echo -e "     ${C_DIM}${_old_user}/${_old_repo}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_user}/${_new_repo}${C_RESET}"
   echo -e "  ${C_BLUE}🔗 https://github.com/${_new_user}/${_new_repo}${C_RESET}"
-  echo -e "  ${C_DIM}USER, REPO, DEFAULT_BRANCH & remote URL sudah diperbarui permanen.${C_RESET}"
+  echo -e "  ${C_DIM}USER, REPO, DEFAULT_BRANCH, REMOTE_URL & upstream tracking diperbarui.${C_RESET}"
 
   local _ts_sr; _ts_sr=$(date '+%H:%M:%S %d %b %Y')
   local _btn_sr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/settings"}]]}'
