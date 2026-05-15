@@ -623,6 +623,44 @@ function ambilUrlGambar(data) {
     return data?.cover || null;
 }
 
+// ── KIRIM INTERAKTIF (dengan tombol URL via Button class) ─────────────────────
+
+async function kirimInteraktif(item, jid, hisoka) {
+    try {
+        const { Button } = require('../lib/Button.cjs');
+
+        const caption   = buatCaption(item);
+        const urlGambar = ambilUrlGambar(item);
+
+        const btn = new Button()
+            .setBody(caption)
+            .setFooter('⚡ animasu.net')
+            .addUrl('▶️ Tonton Sekarang', item.latestEpUrl || item.url || 'https://animasu.net', false)
+            .addUrl('🔗 Laman Anime', item.url || 'https://animasu.net', false);
+
+        if (urlGambar) {
+            try {
+                const imgBuf = await axios.get(urlGambar, { responseType: 'arraybuffer', timeout: 20000 })
+                    .then(r => Buffer.from(r.data));
+                btn.setImage(imgBuf);
+            } catch (imgErr) {
+                console.warn('[Animasu] ⚠️ Gambar header gagal:', imgErr?.message);
+            }
+        }
+
+        return await btn.run(jid, hisoka);
+
+    } catch (e) {
+        console.warn('[Animasu] ⚠️ Interactive gagal, fallback biasa:', e?.message);
+        const caption   = buatCaption(item);
+        const urlGambar = ambilUrlGambar(item);
+        if (urlGambar) {
+            return hisoka.sendMessage(jid, { image: { url: urlGambar }, caption });
+        }
+        return hisoka.sendMessage(jid, { text: caption });
+    }
+}
+
 // ── STATUS: DAFTAR ANIME SEDANG TAYANG + SISA EPISODE ────────────────────────
 
 async function getAiringStatus(jumlahPost = 40) {
@@ -702,6 +740,7 @@ module.exports = {
     cariEpisodeBaru,
     buatCaption,
     ambilUrlGambar,
+    kirimInteraktif,
     tandaiSudahKirim,
     tandaiDanLog,
     getRecentLog,

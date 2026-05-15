@@ -497,83 +497,38 @@ function ambilUrlGambar(data) {
     return data?.malThumbnail || data?.thumbnail || null;
 }
 
-// ── KIRIM INTERAKTIF (dengan tombol URL) ──────────────────────────────────────
+// ── KIRIM INTERAKTIF (dengan tombol URL via Button class) ─────────────────────
 
 async function kirimInteraktif(item, jid, hisoka) {
     try {
-        const { generateWAMessageFromContent, prepareWAMessageMedia } = require('socketon');
+        const { Button } = require('../lib/Button.cjs');
 
         const caption   = buatCaption(item);
         const urlGambar = ambilUrlGambar(item);
 
-        // Tombol URL — maks 3 tombol
-        const buttons = [
-            {
-                name: 'cta_url',
-                buttonParamsJson: JSON.stringify({
-                    display_text     : '▶️ Tonton / Download',
-                    url              : item.url || 'https://alqanime.net',
-                    webview_interaction: false,
-                }),
-            },
-        ];
+        const btn = new Button()
+            .setBody(caption)
+            .setFooter('⚡ alqanime.net')
+            .addUrl('▶️ Tonton / Download', item.url || 'https://alqanime.net', false);
+
         if (item.malUrl) {
-            buttons.push({
-                name: 'cta_url',
-                buttonParamsJson: JSON.stringify({
-                    display_text     : '🌟 Info MyAnimeList',
-                    url              : item.malUrl,
-                    webview_interaction: false,
-                }),
-            });
+            btn.addUrl('🌟 Info MyAnimeList', item.malUrl, false);
         }
 
-        // Upload gambar ke server WA (dari URL MAL / alqanime)
-        let headerObj = { title: '', hasMediaAttachment: false };
         if (urlGambar) {
             try {
-                const imgBuf    = await axios.get(urlGambar, { responseType: 'arraybuffer', timeout: 20000 })
+                const imgBuf = await axios.get(urlGambar, { responseType: 'arraybuffer', timeout: 20000 })
                     .then(r => Buffer.from(r.data));
-                const mediaData = await prepareWAMessageMedia(
-                    { image: imgBuf },
-                    { upload: hisoka.waUploadToServer }
-                );
-                headerObj = { ...mediaData, hasMediaAttachment: true };
+                btn.setImage(imgBuf);
             } catch (imgErr) {
-                console.warn('[AlqanimeNotif] ⚠️ Header image gagal diupload:', imgErr?.message);
+                console.warn('[AlqanimeNotif] ⚠️ Gambar header gagal:', imgErr?.message);
             }
         }
 
-        const msg = generateWAMessageFromContent(jid, {
-            interactiveMessage: {
-                body  : { text: caption },
-                footer: { text: '⚡ alqanime.net' },
-                header: headerObj,
-                nativeFlowMessage: {
-                    messageParamsJson: '{}',
-                    buttons,
-                },
-            },
-        }, {});
-
-        await hisoka.relayMessage(msg.key.remoteJid, msg.message, {
-            messageId      : msg.key.id,
-            additionalNodes: [{
-                tag    : 'biz',
-                attrs  : {},
-                content: [{
-                    tag    : 'interactive',
-                    attrs  : { type: 'native_flow', v: '1' },
-                    content: [{ tag: 'native_flow', attrs: { v: '9', name: 'mixed' } }],
-                }],
-            }],
-        });
-
-        return msg;
+        return await btn.run(jid, hisoka);
 
     } catch (e) {
         console.warn('[AlqanimeNotif] ⚠️ Interactive gagal, fallback biasa:', e?.message);
-        // Fallback: kirim biasa dengan image + caption
         const caption   = buatCaption(item);
         const urlGambar = ambilUrlGambar(item);
         if (urlGambar) {
