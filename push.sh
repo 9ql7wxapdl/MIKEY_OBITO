@@ -1424,19 +1424,19 @@ banner() {
 # ===== Menu utama =====
 show_main_menu() {
   banner
-  # ── Grup: Branch (2 kolom) ────────────
+  # ── Grup: Branch 1–7 ─────────────────
   echo -e "  ${C_DIM}🌿 BRANCH${C_RESET}"
   echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
-  printf "  ${C_GREEN} 1${C_RESET} › %-16s  ${C_CYAN} 2${C_RESET} › %s\n"    "Upload branch"   "Buat branch"
-  printf "  ${C_YELLOW} 3${C_RESET} › %-16s  ${C_MAGENTA} 4${C_RESET} › %s\n" "Hapus branch"   "Ganti default"
-  printf "  ${C_BLUE} 5${C_RESET} › %-16s  ${C_BLUE} 7${C_RESET} › %s\n"     "Cek token"      "Edit nama branch"
-  printf "  ${C_GREEN} 8${C_RESET} › %-16s\n"                                 "Status branch"
+  printf "  ${C_GREEN} 1${C_RESET} › %-16s  ${C_CYAN} 2${C_RESET} › %s\n"    "Upload branch"  "Buat branch"
+  printf "  ${C_YELLOW} 3${C_RESET} › %-16s  ${C_MAGENTA} 4${C_RESET} › %s\n" "Hapus branch"  "Ganti default"
+  printf "  ${C_BLUE} 5${C_RESET} › %-16s  ${C_BLUE} 6${C_RESET} › %s\n"     "Cek token"      "Edit nama branch"
+  printf "  ${C_GREEN} 7${C_RESET} › %-16s\n"                                 "Status branch"
   echo -e "  ${C_DIM}  default: ${C_RESET}${C_GREEN}${DEFAULT_BRANCH}${C_RESET}"
   echo ""
-  # ── Grup: Repository (2 kolom) ────────
+  # ── Grup: Repository 8–14 ─────────────
   echo -e "  ${C_DIM}📁 REPOSITORY${C_RESET}"
   echo -e "  ${C_DIM}──────────────────────────────────${C_RESET}"
-  printf "  ${C_BLUE} 6${C_RESET} › %-16s  ${C_YELLOW} 9${C_RESET} › %s\n"   "Rename repo"    "Buat repo baru"
+  printf "  ${C_BLUE} 8${C_RESET} › %-16s  ${C_YELLOW} 9${C_RESET} › %s\n"   "Rename repo"    "Buat repo baru"
   printf "  ${C_BLUE}10${C_RESET} › %-16s  ${C_RED}11${C_RESET} › %s\n"      "Import repo"    "Hapus repo"
   printf "  ${C_MAGENTA}12${C_RESET} › %-16s  ${C_CYAN}13${C_RESET} › %s\n"  "Semua repo"     "Releases & Tags"
   printf "  ${C_GREEN}14${C_RESET} › %-16s\n"                                 "Ganti repo"
@@ -1460,9 +1460,9 @@ show_main_menu() {
     3) action_delete_branch ;;
     4) action_switch_default ;;
     5) action_check_token ;;
-    6) action_rename_repo ;;
-    7) action_rename_branch ;;
-    8) action_list_branches ;;
+    6) action_rename_branch ;;
+    7) action_list_branches ;;
+    8) action_rename_repo ;;
     9) action_create_repo ;;
     10) action_import_repo ;;
     11) action_delete_repo ;;
