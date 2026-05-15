@@ -5450,7 +5450,7 @@ _sr_apply_switch() {
 
   local _ts_sr; _ts_sr=$(date '+%H:%M:%S %d %b %Y')
   local _btn_sr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/settings"}]]}'
-  send_telegram_photo "https://w.wallhaven.cc/full/l3/wallhaven-l3q6eq.png" "🔄 <b>REPO AKTIF DIGANTI</b>
+  send_telegram_photo "https://w.wallhaven.cc/full/m9/wallhaven-m9g6gj.jpg" "🔄 <b>REPO AKTIF DIGANTI</b>
 ━━━━━━━━━━━━━━━━━━━━
 👤 <code>${_old_user}/${_old_repo}</code>
   ↓
