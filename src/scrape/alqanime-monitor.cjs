@@ -378,7 +378,7 @@ async function simulasi() {
 
     // Prioritas gambar: MAL thumbnail > alqanime thumbnail
     const urlGambar = item.malThumbnail || item.thumbnail || null;
-    return { caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail, malUrl: item.malUrl };
+    return { item, caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail, malUrl: item.malUrl };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────

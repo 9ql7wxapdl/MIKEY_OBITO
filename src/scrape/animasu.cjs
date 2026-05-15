@@ -509,7 +509,7 @@ async function simulasi(slugOverride = null) {
     const detail  = parseDetailPage(html, animeUrl);
     const data    = { postId, postDate, epNum, animeSlug, ...detail };
     const caption = buatCaption(data);
-    return { caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
+    return { item: data, caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────

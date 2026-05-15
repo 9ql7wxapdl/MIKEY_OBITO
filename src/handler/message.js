@@ -13651,7 +13651,7 @@ infoText += `╰═════════════════════�
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
-                                const { simulasi: simulasiAM, getAiringStatus, getEnabledGroups: getEnabledGroupsAM } = _require(path.resolve('./src/scrape/animasu.cjs'));
+                                const { simulasi: simulasiAM, getAiringStatus, getEnabledGroups: getEnabledGroupsAM, kirimInteraktif: kirimInteraktifAM } = _require(path.resolve('./src/scrape/animasu.cjs'));
                                 const cfgPathAM = path.join(process.cwd(), 'config.json');
                                 const sub = (query || '').trim().toLowerCase().replace(/\s+/g, ' ');
                                 const pfx = m.prefix || '.';
@@ -13819,14 +13819,7 @@ infoText += `╰═════════════════════�
                                                 let berhasil = 0, gagal = 0;
                                                 for (const jid of daftarGrup) {
                                                         try {
-                                                                if (hasil.urlGambar) {
-                                                                        await hisoka.sendMessage(jid, {
-                                                                                image: { url: hasil.urlGambar },
-                                                                                caption: hasil.caption,
-                                                                        });
-                                                                } else {
-                                                                        await hisoka.sendMessage(jid, { text: hasil.caption });
-                                                                }
+                                                                await kirimInteraktifAM(hasil.item, jid, hisoka);
                                                                 berhasil++;
                                                                 await new Promise(r => setTimeout(r, 1500));
                                                         } catch (e) {
@@ -13854,14 +13847,7 @@ infoText += `╰═════════════════════�
                                         await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
                                         try {
                                                 const hasil = await simulasiAM();
-                                                if (hasil.urlGambar) {
-                                                        await hisoka.sendMessage(m.from, {
-                                                                image: { url: hasil.urlGambar },
-                                                                caption: hasil.caption,
-                                                        }, { quoted: m });
-                                                } else {
-                                                        await tolak(hisoka, m, hasil.caption);
-                                                }
+                                                await kirimInteraktifAM(hasil.item, m.from, hisoka);
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                                 logCommand(m, hisoka, 'animasu-test');
                                         } catch (err) {
@@ -13879,7 +13865,7 @@ infoText += `╰═════════════════════�
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
-                                const { simulasi: simulasiALQ, getEnabledGroups: getEnabledGroupsALQ } = _require(path.resolve('./src/scrape/alqanime-monitor.cjs'));
+                                const { simulasi: simulasiALQ, getEnabledGroups: getEnabledGroupsALQ, kirimInteraktif: kirimInteraktifALQ } = _require(path.resolve('./src/scrape/alqanime-monitor.cjs'));
                                 const cfgPathALQ = path.join(process.cwd(), 'config.json');
                                 const sub = (query || '').trim().toLowerCase().replace(/\s+/g, ' ');
                                 const pfx = m.prefix || '.';
@@ -13987,14 +13973,7 @@ infoText += `╰═════════════════════�
                                                 let berhasil = 0, gagal = 0;
                                                 for (const jid of daftarGrup) {
                                                         try {
-                                                                if (hasil.urlGambar) {
-                                                                        await hisoka.sendMessage(jid, {
-                                                                                image: { url: hasil.urlGambar },
-                                                                                caption: hasil.caption,
-                                                                        });
-                                                                } else {
-                                                                        await hisoka.sendMessage(jid, { text: hasil.caption });
-                                                                }
+                                                                await kirimInteraktifALQ(hasil.item, jid, hisoka);
                                                                 berhasil++;
                                                                 await new Promise(r => setTimeout(r, 1500));
                                                         } catch (e) {
@@ -14020,14 +13999,7 @@ infoText += `╰═════════════════════�
                                         await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
                                         try {
                                                 const hasil = await simulasiALQ();
-                                                if (hasil.urlGambar) {
-                                                        await hisoka.sendMessage(m.from, {
-                                                                image: { url: hasil.urlGambar },
-                                                                caption: hasil.caption,
-                                                        }, { quoted: m });
-                                                } else {
-                                                        await tolak(hisoka, m, hasil.caption);
-                                                }
+                                                await kirimInteraktifALQ(hasil.item, m.from, hisoka);
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
                                                 logCommand(m, hisoka, 'alqnotif-test');
                                         } catch (err) {
