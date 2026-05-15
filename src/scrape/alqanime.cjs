@@ -95,13 +95,27 @@ function parseDetail(md) {
     const thumbnail = thumbM ? thumbM[1] : (thumbFB ? thumbFB[1] : '');
 
     const info = {};
-    for (const field of ['Status','Studio','Dirilis','Durasi','Musim','Tipe','Episode','Subtitle','Credit','Score']) {
-        const re  = new RegExp(`\\*\\*${field}:\\*\\*\\s*([^\\*\\n]+)`);
+    for (const field of [
+        'Status','Studio','Dirilis','Durasi','Musim','Tipe','Episode',
+        'Subtitle','Credit','Score',
+        'Casts','Diposting oleh','Diposting pada','Diperbarui pada',
+    ]) {
+        const re  = new RegExp(`\\*\\*${field.replace(/ /g,'\\s+')}:\\*\\*\\s*([^\\*\\n]+)`);
         const hit = md.match(re);
-        if (hit) info[field] = hit[1].trim().replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').trim();
+        if (hit) {
+            info[field] = hit[1].trim()
+                .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+                .replace(/^_+|_+$/g, '')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+        }
     }
     const scoreM = md.match(/Score\s+([\d.]+)/);
     if (scoreM && !info.Score) info.Score = scoreM[1];
+
+    // Judul alternatif (English / Kanji) — baris kosong sebelum **Status:**
+    const altM = md.match(/\n\n([^\n#*!\[<\\]{3,})\n\n\*\*Status:/);
+    if (altM) info.judulAlt = altM[1].trim();
 
     // Ambil sinopsis — hanya paragraf pertama sebelum baris notice/emoji
     const synM    = md.match(/## Sinopsis[^\n]*\n\n([^#]+)/);

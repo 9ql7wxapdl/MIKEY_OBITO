@@ -418,18 +418,27 @@ function buatCaption(data) {
     const genreStr = genres.length ? `_${genres.slice(0, 5).join(', ')}_` : null;
 
     const seksi1 = buatBarisInfo([
-        ['🗂️ *Tipe*    ', info.Tipe    || null],
-        ['⏱️ *Durasi*  ', info.Durasi  || null],
-        ['📦 *Episode* ', totalSeri ? `${ep}/${totalSeri}` : (ep !== '?' ? String(ep) : null)],
-        ['🗓️ *Dirilis* ', info.Dirilis || null],
-        ['🌸 *Musim*   ', info.Musim   || null],
-        ['📡 *Status*  ', info.Status  || null],
-        ['🏢 *Studio*  ', info.Studio  || null],
+        ['🗂️ *Tipe*     ', info.Tipe     || null],
+        ['⏱️ *Durasi*   ', info.Durasi   || null],
+        ['📦 *Episode*  ', totalSeri ? `${ep}/${totalSeri}` : (ep !== '?' ? String(ep) : null)],
+        ['🗓️ *Dirilis*  ', info.Dirilis  || null],
+        ['🌸 *Musim*    ', info.Musim    || null],
+        ['📡 *Status*   ', info.Status   || null],
+        ['🏢 *Studio*   ', info.Studio   || null],
+        ['🗣️ *Subtitle* ', info.Subtitle || null],
+        ['✏️ *Credit*   ', info.Credit   || null],
     ]);
 
     const seksi2 = buatBarisInfo([
-        ['⭐ *Score*   ', info.Score ? `${info.Score}/10` : null],
-        ['🎭 *Genre*   ', genreStr],
+        ['⭐ *Score*    ', info.Score ? `${info.Score}/10` : null],
+        ['🎭 *Genre*    ', genreStr],
+        ['👥 *Casts*    ', info.Casts   || null],
+    ]);
+
+    const seksi3 = buatBarisInfo([
+        ['📤 *Oleh*        ', info['Diposting oleh']  || null],
+        ['🗓️ *Diposting*   ', info['Diposting pada']  || null],
+        ['🔄 *Diperbarui*  ', info['Diperbarui pada'] || null],
     ]);
 
     // Download links: episode terbaru, max 4 resolusi
@@ -449,12 +458,15 @@ function buatCaption(data) {
         }
     }
 
+    const judulAlt = info.judulAlt ? `_${info.judulAlt}_\n` : '';
+
     return (
         `🔴 *RILISAN BARU ALQANIME!*\n` +
         `${SEP}\n` +
         `📅 _${headerWaktu}_\n` +
         `${SEP}\n\n` +
         `🎌 *${judul}*\n` +
+        (judulAlt ? `${judulAlt}` : '') +
         `\n📺 *Episode ${epHeader}*\n` +
         `\n📖 *Sinopsis*\n` +
         `${sinopsisBlock}\n\n` +
@@ -464,6 +476,7 @@ function buatCaption(data) {
         `${seksi1}\n` +
         `${SEP2}\n` +
         `${seksi2}\n` +
+        (seksi3 ? `${SEP2}\n${seksi3}\n` : '') +
         `${SEP}\n` +
         `▶️ *Tonton* : ${url}\n` +
         `🔗 *Source* : alqanime.net` +
