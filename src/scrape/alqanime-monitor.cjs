@@ -162,7 +162,7 @@ async function ambilThumbnailMAL(judul) {
 
 function getEnabledGroups() {
     const cfg    = bacaConfig();
-    const groups = cfg?.alqanime?.groups || {};
+    const groups = cfg?.alqanimenotif?.groups || {};
     return Object.entries(groups)
         .filter(([, v]) => v?.enabled === true)
         .map(([jid]) => jid);
@@ -170,9 +170,9 @@ function getEnabledGroups() {
 
 function setGroupEnabled(jid, enabled) {
     const cfg = bacaConfig();
-    if (!cfg.alqanime)        cfg.alqanime        = { groups: {} };
-    if (!cfg.alqanime.groups) cfg.alqanime.groups = {};
-    cfg.alqanime.groups[jid] = { enabled, diubahPada: Date.now() };
+    if (!cfg.alqanimenotif)        cfg.alqanimenotif        = { groups: {} };
+    if (!cfg.alqanimenotif.groups) cfg.alqanimenotif.groups = {};
+    cfg.alqanimenotif.groups[jid] = { enabled, diubahPada: Date.now() };
     simpanConfig(cfg);
 }
 
