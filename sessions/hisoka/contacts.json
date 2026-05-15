@@ -61,8 +61,7 @@
     "name": "Feli",
     "lid": "263483945930926@lid",
     "jid": "6282393354095@s.whatsapp.net",
-    "notify": "j",
-    "verifiedName": "j"
+    "notify": "j"
   },
   "212699767515@s.whatsapp.net": {
     "isContact": true,
@@ -10037,7 +10036,9 @@
     "id": "6285188150676@s.whatsapp.net",
     "name": "γυς ρου [ NOKOS 2 ]",
     "lid": "3638558740716@lid",
-    "jid": "6285188150676@s.whatsapp.net"
+    "jid": "6285188150676@s.whatsapp.net",
+    "notify": "pou",
+    "verifiedName": "pou"
   },
   "6281213919851@s.whatsapp.net": {
     "isContact": true,
@@ -20901,8 +20902,7 @@
     "name": "Naizo 👍",
     "lid": "168736715731040@lid",
     "jid": "6285711200877@s.whatsapp.net",
-    "notify": "Albiverstappen",
-    "verifiedName": "Albiverstappen"
+    "notify": "Albiverstappen"
   },
   "6285314753030@s.whatsapp.net": {
     "isContact": true,
@@ -25134,7 +25134,8 @@
     "name": "√ Miku",
     "lid": "38642156306452@lid",
     "jid": "6282268990535@s.whatsapp.net",
-    "notify": "Otaku Hakase"
+    "notify": "Otaku Hakase",
+    "verifiedName": "Otaku Hakase"
   },
   "6285789578973@s.whatsapp.net": {
     "isContact": true,
@@ -31670,8 +31671,7 @@
   "263483945930926@lid": {
     "id": "263483945930926@lid",
     "lid": "263483945930926@lid",
-    "notify": "j",
-    "verifiedName": "j"
+    "notify": "j"
   },
   "121560543273151@lid": {
     "id": "121560543273151@lid",
@@ -32481,7 +32481,8 @@
   },
   "6283123405940@s.whatsapp.net": {
     "id": "6283123405940@s.whatsapp.net",
-    "notify": "rawrrrr"
+    "notify": "rawrrrr amanah_selalu",
+    "verifiedName": "rawrrrr amanah_selalu"
   },
   "273469174468614@lid": {
     "id": "273469174468614@lid",
@@ -32687,5 +32688,25 @@
     "id": "14804886507646@lid",
     "lid": "14804886507646@lid",
     "imgUrl": "changed"
+  },
+  "110510011867304@lid": {
+    "id": "110510011867304@lid",
+    "lid": "110510011867304@lid",
+    "imgUrl": "removed"
+  },
+  "97878043324476@lid": {
+    "id": "97878043324476@lid",
+    "lid": "97878043324476@lid",
+    "imgUrl": "changed"
+  },
+  "25534083899555@lid": {
+    "id": "25534083899555@lid",
+    "lid": "25534083899555@lid",
+    "imgUrl": "changed"
+  },
+  "196357700759753@lid": {
+    "id": "196357700759753@lid",
+    "lid": "196357700759753@lid",
+    "imgUrl": "removed"
   }
 }

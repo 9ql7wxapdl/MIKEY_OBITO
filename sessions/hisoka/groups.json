@@ -908,7 +908,7 @@
     "announce": false,
     "isCommunity": false,
     "isCommunityAnnounce": false,
-    "joinApprovalMode": true,
+    "joinApprovalMode": false,
     "memberAddMode": true,
     "participants": [
       {
@@ -1486,7 +1486,8 @@
         "jid": "6285188150676@s.whatsapp.net",
         "admin": null
       }
-    ]
+    ],
+    "ephemeralDuration": 86400
   },
   "120363421910941096@g.us": {
     "id": "120363421910941096@g.us",
@@ -7395,7 +7396,7 @@
     "subjectOwner": "6283123405940@s.whatsapp.net",
     "subjectOwnerLid": "172838711480524@lid",
     "subjectTime": 1761452838,
-    "size": 994,
+    "size": 992,
     "creation": 1693096407,
     "owner": "6285807405071@s.whatsapp.net",
     "ownerLid": "88609721962527@lid",
@@ -8856,11 +8857,6 @@
       {
         "id": "25998141706414@lid",
         "jid": "6285842723459@s.whatsapp.net",
-        "admin": null
-      },
-      {
-        "id": "164021059735583@lid",
-        "jid": "6285815618805@s.whatsapp.net",
         "admin": null
       },
       {
@@ -12129,11 +12125,6 @@
         "admin": null
       },
       {
-        "id": "189705064829025@lid",
-        "jid": "6285607541388@s.whatsapp.net",
-        "admin": null
-      },
-      {
         "id": "165558809063638@lid",
         "jid": "6283181909625@s.whatsapp.net",
         "admin": null
@@ -12387,7 +12378,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1909,
+    "size": 1908,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -12853,11 +12844,6 @@
       {
         "id": "165558809063638@lid",
         "jid": "165558809063638@lid",
-        "admin": null
-      },
-      {
-        "id": "189705064829025@lid",
-        "jid": "189705064829025@lid",
         "admin": null
       },
       {
