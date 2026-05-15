@@ -863,7 +863,7 @@ async function main() {
                         }
                         {
                                 const ALQ_PATH       = path.join(process.cwd(), 'src', 'scrape', 'alqanime-monitor.cjs');
-                                const ALQ_INTERVAL_MS = 5 * 60 * 1000;
+                                const ALQ_INTERVAL_MS = 60 * 1000;
 
                                 const runAlqanime = async () => {
                                         try {

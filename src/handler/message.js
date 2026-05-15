@@ -13904,7 +13904,7 @@ infoText += `╰═════════════════════�
                                                 `│\n` +
                                                 `│ 💡 Bot otomatis kirim notif saat episode\n` +
                                                 `│    baru Sub Indo tayang di alqanime.net.\n` +
-                                                `│ ⏱️ Cek setiap 5 menit.\n` +
+                                                `│ ⏱️ Cek setiap 1 menit.\n` +
                                                 `╰──────────────────────`
                                         );
                                         break;
