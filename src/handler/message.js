@@ -13875,6 +13875,172 @@ infoText += `╰═════════════════════�
                                 break;
                         }
 
+                        case 'alqnotif': {
+                                if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
+                                if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
+
+                                const { simulasi: simulasiALQ, getEnabledGroups: getEnabledGroupsALQ } = _require(path.resolve('./src/scrape/alqanime-monitor.cjs'));
+                                const cfgPathALQ = path.join(process.cwd(), 'config.json');
+                                const sub = (query || '').trim().toLowerCase().replace(/\s+/g, ' ');
+                                const pfx = m.prefix || '.';
+
+                                const cfgALQ = loadConfig();
+                                if (!cfgALQ.alqanime)        cfgALQ.alqanime        = { groups: {} };
+                                if (!cfgALQ.alqanime.groups) cfgALQ.alqanime.groups = {};
+
+                                if (!sub || sub === 'help') {
+                                        const aktif = cfgALQ.alqanime.groups[m.from]?.enabled === true;
+                                        await tolak(hisoka, m,
+                                                `╭─「 🔴 *ALQANIME NOTIF* 」\n` +
+                                                `│\n` +
+                                                `│ Status di grup ini: ${aktif ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
+                                                `│\n` +
+                                                `│ *Perintah:*\n` +
+                                                `│ • ${pfx}alqnotif on — aktifkan\n` +
+                                                `│ • ${pfx}alqnotif off — nonaktifkan\n` +
+                                                `│ • ${pfx}alqnotif test — kirim test ke sini\n` +
+                                                `│ • ${pfx}alqnotif test grup — kirim test ke semua grup aktif\n` +
+                                                `│ • ${pfx}alqnotif status — lihat semua grup\n` +
+                                                `│\n` +
+                                                `│ 💡 Bot otomatis kirim notif saat episode\n` +
+                                                `│    baru Sub Indo tayang di alqanime.net.\n` +
+                                                `│ ⏱️ Cek setiap 5 menit.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        break;
+                                }
+
+                                if (sub === 'on') {
+                                        const sebelumnya = cfgALQ.alqanime.groups[m.from]?.enabled === true;
+                                        cfgALQ.alqanime.groups[m.from] = { enabled: true, diubahPada: Date.now() };
+                                        fs.writeFileSync(cfgPathALQ, JSON.stringify(cfgALQ, null, 2));
+                                        await tolak(hisoka, m,
+                                                `╭─「 🔴 *ALQANIME NOTIF* 」\n` +
+                                                `│\n` +
+                                                `│ Status sebelumnya : ${sebelumnya ? '✅ *ON*' : '❌ *OFF*'}\n` +
+                                                `│ Status sekarang   : ✅ *ON*\n` +
+                                                `│\n` +
+                                                (sebelumnya
+                                                        ? `│ ℹ️ Fitur ini sebelumnya sudah aktif,\n│    tidak ada perubahan.\n`
+                                                        : `│ ✅ Berhasil diaktifkan!\n│    Bot akan kirim notif otomatis\n│    saat episode baru muncul di alqanime.net.\n`) +
+                                                `│\n` +
+                                                `│ Ketik *${pfx}alqnotif off* untuk menonaktifkan.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'alqnotif-on');
+                                        break;
+                                }
+
+                                if (sub === 'off') {
+                                        const sebelumnya = cfgALQ.alqanime.groups[m.from]?.enabled === true;
+                                        cfgALQ.alqanime.groups[m.from] = { enabled: false, diubahPada: Date.now() };
+                                        fs.writeFileSync(cfgPathALQ, JSON.stringify(cfgALQ, null, 2));
+                                        await tolak(hisoka, m,
+                                                `╭─「 🔴 *ALQANIME NOTIF* 」\n` +
+                                                `│\n` +
+                                                `│ Status sebelumnya : ${sebelumnya ? '✅ *ON*' : '❌ *OFF*'}\n` +
+                                                `│ Status sekarang   : ❌ *OFF*\n` +
+                                                `│\n` +
+                                                (sebelumnya
+                                                        ? `│ ❌ Berhasil dinonaktifkan.\n│    Bot tidak akan kirim notif lagi\n│    di grup ini.\n`
+                                                        : `│ ℹ️ Fitur ini sebelumnya sudah nonaktif,\n│    tidak ada perubahan.\n`) +
+                                                `│\n` +
+                                                `│ Ketik *${pfx}alqnotif on* untuk mengaktifkan kembali.\n` +
+                                                `╰──────────────────────`
+                                        );
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        logCommand(m, hisoka, 'alqnotif-off');
+                                        break;
+                                }
+
+                                if (sub === 'status') {
+                                        const cfgStatus = loadConfig();
+                                        const groups    = cfgStatus?.alqanime?.groups || {};
+                                        const entries   = Object.entries(groups);
+                                        if (!entries.length) {
+                                                await tolak(hisoka, m, '📋 Belum ada grup yang terdaftar untuk Alqanime Notif.');
+                                                break;
+                                        }
+                                        let txt = `╭─「 🔴 *STATUS ALQANIME NOTIF* 」\n│\n`;
+                                        for (const [jid, val] of entries) {
+                                                const aktif = val?.enabled === true;
+                                                const tgl   = val?.diubahPada ? new Date(val.diubahPada).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta' }) : '-';
+                                                txt += `│ ${aktif ? '✅' : '❌'} ${jid}\n│    _(diubah: ${tgl})_\n│\n`;
+                                        }
+                                        txt += `╰──────────────────────`;
+                                        await tolak(hisoka, m, txt);
+                                        await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                        break;
+                                }
+
+                                if (sub === 'test grup') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const daftarGrup = getEnabledGroupsALQ();
+                                                if (!daftarGrup.length) {
+                                                        await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                        await tolak(hisoka, m, `❌ Belum ada grup yang mengaktifkan Alqanime Notif.\nKetik *${pfx}alqnotif on* di grup tujuan dulu.`);
+                                                        break;
+                                                }
+                                                const hasil = await simulasiALQ();
+                                                let berhasil = 0, gagal = 0;
+                                                for (const jid of daftarGrup) {
+                                                        try {
+                                                                if (hasil.urlGambar) {
+                                                                        await hisoka.sendMessage(jid, {
+                                                                                image: { url: hasil.urlGambar },
+                                                                                caption: hasil.caption,
+                                                                        });
+                                                                } else {
+                                                                        await hisoka.sendMessage(jid, { text: hasil.caption });
+                                                                }
+                                                                berhasil++;
+                                                                await new Promise(r => setTimeout(r, 1500));
+                                                        } catch (e) {
+                                                                gagal++;
+                                                                console.error(`[AlqanimeNotif] Gagal kirim test ke ${jid}:`, e?.message);
+                                                        }
+                                                }
+                                                await hisoka.sendMessage(m.from, {
+                                                        text: `✅ *Test Alqanime Notif selesai!*\n\n` +
+                                                              `📤 Terkirim ke: *${berhasil}/${daftarGrup.length} grup*` +
+                                                              (gagal ? `\n❌ Gagal: ${gagal} grup` : ''),
+                                                }, { quoted: m });
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'alqnotif-test-grup');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch Alqanime: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                if (sub === 'test') {
+                                        await hisoka.sendMessage(m.from, { react: { text: '⏳', key: m.key } });
+                                        try {
+                                                const hasil = await simulasiALQ();
+                                                if (hasil.urlGambar) {
+                                                        await hisoka.sendMessage(m.from, {
+                                                                image: { url: hasil.urlGambar },
+                                                                caption: hasil.caption,
+                                                        }, { quoted: m });
+                                                } else {
+                                                        await tolak(hisoka, m, hasil.caption);
+                                                }
+                                                await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
+                                                logCommand(m, hisoka, 'alqnotif-test');
+                                        } catch (err) {
+                                                await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
+                                                await tolak(hisoka, m, `❌ Gagal fetch Alqanime: ${err?.message || err}`);
+                                        }
+                                        break;
+                                }
+
+                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}alqnotif* untuk bantuan.`);
+                                break;
+                        }
+
                         case 'tvone': {
                                 const { simulasi: simulasiTV, getEnabledGroups: getEnabledGroupsTV, setGroupEnabled: setGroupEnabledTV, getRecentLog: getRecentLogTV } = _require(path.resolve('./src/scrape/tvonenews.cjs'));
                                 const cfgPathTV = path.join(process.cwd(), 'config.json');

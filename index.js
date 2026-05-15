@@ -856,6 +856,78 @@ async function main() {
                         }
                         /* =================== END AUTO ANIMASU SCHEDULER =================== */
 
+                        /* =================== AUTO ALQANIME NOTIF SCHEDULER =================== */
+                        if (global.alqanimeInterval) {
+                                clearInterval(global.alqanimeInterval);
+                                global.alqanimeInterval = null;
+                        }
+                        {
+                                const ALQ_PATH       = path.join(process.cwd(), 'src', 'scrape', 'alqanime-monitor.cjs');
+                                const ALQ_INTERVAL_MS = 5 * 60 * 1000;
+
+                                const runAlqanime = async () => {
+                                        try {
+                                                delete _require.cache[_require.resolve(ALQ_PATH)];
+                                                const _alq = _require(ALQ_PATH);
+
+                                                const daftarGrup = _alq.getEnabledGroups();
+                                                if (!daftarGrup.length) return;
+
+                                                const episodeBaru = await _alq.cariEpisodeBaru();
+                                                if (!episodeBaru.length) return;
+
+                                                // Dedup by url+epNum
+                                                const sudahKirimEp = new Set();
+                                                const episodeUnik  = episodeBaru.filter(item => {
+                                                        const key = item.id || `${item.url}::${item.epNum}`;
+                                                        if (sudahKirimEp.has(key)) return false;
+                                                        sudahKirimEp.add(key);
+                                                        return true;
+                                                });
+
+                                                for (const item of episodeUnik) {
+                                                        const caption   = _alq.buatCaption(item);
+                                                        const urlGambar = _alq.ambilUrlGambar(item);
+
+                                                        const BATCH = 5;
+                                                        for (let i = 0; i < daftarGrup.length; i += BATCH) {
+                                                                const chunk = daftarGrup.slice(i, i + BATCH);
+                                                                await Promise.allSettled(chunk.map(async jid => {
+                                                                        try {
+                                                                                if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image: { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
+                                                                        } catch (e) {
+                                                                                console.error(`[AlqanimeNotif] Gagal kirim ke ${jid}:`, e?.message);
+                                                                        }
+                                                                }));
+                                                                if (i + BATCH < daftarGrup.length) {
+                                                                        await new Promise(r => setTimeout(r, 1000));
+                                                                }
+                                                        }
+
+                                                        _alq.tandaiDanLog(item, daftarGrup);
+                                                        console.log(`[AlqanimeNotif] ✅ Ep ${item.epNum} "${item.judul}" terkirim ke ${daftarGrup.length} grup`);
+                                                        await new Promise(r => setTimeout(r, 2000));
+                                                }
+                                        } catch (err) {
+                                                console.error('[AlqanimeNotif] Error scheduler:', err?.message);
+                                        }
+                                };
+
+                                // Mulai 45 detik setelah start (setelah animasu)
+                                setTimeout(() => {
+                                        runAlqanime();
+                                        global.alqanimeInterval = setInterval(runAlqanime, ALQ_INTERVAL_MS);
+                                }, 45000);
+                        }
+                        /* ================= END AUTO ALQANIME NOTIF SCHEDULER ================= */
+
                         /* ===================== AUTO TVONENEWS SCHEDULER ===================== */
                         if (global.tvoneInterval) {
                                 clearInterval(global.tvoneInterval);
