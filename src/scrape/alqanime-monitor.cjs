@@ -22,7 +22,14 @@ const FILE_MAL    = path.join(DIR_DATA, 'mal_cache.json');
 const FILE_CONFIG = path.join(process.cwd(), 'config.json');
 fs.mkdirSync(DIR_DATA, { recursive: true });
 
+// Buffer waktu (ms) yang ditambahkan ke lastCheckTime saat menghitung batas usia post
+// Mencegah post yang terbit tepat di batas window terlewat akibat latensi jaringan
+const BUFFER_MS     = 3 * 60 * 1000;   // 3 menit
+// Berapa lama (ms) post gagal-fetch akan dicoba ulang sebelum diabaikan permanen
 const RETRY_TTL_MS  = 30 * 60 * 1000;  // 30 menit
+// Jangkauan awal (ms) saat belum ada lastCheckTime (misal: bot baru start)
+const INIT_WINDOW_MS = 30 * 60 * 1000; // 30 menit
+
 const MAL_CACHE_TTL = 7 * 24 * 3600 * 1000; // 7 hari
 
 const JINA_BASE = 'https://r.jina.ai';
@@ -38,7 +45,7 @@ function bacaData() {
     try {
         if (fs.existsSync(FILE_DATA)) return JSON.parse(fs.readFileSync(FILE_DATA, 'utf-8'));
     } catch (_) {}
-    return { idTerkirim: [], idGagal: [], firstRun: false };
+    return { idTerkirim: [], idGagal: [], lastCheckTime: null };
 }
 
 function simpanData(data) {
@@ -114,7 +121,6 @@ async function ambilThumbnailMAL(judul) {
         );
         const list = res.data?.data || [];
 
-        // Cari yang judulnya paling cocok (exact atau substring)
         const titleClean = bersihkanJudulMAL(judul).toLowerCase();
         let best = list.find(a =>
             (a.title || '').toLowerCase().includes(titleClean) ||
@@ -140,10 +146,8 @@ async function ambilThumbnailMAL(judul) {
             { headers: HEADERS, timeout: 20000 }
         );
         const md = res.data || '';
-        // Cari URL gambar MAL cdn di markdown
         const m  = md.match(/https:\/\/(?:cdn\.)?myanimelist\.net\/images\/anime\/[^\s\)\"']+\.jpg/i);
         if (m) {
-            // Ubah ke versi large (suffix 'l')
             const imgUrl = m[0].replace(/\.jpg$/i, 'l.jpg');
             console.log(`[AlqanimeNotif] 🖼️ MAL Jina OK: "${key}" → ${imgUrl}`);
             cache[key] = { url: imgUrl, malId: null, cachedAt: Date.now() };
@@ -187,7 +191,6 @@ function parseJudulEp(titleRaw) {
         .replace(/\s*Sub\s*Indo\s*/gi, '')
         .replace(/\s*Uncensored\s*$/gi, '')
         .replace(/\s*-\s*Alqanime\s*$/gi, '')
-        // Perbaiki kasus tanpa spasi sebelum kata (misal: "TitleSub" → "Title")
         .replace(/([a-z])([A-Z])/g, '$1 $2')
         .replace(/\s{2,}/g, ' ')
         .trim();
@@ -252,21 +255,42 @@ async function enrichDenganMAL(item) {
 }
 
 // ── CARI EPISODE BARU ─────────────────────────────────────────────────────────
+//
+// Menggunakan lastCheckTime (disimpan di state.json) sebagai penanda kapan terakhir
+// kali cek dilakukan — sama seperti animasu.cjs. Sehingga tidak ada episode yang
+// terlewat meski bot restart. idGagal dicoba ulang tiap siklus selama maks
+// RETRY_TTL_MS (30 menit) sebelum diabaikan permanen.
 
 async function cariEpisodeBaru() {
     const { getLatestAlqanime, getDetailAlqanime } = require('./alqanime.cjs');
+
+    const now  = Date.now();
     const data = bacaData();
-    const baru = [];
+
+    // Simpan apakah ini first run SEBELUM menimpa lastCheckTime
+    const isFirstRun = !data.lastCheckTime;
+
+    // Simpan waktu check sekarang SEBELUM proses
+    // (agar check berikutnya punya referensi waktu yang akurat — sama seperti animasu)
+    data.lastCheckTime = now;
+    if (!data.idTerkirim) data.idTerkirim = [];
+    if (!data.idGagal)    data.idGagal    = [];
+    simpanData(data);
+
+    const baru        = [];
     const idGagalBaru = [];
 
     // ── Retry gagal sebelumnya ─────────────────────────────────────────────────
     for (const gagal of (data.idGagal || [])) {
         if (sudahDikirim(gagal.id)) continue;
-        if ((Date.now() - new Date(gagal.pertamaGagal).getTime()) > RETRY_TTL_MS) {
-            console.log(`[AlqanimeNotif] ⏭️ Retry timeout: "${gagal.judul}" ep ${gagal.epNum} dilewati`);
+
+        const usiaGagal = now - new Date(gagal.pertamaGagal).getTime();
+        if (usiaGagal > RETRY_TTL_MS) {
+            console.log(`[AlqanimeNotif] ⏭️ Retry timeout: "${gagal.judul}" ep ${gagal.epNum} diabaikan`);
             tandaiSudahKirim(gagal.id);
             continue;
         }
+
         try {
             const detail  = await getDetailAlqanime(gagal.url);
             const item    = await enrichDenganMAL({
@@ -293,21 +317,25 @@ async function cariEpisodeBaru() {
         console.error('[AlqanimeNotif] ❌ Gagal fetch homepage:', e?.message);
     }
 
-    // Pertama kali bot jalan: tandai semua seen, jangan kirim
-    if (!data.firstRun) {
+    // ── Pertama kali bot jalan (tidak ada lastCheckTime sebelumnya) ────────────
+    // Tandai semua card saat ini sebagai seen, jangan kirim
+    // Sama seperti animasu: hindari flood notif saat bot baru start
+    if (isFirstRun) {
         console.log(`[AlqanimeNotif] 🚀 First run — tandai ${cards.length} card sebagai seen`);
+        const df = bacaData();
         for (const card of cards) {
             const { epNum } = parseJudulEp(card.title || '');
-            tandaiSudahKirim(buatId(card.url, epNum));
+            const id = buatId(card.url, epNum);
+            if (!df.idTerkirim.includes(String(id))) {
+                df.idTerkirim.unshift(String(id));
+            }
         }
-        const df      = bacaData();
-        df.firstRun   = true;
-        df.idGagal    = idGagalBaru;
+        df.idGagal = idGagalBaru;
         simpanData(df);
         return [];
     }
 
-    // Run normal
+    // ── Run normal ─────────────────────────────────────────────────────────────
     for (const card of cards) {
         const { judul, epNum } = parseJudulEp(card.title || '');
         const id = buatId(card.url, epNum);
@@ -339,9 +367,11 @@ async function cariEpisodeBaru() {
         }
     }
 
-    const df   = bacaData();
-    df.idGagal = idGagalBaru;
-    simpanData(df);
+    // Simpan antrian retry terbaru
+    const dataFinal = bacaData();
+    dataFinal.idGagal = idGagalBaru;
+    simpanData(dataFinal);
+
     return baru;
 }
 
@@ -371,7 +401,6 @@ async function simulasi() {
     const item    = await enrichDenganMAL(baseItem);
     const caption = buatCaption(item);
 
-    // Prioritas gambar: MAL thumbnail > alqanime thumbnail
     const urlGambar = item.malThumbnail || item.thumbnail || null;
     return { caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail };
 }
@@ -441,10 +470,9 @@ function buatCaption(data) {
         ['🔄 *Diperbarui*  ', info['Diperbarui pada'] || null],
     ]);
 
-    // Download links: episode terbaru, max 4 resolusi
     let dlBlok = '';
     if (episodes.length) {
-        const epTerbaru  = episodes[0];
+        const epTerbaru    = episodes[0];
         const resolusiList = Object.entries(epTerbaru.links || {}).slice(0, 4);
         if (resolusiList.length) {
             dlBlok += `\n${SEP}\n`;
@@ -484,7 +512,6 @@ function buatCaption(data) {
     );
 }
 
-// Prioritaskan MAL thumbnail (jernih) > alqanime thumbnail (fallback)
 function ambilUrlGambar(data) {
     return data?.malThumbnail || data?.thumbnail || null;
 }
