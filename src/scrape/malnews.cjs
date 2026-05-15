@@ -187,6 +187,33 @@ async function fetchRSS() {
     });
 }
 
+async function fetchHtmlArtikel(url) {
+    return fetchDenganRetry(async () => {
+        const cleanUrl = url.replace(/[?#].*$/, '').replace(/_location=rss$/, '');
+        const r = await axios.get(cleanUrl, { headers: HEADERS, timeout: 20000 });
+        return r.data;
+    });
+}
+
+// Ambil teks konten penuh dari halaman artikel MAL
+function parseKontenArtikel(html) {
+    // Konten ada di <div class="content clearfix">
+    const kontenM = html.match(/class="content clearfix"[^>]*>([\s\S]{0,30000}?)<\/div>\s*(?=<div|<section|<footer|<aside)/);
+    if (!kontenM) return '';
+
+    const raw = kontenM[1]
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<img[^>]*>/gi, '')
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n')
+        .replace(/<\/div>/gi, '\n');
+
+    return stripHtml(raw)
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+}
+
 // ── DEDUP ─────────────────────────────────────────────────────────────────────
 
 function sudahDikirim(id) {
@@ -230,14 +257,26 @@ function getRecentLog(jumlah = 20) {
     return (bacaLog().terkirim || []).slice(0, jumlah);
 }
 
-// ── ENRICH: TERJEMAHKAN ITEM ──────────────────────────────────────────────────
+// ── ENRICH: FETCH KONTEN PENUH + TERJEMAHKAN ─────────────────────────────────
 
 async function enrichItem(item) {
+    // Fetch halaman artikel untuk konten penuh
+    let kontenPenuh = item.deskripsi || '';
+    try {
+        const html = await fetchHtmlArtikel(item.url);
+        const parsed = parseKontenArtikel(html);
+        if (parsed && parsed.length > kontenPenuh.length) {
+            kontenPenuh = parsed;
+        }
+    } catch (e) {
+        console.warn(`[MALNews] ⚠️ Gagal fetch detail artikel, pakai RSS desc: ${e?.message}`);
+    }
+
     const [judulID, deskripsiID] = await Promise.all([
         terjemahkan(item.judul),
-        terjemahkan(item.deskripsi),
+        terjemahkan(kontenPenuh),
     ]);
-    return { ...item, judulID, deskripsiID };
+    return { ...item, kontenPenuh, judulID, deskripsiID };
 }
 
 // ── CARI BERITA BARU (REALTIME) ───────────────────────────────────────────────
