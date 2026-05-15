@@ -898,7 +898,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1736524829,
-    "size": 116,
+    "size": 115,
     "creation": 1734823009,
     "owner": "",
     "ownerLid": "",
@@ -1342,11 +1342,6 @@
         "admin": null
       },
       {
-        "id": "197504406696093@lid",
-        "jid": "6282132978154@s.whatsapp.net",
-        "admin": null
-      },
-      {
         "id": "240986437513380@lid",
         "jid": "6289677517538@s.whatsapp.net",
         "admin": null
@@ -1500,7 +1495,7 @@
     "subjectOwner": "6285187063723@s.whatsapp.net",
     "subjectOwnerLid": "8014979436608@lid",
     "subjectTime": 1769244051,
-    "size": 424,
+    "size": 423,
     "creation": 1754438731,
     "owner": "6285187063723@s.whatsapp.net",
     "ownerLid": "8014979436608@lid",
@@ -3084,11 +3079,6 @@
         "admin": null
       },
       {
-        "id": "78010262786083@lid",
-        "jid": "67077000092@s.whatsapp.net",
-        "admin": null
-      },
-      {
         "id": "168402077368527@lid",
         "jid": "6287763581730@s.whatsapp.net",
         "admin": null
@@ -3643,7 +3633,7 @@
     "subjectOwner": "6285187063723@s.whatsapp.net",
     "subjectOwnerLid": "8014979436608@lid",
     "subjectTime": 1769434437,
-    "size": 749,
+    "size": 748,
     "creation": 1769433881,
     "owner": "6285809163320@s.whatsapp.net",
     "ownerLid": "44698278310084@lid",
@@ -4594,11 +4584,6 @@
       {
         "id": "247248751448287@lid",
         "jid": "247248751448287@lid",
-        "admin": null
-      },
-      {
-        "id": "78010262786083@lid",
-        "jid": "78010262786083@lid",
         "admin": null
       },
       {
@@ -7410,7 +7395,7 @@
     "subjectOwner": "6283123405940@s.whatsapp.net",
     "subjectOwnerLid": "172838711480524@lid",
     "subjectTime": 1761452838,
-    "size": 996,
+    "size": 994,
     "creation": 1693096407,
     "owner": "6285807405071@s.whatsapp.net",
     "ownerLid": "88609721962527@lid",
@@ -11449,11 +11434,6 @@
         "admin": null
       },
       {
-        "id": "130413024514280@lid",
-        "jid": "6282324663137@s.whatsapp.net",
-        "admin": null
-      },
-      {
         "id": "37268119134401@lid",
         "jid": "6288211141137@s.whatsapp.net",
         "admin": null
@@ -11716,11 +11696,6 @@
       {
         "id": "195821115031632@lid",
         "jid": "6287741428199@s.whatsapp.net",
-        "admin": null
-      },
-      {
-        "id": "223257450045669@lid",
-        "jid": "628987648023@s.whatsapp.net",
         "admin": null
       },
       {
@@ -12412,7 +12387,7 @@
     "subjectOwner": "",
     "subjectOwnerLid": "",
     "subjectTime": 1720055772,
-    "size": 1913,
+    "size": 1909,
     "creation": 1717629092,
     "owner": "",
     "ownerLid": "",
@@ -13706,11 +13681,6 @@
         "admin": null
       },
       {
-        "id": "223257450045669@lid",
-        "jid": "223257450045669@lid",
-        "admin": null
-      },
-      {
         "id": "242743733387502@lid",
         "jid": "242743733387502@lid",
         "admin": null
@@ -14218,11 +14188,6 @@
       {
         "id": "37268119134401@lid",
         "jid": "37268119134401@lid",
-        "admin": null
-      },
-      {
-        "id": "130413024514280@lid",
-        "jid": "130413024514280@lid",
         "admin": null
       },
       {
@@ -16101,11 +16066,6 @@
         "admin": null
       },
       {
-        "id": "262917144449188@lid",
-        "jid": "262917144449188@lid",
-        "admin": null
-      },
-      {
         "id": "171743545180259@lid",
         "jid": "171743545180259@lid",
         "admin": null
@@ -16811,6 +16771,11 @@
         "admin": null
       },
       {
+        "id": "58734382428410@lid",
+        "jid": "58734382428410@lid",
+        "admin": null
+      },
+      {
         "id": "212957397053470@lid",
         "jid": "212957397053470@lid",
         "admin": null
@@ -17188,11 +17153,6 @@
       {
         "id": "168664087191717@lid",
         "jid": "168664087191717@lid",
-        "admin": null
-      },
-      {
-        "id": "64880346407048@lid",
-        "jid": "64880346407048@lid",
         "admin": null
       },
       {
@@ -19943,11 +19903,6 @@
       {
         "id": "253669945659538@lid",
         "jid": "253669945659538@lid",
-        "admin": null
-      },
-      {
-        "id": "169870905888909@lid",
-        "jid": "169870905888909@lid",
         "admin": null
       },
       {

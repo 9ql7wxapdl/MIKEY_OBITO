@@ -29,7 +29,7 @@
 # ─────────────────────────────────────────────────────────────
 
 USER="hitlabmodv2"
-REPO="HONOLULU_AI"
+REPO="ReadSwDika_Version"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
 DEFAULT_BRANCH="ReadswDika-V17.6"
@@ -876,7 +876,7 @@ while true; do
 done
 
 # Pilih repo tujuan push dari daftar GitHub (bisa Enter untuk skip)
-REPO="HONOLULU_AI"
+REPO="ReadSwDika_Version"
 echo "" >&2
 echo -e "  ${C_BOLD}📁 Repository tujuan: ${C_GREEN}${REPO}${C_RESET}" >&2
 echo "" >&2
@@ -1660,13 +1660,15 @@ log_push_event() {
 
 # ===== Tampilkan riwayat push =====
 action_view_push_log() {
-  clear >/dev/tty 2>/dev/null || true
-  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
-  echo -e "${C_BOLD}│  📋  RIWAYAT PUSH — BANG WILY    │${C_RESET}"
-  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
-  echo ""
+  local _LOG_PAGE="${_LOG_PAGE:-1}"
+  local _LOG_PAGE_SIZE=15
 
   if [ ! -f "$PUSH_LOG_FILE" ] || [ ! -s "$PUSH_LOG_FILE" ]; then
+    clear >/dev/tty 2>/dev/null || true
+    echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+    echo -e "${C_BOLD}│  📋  RIWAYAT PUSH — BANG WILY    │${C_RESET}"
+    echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+    echo ""
     echo -e "  ${C_DIM}📭 Belum ada riwayat push.${C_RESET}"
     echo -e "  ${C_DIM}   Log akan muncul setelah push pertama kali.${C_RESET}"
     echo ""
@@ -1674,85 +1676,109 @@ action_view_push_log() {
     return
   fi
 
-  # ── Statistik ────────────────────────────────────────────────────────────
-  local _total _ok _fail _force
-  _total=$(wc -l < "$PUSH_LOG_FILE" | tr -d ' ')
-  _ok=$(grep -c '| OK ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
-  _force=$(grep -c '| OK(force) ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
-  _fail=$(grep -c '| FAIL ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
-  local _suc=$(( _ok + _force ))
+  # ── Baca semua baris ke array ─────────────────────────────────────────────
+  local _lines=()
+  while IFS= read -r _l; do
+    [ -n "$_l" ] && _lines+=("$_l")
+  done < "$PUSH_LOG_FILE"
 
-  echo -e "  ${C_DIM}📊 Statistik Push${C_RESET}"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_BOLD}Total  :${C_RESET} ${C_BOLD}${_total}${C_RESET} push"
-  echo -e "  ${C_GREEN}✅ OK   :${C_RESET} ${_ok} normal  ${C_DIM}+${C_RESET}  ${C_YELLOW}⚡ ${_force} force${C_RESET}"
-  echo -e "  ${C_RED}❌ Gagal:${C_RESET} ${_fail}"
-  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  local _total=${#_lines[@]}
+  local _total_pages=$(( (_total + _LOG_PAGE_SIZE - 1) / _LOG_PAGE_SIZE ))
+  [ "$_total_pages" -eq 0 ] && _total_pages=1
+  [ "$_LOG_PAGE" -gt "$_total_pages" ] && _LOG_PAGE=$_total_pages
+  [ "$_LOG_PAGE" -lt 1 ] && _LOG_PAGE=1
+
+  # Tampilkan dari bawah (terbaru dulu) — hitung indeks terbalik
+  local _start=$(( _total - (_LOG_PAGE - 1) * _LOG_PAGE_SIZE - 1 ))
+  local _end=$(( _start - _LOG_PAGE_SIZE + 1 ))
+  [ "$_end" -lt 0 ] && _end=0
+
+  # ── Statistik ringkas ─────────────────────────────────────────────────────
+  local _ok _force _fail
+  _ok=$(grep -c    ' OK |OK ' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+  _force=$(grep -c 'OK(force)' "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+  _fail=$(grep -c  ' FAIL '    "$PUSH_LOG_FILE" 2>/dev/null || echo 0)
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│  📋  RIWAYAT PUSH — BANG WILY    │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
   echo ""
-
-  # ── 20 push terakhir dalam format rapi ────────────────────────────────────
-  echo -e "  ${C_DIM}📜 20 Push Terakhir${C_RESET}"
+  # Statistik 1 baris
+  echo -e "  ${C_BOLD}${_total}${C_RESET} push  ${C_GREEN}✅${_ok}${C_RESET}  ${C_YELLOW}⚡${_force}${C_RESET}  ${C_RED}❌${_fail}${C_RESET}  ${C_DIM}repo: ${USER}/${REPO}${C_RESET}"
+  if [ "$_total_pages" -gt 1 ]; then
+    echo -e "  ${C_DIM}hal ${_LOG_PAGE}/${_total_pages}  •  terbaru di atas${C_RESET}"
+  fi
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
 
-  local _idx=0
-  while IFS= read -r _raw; do
-    _idx=$(( _idx + 1 ))
+  # ── Daftar entry: 1 baris per push ───────────────────────────────────────
+  local _row_num=0
+  for (( i=_start; i>=_end; i-- )); do
+    _row_num=$(( _row_num + 1 ))
+    local _raw="${_lines[$i]}"
 
-    # Parse: [YYYY-MM-DD HH:MM:SS] STATUS | branch: X | hash: Y | file: Z | msg
+    # Parse log line
     local _ts _stat _branch _hash _files _msg
     _ts=$(    echo "$_raw" | sed 's/^\[\([^]]*\)\].*/\1/')
-    _stat=$(  echo "$_raw" | sed 's/.*\] \([^ ]*\) .*/\1/')
-    _branch=$(echo "$_raw" | sed 's/.*branch: \([^|]*\).*/\1/' | sed 's/[[:space:]]*$//')
-    _hash=$(  echo "$_raw" | sed 's/.*hash: \([^ ]*\).*/\1/')
-    _files=$( echo "$_raw" | sed 's/.*file: \([^ ]*\).*/\1/')
-    _msg=$(   echo "$_raw" | sed 's/.*file: [^|]* | //')
+    _stat=$(  echo "$_raw" | grep -oE '\] [A-Za-z()]+' | head -1 | tr -d '] ')
+    _branch=$(echo "$_raw" | sed 's/.*branch: \([^|]*\)/\1/' | sed 's/ *|.*//' | tr -d ' ')
+    _hash=$(  echo "$_raw" | sed 's/.*hash: \([^ |]*\).*/\1/')
+    _files=$( echo "$_raw" | sed 's/.*file: \([^ |]*\).*/\1/')
+    _msg=$(   echo "$_raw" | sed 's/.*| //' | cut -c1-32)
 
-    # Potong branch & msg biar pas
-    _branch_s=$(echo "$_branch" | cut -c1-22)
-    _msg_s=$(   echo "$_msg"    | cut -c1-40)
+    local _time_s _date_s
+    _date_s=$(echo "$_ts" | cut -c6-10)   # MM-DD
+    _time_s=$(echo "$_ts" | cut -c12-16)  # HH:MM
 
-    # Tanggal & jam
-    _date_s=$(echo "$_ts" | cut -c1-10)
-    _time_s=$(echo "$_ts" | cut -c12-16)
-
-    # Icon & warna status
     local _icon _col
     case "$_stat" in
-      OK)        _icon="✅"; _col="$C_GREEN"  ;;
+      OK)         _icon="✅"; _col="$C_GREEN"  ;;
       OK\(force\)) _icon="⚡"; _col="$C_YELLOW" ;;
-      FAIL)      _icon="❌"; _col="$C_RED"    ;;
-      *)         _icon="❓"; _col="$C_DIM"    ;;
+      FAIL)       _icon="❌"; _col="$C_RED"    ;;
+      *)          _icon="•";  _col="$C_DIM"    ;;
     esac
 
-    printf "  ${_col}${_icon}${C_RESET} ${C_DIM}%3d${C_RESET}  ${C_BOLD}%-5s${C_RESET} ${C_DIM}%s${C_RESET}  ${C_CYAN}%-22s${C_RESET}  ${C_DIM}🔑%-7s  📄%-3s${C_RESET}\n" \
-      "$_idx" "$_time_s" "$_date_s" "$_branch_s" "$_hash" "$_files"
-    printf "       ${C_DIM}💬 %s${C_RESET}\n" "$_msg_s"
+    # Format: [icon] [no] [jam] [tgl] [branch<=18] [hash<=7] [file] [msg<=32]
+    local _br_fmt; _br_fmt=$(printf "%-18s" "$(echo "$_branch" | cut -c1-18)")
+    local _hsh_fmt; _hsh_fmt=$(printf "%-7s" "$(echo "$_hash" | cut -c1-7)")
+    printf "  %b%s%b %b%2d%b %s %s  %b%s%b  %b%s%b %bf%b%s  %b%s%b\n" \
+      "$_col" "$_icon" "$C_RESET" \
+      "$C_DIM" "$_row_num" "$C_RESET" \
+      "$_time_s" "$_date_s" \
+      "$C_CYAN" "$_br_fmt" "$C_RESET" \
+      "$C_DIM" "$_hsh_fmt" "$C_RESET" \
+      "$C_DIM" "$C_RESET" "$_files" \
+      "$C_DIM" "$_msg" "$C_RESET"
+  done
 
-  done < <(tail -20 "$PUSH_LOG_FILE")
-
-  echo ""
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
-  echo -e "  ${C_YELLOW}h${C_RESET} ${C_BOLD}›${C_RESET} Hapus semua riwayat"
-  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
-  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
+
+  # Navigasi halaman
+  if [ "$_total_pages" -gt 1 ]; then
+    local _nav_l=""
+    [ "$_LOG_PAGE" -lt "$_total_pages" ] && _nav_l="${_nav_l}  ${C_CYAN}n${C_RESET} › Lebih lama"
+    [ "$_LOG_PAGE" -gt 1 ]               && _nav_l="${_nav_l}   ${C_CYAN}p${C_RESET} › Lebih baru"
+    [ -n "$_nav_l" ] && echo -e "$_nav_l"
+  fi
+  echo -e "  ${C_YELLOW}h${C_RESET} ${C_BOLD}›${C_RESET} Hapus semua   ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Kembali   ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Keluar"
   echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
   printf "  ${C_BOLD}▸ ${C_RESET}"
 
   local _ans
   read -r _ans </dev/tty
   case "$_ans" in
+    n|N) _LOG_PAGE=$(( _LOG_PAGE < _total_pages ? _LOG_PAGE + 1 : _LOG_PAGE )) action_view_push_log; return ;;
+    p|P) _LOG_PAGE=$(( _LOG_PAGE > 1 ? _LOG_PAGE - 1 : 1 )) action_view_push_log; return ;;
     h|H)
-      printf "  ${C_YELLOW}⚠️  Yakin hapus semua %s riwayat? (y/N) ▸ ${C_RESET}" "$_total"
+      printf "  ${C_YELLOW}⚠️  Hapus semua %s riwayat? (y/N) ▸ ${C_RESET}" "$_total"
       local _conf; read -r _conf </dev/tty
       case "$_conf" in
         y|Y)
           rm -f "$PUSH_LOG_FILE"
           echo -e "  ${C_GREEN}✅ Semua riwayat dihapus.${C_RESET}"
-          sleep 1
-          ;;
+          sleep 1 ;;
         *) echo -e "  ${C_DIM}Dibatalkan.${C_RESET}"; sleep 1 ;;
-      esac
-      ;;
+      esac ;;
     0|q|Q) goodbye_prompt ;;
   esac
 }
