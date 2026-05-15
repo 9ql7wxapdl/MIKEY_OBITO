@@ -189,7 +189,7 @@ async function fetchRSS() {
 
 async function fetchHtmlArtikel(url) {
     return fetchDenganRetry(async () => {
-        const cleanUrl = url.replace(/[?#].*$/, '').replace(/_location=rss$/, '');
+        const cleanUrl = url.replace(/[?#].*$/, '');
         const r = await axios.get(cleanUrl, { headers: HEADERS, timeout: 20000 });
         return r.data;
     });
@@ -227,7 +227,7 @@ async function fetchAnimeInfo(animeId) {
             tayang  : d.aired?.string || '',
             genre   : (d.genres || []).map(g => g.name).join(', ') || '',
             studio  : (d.studios || []).map(s => s.name).join(', ') || '',
-            skor    : d.score ? `⭐ ${d.score}` : '-',
+            skor    : d.score ? String(d.score) : '-',
             url     : d.url || `https://myanimelist.net/anime/${animeId}`,
             gambar  : d.images?.jpg?.image_url || null,
         };
