@@ -13875,7 +13875,7 @@ infoText += `╰═════════════════════�
                                 break;
                         }
 
-                        case 'alqnotif': {
+                        case 'alqanimenotif': {
                                 if (!m.isOwner) return tolak(hisoka, m, '❌ Hanya owner yang bisa gunakan perintah ini.');
                                 if (!m.isGroup) return tolak(hisoka, m, '❌ Perintah ini hanya untuk grup.');
 
@@ -13885,22 +13885,22 @@ infoText += `╰═════════════════════�
                                 const pfx = m.prefix || '.';
 
                                 const cfgALQ = loadConfig();
-                                if (!cfgALQ.alqanime)        cfgALQ.alqanime        = { groups: {} };
-                                if (!cfgALQ.alqanime.groups) cfgALQ.alqanime.groups = {};
+                                if (!cfgALQ.alqanimenotif)        cfgALQ.alqanimenotif        = { groups: {} };
+                                if (!cfgALQ.alqanimenotif.groups) cfgALQ.alqanimenotif.groups = {};
 
                                 if (!sub || sub === 'help') {
-                                        const aktif = cfgALQ.alqanime.groups[m.from]?.enabled === true;
+                                        const aktif = cfgALQ.alqanimenotif.groups[m.from]?.enabled === true;
                                         await tolak(hisoka, m,
                                                 `╭─「 🔴 *ALQANIME NOTIF* 」\n` +
                                                 `│\n` +
                                                 `│ Status di grup ini: ${aktif ? '✅ *Aktif*' : '❌ *Nonaktif*'}\n` +
                                                 `│\n` +
                                                 `│ *Perintah:*\n` +
-                                                `│ • ${pfx}alqnotif on — aktifkan\n` +
-                                                `│ • ${pfx}alqnotif off — nonaktifkan\n` +
-                                                `│ • ${pfx}alqnotif test — kirim test ke sini\n` +
-                                                `│ • ${pfx}alqnotif test grup — kirim test ke semua grup aktif\n` +
-                                                `│ • ${pfx}alqnotif status — lihat semua grup\n` +
+                                                `│ • ${pfx}alqanimenotif on — aktifkan\n` +
+                                                `│ • ${pfx}alqanimenotif off — nonaktifkan\n` +
+                                                `│ • ${pfx}alqanimenotif test — kirim test ke sini\n` +
+                                                `│ • ${pfx}alqanimenotif test grup — kirim test ke semua grup aktif\n` +
+                                                `│ • ${pfx}alqanimenotif status — lihat semua grup\n` +
                                                 `│\n` +
                                                 `│ 💡 Bot otomatis kirim notif saat episode\n` +
                                                 `│    baru Sub Indo tayang di alqanime.net.\n` +
@@ -13911,8 +13911,8 @@ infoText += `╰═════════════════════�
                                 }
 
                                 if (sub === 'on') {
-                                        const sebelumnya = cfgALQ.alqanime.groups[m.from]?.enabled === true;
-                                        cfgALQ.alqanime.groups[m.from] = { enabled: true, diubahPada: Date.now() };
+                                        const sebelumnya = cfgALQ.alqanimenotif.groups[m.from]?.enabled === true;
+                                        cfgALQ.alqanimenotif.groups[m.from] = { enabled: true, diubahPada: Date.now() };
                                         fs.writeFileSync(cfgPathALQ, JSON.stringify(cfgALQ, null, 2));
                                         await tolak(hisoka, m,
                                                 `╭─「 🔴 *ALQANIME NOTIF* 」\n` +
@@ -13924,17 +13924,17 @@ infoText += `╰═════════════════════�
                                                         ? `│ ℹ️ Fitur ini sebelumnya sudah aktif,\n│    tidak ada perubahan.\n`
                                                         : `│ ✅ Berhasil diaktifkan!\n│    Bot akan kirim notif otomatis\n│    saat episode baru muncul di alqanime.net.\n`) +
                                                 `│\n` +
-                                                `│ Ketik *${pfx}alqnotif off* untuk menonaktifkan.\n` +
+                                                `│ Ketik *${pfx}alqanimenotif off* untuk menonaktifkan.\n` +
                                                 `╰──────────────────────`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                        logCommand(m, hisoka, 'alqnotif-on');
+                                        logCommand(m, hisoka, 'alqanimenotif-on');
                                         break;
                                 }
 
                                 if (sub === 'off') {
-                                        const sebelumnya = cfgALQ.alqanime.groups[m.from]?.enabled === true;
-                                        cfgALQ.alqanime.groups[m.from] = { enabled: false, diubahPada: Date.now() };
+                                        const sebelumnya = cfgALQ.alqanimenotif.groups[m.from]?.enabled === true;
+                                        cfgALQ.alqanimenotif.groups[m.from] = { enabled: false, diubahPada: Date.now() };
                                         fs.writeFileSync(cfgPathALQ, JSON.stringify(cfgALQ, null, 2));
                                         await tolak(hisoka, m,
                                                 `╭─「 🔴 *ALQANIME NOTIF* 」\n` +
@@ -13946,17 +13946,17 @@ infoText += `╰═════════════════════�
                                                         ? `│ ❌ Berhasil dinonaktifkan.\n│    Bot tidak akan kirim notif lagi\n│    di grup ini.\n`
                                                         : `│ ℹ️ Fitur ini sebelumnya sudah nonaktif,\n│    tidak ada perubahan.\n`) +
                                                 `│\n` +
-                                                `│ Ketik *${pfx}alqnotif on* untuk mengaktifkan kembali.\n` +
+                                                `│ Ketik *${pfx}alqanimenotif on* untuk mengaktifkan kembali.\n` +
                                                 `╰──────────────────────`
                                         );
                                         await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                        logCommand(m, hisoka, 'alqnotif-off');
+                                        logCommand(m, hisoka, 'alqanimenotif-off');
                                         break;
                                 }
 
                                 if (sub === 'status') {
                                         const cfgStatus = loadConfig();
-                                        const groups    = cfgStatus?.alqanime?.groups || {};
+                                        const groups    = cfgStatus?.alqanimenotif?.groups || {};
                                         const entries   = Object.entries(groups);
                                         if (!entries.length) {
                                                 await tolak(hisoka, m, '📋 Belum ada grup yang terdaftar untuk Alqanime Notif.');
@@ -13980,7 +13980,7 @@ infoText += `╰═════════════════════�
                                                 const daftarGrup = getEnabledGroupsALQ();
                                                 if (!daftarGrup.length) {
                                                         await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
-                                                        await tolak(hisoka, m, `❌ Belum ada grup yang mengaktifkan Alqanime Notif.\nKetik *${pfx}alqnotif on* di grup tujuan dulu.`);
+                                                        await tolak(hisoka, m, `❌ Belum ada grup yang mengaktifkan Alqanime Notif.\nKetik *${pfx}alqanimenotif on* di grup tujuan dulu.`);
                                                         break;
                                                 }
                                                 const hasil = await simulasiALQ();
@@ -14008,7 +14008,7 @@ infoText += `╰═════════════════════�
                                                               (gagal ? `\n❌ Gagal: ${gagal} grup` : ''),
                                                 }, { quoted: m });
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                                logCommand(m, hisoka, 'alqnotif-test-grup');
+                                                logCommand(m, hisoka, 'alqanimenotif-test-grup');
                                         } catch (err) {
                                                 await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
                                                 await tolak(hisoka, m, `❌ Gagal fetch Alqanime: ${err?.message || err}`);
@@ -14029,7 +14029,7 @@ infoText += `╰═════════════════════�
                                                         await tolak(hisoka, m, hasil.caption);
                                                 }
                                                 await hisoka.sendMessage(m.from, { react: { text: '✅', key: m.key } });
-                                                logCommand(m, hisoka, 'alqnotif-test');
+                                                logCommand(m, hisoka, 'alqanimenotif-test');
                                         } catch (err) {
                                                 await hisoka.sendMessage(m.from, { react: { text: '❌', key: m.key } });
                                                 await tolak(hisoka, m, `❌ Gagal fetch Alqanime: ${err?.message || err}`);
@@ -14037,7 +14037,7 @@ infoText += `╰═════════════════════�
                                         break;
                                 }
 
-                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}alqnotif* untuk bantuan.`);
+                                await tolak(hisoka, m, `❌ Sub-perintah tidak dikenal. Ketik *${pfx}alqanimenotif* untuk bantuan.`);
                                 break;
                         }
 
