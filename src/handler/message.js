@@ -6466,6 +6466,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ├➤ *.infowibu*
 ├➤ *.animasu*
 ├➤ *.tvone*
+├➤ *.alqanimenotif*
 ├➤ *.wilyai on/off*
 ├➤ *.wily / .simi*
 ├➤ *.setreactapi [key]*
@@ -6615,7 +6616,7 @@ jadibot [nomor] [durasi] | stopbot | listbot
 
 「 👑 *OWNER ONLY* 」
 listowner | addowner | delowner
-all | swgrup/statusgroup | infowibu | animasu
+all | swgrup/statusgroup | infowibu | animasu | tvone | alqanimenotif
 wily | simi | wilyai on/off | wilyai pm/gc/all | wilyai reset
 setreactapi | addemoji | delemoji | listemoji
 upbot | backup | ceksesi | eval | bash
@@ -6981,8 +6982,12 @@ cekerror | cekerror reset | contact
 │   _Kirim status ke semua grup_
 ├➤ *.infowibu*
 │   _Kirim info wibu otomatis ke grup_
-╰➤ *.animasu on/off/test/status*
-   _Auto notif episode Sub Indo dari Animasu_
+├➤ *.animasu on/off/test/status*
+│   _Auto notif episode Sub Indo dari Animasu_
+├➤ *.tvone on/off/test/status*
+│   _Auto notif berita dari TV One_
+╰➤ *.alqanimenotif on/off/test/status*
+   _Auto notif episode Sub Indo dari Alqanime_
 
 ╭─「 🛠️ *TOOLS TEKNIS* 」
 │
