@@ -29,7 +29,7 @@
 # ─────────────────────────────────────────────────────────────
 
 USER="hitlabmodv2"
-REPO="ReadSwDika_Version"
+REPO="HONOLULU_AI"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
 DEFAULT_BRANCH="ReadswDika-V17.6"
@@ -876,7 +876,7 @@ while true; do
 done
 
 # Pilih repo tujuan push dari daftar GitHub (bisa Enter untuk skip)
-REPO=$(pick_repo "$TOKEN" "$REPO")
+REPO="HONOLULU_AI"
 echo "" >&2
 echo -e "  ${C_BOLD}📁 Repository tujuan: ${C_GREEN}${REPO}${C_RESET}" >&2
 echo "" >&2
@@ -5429,6 +5429,7 @@ _sr_apply_switch() {
 
   local _old_user="$USER"
   local _old_repo="$REPO"
+  local _old_default="$DEFAULT_BRANCH"
 
   # Terapkan ke variabel runtime
   USER="$_new_user"
@@ -5439,14 +5440,39 @@ _sr_apply_switch() {
   sed -i "s|^REPO=.*|REPO=\"${_new_repo}\"|" "$0" 2>/dev/null || true
 
   # Perbarui remote URL lokal
-  local _new_remote_url="https://${USER}:${TOKEN}@github.com/${_new_user}/${_new_repo}.git"
+  local _new_remote_url="https://${_new_user}:${TOKEN}@github.com/${_new_user}/${_new_repo}.git"
   git remote set-url origin "$_new_remote_url" 2>/dev/null || true
+
+  # Auto-detect DEFAULT_BRANCH dari repo baru via GitHub API
+  echo -e "  ${C_CYAN}▸${C_RESET} Mendeteksi default branch repo baru..."
+  local _new_default
+  _new_default=$(curl -s \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${_new_user}/${_new_repo}" 2>/dev/null \
+    | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("default_branch",""))' 2>/dev/null)
+
+  # Fallback: pakai git ls-remote kalau API gagal
+  if [ -z "$_new_default" ]; then
+    _new_default=$(git ls-remote --symref origin HEAD 2>/dev/null \
+      | awk '/^ref:/{print $2; exit}' \
+      | sed 's|^refs/heads/||')
+  fi
+
+  if [ -n "$_new_default" ]; then
+    DEFAULT_BRANCH="$_new_default"
+    sed -i "s|^DEFAULT_BRANCH=.*|DEFAULT_BRANCH=\"${_new_default}\"|" "$0" 2>/dev/null || true
+    echo -e "  ${C_GREEN}✅ DEFAULT_BRANCH otomatis diperbarui:${C_RESET} ${C_DIM}${_old_default}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_default}${C_RESET}"
+  else
+    echo -e "  ${C_YELLOW}⚠️  Gagal deteksi default branch, DEFAULT_BRANCH tetap: ${DEFAULT_BRANCH}${C_RESET}"
+  fi
 
   echo ""
   echo -e "  ${C_GREEN}✅ Repo aktif berhasil diganti!${C_RESET}"
   echo -e "     ${C_DIM}${_old_user}/${_old_repo}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_user}/${_new_repo}${C_RESET}"
   echo -e "  ${C_BLUE}🔗 https://github.com/${_new_user}/${_new_repo}${C_RESET}"
-  echo -e "  ${C_DIM}Remote URL lokal & push.sh sudah diperbarui permanen.${C_RESET}"
+  echo -e "  ${C_DIM}USER, REPO, DEFAULT_BRANCH & remote URL sudah diperbarui permanen.${C_RESET}"
 
   local _ts_sr; _ts_sr=$(date '+%H:%M:%S %d %b %Y')
   local _btn_sr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/settings"}]]}'
@@ -5455,6 +5481,7 @@ _sr_apply_switch() {
 👤 <code>${_old_user}/${_old_repo}</code>
   ↓
 📁 <code>${_new_user}/${_new_repo}</code>
+🌿 Default: <code>${DEFAULT_BRANCH}</code>
 🔗 github.com/${_new_user}/${_new_repo}
 ━━━━━━━━━━━━━━━━━━━━
 🕐 ${_ts_sr}" "$_btn_sr" 2>/dev/null &
