@@ -1519,6 +1519,7 @@ show_main_menu() {
   echo -e "  ${C_RED}11${C_RESET} ${C_BOLD}›${C_RESET} Hapus repo"
   echo -e "  ${C_MAGENTA}12${C_RESET} ${C_BOLD}›${C_RESET} Semua repo"
   echo -e "  ${C_CYAN}13${C_RESET} ${C_BOLD}›${C_RESET} Releases & Tags"
+  echo -e "  ${C_GREEN}14${C_RESET} ${C_BOLD}›${C_RESET} Ganti repo     ${C_DIM}(${USER}/${REPO})${C_RESET}"
   echo ""
   # ── Grup: Tools ───────────────────────
   echo -e "  ${C_DIM}⚡ LAINNYA${C_RESET}"
@@ -1547,6 +1548,7 @@ show_main_menu() {
     11) action_delete_repo ;;
     12) action_list_repos ;;
     13) action_releases_tags ;;
+    14) action_switch_repo ;;
     p|P) action_quick_push ;;
     l|L) action_view_push_log ;;
     0|q|Q|exit) goodbye_prompt ;;
@@ -5217,6 +5219,246 @@ action_releases_tags() {
       *) echo -e "  ${C_RED}✖ Pilihan tidak valid.${C_RESET}"; sleep 1 ;;
     esac
   done
+}
+
+# ===== Ganti repo aktif secara realtime (opsi 14) =====
+action_switch_repo() {
+  local _SR_PAGE="${_SR_PAGE:-1}"
+  local _SR_PAGE_SIZE=10
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🔄  GANTI REPO AKTIF           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo -e "  ${C_DIM}▸ Memuat daftar repo dari GitHub...${C_RESET}"
+
+  # Ambil daftar repo milik USER via API (max 100 per halaman, sorted by updated)
+  local _sr_raw
+  _sr_raw=$(curl -s \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner" 2>/dev/null)
+
+  local repos=()
+  while IFS= read -r r; do
+    [ -n "$r" ] && repos+=("$r")
+  done < <(printf '%s' "$_sr_raw" | python3 -c '
+import json,sys
+try:
+  data=json.load(sys.stdin)
+  for r in data:
+    n=r.get("full_name","")
+    if n: print(n)
+except: pass
+' 2>/dev/null)
+
+  local total=${#repos[@]}
+  local total_pages=$(( (total + _SR_PAGE_SIZE - 1) / _SR_PAGE_SIZE ))
+  [ "$total_pages" -eq 0 ] && total_pages=1
+  [ "$_SR_PAGE" -gt "$total_pages" ] && _SR_PAGE=$total_pages
+  [ "$_SR_PAGE" -lt 1 ] && _SR_PAGE=1
+
+  local start=$(( (_SR_PAGE - 1) * _SR_PAGE_SIZE ))
+  local end=$(( start + _SR_PAGE_SIZE ))
+  [ "$end" -gt "$total" ] && end="$total"
+
+  clear >/dev/tty 2>/dev/null || true
+  echo -e "${C_BOLD}╭──────────────────────────────────╮${C_RESET}"
+  echo -e "${C_BOLD}│   🔄  GANTI REPO AKTIF           │${C_RESET}"
+  echo -e "${C_BOLD}╰──────────────────────────────────╯${C_RESET}"
+  echo ""
+  echo -e "  ${C_DIM}aktif sekarang  ${C_RESET}${C_GREEN}${C_BOLD}${USER}/${REPO}${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    echo -e "  ${C_DIM}repo            ${C_RESET}${C_BOLD}$(( start + 1 ))–${end}${C_RESET}${C_DIM} dari ${total}  •  hal ${_SR_PAGE}/${total_pages}${C_RESET}"
+  else
+    echo -e "  ${C_DIM}total           ${C_RESET}${C_BOLD}${total} repo${C_RESET}"
+  fi
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+
+  if [ "$total" -eq 0 ]; then
+    echo -e "  ${C_YELLOW}⚠️  Tidak bisa memuat repo. Cek token / koneksi.${C_RESET}"
+    echo ""
+    echo -e "  ${C_DIM}💡 Atau ketik langsung: ${C_RESET}${C_BOLD}user/repo${C_RESET}${C_DIM} lalu Enter${C_RESET}"
+    echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+    echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+    printf "  ${C_BOLD}user/repo  [0 = kembali] ▸ ${C_RESET}"
+    local _pick_manual
+    read -r _pick_manual
+    _pick_manual=$(echo "$_pick_manual" | tr -d '[:space:]')
+    if [ -z "$_pick_manual" ] || [ "$_pick_manual" = "0" ]; then
+      echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
+      sleep 1
+      return
+    fi
+    _sr_apply_switch "$_pick_manual"
+    return
+  fi
+
+  for (( i=start; i<end; i++ )); do
+    local _rn="${repos[$i]}"
+    local _marker=""
+    [ "$_rn" = "${USER}/${REPO}" ] && _marker=" ${C_GREEN}← aktif${C_RESET}"
+    printf "  ${C_CYAN}%2d${C_RESET} ${C_BOLD}›${C_RESET} %s%b\n" "$(( i + 1 ))" "$_rn" "$_marker"
+  done
+
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  if [ "$total_pages" -gt 1 ]; then
+    local _nav_sr=""
+    [ "$_SR_PAGE" -lt "$total_pages" ] && _nav_sr="${_nav_sr}  ${C_CYAN}n${C_RESET} › Berikutnya"
+    [ "$_SR_PAGE" -gt 1 ]              && _nav_sr="${_nav_sr}   ${C_CYAN}p${C_RESET} › Sebelumnya"
+    [ -n "$_nav_sr" ] && echo -e "$_nav_sr"
+    echo -e "  ${C_CYAN}f${C_RESET} › Awal   ${C_CYAN}l${C_RESET} › Akhir   ${C_DIM}h<angka> → loncat hal  (mis: h3)${C_RESET}"
+  fi
+  echo -e "  ${C_DIM}💡 Ketik nomor dari list ATAU ketik langsung: ${C_BOLD}user/repo${C_RESET}${C_DIM} / ${C_BOLD}namaRepo${C_RESET}"
+  echo -e "  ${C_RED} 0${C_RESET} ${C_BOLD}›${C_RESET} Kembali ke menu"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}Nomor / user/repo ▸ ${C_RESET}"
+
+  local pick
+  read -r pick
+  pick=$(echo "$pick" | tr -d '[:space:]')
+
+  # Navigasi halaman
+  case "$pick" in
+    n|N) _SR_PAGE=$(( _SR_PAGE < total_pages ? _SR_PAGE + 1 : _SR_PAGE )) action_switch_repo; return ;;
+    p|P) _SR_PAGE=$(( _SR_PAGE > 1 ? _SR_PAGE - 1 : 1 )) action_switch_repo; return ;;
+    f|F) _SR_PAGE=1 action_switch_repo; return ;;
+    l|L) _SR_PAGE=$total_pages action_switch_repo; return ;;
+    h*|H*)
+      local _pg_sr="${pick:1}"
+      if echo "$_pg_sr" | grep -qE '^[0-9]+$' && [ "$_pg_sr" -ge 1 ] && [ "$_pg_sr" -le "$total_pages" ]; then
+        _SR_PAGE=$_pg_sr action_switch_repo
+      else
+        echo -e "  ${C_RED}✖ Halaman tidak valid${C_RESET} ${C_DIM}(1–${total_pages})${C_RESET}"
+        sleep 1
+        _SR_PAGE=$_SR_PAGE action_switch_repo
+      fi
+      return ;;
+  esac
+
+  if [ -z "$pick" ] || [ "$pick" = "0" ]; then
+    echo -e "${C_YELLOW}↩ Kembali ke menu.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  # Kalau angka → ambil dari list
+  if echo "$pick" | grep -qE '^[0-9]+$'; then
+    if [ "$pick" -ge 1 ] && [ "$pick" -le "$total" ]; then
+      _sr_apply_switch "${repos[$((pick - 1))]}"
+    else
+      echo -e "${C_RED}✖ Nomor tidak ada dalam list.${C_RESET}"
+      sleep 2
+      _SR_PAGE=$_SR_PAGE action_switch_repo
+    fi
+    return
+  fi
+
+  # Input langsung: bisa "repo" atau "user/repo"
+  _sr_apply_switch "$pick"
+}
+
+# ── Helper: terapkan switch repo setelah target ditentukan ──
+_sr_apply_switch() {
+  local _target="$1"
+  local _new_user _new_repo
+
+  # Parse: kalau ada "/" anggap "user/repo", kalau tidak pakai USER aktif
+  if echo "$_target" | grep -q '/'; then
+    _new_user="${_target%%/*}"
+    _new_repo="${_target#*/}"
+  else
+    _new_user="$USER"
+    _new_repo="$_target"
+  fi
+
+  # Validasi karakter
+  if ! echo "$_new_user" | grep -qE '^[a-zA-Z0-9_-]+$' || \
+     ! echo "$_new_repo" | grep -qE '^[a-zA-Z0-9._-]+$'; then
+    echo -e "  ${C_RED}✖ Format tidak valid.${C_RESET} ${C_DIM}Gunakan: user/repo atau namaRepo${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  # Sama seperti sekarang?
+  if [ "$_new_user" = "$USER" ] && [ "$_new_repo" = "$REPO" ]; then
+    echo -e "  ${C_YELLOW}ℹ️  Repo '${_new_user}/${_new_repo}' sudah aktif sekarang.${C_RESET}"
+    sleep 2
+    return
+  fi
+
+  # Verifikasi repo ada di GitHub
+  echo ""
+  echo -e "  ${C_CYAN}▸${C_RESET} Memeriksa repo ${C_BOLD}${_new_user}/${_new_repo}${C_RESET} di GitHub..."
+  local _check_http
+  _check_http=$(curl -s -o /tmp/_gh_sr_check.json -w "%{http_code}" \
+    -H "Authorization: token ${TOKEN}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    "https://api.github.com/repos/${_new_user}/${_new_repo}" 2>/dev/null)
+
+  if [ "$_check_http" != "200" ]; then
+    local _api_msg
+    _api_msg=$(grep -o '"message":"[^"]*"' /tmp/_gh_sr_check.json 2>/dev/null | head -1 | sed 's/"message":"//;s/"//')
+    echo -e "  ${C_RED}❌ Repo tidak ditemukan atau tidak bisa diakses (HTTP ${_check_http})${C_RESET}"
+    [ -n "$_api_msg" ] && echo -e "  ${C_DIM}   GitHub: ${_api_msg}${C_RESET}"
+    sleep 3
+    return
+  fi
+
+  # Konfirmasi
+  echo ""
+  echo -e "  ${C_YELLOW}⚠️  Yakin ganti repo aktif?${C_RESET}"
+  echo -e "  ${C_DIM}${USER}/${REPO}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_user}/${_new_repo}${C_RESET}"
+  echo -e "  ${C_DIM}Remote URL lokal ikut diperbarui otomatis.${C_RESET}"
+  echo ""
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  echo -e "  ${C_GREEN}1${C_RESET} ${C_BOLD}›${C_RESET} Ya, ganti sekarang"
+  echo -e "  ${C_RED}0${C_RESET} ${C_BOLD}›${C_RESET} Batal"
+  echo -e "${C_DIM}  ──────────────────────────────────${C_RESET}"
+  printf "  ${C_BOLD}▸ ${C_RESET}"
+  local _confirm
+  read -r _confirm
+  if [ "$_confirm" != "1" ]; then
+    echo -e "${C_YELLOW}↩ Dibatalkan.${C_RESET}"
+    sleep 1
+    return
+  fi
+
+  local _old_user="$USER"
+  local _old_repo="$REPO"
+
+  # Terapkan ke variabel runtime
+  USER="$_new_user"
+  REPO="$_new_repo"
+
+  # Simpan permanen ke push.sh (ganti baris USER= dan REPO=)
+  sed -i "s|^USER=.*|USER=\"${_new_user}\"|" "$0" 2>/dev/null || true
+  sed -i "s|^REPO=.*|REPO=\"${_new_repo}\"|" "$0" 2>/dev/null || true
+
+  # Perbarui remote URL lokal
+  local _new_remote_url="https://${USER}:${TOKEN}@github.com/${_new_user}/${_new_repo}.git"
+  git remote set-url origin "$_new_remote_url" 2>/dev/null || true
+
+  echo ""
+  echo -e "  ${C_GREEN}✅ Repo aktif berhasil diganti!${C_RESET}"
+  echo -e "     ${C_DIM}${_old_user}/${_old_repo}${C_RESET} ${C_BOLD}→${C_RESET} ${C_GREEN}${_new_user}/${_new_repo}${C_RESET}"
+  echo -e "  ${C_BLUE}🔗 https://github.com/${_new_user}/${_new_repo}${C_RESET}"
+  echo -e "  ${C_DIM}Remote URL lokal & push.sh sudah diperbarui permanen.${C_RESET}"
+
+  local _ts_sr; _ts_sr=$(date '+%H:%M:%S %d %b %Y')
+  local _btn_sr='{"inline_keyboard":[[{"text":"📁 Buka Repo","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'"},{"text":"🌿 Branches","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/branches"}],[{"text":"📊 Commits","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/commits"},{"text":"⚙️ Settings","url":"https://github.com/'"${_new_user}"'/'"${_new_repo}"'/settings"}]]}'
+  send_telegram_photo "https://w.wallhaven.cc/full/l3/wallhaven-l3q6eq.png" "🔄 <b>REPO AKTIF DIGANTI</b>
+━━━━━━━━━━━━━━━━━━━━
+👤 <code>${_old_user}/${_old_repo}</code>
+  ↓
+📁 <code>${_new_user}/${_new_repo}</code>
+🔗 github.com/${_new_user}/${_new_repo}
+━━━━━━━━━━━━━━━━━━━━
+🕐 ${_ts_sr}" "$_btn_sr" 2>/dev/null &
+  sleep 2
 }
 
 # ===== Helper: prompt tunggal setelah setiap action =====
