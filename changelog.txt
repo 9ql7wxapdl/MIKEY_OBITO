@@ -1,6 +1,21 @@
 🤖 *WILY BOT — V17.3*
-_📅 14 Mei 2026_
-📦 10 Update | 🔧 6 Bug Fix | ✨ 1 Fitur Baru | 🚀 3 Improvement
+_📅 15 Mei 2026_
+📦 12 Update | 🔧 6 Bug Fix | ✨ 1 Fitur Baru | 🚀 5 Improvement
+
+━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 *IMPROVEMENT*
+
+> 🎯 *`.ceksw` — Tampilan Lebih Ringkas*
+> Output `.ceksw` dirampingkan jadi 1 baris per orang di semua section
+> ├ *SW AKTIF SEKARANG* — tiap baris: medal + nama + jumlah SW (hapus bar progress & ikon 🟢 per baris)
+> ├ *TOP TERBANYAK DI-REACT* — tiap baris: medal + nama + ×reaction (persen) saja
+> └ Tidak ada duplikasi info — ikon & detail cukup tampil 1x di header section
+>
+> 🎯 *`push.sh` — Nomor Menu Berurutan*
+> Penomoran menu utama diurutkan ulang agar berurutan dalam tiap group
+> ├ BRANCH: 1–7 (1=Upload, 2=Buat, 3=Hapus, 4=Ganti default, 5=Cek token, 6=Edit nama, 7=Status)
+> └ REPOSITORY: 8–14 (8=Rename, 9=Buat, 10=Import, 11=Hapus, 12=Semua, 13=Releases, 14=Ganti repo)
 
 ━━━━━━━━━━━━━━━━━━━━━━
 

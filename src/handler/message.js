@@ -9126,9 +9126,7 @@ if (isJadibot) text += jadibotNote;
                                                 for (let i = 0; i < topBySW.length; i++) {
                                                         const e = topBySW[i];
                                                         const active = getActiveSW(e);
-                                                        const barLen = totalActiveSW > 0 ? Math.max(1, Math.round((active / totalActiveSW) * 8)) : 0;
-                                                        const bar = '█'.repeat(barLen) + '░'.repeat(8 - barLen);
-                                                        text += `│ ${medals[i]} *${e.name || e.number}*  🟢 *${active}* SW  [${bar}]\n`;
+                                                        text += `│ ${medals[i]} *${e.name || e.number}*  *${active}* SW\n`;
                                                 }
                                                 text += `│\n`;
                                         }
@@ -9137,7 +9135,7 @@ if (isJadibot) text += jadibotNote;
                                         for (let i = 0; i < top10.length; i++) {
                                                 const e = top10[i];
                                                 const pct = fmtPct(e.reactions || 0, totalReactions);
-                                                text += `│ ${medals[i]} *${e.name || e.number}*  ×*${e.reactions || 0}* (${pct})  r:${e.reads || 0}\n`;
+                                                text += `│ ${medals[i]} *${e.name || e.number}*  ×*${e.reactions || 0}* (${pct})\n`;
                                         }
                                         text += `│\n`;
 
