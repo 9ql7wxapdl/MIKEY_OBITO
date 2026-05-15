@@ -8,18 +8,18 @@
 ════════════════════════════════════════════════════════════════════════
   FILE     : infoerror.txt
   Bot      : Wily Bot
-  Update   : 15/05/2026, 06.57.52  (realtime — diperbarui otomatis setiap ada error)
+  Update   : 15/05/2026, 07.02.53  (realtime — diperbarui otomatis setiap ada error)
 ════════════════════════════════════════════════════════════════════════
 
   RINGKASAN
 ────────────────────────────────────────────────────────────────────────
   Total Jenis Error (unik)  : 40
-  Total Kejadian Error       : 160
+  Total Kejadian Error       : 161
   Maks. Simpan               : 200 jenis error
   Deduplikasi                : AKTIF — error sama digabung, tidak dicatat ulang
   Urutan                     : Terbaru di atas
 
-  DAFTAR ERROR LENGKAP  [40 jenis, 160 kejadian total]
+  DAFTAR ERROR LENGKAP  [40 jenis, 161 kejadian total]
 ────────────────────────────────────────────────────────────────────────
 
 ┌───────────────────────────────────────────────────────────────────────
@@ -30,9 +30,9 @@
 │
 │  DETAIL
 │  Sumber      : Animasu
-│  Frekuensi   : 3x (duplikat digabung)
+│  Frekuensi   : 4x (duplikat digabung)
 │  Pertama     : 15/05/2026, 06.48.03
-│  Terakhir    : 15/05/2026, 06.57.52
+│  Terakhir    : 15/05/2026, 07.02.53
 │
 │  STACK TRACE (3 baris pertama)
 │  ▶  Error: [Animasu] ❌ Gagal fetch API posts: Request failed with status code 522
@@ -740,6 +740,6 @@
 └───────────────────────────────────────────────────────────────────────
 
 ════════════════════════════════════════════════════════════════════════
-  End of Report  —  Total: 40 jenis, 160 kejadian
-  Terakhir diperbarui: 15/05/2026, 06.57.52
+  End of Report  —  Total: 40 jenis, 161 kejadian
+  Terakhir diperbarui: 15/05/2026, 07.02.53
 ════════════════════════════════════════════════════════════════════════

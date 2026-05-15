@@ -9122,11 +9122,11 @@ if (isJadibot) text += jadibotNote;
 
                                         if (topBySW.length > 0) {
                                                 text += `├──『 🟢 *SW AKTIF SEKARANG* 』\n`;
-                                                text += `│  _otomatis berkurang saat expire/hapus_\n`;
+                                                text += `> │ _otomatis berkurang saat expire/hapus_\n`;
                                                 for (let i = 0; i < topBySW.length; i++) {
                                                         const e = topBySW[i];
                                                         const active = getActiveSW(e);
-                                                        text += `│ ${medals[i]} *${e.name || e.number}*  *${active}* SW\n`;
+                                                        text += `> │ ${medals[i]} *${e.name || e.number}*  *${active}* SW\n`;
                                                 }
                                                 text += `│\n`;
                                         }
@@ -9135,7 +9135,7 @@ if (isJadibot) text += jadibotNote;
                                         for (let i = 0; i < top10.length; i++) {
                                                 const e = top10[i];
                                                 const pct = fmtPct(e.reactions || 0, totalReactions);
-                                                text += `│ ${medals[i]} *${e.name || e.number}*  ×*${e.reactions || 0}* (${pct})\n`;
+                                                text += `> │ ${medals[i]} *${e.name || e.number}*  ×*${e.reactions || 0}* (${pct})\n`;
                                         }
                                         text += `│\n`;
 
@@ -9145,7 +9145,7 @@ if (isJadibot) text += jadibotNote;
                                                 for (let i = 0; i < sortedEmojis.length; i++) {
                                                         const [emoji, count] = sortedEmojis[i];
                                                         const pct = fmtPct(count, totalEmojiUsed);
-                                                        text += `│ ${medals[i]} ${emoji}  ×${count}  (${pct})\n`;
+                                                        text += `> │ ${medals[i]} ${emoji}  ×${count}  (${pct})\n`;
                                                 }
                                                 text += `│\n`;
                                         }

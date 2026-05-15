@@ -5,9 +5,9 @@
       "source": "Animasu",
       "message": "[Animasu] ❌ Gagal fetch API posts: Request failed with status code 522",
       "stack": "Error: [Animasu] ❌ Gagal fetch API posts: Request failed with status code 522\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at Object.cariEpisodeBaru (/home/runner/workspace/src/scrape/animasu.cjs:401:17)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async runAnimasu (file:///home/runner/workspace/index.js:801:69)",
-      "count": 3,
+      "count": 4,
       "firstSeen": "2026-05-15T06:48:03.634Z",
-      "lastSeen": "2026-05-15T06:57:52.902Z"
+      "lastSeen": "2026-05-15T07:02:53.149Z"
     },
     {
       "fingerprint": "speedtest::[speedtest] Error: require is not defined",
