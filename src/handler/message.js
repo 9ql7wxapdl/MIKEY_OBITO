@@ -14238,7 +14238,9 @@ infoText += `╰═════════════════════�
                         }
 
                         case 'malnews': {
-                                const { simulasi: simulasiMAL, getEnabledGroups: getEnabledGroupsMAL, setGroupEnabled: setGroupEnabledMAL, getRecentLog: getRecentLogMAL } = _require(path.resolve('./src/scrape/malnews.cjs'));
+                                const _malPath = path.resolve('./src/scrape/malnews.cjs');
+                                delete _require.cache[_malPath];
+                                const { simulasi: simulasiMAL, getEnabledGroups: getEnabledGroupsMAL, setGroupEnabled: setGroupEnabledMAL, getRecentLog: getRecentLogMAL } = _require(_malPath);
                                 const cfgPathMAL = path.join(process.cwd(), 'config.json');
                                 const sub = (query || '').trim().toLowerCase().replace(/\s+/g, ' ');
                                 const pfx = m.prefix || '.';
