@@ -9136,10 +9136,8 @@ if (isJadibot) text += jadibotNote;
                                         text += `├──『 🏆 *TOP ${top10.length} TERBANYAK DI-REACT* 』\n`;
                                         for (let i = 0; i < top10.length; i++) {
                                                 const e = top10[i];
-                                                const active = getActiveSW(e);
-                                                const swDot = active > 0 ? `🟢 ${active} SW` : `⚪ 0 SW`;
                                                 const pct = fmtPct(e.reactions || 0, totalReactions);
-                                                text += `│ ${medals[i]} *${e.name || e.number}*  ${swDot}  ✨*${e.reactions || 0}* (${pct})  👁️${e.reads || 0}\n`;
+                                                text += `│ ${medals[i]} *${e.name || e.number}*  ×*${e.reactions || 0}* (${pct})  r:${e.reads || 0}\n`;
                                         }
                                         text += `│\n`;
 
