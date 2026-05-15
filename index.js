@@ -812,13 +812,23 @@ async function main() {
                                                 });
 
                                                 for (const item of episodeUnik) {
+                                                        const caption   = _am.buatCaption(item);
+                                                        const urlGambar = _am.ambilUrlGambar(item);
+
                                                         // Kirim ke semua grup secara parallel (batch 5)
                                                         const BATCH = 5;
                                                         for (let i = 0; i < daftarGrup.length; i += BATCH) {
                                                                 const chunk = daftarGrup.slice(i, i + BATCH);
                                                                 await Promise.allSettled(chunk.map(async jid => {
                                                                         try {
-                                                                                await _am.kirimInteraktif(item, jid, hisoka);
+                                                                                if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image: { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
                                                                         } catch (e) {
                                                                                 console.error(`[Animasu] Gagal kirim ke ${jid}:`, e?.message);
                                                                         }
@@ -876,12 +886,22 @@ async function main() {
                                                 });
 
                                                 for (const item of episodeUnik) {
+                                                        const caption   = _alq.buatCaption(item);
+                                                        const urlGambar = _alq.ambilUrlGambar(item);
+
                                                         const BATCH = 5;
                                                         for (let i = 0; i < daftarGrup.length; i += BATCH) {
                                                                 const chunk = daftarGrup.slice(i, i + BATCH);
                                                                 await Promise.allSettled(chunk.map(async jid => {
                                                                         try {
-                                                                                await _alq.kirimInteraktif(item, jid, hisoka);
+                                                                                if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image: { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
                                                                         } catch (e) {
                                                                                 console.error(`[AlqanimeNotif] Gagal kirim ke ${jid}:`, e?.message);
                                                                         }

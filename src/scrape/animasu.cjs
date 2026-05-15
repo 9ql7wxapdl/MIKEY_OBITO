@@ -509,7 +509,7 @@ async function simulasi(slugOverride = null) {
     const detail  = parseDetailPage(html, animeUrl);
     const data    = { postId, postDate, epNum, animeSlug, ...detail };
     const caption = buatCaption(data);
-    return { item: data, caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
+    return { caption, urlGambar: data.cover || null, batchDownload: detail.batchDownload || null };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
@@ -623,101 +623,6 @@ function ambilUrlGambar(data) {
     return data?.cover || null;
 }
 
-// ── KIRIM INTERAKTIF (dengan tombol URL via Button class) ─────────────────────
-
-function buatBodyRingkas(item) {
-    const {
-        judul, judulAlt, epNum, latestEpNum, totalEp, totalSeri,
-        jenis, durasi, studio, status, rating, genre,
-    } = item;
-
-    const ep       = epNum || latestEpNum || '?';
-    const epHeader = totalSeri ? `${ep}/${totalSeri}` : String(ep);
-
-    const sekarang   = new Date();
-    const opsiHari   = { timeZone: 'Asia/Jakarta', weekday: 'long' };
-    const opsiTgl    = { timeZone: 'Asia/Jakarta', day: '2-digit', month: 'long', year: 'numeric' };
-    const opsiJam    = { timeZone: 'Asia/Jakarta', hour: '2-digit', minute: '2-digit', hour12: false };
-    const namaHari   = sekarang.toLocaleDateString('id-ID', opsiHari);
-    const tglLengkap = sekarang.toLocaleDateString('id-ID', opsiTgl);
-    const jamMenit   = sekarang.toLocaleTimeString('id-ID', opsiJam).replace('.', ':');
-
-    const baris = [];
-    if (jenis)  baris.push(`🗂️ ${jenis}`);
-    if (durasi) baris.push(`⏱️ ${durasi}`);
-    if (studio) baris.push(`🏢 ${studio}`);
-    if (status) baris.push(`📡 ${status}`);
-    const scoreGenre = [
-        rating ? `⭐ ${rating}/10` : null,
-        genre  ? `🎭 ${genre.split(',').slice(0, 3).join(', ')}` : null,
-    ].filter(Boolean).join(' · ');
-
-    return (
-        `🟢 *SUB INDO SUDAH TAYANG!*\n` +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `🎌 *${judul || '?'}*\n` +
-        (judulAlt ? `_${judulAlt}_\n` : '') +
-        `📺 Episode *${epHeader}*\n` +
-        (baris.length ? `\n${baris.join('\n')}\n` : '') +
-        (scoreGenre   ? `${scoreGenre}\n` : '') +
-        `━━━━━━━━━━━━━━━━━━\n` +
-        `📅 _${namaHari}, ${tglLengkap} · ${jamMenit} WIB_`
-    );
-}
-
-async function kirimInteraktif(item, jid, hisoka) {
-    try {
-        const { Button } = require('../lib/Button.cjs');
-
-        const body      = buatBodyRingkas(item);
-        const urlGambar = ambilUrlGambar(item);
-
-        const btn = new Button()
-            .setBody(body)
-            .setFooter('⚡ animasu.net');
-
-        // Tombol 1 — cta_url: buka episode terbaru
-        btn.addUrl('▶️ Tonton Sekarang', item.latestEpUrl || item.url || 'https://animasu.net', false);
-
-        // Tombol 2 — kontekstual:
-        //   - Ada trailer → cta_url buka YouTube
-        //   - Ada batch   → cta_copy salin link batch (beda jenis!)
-        //   - Tidak ada keduanya → cta_url halaman anime
-        const batchUrl = item.batchDownload?.resolutions?.[0]?.links?.[0]?.url;
-        if (item.trailerUrl) {
-            btn.addUrl('🎬 Tonton Trailer', item.trailerUrl, false);
-        } else if (batchUrl) {
-            btn.addCopy('📦 Salin Link Batch', batchUrl);
-        }
-
-        // Tombol 3 — cta_url: halaman anime (kalau beda dari URL episode)
-        if (item.url && item.url !== item.latestEpUrl) {
-            btn.addUrl('🔗 Halaman Anime', item.url, false);
-        }
-
-        if (urlGambar) {
-            try {
-                const imgBuf = await axios.get(urlGambar, { responseType: 'arraybuffer', timeout: 20000 })
-                    .then(r => Buffer.from(r.data));
-                btn.setImage(imgBuf);
-            } catch (imgErr) {
-                console.warn('[Animasu] ⚠️ Gambar header gagal:', imgErr?.message);
-            }
-        }
-
-        return await btn.run(jid, hisoka);
-
-    } catch (e) {
-        console.warn('[Animasu] ⚠️ Interactive gagal, fallback biasa:', e?.message);
-        const caption   = buatCaption(item);
-        const urlGambar = ambilUrlGambar(item);
-        if (urlGambar) {
-            return hisoka.sendMessage(jid, { image: { url: urlGambar }, caption });
-        }
-        return hisoka.sendMessage(jid, { text: caption });
-    }
-}
-
 // ── STATUS: DAFTAR ANIME SEDANG TAYANG + SISA EPISODE ────────────────────────
 
 async function getAiringStatus(jumlahPost = 40) {
@@ -797,7 +702,6 @@ module.exports = {
     cariEpisodeBaru,
     buatCaption,
     ambilUrlGambar,
-    kirimInteraktif,
     tandaiSudahKirim,
     tandaiDanLog,
     getRecentLog,

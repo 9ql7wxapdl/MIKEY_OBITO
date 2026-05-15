@@ -61,7 +61,8 @@
     "name": "Feli",
     "lid": "263483945930926@lid",
     "jid": "6282393354095@s.whatsapp.net",
-    "notify": "j"
+    "notify": "j",
+    "verifiedName": "j"
   },
   "212699767515@s.whatsapp.net": {
     "isContact": true,
@@ -32774,25 +32775,5 @@
     "id": "253501854773486@lid",
     "lid": "253501854773486@lid",
     "imgUrl": "removed"
-  },
-  "54219801370855@lid": {
-    "id": "54219801370855@lid",
-    "lid": "54219801370855@lid",
-    "imgUrl": "changed"
-  },
-  "246118906609669@lid": {
-    "id": "246118906609669@lid",
-    "lid": "246118906609669@lid",
-    "imgUrl": "removed"
-  },
-  "217836463112395@lid": {
-    "id": "217836463112395@lid",
-    "lid": "217836463112395@lid",
-    "imgUrl": "removed"
-  },
-  "116677735911489@lid": {
-    "id": "116677735911489@lid",
-    "lid": "116677735911489@lid",
-    "imgUrl": "changed"
   }
 }
