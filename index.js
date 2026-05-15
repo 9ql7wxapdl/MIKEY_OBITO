@@ -1004,6 +1004,68 @@ async function main() {
                         }
                         /* =================== END AUTO TVONENEWS SCHEDULER =================== */
 
+                        /* ===================== AUTO MALNEWS SCHEDULER ===================== */
+                        if (global.malnewsInterval) {
+                                clearInterval(global.malnewsInterval);
+                                global.malnewsInterval = null;
+                        }
+                        {
+                                const MAL_PATH        = path.join(process.cwd(), 'src', 'scrape', 'malnews.cjs');
+                                const MAL_INTERVAL_MS = 5 * 60 * 1000;
+
+                                const runMALNews = async () => {
+                                        try {
+                                                delete _require.cache[_require.resolve(MAL_PATH)];
+                                                const _mal = _require(MAL_PATH);
+
+                                                const daftarGrup = _mal.getEnabledGroups();
+                                                if (!daftarGrup.length) return;
+
+                                                const beritaBaru = await _mal.cariBeritaBaru();
+                                                if (!beritaBaru.length) return;
+
+                                                for (const item of beritaBaru) {
+                                                        const caption   = _mal.buatCaption(item);
+                                                        const urlGambar = _mal.ambilUrlGambar(item);
+
+                                                        const MAL_BATCH = 5;
+                                                        for (let i = 0; i < daftarGrup.length; i += MAL_BATCH) {
+                                                                const chunk = daftarGrup.slice(i, i + MAL_BATCH);
+                                                                await Promise.allSettled(chunk.map(async jid => {
+                                                                        try {
+                                                                                if (urlGambar) {
+                                                                                        await hisoka.sendMessage(jid, {
+                                                                                                image  : { url: urlGambar },
+                                                                                                caption,
+                                                                                        });
+                                                                                } else {
+                                                                                        await hisoka.sendMessage(jid, { text: caption });
+                                                                                }
+                                                                        } catch (e) {
+                                                                                console.error(`[MALNews] Gagal kirim ke ${jid}:`, e?.message);
+                                                                        }
+                                                                }));
+                                                                if (i + MAL_BATCH < daftarGrup.length) {
+                                                                        await new Promise(r => setTimeout(r, 1000));
+                                                                }
+                                                        }
+
+                                                        _mal.tandaiDanLog(item, daftarGrup);
+                                                        console.log(`[MALNews] ✅ "${(item.judulID || item.judul)?.slice(0,50)}" terkirim ke ${daftarGrup.length} grup`);
+                                                }
+                                        } catch (err) {
+                                                console.error('[MALNews] Error scheduler:', err?.message);
+                                        }
+                                };
+
+                                // Mulai 60 detik setelah start, lalu setiap 5 menit
+                                setTimeout(() => {
+                                        runMALNews();
+                                        global.malnewsInterval = setInterval(runMALNews, MAL_INTERVAL_MS);
+                                }, 60000);
+                        }
+                        /* =================== END AUTO MALNEWS SCHEDULER =================== */
+
                         /* ===================== AUTO START SEMUA JADIBOT (STABIL) ===================== */
 const jadibotDir = path.join(process.cwd(), 'jadibot');
 

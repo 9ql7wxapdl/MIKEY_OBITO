@@ -130,7 +130,8 @@
     "id": "6287852533256@s.whatsapp.net",
     "name": "!!!Raska",
     "lid": "227049553821873@lid",
-    "jid": "6287852533256@s.whatsapp.net"
+    "jid": "6287852533256@s.whatsapp.net",
+    "notify": "‎"
   },
   "6285779255277@s.whatsapp.net": {
     "isContact": true,
@@ -13635,7 +13636,8 @@
     "id": "6281337711694@s.whatsapp.net",
     "name": "! Wira V2",
     "lid": "249516745867409@lid",
-    "jid": "6281337711694@s.whatsapp.net"
+    "jid": "6281337711694@s.whatsapp.net",
+    "notify": "."
   },
   "6283140598266@s.whatsapp.net": {
     "isContact": true,
@@ -17699,7 +17701,8 @@
     "id": "6285695777114@s.whatsapp.net",
     "name": "! Aisyah",
     "lid": "129334601846925@lid",
-    "jid": "6285695777114@s.whatsapp.net"
+    "jid": "6285695777114@s.whatsapp.net",
+    "notify": "╰っホム┌Ryuuka┐/⁠ᐠ⁠｡⁠ꞈ⁠｡⁠ᐟ⁠\\"
   },
   "6281279758216@s.whatsapp.net": {
     "isContact": true,
@@ -23083,7 +23086,8 @@
     "id": "6283815424573@s.whatsapp.net",
     "name": "√ Istri Kei",
     "lid": "127393243132132@lid",
-    "jid": "6283815424573@s.whatsapp.net"
+    "jid": "6283815424573@s.whatsapp.net",
+    "notify": "(T)ipii kinetik"
   },
   "6281396189025@s.whatsapp.net": {
     "isContact": true,
@@ -30784,7 +30788,8 @@
     "id": "60172160495@s.whatsapp.net",
     "name": "pushkontak wa 26",
     "lid": "67066115670033@lid",
-    "jid": "60172160495@s.whatsapp.net"
+    "jid": "60172160495@s.whatsapp.net",
+    "notify": "aldysensei🍃"
   },
   "6281295856027@s.whatsapp.net": {
     "isContact": true,
@@ -31368,6 +31373,26 @@
   "214525043290245@lid": {
     "id": "214525043290245@lid",
     "lid": "214525043290245@lid",
+    "imgUrl": "removed"
+  },
+  "227049553821873@lid": {
+    "id": "227049553821873@lid",
+    "lid": "227049553821873@lid",
+    "notify": "‎"
+  },
+  "84636709445686@lid": {
+    "id": "84636709445686@lid",
+    "lid": "84636709445686@lid",
+    "notify": "F"
+  },
+  "82828679200798@lid": {
+    "id": "82828679200798@lid",
+    "lid": "82828679200798@lid",
+    "notify": "𝙢𝙖𝙪𝙡𝙖𝙣𝙖 𝙣𝙜𝙚𝙣"
+  },
+  "247816089800940@lid": {
+    "id": "247816089800940@lid",
+    "lid": "247816089800940@lid",
     "imgUrl": "removed"
   }
 }
