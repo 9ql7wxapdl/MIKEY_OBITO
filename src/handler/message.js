@@ -9114,7 +9114,7 @@ if (isJadibot) text += jadibotNote;
                                                 return p >= 10 ? `${Math.round(p)}%` : `${p.toFixed(1)}%`;
                                         };
 
-                                        const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
+                                        const medals = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟'];
                                         const now = new Date().toLocaleString('id-ID', {
                                                 timeZone: 'Asia/Jakarta',
                                                 hour: '2-digit', minute: '2-digit',
@@ -9144,7 +9144,7 @@ if (isJadibot) text += jadibotNote;
                                         for (let i = 0; i < top10.length; i++) {
                                                 const e = top10[i];
                                                 const pct = fmtPct(e.reactions || 0, totalReactions);
-                                                text += `│ ${medals[i]} ${e.name || e.number} : ×${e.reactions || 0} (${pct})\n`;
+                                                text += `│ ${medals[i]} ${e.name || e.number} : ×${e.reactions || 0}\n`;
                                         }
                                         text += `│\n`;
 
