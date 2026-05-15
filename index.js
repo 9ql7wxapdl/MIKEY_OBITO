@@ -886,22 +886,12 @@ async function main() {
                                                 });
 
                                                 for (const item of episodeUnik) {
-                                                        const caption   = _alq.buatCaption(item);
-                                                        const urlGambar = _alq.ambilUrlGambar(item);
-
                                                         const BATCH = 5;
                                                         for (let i = 0; i < daftarGrup.length; i += BATCH) {
                                                                 const chunk = daftarGrup.slice(i, i + BATCH);
                                                                 await Promise.allSettled(chunk.map(async jid => {
                                                                         try {
-                                                                                if (urlGambar) {
-                                                                                        await hisoka.sendMessage(jid, {
-                                                                                                image: { url: urlGambar },
-                                                                                                caption,
-                                                                                        });
-                                                                                } else {
-                                                                                        await hisoka.sendMessage(jid, { text: caption });
-                                                                                }
+                                                                                await _alq.kirimInteraktif(item, jid, hisoka);
                                                                         } catch (e) {
                                                                                 console.error(`[AlqanimeNotif] Gagal kirim ke ${jid}:`, e?.message);
                                                                         }

@@ -248,7 +248,12 @@ function getRecentLog(jumlah = 20) {
 
 async function enrichDenganMAL(item) {
     const malThumb = await ambilThumbnailMAL(item.judul || '');
-    return { ...item, malThumbnail: malThumb || item.thumbnail || null };
+    // Ambil malUrl dari cache (malId disimpan saat Jikan berhasil)
+    const key   = bersihkanJudulMAL(item.judul || '').toLowerCase();
+    const cache = bacaMalCache();
+    const malId = cache[key]?.malId;
+    const malUrl = malId ? `https://myanimelist.net/anime/${malId}` : null;
+    return { ...item, malThumbnail: malThumb || item.thumbnail || null, malUrl };
 }
 
 // ── CARI EPISODE BARU ─────────────────────────────────────────────────────────
@@ -373,7 +378,7 @@ async function simulasi() {
 
     // Prioritas gambar: MAL thumbnail > alqanime thumbnail
     const urlGambar = item.malThumbnail || item.thumbnail || null;
-    return { caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail };
+    return { caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail, malUrl: item.malUrl };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
@@ -413,7 +418,10 @@ function buatCaption(data) {
     const epHeader  = totalSeri ? `${ep}/${totalSeri}` : String(ep);
 
     const sinopsisBlock = potongSinopsis(sinopsis)
-        .split('\n').map(b => `> ${b}`).join('\n');
+        .split('\n')
+        .filter(l => l.trim())
+        .map(b => `> ${b}`)
+        .join('\n');
 
     const genreStr = genres.length ? `_${genres.slice(0, 5).join(', ')}_` : null;
 
@@ -489,6 +497,92 @@ function ambilUrlGambar(data) {
     return data?.malThumbnail || data?.thumbnail || null;
 }
 
+// ── KIRIM INTERAKTIF (dengan tombol URL) ──────────────────────────────────────
+
+async function kirimInteraktif(item, jid, hisoka) {
+    try {
+        const { generateWAMessageFromContent, prepareWAMessageMedia } = require('socketon');
+
+        const caption   = buatCaption(item);
+        const urlGambar = ambilUrlGambar(item);
+
+        // Tombol URL — maks 3 tombol
+        const buttons = [
+            {
+                name: 'cta_url',
+                buttonParamsJson: JSON.stringify({
+                    display_text     : '▶️ Tonton / Download',
+                    url              : item.url || 'https://alqanime.net',
+                    webview_interaction: false,
+                }),
+            },
+        ];
+        if (item.malUrl) {
+            buttons.push({
+                name: 'cta_url',
+                buttonParamsJson: JSON.stringify({
+                    display_text     : '🌟 Info MyAnimeList',
+                    url              : item.malUrl,
+                    webview_interaction: false,
+                }),
+            });
+        }
+
+        // Upload gambar ke server WA (dari URL MAL / alqanime)
+        let headerObj = { title: '', hasMediaAttachment: false };
+        if (urlGambar) {
+            try {
+                const imgBuf    = await axios.get(urlGambar, { responseType: 'arraybuffer', timeout: 20000 })
+                    .then(r => Buffer.from(r.data));
+                const mediaData = await prepareWAMessageMedia(
+                    { image: imgBuf },
+                    { upload: hisoka.waUploadToServer }
+                );
+                headerObj = { ...mediaData, hasMediaAttachment: true };
+            } catch (imgErr) {
+                console.warn('[AlqanimeNotif] ⚠️ Header image gagal diupload:', imgErr?.message);
+            }
+        }
+
+        const msg = generateWAMessageFromContent(jid, {
+            interactiveMessage: {
+                body  : { text: caption },
+                footer: { text: '⚡ alqanime.net' },
+                header: headerObj,
+                nativeFlowMessage: {
+                    messageParamsJson: '{}',
+                    buttons,
+                },
+            },
+        }, {});
+
+        await hisoka.relayMessage(msg.key.remoteJid, msg.message, {
+            messageId      : msg.key.id,
+            additionalNodes: [{
+                tag    : 'biz',
+                attrs  : {},
+                content: [{
+                    tag    : 'interactive',
+                    attrs  : { type: 'native_flow', v: '1' },
+                    content: [{ tag: 'native_flow', attrs: { v: '9', name: 'mixed' } }],
+                }],
+            }],
+        });
+
+        return msg;
+
+    } catch (e) {
+        console.warn('[AlqanimeNotif] ⚠️ Interactive gagal, fallback biasa:', e?.message);
+        // Fallback: kirim biasa dengan image + caption
+        const caption   = buatCaption(item);
+        const urlGambar = ambilUrlGambar(item);
+        if (urlGambar) {
+            return hisoka.sendMessage(jid, { image: { url: urlGambar }, caption });
+        }
+        return hisoka.sendMessage(jid, { text: caption });
+    }
+}
+
 // ── EXPORT ────────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -497,6 +591,7 @@ module.exports = {
     cariEpisodeBaru,
     buatCaption,
     ambilUrlGambar,
+    kirimInteraktif,
     tandaiSudahKirim,
     tandaiDanLog,
     getRecentLog,

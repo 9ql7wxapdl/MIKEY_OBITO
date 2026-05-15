@@ -117,14 +117,15 @@ function parseDetail(md) {
     const altM = md.match(/\n\n([^\n#*!\[<\\]{3,})\n\n\*\*Status:/);
     if (altM) info.judulAlt = altM[1].trim();
 
-    // Ambil sinopsis — hanya paragraf pertama sebelum baris notice/emoji
+    // Ambil sinopsis — semua paragraf sebelum baris notice/emoji, pertahankan baris baru
     const synM    = md.match(/## Sinopsis[^\n]*\n\n([^#]+)/);
     let sinopsis = '';
     if (synM) {
-        const raw = synM[1].trim();
-        // Potong di baris yang ada icon notice (✴, !, gambar)
+        const raw    = synM[1].trim();
         const cutIdx = raw.search(/\n\s*(?:✴|!|#+\s)/);
-        sinopsis = (cutIdx > 0 ? raw.slice(0, cutIdx) : raw).replace(/\n/g, ' ').trim();
+        sinopsis = (cutIdx > 0 ? raw.slice(0, cutIdx) : raw)
+            .replace(/\n{3,}/g, '\n\n')
+            .trim();
     }
 
     // Ambil genre hanya dari konten post, sebelum sidebar genre list
