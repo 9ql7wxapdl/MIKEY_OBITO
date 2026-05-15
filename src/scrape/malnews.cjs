@@ -236,6 +236,24 @@ async function fetchAnimeInfo(animeId) {
     }
 }
 
+// stripHtml khusus konten artikel — JAGA newline, hanya buang tag HTML
+function stripHtmlJagaBaris(teks) {
+    return (teks || '')
+        .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#039;/g, "'")
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&#(\d+);/g, (_, n) => {
+            try { return String.fromCodePoint(parseInt(n)); } catch (_) { return ''; }
+        })
+        // Hanya collapse spasi horizontal (bukan newline)
+        .replace(/[ \t]{2,}/g, ' ');
+}
+
 // Ambil teks konten penuh dari halaman artikel MAL
 function parseKontenArtikel(html) {
     // Konten ada di <div class="content clearfix">
@@ -248,9 +266,10 @@ function parseKontenArtikel(html) {
         .replace(/<img[^>]*>/gi, '')
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/<\/p>/gi, '\n')
+        .replace(/<\/li>/gi, '\n')
         .replace(/<\/div>/gi, '\n');
 
-    return stripHtml(raw)
+    return stripHtmlJagaBaris(raw)
         .replace(/\n{3,}/g, '\n\n')
         .trim();
 }
@@ -300,6 +319,25 @@ function getRecentLog(jumlah = 20) {
 
 // ── ENRICH: FETCH KONTEN PENUH + TERJEMAHKAN ─────────────────────────────────
 
+// Terjemahkan per-paragraf agar struktur baris tetap terjaga
+async function terjemahkanTerstruktur(teks) {
+    if (!teks || !teks.trim()) return teks;
+    const paragraf = teks.split(/\n{2,}/);
+    const hasil = [];
+    for (const p of paragraf) {
+        if (!p.trim()) { hasil.push(''); continue; }
+        // Terjemahkan baris-baris dalam paragraf yang punya newline tunggal
+        const baris = p.split('\n');
+        if (baris.length > 1) {
+            const terjBaris = await Promise.all(baris.map(b => b.trim() ? terjemahkan(b) : Promise.resolve(b)));
+            hasil.push(terjBaris.join('\n'));
+        } else {
+            hasil.push(await terjemahkan(p));
+        }
+    }
+    return hasil.join('\n\n');
+}
+
 async function enrichItem(item) {
     // Fetch halaman artikel untuk konten penuh + link anime
     let kontenPenuh = item.deskripsi || '';
@@ -324,7 +362,7 @@ async function enrichItem(item) {
 
     const [judulID, deskripsiID] = await Promise.all([
         terjemahkan(item.judul),
-        terjemahkan(kontenPenuh),
+        terjemahkanTerstruktur(kontenPenuh),
     ]);
     return { ...item, kontenPenuh, judulID, deskripsiID, animeInfoList };
 }
@@ -413,8 +451,61 @@ async function cariBeritaBaru() {
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
 
-const SEP  = '━━━━━━━━━━━━━━━━━━';
-const SEP2 = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄';
+const SEP  = '━━━━━━━━━━━━━━━━━━━━━━';
+const SEP2 = '┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄';
+
+// Kata kunci seksi dalam berbagai bahasa (en + id)
+const SEKSI_KEYWORDS = [
+    'Cast', 'Staff', 'Pemeran', 'Staf',
+    'Music', 'Musik',
+    'Story', 'Cerita',
+    'Source', 'Sumber',
+    'Note', 'Catatan',
+    'Opening', 'Ending',
+    'Production', 'Produksi',
+    'Director', 'Sutradara',
+    'Voice', 'Pengisi Suara',
+];
+
+// Format teks ringkasan per baris secara rapi berdasarkan konteks
+function formatRingkasan(teks) {
+    if (!teks || !teks.trim()) return '';
+
+    const baris = teks.split('\n');
+    const output = [];
+
+    for (const b of baris) {
+        const trimmed = b.trim();
+        if (!trimmed) {
+            // Jaga pemisah antar paragraf tapi jangan duplikat
+            if (output.length && output[output.length - 1] !== '') output.push('');
+            continue;
+        }
+
+        // Deteksi header seksi tunggal (kata kunci tepat, tanpa titik dua setelahnya)
+        const isSeksi = SEKSI_KEYWORDS.some(k =>
+            trimmed === k ||
+            new RegExp(`^${k}\\s*$`, 'i').test(trimmed)
+        );
+
+        // Deteksi baris entri (misal "Toshimasa Azuma: Shinpachi Tsuji")
+        const isEntri = /^[^\n]{2,50}:\s+\S/.test(trimmed);
+
+        if (isSeksi) {
+            if (output.length && output[output.length - 1] !== '') output.push('');
+            output.push(`▸ *${trimmed}*`);
+        } else if (isEntri) {
+            output.push(`  · ${trimmed}`);
+        } else {
+            output.push(trimmed);
+        }
+    }
+
+    // Hapus trailing kosong
+    while (output.length && output[output.length - 1] === '') output.pop();
+
+    return output.join('\n');
+}
 
 function formatTanggal(pubDate) {
     try {
@@ -447,49 +538,47 @@ function buatCaption(item) {
     const headerWaktu = `${namaHari}, ${tglLengkap} · ${jamMenit} WIB`;
 
     const judulTampil = judulID || judul || '-';
-    const isiTampil   = deskripsiID || deskripsi || '';
+    const isiRaw      = deskripsiID || deskripsi || '';
     const tglTampil   = pubDate ? formatTanggal(pubDate) : '-';
 
-    const isiBlock = isiTampil
-        ? isiTampil.split('\n').map(l => `> ${l.trim()}`).filter(l => l !== '>').join('\n')
-        : '';
+    const isiBlock = isiRaw ? formatRingkasan(isiRaw) : '';
 
     // Blok info anime (hanya kalau ada)
     let animeBlock = '';
     const animes = Array.isArray(animeInfoList) ? animeInfoList : [];
     if (animes.length > 0) {
-        animeBlock += `${SEP}\n🎌 *Info Anime Terkait*\n${SEP2}\n`;
+        animeBlock += `${SEP}\n◆ *Info Anime Terkait*\n${SEP2}\n`;
         for (const a of animes) {
             const rows = [];
-            if (a.judul)   rows.push(`├ 🎬 *Judul*   : ${a.judul}${a.judulJP ? ` (${a.judulJP})` : ''}`);
-            if (a.tipe)    rows.push(`├ 📺 *Tipe*    : ${a.tipe}`);
-            if (a.episode) rows.push(`├ 🎞️ *Episode* : ${a.episode}`);
-            if (a.status)  rows.push(`├ 🔄 *Status*  : ${a.status}`);
-            if (a.tayang)  rows.push(`├ 📅 *Tayang*  : ${a.tayang}`);
-            if (a.genre)   rows.push(`├ 🏷️ *Genre*   : ${a.genre}`);
-            if (a.studio)  rows.push(`├ 🏢 *Studio*  : ${a.studio}`);
-            if (a.skor && a.skor !== '-') rows.push(`├ ⭐ *Skor*    : ${a.skor}`);
-            if (a.url)     rows.push(`╰ 🔗 *Link*    : ${a.url}`);
+            if (a.judul)   rows.push(`├ ▸ *Judul*   : ${a.judul}${a.judulJP ? ` (${a.judulJP})` : ''}`);
+            if (a.tipe)    rows.push(`├ ▸ *Tipe*    : ${a.tipe}`);
+            if (a.episode) rows.push(`├ ▸ *Episode* : ${a.episode}`);
+            if (a.status)  rows.push(`├ ▸ *Status*  : ${a.status}`);
+            if (a.tayang)  rows.push(`├ ▸ *Tayang*  : ${a.tayang}`);
+            if (a.genre)   rows.push(`├ ▸ *Genre*   : ${a.genre}`);
+            if (a.studio)  rows.push(`├ ▸ *Studio*  : ${a.studio}`);
+            if (a.skor && a.skor !== '-') rows.push(`├ ★ *Skor*    : ${a.skor}`);
+            if (a.url)     rows.push(`╰ → *Link*    : ${a.url}`);
             animeBlock += rows.join('\n') + '\n';
             if (animes.indexOf(a) < animes.length - 1) animeBlock += `${SEP2}\n`;
         }
     }
 
     return (
-        `📰 *BERITA TERBARU — MYANIMELIST*\n` +
+        `◆ *BERITA TERBARU — MYANIMELIST*\n` +
         `${SEP}\n` +
-        `📅 _${headerWaktu}_\n` +
+        `◈ _${headerWaktu}_\n` +
         `${SEP}\n\n` +
         `*${judulTampil}*\n\n` +
-        (isiBlock ? `📖 *Ringkasan*\n${isiBlock}\n\n` : '') +
+        (isiBlock ? `▶ *Ringkasan*\n${SEP2}\n${isiBlock}\n\n` : '') +
         animeBlock +
         `${SEP}\n` +
-        `📋 *Info Berita*\n` +
+        `◆ *Info Berita*\n` +
         `${SEP2}\n` +
-        `├ 🗂️ *Sumber*  : MyAnimeList News\n` +
-        `╰ 📅 *Terbit*  : ${tglTampil}\n` +
+        `├ ▸ *Sumber*  : MyAnimeList News\n` +
+        `╰ ▸ *Terbit*  : ${tglTampil}\n` +
         `${SEP}\n` +
-        `🔗 *Baca Selengkapnya*\n` +
+        `→ *Baca Selengkapnya*\n` +
         `${url}`
     );
 }

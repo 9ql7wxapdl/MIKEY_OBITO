@@ -19001,7 +19001,8 @@
     "id": "6289681008411@s.whatsapp.net",
     "name": "Hen V1",
     "lid": "274255723921630@lid",
-    "jid": "6289681008411@s.whatsapp.net"
+    "jid": "6289681008411@s.whatsapp.net",
+    "notify": "Hen V1"
   },
   "6285854666250@s.whatsapp.net": {
     "isContact": true,
@@ -31404,5 +31405,20 @@
     "id": "92401960022085@lid",
     "lid": "92401960022085@lid",
     "imgUrl": "changed"
+  },
+  "34522997501977@lid": {
+    "id": "34522997501977@lid",
+    "lid": "34522997501977@lid",
+    "imgUrl": "changed"
+  },
+  "270737894064331@lid": {
+    "id": "270737894064331@lid",
+    "lid": "270737894064331@lid",
+    "imgUrl": "changed"
+  },
+  "279379418607700@lid": {
+    "id": "279379418607700@lid",
+    "lid": "279379418607700@lid",
+    "imgUrl": "removed"
   }
 }
