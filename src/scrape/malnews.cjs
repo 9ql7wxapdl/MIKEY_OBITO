@@ -309,7 +309,7 @@ function tandaiDanLog(item, grupList) {
             simpanLog(log);
         }
     } catch (e) {
-        console.warn('[MALNews] Gagal simpan log:', e?.message);
+        // simpan log gagal — silent
     }
 }
 
@@ -348,7 +348,7 @@ async function enrichItem(item) {
         if (parsed && parsed.length > kontenPenuh.length) kontenPenuh = parsed;
         animeIds = parseAnimeIds(html);
     } catch (e) {
-        console.warn(`[MALNews] ⚠️ Gagal fetch detail artikel: ${e?.message}`);
+        // gagal fetch artikel — lanjut dengan deskripsi RSS
     }
 
     // Fetch info anime dari Jikan (paralel, max 3)
@@ -389,16 +389,16 @@ async function cariBeritaBaru() {
         if (sudahDikirim(gagal.artId)) continue;
         const usiaGagal = now - new Date(gagal.pertamaGagal).getTime();
         if (usiaGagal > RETRY_TTL_MS) {
-            console.log(`[MALNews] ⏭️ Retry timeout: "${gagal.judul}" diabaikan`);
+            // retry timeout — skip
             tandaiSudahKirim(gagal.artId);
             continue;
         }
         try {
             const enriched = await enrichItem(gagal);
-            console.log(`[MALNews] 🔄 Retry berhasil: "${gagal.judul}"`);
+
             baru.push(enriched);
         } catch (e) {
-            console.warn(`[MALNews] 🔄 Retry masih gagal "${gagal.judul}":`, e?.message);
+            console.warn(`[MALNews] retry gagal: ${e?.message}`);
             idGagalBaru.push(gagal);
         }
     }
@@ -409,13 +409,13 @@ async function cariBeritaBaru() {
         const xml = await fetchRSS();
         items = parseRSS(xml);
     } catch (e) {
-        console.error('[MALNews] ❌ Gagal fetch RSS:', e?.message);
+        console.error('[MALNews] gagal fetch RSS:', e?.message);
         return baru;
     }
 
     // ── Pertama kali bot jalan — tandai semua sebagai seen, jangan kirim ───────
     if (isFirstRun) {
-        console.log(`[MALNews] 🚀 First run — tandai ${items.length} berita sebagai seen`);
+        // first run — tandai semua sebagai seen
         const df = bacaData();
         for (const item of items) {
             if (!df.idTerkirim.includes(String(item.artId))) {
@@ -434,7 +434,7 @@ async function cariBeritaBaru() {
             const enriched = await enrichItem(item);
             baru.push(enriched);
         } catch (e) {
-            console.warn(`[MALNews] ❌ Gagal terjemah "${item.judul}":`, e?.message);
+            console.warn(`[MALNews] gagal proses: ${e?.message}`);
             idGagalBaru.push({
                 ...item,
                 pertamaGagal: new Date().toISOString(),
@@ -583,18 +583,12 @@ function ambilUrlGambar(item) {
 // ── SIMULASI (TEST) ───────────────────────────────────────────────────────────
 
 async function simulasi() {
-    console.log('[MALNews] 🔄 Fetch RSS...');
     const xml   = await fetchRSS();
     const items = parseRSS(xml);
     if (!items.length) throw new Error('Tidak ada berita dari MyAnimeList RSS');
 
-    const item = items[0];
-    console.log(`[MALNews] 📰 Judul asli: "${item.judul}"`);
-    console.log(`[MALNews] 🌐 Menerjemahkan ke Bahasa Indonesia...`);
-
+    const item     = items[0];
     const enriched = await enrichItem(item);
-    console.log(`[MALNews] ✅ Judul ID: "${enriched.judulID}"`);
-    console.log(`[MALNews] ✅ Deskripsi ID: "${enriched.deskripsiID?.slice(0, 100)}..."`);
 
     const caption   = buatCaption(enriched);
     const urlGambar = ambilUrlGambar(enriched);
