@@ -6467,6 +6467,7 @@ ${ownerNum ? `📞 *Owner    :* wa.me/${ownerNum}` : ''}
 ├➤ *.animasu*
 ├➤ *.tvone*
 ├➤ *.alqanimenotif*
+├➤ *.ceksw on/off/reset*
 ├➤ *.wilyai on/off*
 ├➤ *.wily / .simi*
 ├➤ *.setreactapi [key]*
@@ -6616,7 +6617,7 @@ jadibot [nomor] [durasi] | stopbot | listbot
 
 「 👑 *OWNER ONLY* 」
 listowner | addowner | delowner
-all | swgrup/statusgroup | infowibu | animasu | tvone | alqanimenotif
+all | swgrup/statusgroup | infowibu | animasu | tvone | alqanimenotif | ceksw
 wily | simi | wilyai on/off | wilyai pm/gc/all | wilyai reset
 setreactapi | addemoji | delemoji | listemoji
 upbot | backup | ceksesi | eval | bash
@@ -6797,8 +6798,10 @@ cekerror | cekerror reset | contact
 │   _Upload story ke semua grup_
 ├➤ *.sendstatus / .swgc [reply media]*
 │   _Kirim status ke kontak/grup_
-╰➤ *.readsw on/off*
-   _Auto baca & reaksi story kontak_
+├➤ *.readsw on/off*
+│   _Auto baca & reaksi story kontak_
+╰➤ *.ceksw on/off/reset*
+   _Statistik & tracking story WA kontak_
 
 ╭─「 🛡️ *ANTI TAG STORY* 」
 │  _Khusus admin & owner grup_
@@ -6986,8 +6989,10 @@ cekerror | cekerror reset | contact
 │   _Auto notif episode Sub Indo dari Animasu_
 ├➤ *.tvone on/off/test/status*
 │   _Auto notif berita dari TV One_
-╰➤ *.alqanimenotif on/off/test/status*
-   _Auto notif episode Sub Indo dari Alqanime_
+├➤ *.alqanimenotif on/off/test/status*
+│   _Auto notif episode Sub Indo dari Alqanime_
+╰➤ *.ceksw on/off/reset*
+   _Statistik & tracking story WA kontak_
 
 ╭─「 🛠️ *TOOLS TEKNIS* 」
 │

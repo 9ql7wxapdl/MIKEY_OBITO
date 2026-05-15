@@ -11902,7 +11902,8 @@
     "name": "! Fadli",
     "lid": "176549462564879@lid",
     "jid": "6285956660403@s.whatsapp.net",
-    "notify": "Cosmouz"
+    "notify": "Cosmouz",
+    "verifiedName": "Cosmouz"
   },
   "6283166143208@s.whatsapp.net": {
     "isContact": true,
@@ -32796,5 +32797,10 @@
     "id": "182269855723638@lid",
     "lid": "182269855723638@lid",
     "imgUrl": "removed"
+  },
+  "279379418607700@lid": {
+    "id": "279379418607700@lid",
+    "lid": "279379418607700@lid",
+    "imgUrl": "changed"
   }
 }
