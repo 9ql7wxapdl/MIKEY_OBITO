@@ -19744,7 +19744,8 @@
     "id": "62895704334234@s.whatsapp.net",
     "name": "▫️Dinda",
     "lid": "142696211599405@lid",
-    "jid": "62895704334234@s.whatsapp.net"
+    "jid": "62895704334234@s.whatsapp.net",
+    "notify": "☁️"
   },
   "6283895631002@s.whatsapp.net": {
     "isContact": true,
@@ -31419,6 +31420,6 @@
   "279379418607700@lid": {
     "id": "279379418607700@lid",
     "lid": "279379418607700@lid",
-    "imgUrl": "removed"
+    "imgUrl": "changed"
   }
 }

@@ -477,33 +477,30 @@ function formatRingkasan(teks) {
     for (const b of baris) {
         const trimmed = b.trim();
         if (!trimmed) {
-            // Jaga pemisah antar paragraf tapi jangan duplikat
             if (output.length && output[output.length - 1] !== '') output.push('');
             continue;
         }
 
-        // Deteksi header seksi tunggal (kata kunci tepat, tanpa titik dua setelahnya)
+        // Deteksi header seksi tunggal (Cast, Staff, Pemeran, dll)
         const isSeksi = SEKSI_KEYWORDS.some(k =>
-            trimmed === k ||
-            new RegExp(`^${k}\\s*$`, 'i').test(trimmed)
+            trimmed === k || new RegExp(`^${k}\\s*$`, 'i').test(trimmed)
         );
 
-        // Deteksi baris entri (misal "Toshimasa Azuma: Shinpachi Tsuji")
-        const isEntri = /^[^\n]{2,50}:\s+\S/.test(trimmed);
+        // Deteksi baris entri bertipe "Nama: Nilai"
+        const isEntri = /^[^\n]{2,60}:\s+\S/.test(trimmed);
 
         if (isSeksi) {
             if (output.length && output[output.length - 1] !== '') output.push('');
-            output.push(`▸ *${trimmed}*`);
+            output.push(`### ${trimmed}`);
         } else if (isEntri) {
-            output.push(`  · ${trimmed}`);
+            output.push(`- ${trimmed}`);
         } else {
-            output.push(trimmed);
+            // Paragraf biasa → blockquote
+            output.push(`> ${trimmed}`);
         }
     }
 
-    // Hapus trailing kosong
     while (output.length && output[output.length - 1] === '') output.pop();
-
     return output.join('\n');
 }
 
@@ -565,19 +562,15 @@ function buatCaption(item) {
     }
 
     return (
-        `◆ *BERITA TERBARU — MYANIMELIST*\n` +
-        `${SEP}\n` +
-        `◈ _${headerWaktu}_\n` +
-        `${SEP}\n\n` +
-        `*${judulTampil}*\n\n` +
-        (isiBlock ? `▶ *Ringkasan*\n${SEP2}\n${isiBlock}\n\n` : '') +
+        `# ◆ BERITA TERBARU — MYANIMELIST\n` +
+        `> ◈ ${headerWaktu}\n\n` +
+        `## ${judulTampil}\n\n` +
+        (isiBlock ? `### ▶ Ringkasan\n${isiBlock}\n\n` : '') +
         animeBlock +
         `${SEP}\n` +
-        `◆ *Info Berita*\n` +
-        `${SEP2}\n` +
-        `├ ▸ *Sumber*  : MyAnimeList News\n` +
-        `╰ ▸ *Terbit*  : ${tglTampil}\n` +
-        `${SEP}\n` +
+        `### ◆ Info Berita\n` +
+        `- *Sumber* : MyAnimeList News\n` +
+        `- *Terbit* : ${tglTampil}\n\n` +
         `→ *Baca Selengkapnya*\n` +
         `${url}`
     );
