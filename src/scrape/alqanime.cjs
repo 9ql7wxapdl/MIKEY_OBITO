@@ -6,17 +6,40 @@ const BASE    = 'https://alqanime.net';
 const JINA    = 'https://r.jina.ai';
 
 const HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept': 'text/plain, */*',
-    'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
+    'User-Agent'       : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept'           : 'text/plain, */*',
+    'Accept-Language'  : 'id-ID,id;q=0.9,en;q=0.8',
+    'X-Return-Format'  : 'markdown',
+    'X-No-Cache'       : 'true',
 };
 
-async function fetchMarkdown(url) {
-    const res = await axios.get(`${JINA}/${url}`, {
-        headers: HEADERS,
-        timeout: 30000,
-    });
-    return res.data;
+// Cache homepage markdown selama 45 detik — pakai global agar bertahan saat modul di-reload oleh scheduler
+if (!global._alqMdCache) global._alqMdCache = new Map();
+const MD_CACHE_TTL = 45 * 1000;
+
+async function fetchMarkdown(url, { retries = 3, delay = 3000 } = {}) {
+    const cached = global._alqMdCache.get(url);
+    if (cached && Date.now() - cached.at < MD_CACHE_TTL) return cached.data;
+
+    let lastErr;
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await axios.get(`${JINA}/${url}`, {
+                headers: HEADERS,
+                timeout: 30000,
+            });
+            const data = res.data;
+            global._alqMdCache.set(url, { data, at: Date.now() });
+            return data;
+        } catch (err) {
+            lastErr = err;
+            const status = err?.response?.status;
+            // Jangan retry kalau bukan error sementara (selain 403/429/5xx)
+            if (status && status < 500 && status !== 429 && status !== 403) throw err;
+            if (i < retries - 1) await new Promise(r => setTimeout(r, delay * (i + 1)));
+        }
+    }
+    throw lastErr;
 }
 
 function parseAnimeCards(md) {
