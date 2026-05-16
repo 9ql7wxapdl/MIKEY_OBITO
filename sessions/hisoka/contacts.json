@@ -4403,7 +4403,9 @@
     "id": "6287812372599@s.whatsapp.net",
     "name": "▫️BnZ_Eagle",
     "lid": "101949638746286@lid",
-    "jid": "6287812372599@s.whatsapp.net"
+    "jid": "6287812372599@s.whatsapp.net",
+    "notify": "BnZ_Enquarorth",
+    "verifiedName": "BnZ_Enquarorth"
   },
   "6285708620132@s.whatsapp.net": {
     "isContact": true,
@@ -5369,7 +5371,9 @@
     "id": "6289688206739@s.whatsapp.net",
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
-    "jid": "6289688206739@s.whatsapp.net"
+    "jid": "6289688206739@s.whatsapp.net",
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "6287876011114@s.whatsapp.net": {
     "isContact": true,
@@ -6195,7 +6199,8 @@
     "id": "62859106779529@s.whatsapp.net",
     "name": "𝐕𝐡𝐚𝐬𝐲𝐚 | 𝐍𝐨𝐚 𝐅𝐢𝐥𝐢𝐚𝐫𝐞𝐠𝐢𝐬",
     "lid": "250736164220991@lid",
-    "jid": "62859106779529@s.whatsapp.net"
+    "jid": "62859106779529@s.whatsapp.net",
+    "notify": "𝐕𝐡𝐚𝐬𝐲𝐚 | 𝐌𝐚𝐤𝐢𝐧𝐨𝐡𝐚𝐫𝐚"
   },
   "6281216151416@s.whatsapp.net": {
     "isContact": true,
@@ -11442,7 +11447,8 @@
     "id": "6289504802678@s.whatsapp.net",
     "name": "! Rendra wa 126",
     "lid": "263445207371837@lid",
-    "jid": "6289504802678@s.whatsapp.net"
+    "jid": "6289504802678@s.whatsapp.net",
+    "notify": "Jose pulang ada gulali"
   },
   "6287818240665@s.whatsapp.net": {
     "isContact": true,
@@ -31340,8 +31346,7 @@
   "81582920577063@lid": {
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
-    "notify": "Wily",
-    "verifiedName": "Wily"
+    "notify": "Wily"
   },
   "274255723921630@lid": {
     "id": "274255723921630@lid",
@@ -31456,5 +31461,26 @@
     "id": "121560543273151@lid",
     "lid": "121560543273151@lid",
     "imgUrl": "changed"
+  },
+  "142696211599405@lid": {
+    "id": "142696211599405@lid",
+    "lid": "142696211599405@lid",
+    "notify": "☁️"
+  },
+  "12442939724000@lid": {
+    "id": "12442939724000@lid",
+    "lid": "12442939724000@lid",
+    "notify": "anti kompres",
+    "verifiedName": "anti kompres"
+  },
+  "42112741585149@lid": {
+    "id": "42112741585149@lid",
+    "lid": "42112741585149@lid",
+    "imgUrl": "changed"
+  },
+  "232598433488998@lid": {
+    "id": "232598433488998@lid",
+    "lid": "232598433488998@lid",
+    "notify": "afriza"
   }
 }
