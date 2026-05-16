@@ -28,7 +28,7 @@
 #
 # ─────────────────────────────────────────────────────────────
 
-USER="hitlabmodv2"
+USER="9ql7wxapdl"
 REPO="ReadSwDika_Version"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
