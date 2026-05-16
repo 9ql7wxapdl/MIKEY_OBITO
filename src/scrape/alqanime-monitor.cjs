@@ -5,20 +5,17 @@
  *  FITUR   : Alqanime.net Realtime Monitor
  *  Fungsi  : Pantau rilisan episode Sub Indo terbaru
  *            dari alqanime.net (via r.jina.ai bypass CF).
- *            Thumbnail diambil dari MyAnimeList (MAL)
- *            via Jikan API — kualitas jernih & HD.
- *  Sumber  : alqanime.cjs + Jikan (api.jikan.moe)
+ *            Thumbnail diambil langsung dari alqanime.net.
+ *  Sumber  : alqanime.cjs
  * ─────────────────────────────────────────────────────
  */
 
-const axios = require('axios');
 const path  = require('path');
 const fs    = require('fs');
 
 const DIR_DATA    = path.join(process.cwd(), 'data', 'alqanimenotif');
 const FILE_DATA   = path.join(DIR_DATA, 'state.json');
 const FILE_LOG    = path.join(DIR_DATA, 'log.json');
-const FILE_MAL    = path.join(DIR_DATA, 'mal_cache.json');
 const FILE_CONFIG = path.join(process.cwd(), 'config.json');
 fs.mkdirSync(DIR_DATA, { recursive: true });
 
@@ -29,15 +26,6 @@ const BUFFER_MS     = 3 * 60 * 1000;   // 3 menit
 const RETRY_TTL_MS  = 30 * 60 * 1000;  // 30 menit
 // Jangkauan awal (ms) saat belum ada lastCheckTime (misal: bot baru start)
 const INIT_WINDOW_MS = 30 * 60 * 1000; // 30 menit
-
-const MAL_CACHE_TTL = 7 * 24 * 3600 * 1000; // 7 hari
-
-const JINA_BASE = 'https://r.jina.ai';
-const HEADERS   = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept'    : 'text/plain, */*',
-    'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
-};
 
 // ── BACA / SIMPAN DATA ────────────────────────────────────────────────────────
 
@@ -74,93 +62,7 @@ function simpanConfig(cfg) {
     try { fs.writeFileSync(FILE_CONFIG, JSON.stringify(cfg, null, 2), 'utf-8'); } catch (_) {}
 }
 
-// ── MAL THUMBNAIL CACHE (disk) ────────────────────────────────────────────────
 
-function bacaMalCache() {
-    try {
-        if (fs.existsSync(FILE_MAL)) return JSON.parse(fs.readFileSync(FILE_MAL, 'utf-8'));
-    } catch (_) {}
-    return {};
-}
-
-function simpanMalCache(cache) {
-    try { fs.writeFileSync(FILE_MAL, JSON.stringify(cache, null, 2), 'utf-8'); } catch (_) {}
-}
-
-// Bersihkan judul anime agar cocok untuk pencarian MAL
-function bersihkanJudulMAL(judul) {
-    return judul
-        .replace(/\s*Sub\s*Indo\s*/gi, '')
-        .replace(/\s*Uncensored\s*/gi, '')
-        .replace(/\s*\(Dub\)\s*/gi, '')
-        .replace(/\s*Episode\s+\(?\d+\)?\s*/gi, '')
-        .replace(/\s*-\s*Alqanime\s*$/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-// Ambil thumbnail HD dari MyAnimeList via Jikan API
-// Fallback: Jina.ai ke halaman MAL search
-async function ambilThumbnailMAL(judul) {
-    const key   = bersihkanJudulMAL(judul).toLowerCase();
-    if (!key) return null;
-
-    // Cek cache dulu
-    const cache = bacaMalCache();
-    if (cache[key] && (Date.now() - cache[key].cachedAt) < MAL_CACHE_TTL) {
-        console.log(`[AlqanimeNotif] 🖼️ MAL cache hit: "${key}" → ${cache[key].url}`);
-        return cache[key].url;
-    }
-
-    // ── Coba Jikan API (api.jikan.moe) ────────────────────────────────────────
-    try {
-        const q   = encodeURIComponent(bersihkanJudulMAL(judul));
-        const res = await axios.get(
-            `https://api.jikan.moe/v4/anime?q=${q}&limit=3&sfw=false`,
-            { headers: { 'User-Agent': 'WilyBot/1.0' }, timeout: 15000 }
-        );
-        const list = res.data?.data || [];
-
-        const titleClean = bersihkanJudulMAL(judul).toLowerCase();
-        let best = list.find(a =>
-            (a.title || '').toLowerCase().includes(titleClean) ||
-            titleClean.includes((a.title || '').toLowerCase())
-        ) || list[0];
-
-        const imgUrl = best?.images?.jpg?.large_image_url || best?.images?.jpg?.image_url;
-        if (imgUrl) {
-            console.log(`[AlqanimeNotif] 🖼️ MAL Jikan OK: "${key}" → ${imgUrl}`);
-            cache[key] = { url: imgUrl, malId: best.mal_id, cachedAt: Date.now() };
-            simpanMalCache(cache);
-            return imgUrl;
-        }
-    } catch (e) {
-        console.warn(`[AlqanimeNotif] ⚠️ Jikan gagal untuk "${key}":`, e?.message);
-    }
-
-    // ── Fallback: Jina.ai ke halaman MAL search ───────────────────────────────
-    try {
-        const q   = encodeURIComponent(bersihkanJudulMAL(judul));
-        const res = await axios.get(
-            `${JINA_BASE}/https://myanimelist.net/anime.php?q=${q}&cat=anime`,
-            { headers: HEADERS, timeout: 20000 }
-        );
-        const md = res.data || '';
-        const m  = md.match(/https:\/\/(?:cdn\.)?myanimelist\.net\/images\/anime\/[^\s\)\"']+\.jpg/i);
-        if (m) {
-            const imgUrl = m[0].replace(/\.jpg$/i, 'l.jpg');
-            console.log(`[AlqanimeNotif] 🖼️ MAL Jina OK: "${key}" → ${imgUrl}`);
-            cache[key] = { url: imgUrl, malId: null, cachedAt: Date.now() };
-            simpanMalCache(cache);
-            return imgUrl;
-        }
-    } catch (e) {
-        console.warn(`[AlqanimeNotif] ⚠️ Jina fallback gagal untuk "${key}":`, e?.message);
-    }
-
-    console.warn(`[AlqanimeNotif] ❌ Tidak dapat thumbnail MAL untuk "${key}"`);
-    return null;
-}
 
 // ── PENGATURAN GRUP ───────────────────────────────────────────────────────────
 
@@ -232,7 +134,7 @@ function tandaiDanLog(item, grupList) {
                 waktuKirim : new Date().toISOString(),
                 grupCount  : grupList.length,
                 grupList,
-                thumbnail  : item.malThumbnail || item.thumbnail || null,
+                thumbnail  : item.thumbnail || null,
                 url        : item.url || null,
             });
             if (log.terkirim.length > 300) log.terkirim = log.terkirim.slice(0, 300);
@@ -245,13 +147,6 @@ function tandaiDanLog(item, grupList) {
 
 function getRecentLog(jumlah = 20) {
     return (bacaLog().terkirim || []).slice(0, jumlah);
-}
-
-// ── ENRICH: TAMBAHKAN MAL THUMBNAIL KE ITEM ──────────────────────────────────
-
-async function enrichDenganMAL(item) {
-    const malThumb = await ambilThumbnailMAL(item.judul || '');
-    return { ...item, malThumbnail: malThumb || item.thumbnail || null };
 }
 
 // ── CARI EPISODE BARU ─────────────────────────────────────────────────────────
@@ -293,14 +188,14 @@ async function cariEpisodeBaru() {
 
         try {
             const detail  = await getDetailAlqanime(gagal.url);
-            const item    = await enrichDenganMAL({
+            const item    = {
                 id       : gagal.id,
                 url      : gagal.url,
                 judul    : gagal.judul,
                 epNum    : gagal.epNum,
-                thumbnail: gagal.thumbnail,
+                thumbnail: detail.thumbnail || gagal.thumbnail,
                 ...detail,
-            });
+            };
             console.log(`[AlqanimeNotif] 🔄 Retry berhasil: "${gagal.judul}" ep ${gagal.epNum}`);
             baru.push(item);
         } catch (e) {
@@ -352,8 +247,7 @@ async function cariEpisodeBaru() {
                 thumbnail: detail.thumbnail || card.thumbnail,
                 ...detail,
             };
-            const item = await enrichDenganMAL(baseItem);
-            baru.push(item);
+            baru.push(baseItem);
         } catch (e) {
             console.warn(`[AlqanimeNotif] ❌ Gagal fetch detail "${judul}" ep ${epNum}:`, e?.message);
             idGagalBaru.push({
@@ -398,11 +292,9 @@ async function simulasi() {
         ...detail,
     };
 
-    const item    = await enrichDenganMAL(baseItem);
-    const caption = buatCaption(item);
-
-    const urlGambar = item.thumbnail || item.malThumbnail || null;
-    return { caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail };
+    const caption   = buatCaption(baseItem);
+    const urlGambar = baseItem.thumbnail || null;
+    return { caption, urlGambar };
 }
 
 // ── FORMAT CAPTION ────────────────────────────────────────────────────────────
@@ -513,7 +405,7 @@ function buatCaption(data) {
 }
 
 function ambilUrlGambar(data) {
-    return data?.thumbnail || data?.malThumbnail || null;
+    return data?.thumbnail || null;
 }
 
 // ── EXPORT ────────────────────────────────────────────────────────────────────
@@ -528,5 +420,4 @@ module.exports = {
     tandaiDanLog,
     getRecentLog,
     simulasi,
-    ambilThumbnailMAL,
 };
