@@ -22,7 +22,7 @@ async function fetchMarkdown(url) {
 function parseAnimeCards(md) {
     const results = [];
     const seen = new Set();
-    const regex = /!\[Image \d+: ([^\]]+)\]\((https:\/\/alqanime\.net\/wp-content[^)]+)\)[^\[]*## ([^\]]+)\]\((https:\/\/alqanime\.net\/[^/"]+\/)[^)]*\)/g;
+    const regex = /!\[Image \d+: ([^\]]+)\]\((https:\/\/alqanime\.net\/wp-content[^)]+)\)[^\[\n]*## ([^\]]+)\]\((https:\/\/alqanime\.net\/[^/"]+\/)[^\)\n]*\)/g;
     let m;
     while ((m = regex.exec(md)) !== null) {
         const url  = m[4];

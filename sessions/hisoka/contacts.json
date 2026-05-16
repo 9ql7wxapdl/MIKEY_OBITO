@@ -5373,8 +5373,7 @@
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
     "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily",
-    "verifiedName": "Wily"
+    "notify": "Wily"
   },
   "6287876011114@s.whatsapp.net": {
     "isContact": true,
@@ -14496,7 +14495,8 @@
     "id": "62895323007900@s.whatsapp.net",
     "name": "! Yuhiko Hoshino || オタク",
     "lid": "184151135252580@lid",
-    "jid": "62895323007900@s.whatsapp.net"
+    "jid": "62895323007900@s.whatsapp.net",
+    "notify": "Rejaanimm the 1975🥀🤺🗿"
   },
   "62895806566821@s.whatsapp.net": {
     "isContact": true,
@@ -25553,7 +25553,8 @@
     "id": "6281324673012@s.whatsapp.net",
     "name": "! Budi",
     "lid": "273074523996353@lid",
-    "jid": "6281324673012@s.whatsapp.net"
+    "jid": "6281324673012@s.whatsapp.net",
+    "notify": "No name"
   },
   "6289646987258@s.whatsapp.net": {
     "isContact": true,
@@ -31524,6 +31525,11 @@
   "9444717027354@lid": {
     "id": "9444717027354@lid",
     "lid": "9444717027354@lid",
+    "imgUrl": "changed"
+  },
+  "144495920332920@lid": {
+    "id": "144495920332920@lid",
+    "lid": "144495920332920@lid",
     "imgUrl": "changed"
   }
 }
