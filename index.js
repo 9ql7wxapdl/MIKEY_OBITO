@@ -865,9 +865,12 @@ async function main() {
                                 const ALQ_PATH       = path.join(process.cwd(), 'src', 'scrape', 'alqanime-monitor.cjs');
                                 const ALQ_INTERVAL_MS = 60 * 1000;
 
+                                const ALQ_SCRAPE_PATH = path.join(process.cwd(), 'src', 'scrape', 'alqanime.cjs');
+
                                 const runAlqanime = async () => {
                                         try {
                                                 delete _require.cache[_require.resolve(ALQ_PATH)];
+                                                try { delete _require.cache[_require.resolve(ALQ_SCRAPE_PATH)]; } catch (_) {}
                                                 const _alq = _require(ALQ_PATH);
 
                                                 const daftarGrup = _alq.getEnabledGroups();

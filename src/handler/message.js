@@ -11333,7 +11333,7 @@ infoText += `╰═════════════════════�
                                 break;
                         }
                                 
-                        case 'jadibot': {
+                        case 'jadibot1': {
                                 if (!isMainBot(hisoka)) return;
                                 if (!m.isOwner) return;
 
