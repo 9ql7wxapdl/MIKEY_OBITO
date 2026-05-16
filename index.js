@@ -65,24 +65,32 @@ async function autoSaveViewOnce(message, hisoka) {
 
         let targetMsg = msg
         let isVO = false
+        let originalWrapper = null // simpan wrapper asli untuk download
 
         // Unwrap ephemeral dulu
         if (targetMsg.ephemeralMessage?.message) targetMsg = targetMsg.ephemeralMessage.message
 
         // Deteksi view-once wrapper
         if (targetMsg.viewOnceMessage?.message) {
+                originalWrapper = targetMsg.viewOnceMessage.message
                 targetMsg = targetMsg.viewOnceMessage.message
                 isVO = true
         } else if (targetMsg.viewOnceMessageV2?.message) {
+                originalWrapper = targetMsg.viewOnceMessageV2.message
                 targetMsg = targetMsg.viewOnceMessageV2.message
                 isVO = true
         } else if (targetMsg.viewOnceMessageV2Extension?.message) {
+                originalWrapper = targetMsg.viewOnceMessageV2Extension.message
                 targetMsg = targetMsg.viewOnceMessageV2Extension.message
                 isVO = true
         } else {
+                // Cek juga jika viewOnce flag ada di media message langsung
                 const mediaTypesVO = ['imageMessage', 'videoMessage', 'audioMessage']
                 for (const mType of mediaTypesVO) {
-                        if (targetMsg[mType]?.viewOnce === true) { isVO = true; break }
+                        if (targetMsg[mType]?.viewOnce === true) {
+                                isVO = true
+                                break
+                        }
                 }
         }
 
@@ -90,7 +98,10 @@ async function autoSaveViewOnce(message, hisoka) {
 
         const mediaTypes = ['imageMessage', 'videoMessage', 'audioMessage', 'stickerMessage', 'documentMessage']
         const mediaType = getContentType(targetMsg)
-        if (!mediaTypes.includes(mediaType)) return
+        if (!mediaTypes.includes(mediaType)) {
+                // interactiveMessage dan tipe non-media lainnya wajar muncul — skip saja tanpa log
+                return
+        }
 
         const msgId = message.key.id
         if (hasViewOnceCache(msgId)) return
@@ -124,7 +135,7 @@ async function autoSaveViewOnce(message, hisoka) {
                 }
 
                 const content = targetMsg[mediaType]
-                const metaVO = {
+                saveViewOnceCache(msgId, buffer, {
                         mediaType,
                         mimetype: content?.mimetype || '',
                         caption: content?.caption || '',
@@ -132,8 +143,7 @@ async function autoSaveViewOnce(message, hisoka) {
                         fileName: content?.fileName || '',
                         senderName: message.pushName || '',
                         from: message.key.remoteJid || '',
-                }
-                saveViewOnceCache(msgId, buffer, metaVO)
+                })
         } catch (err) {
                 console.error(`\x1b[31m[VOCache]\x1b[0m ❌ Gagal simpan ${msgId}: ${err.message}`)
                 console.error(err.stack)
@@ -1672,20 +1682,6 @@ setTimeout(() => {
                                         console.error('\x1b[31m[WelcomeCard] Error:\x1b[39m', err.message);
                                 }
                         })();
-                }
-        });
-
-        // ── ANTI VIEW ONCE listener ───────────────────────────────────────────────
-        hisoka.ev.on('messages.upsert', avoUpsert => {
-                if (avoUpsert.type !== 'notify') return;
-                for (const avoMsg of avoUpsert.messages) {
-                        if (!avoMsg?.key?.id || avoMsg.key?.fromMe) continue;
-                        if (!avoMsg.message) continue;
-                        const avoHandler = getHandler('antiviewonce');
-                        if (typeof avoHandler === 'function') {
-                                Promise.resolve(avoHandler(avoMsg, hisoka))
-                                        .catch(err => console.error('[AntiVO]', err?.message));
-                        }
                 }
         });
 

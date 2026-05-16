@@ -3696,9 +3696,7 @@
     "id": "6285150762138@s.whatsapp.net",
     "name": "Arga",
     "lid": "12442939724000@lid",
-    "jid": "6285150762138@s.whatsapp.net",
-    "notify": "anti kompres",
-    "verifiedName": "anti kompres"
+    "jid": "6285150762138@s.whatsapp.net"
   },
   "62881038505755@s.whatsapp.net": {
     "isContact": true,
@@ -5371,8 +5369,7 @@
     "id": "6289688206739@s.whatsapp.net",
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
-    "jid": "6289688206739@s.whatsapp.net",
-    "notify": "Wily"
+    "jid": "6289688206739@s.whatsapp.net"
   },
   "6287876011114@s.whatsapp.net": {
     "isContact": true,
@@ -5897,8 +5894,7 @@
     "id": "6283121471949@s.whatsapp.net",
     "name": "Sigit",
     "lid": "127461811601572@lid",
-    "jid": "6283121471949@s.whatsapp.net",
-    "notify": "Sgt"
+    "jid": "6283121471949@s.whatsapp.net"
   },
   "6281271583278@s.whatsapp.net": {
     "isContact": true,
@@ -7060,8 +7056,7 @@
     "id": "6285845490588@s.whatsapp.net",
     "name": "Ngetesssss",
     "lid": "226396467122238@lid",
-    "jid": "6285845490588@s.whatsapp.net",
-    "notify": "ᵛᵒⁿ•𝗘𝗜𝗡𝗭𝗕𝗘𝗥𝗡"
+    "jid": "6285845490588@s.whatsapp.net"
   },
   "201224535483@s.whatsapp.net": {
     "isContact": true,
@@ -8902,8 +8897,7 @@
     "id": "6282239841068@s.whatsapp.net",
     "name": "√ Lyrn",
     "lid": "37572776599715@lid",
-    "jid": "6282239841068@s.whatsapp.net",
-    "notify": "yayayaya"
+    "jid": "6282239841068@s.whatsapp.net"
   },
   "6288227357032@s.whatsapp.net": {
     "isContact": true,
@@ -11819,8 +11813,7 @@
     "id": "6288226422521@s.whatsapp.net",
     "name": "√ Cindy",
     "lid": "131597797978351@lid",
-    "jid": "6288226422521@s.whatsapp.net",
-    "notify": "cynny."
+    "jid": "6288226422521@s.whatsapp.net"
   },
   "62895322001718@s.whatsapp.net": {
     "isContact": true,
@@ -16766,7 +16759,8 @@
     "name": "Remi_ikan 111",
     "lid": "26547712958494@lid",
     "jid": "6281295543915@s.whatsapp.net",
-    "notify": "Arthur.remi_kan"
+    "notify": "Arthur.remi_kan",
+    "verifiedName": "Arthur.remi_kan"
   },
   "62882015661599@s.whatsapp.net": {
     "isContact": true,
@@ -18692,9 +18686,7 @@
     "id": "6285163013550@s.whatsapp.net",
     "name": "[A]ツ",
     "lid": "1280101642395@lid",
-    "jid": "6285163013550@s.whatsapp.net",
-    "notify": "Alma",
-    "verifiedName": "Alma"
+    "jid": "6285163013550@s.whatsapp.net"
   },
   "6287820661518@s.whatsapp.net": {
     "isContact": true,
@@ -31348,7 +31340,8 @@
   "81582920577063@lid": {
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
-    "notify": "Wily"
+    "notify": "Wily",
+    "verifiedName": "Wily"
   },
   "274255723921630@lid": {
     "id": "274255723921630@lid",
@@ -31462,55 +31455,6 @@
   "121560543273151@lid": {
     "id": "121560543273151@lid",
     "lid": "121560543273151@lid",
-    "imgUrl": "changed"
-  },
-  "12442939724000@lid": {
-    "id": "12442939724000@lid",
-    "lid": "12442939724000@lid",
-    "notify": "anti kompres"
-  },
-  "6287788635139@s.whatsapp.net": {
-    "id": "6287788635139@s.whatsapp.net",
-    "notify": "Rapa189"
-  },
-  "129334601846925@lid": {
-    "id": "129334601846925@lid",
-    "lid": "129334601846925@lid",
-    "notify": "╰っホム┌Ryuuka┐/⁠ᐠ⁠｡⁠ꞈ⁠｡⁠ᐟ⁠\\"
-  },
-  "26547712958494@lid": {
-    "id": "26547712958494@lid",
-    "lid": "26547712958494@lid",
-    "notify": "Arthur.remi_kan"
-  },
-  "233496333279444@lid": {
-    "id": "233496333279444@lid",
-    "lid": "233496333279444@lid",
-    "imgUrl": "changed"
-  },
-  "6283123405940@s.whatsapp.net": {
-    "id": "6283123405940@s.whatsapp.net",
-    "notify": "rawrrrr amanah_selalu",
-    "verifiedName": "rawrrrr amanah_selalu"
-  },
-  "97968623505429@lid": {
-    "id": "97968623505429@lid",
-    "lid": "97968623505429@lid",
-    "notify": "Hen V2"
-  },
-  "67066115670033@lid": {
-    "id": "67066115670033@lid",
-    "lid": "67066115670033@lid",
-    "notify": "aldysensei🍃"
-  },
-  "260975114629354@lid": {
-    "id": "260975114629354@lid",
-    "lid": "260975114629354@lid",
-    "imgUrl": "changed"
-  },
-  "125825546514623@lid": {
-    "id": "125825546514623@lid",
-    "lid": "125825546514623@lid",
     "imgUrl": "changed"
   }
 }

@@ -270,7 +270,6 @@ export default async function (m, hisoka) {
                                 })();
                         }
                 }
-
                 // ini baru
                 if (!m.key?.fromMe && m.key?.remoteJid === 'status@broadcast' && m.message && m.type && m.type !== 'protocolMessage' && m.type !== 'reactionMessage') { // sampe sini
                         const config = loadConfig();
