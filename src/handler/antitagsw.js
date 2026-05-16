@@ -276,7 +276,7 @@ export default async function handleAntiTagSW(message, hisoka) {
 
         const botNumber = botJid.split('@')[0];
         const senderNumberClean = senderJid.split('@')[0];
-        const BOT_ADMIN_FILE = path.join(process.cwd(), 'data', 'botadmin.json');
+        const BOT_ADMIN_FILE = path.join(process.cwd(), 'data', 'botadmin', 'botadmin.json');
 
         function loadBotAdminFile() {
             try {
