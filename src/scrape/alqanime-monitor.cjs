@@ -401,7 +401,7 @@ async function simulasi() {
     const item    = await enrichDenganMAL(baseItem);
     const caption = buatCaption(item);
 
-    const urlGambar = item.malThumbnail || item.thumbnail || null;
+    const urlGambar = item.thumbnail || item.malThumbnail || null;
     return { caption, urlGambar, malThumbnail: item.malThumbnail, alqThumbnail: item.thumbnail };
 }
 
@@ -513,7 +513,7 @@ function buatCaption(data) {
 }
 
 function ambilUrlGambar(data) {
-    return data?.malThumbnail || data?.thumbnail || null;
+    return data?.thumbnail || data?.malThumbnail || null;
 }
 
 // ── EXPORT ────────────────────────────────────────────────────────────────────
