@@ -157,4 +157,12 @@ async function getLatestAlqanime() {
     return parseAnimeCards(md);
 }
 
-module.exports = { searchAlqanime, getDetailAlqanime, getLatestAlqanime };
+async function getRilisanTerbaru() {
+    const md = await fetchMarkdown(BASE);
+    // Potong hanya seksi "Rilisan Terbaru" sampai seksi berikutnya
+    const sectionM = md.match(/###\s*Rilisan Terbaru\s*\n([\s\S]*?)(?=###\s|\n##\s|$)/i);
+    if (!sectionM) return parseAnimeCards(md); // fallback ke semua cards
+    return parseAnimeCards(sectionM[1]);
+}
+
+module.exports = { searchAlqanime, getDetailAlqanime, getLatestAlqanime, getRilisanTerbaru };

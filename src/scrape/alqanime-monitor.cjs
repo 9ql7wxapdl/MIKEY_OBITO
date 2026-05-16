@@ -378,9 +378,9 @@ async function cariEpisodeBaru() {
 // ── SIMULASI ──────────────────────────────────────────────────────────────────
 
 async function simulasi() {
-    const { getLatestAlqanime, getDetailAlqanime } = require('./alqanime.cjs');
+    const { getRilisanTerbaru, getDetailAlqanime } = require('./alqanime.cjs');
 
-    const cards = await getLatestAlqanime();
+    const cards = await getRilisanTerbaru();
     if (!cards.length) throw new Error('Tidak ada rilisan terbaru dari alqanime.net');
 
     const card   = cards[0];
