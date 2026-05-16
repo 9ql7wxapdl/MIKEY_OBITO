@@ -51,15 +51,15 @@
     "whitelist": []
   },
   "antiTagSW": {
-    "enabled": true,
+    "enabled": false,
     "maxWarnings": 10
   },
   "autoCleaner": {
-    "enabled": true,
+    "enabled": false,
     "intervalHours": 24
   },
   "sessionCleaner": {
-    "enabled": true
+    "enabled": false
   },
   "telegram": {
     "enabled": false,
@@ -87,7 +87,7 @@
     "apiUrl": ""
   },
   "memoryMonitor": {
-    "enabled": true,
+    "enabled": false,
     "limitMB": 1000,
     "checkIntervalMs": 30000,
     "logIntervalMs": 300000,
@@ -112,7 +112,7 @@
     }
   },
   "infowibu": {
-    "enabled": true,
+    "enabled": false,
     "groups": {
       "120363192554714254@g.us": {
         "enabled": false,
@@ -139,7 +139,7 @@
   "alqanimenotif": {
     "groups": {
       "120363192554714254@g.us": {
-        "enabled": true,
+        "enabled": false,
         "diubahPada": 1778836164591
       }
     }
