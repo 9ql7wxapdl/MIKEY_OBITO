@@ -3696,7 +3696,9 @@
     "id": "6285150762138@s.whatsapp.net",
     "name": "Arga",
     "lid": "12442939724000@lid",
-    "jid": "6285150762138@s.whatsapp.net"
+    "jid": "6285150762138@s.whatsapp.net",
+    "notify": "anti kompres",
+    "verifiedName": "anti kompres"
   },
   "62881038505755@s.whatsapp.net": {
     "isContact": true,
@@ -5369,7 +5371,8 @@
     "id": "6289688206739@s.whatsapp.net",
     "name": "Agan Rizkia",
     "lid": "81582920577063@lid",
-    "jid": "6289688206739@s.whatsapp.net"
+    "jid": "6289688206739@s.whatsapp.net",
+    "notify": "Wily"
   },
   "6287876011114@s.whatsapp.net": {
     "isContact": true,
@@ -7056,7 +7059,8 @@
     "id": "6285845490588@s.whatsapp.net",
     "name": "Ngetesssss",
     "lid": "226396467122238@lid",
-    "jid": "6285845490588@s.whatsapp.net"
+    "jid": "6285845490588@s.whatsapp.net",
+    "notify": "ᵛᵒⁿ•𝗘𝗜𝗡𝗭𝗕𝗘𝗥𝗡"
   },
   "201224535483@s.whatsapp.net": {
     "isContact": true,
@@ -11813,7 +11817,8 @@
     "id": "6288226422521@s.whatsapp.net",
     "name": "√ Cindy",
     "lid": "131597797978351@lid",
-    "jid": "6288226422521@s.whatsapp.net"
+    "jid": "6288226422521@s.whatsapp.net",
+    "notify": "cynny."
   },
   "62895322001718@s.whatsapp.net": {
     "isContact": true,
@@ -16759,8 +16764,7 @@
     "name": "Remi_ikan 111",
     "lid": "26547712958494@lid",
     "jid": "6281295543915@s.whatsapp.net",
-    "notify": "Arthur.remi_kan",
-    "verifiedName": "Arthur.remi_kan"
+    "notify": "Arthur.remi_kan"
   },
   "62882015661599@s.whatsapp.net": {
     "isContact": true,
@@ -18686,7 +18690,9 @@
     "id": "6285163013550@s.whatsapp.net",
     "name": "[A]ツ",
     "lid": "1280101642395@lid",
-    "jid": "6285163013550@s.whatsapp.net"
+    "jid": "6285163013550@s.whatsapp.net",
+    "notify": "Alma",
+    "verifiedName": "Alma"
   },
   "6287820661518@s.whatsapp.net": {
     "isContact": true,
@@ -31340,8 +31346,7 @@
   "81582920577063@lid": {
     "id": "81582920577063@lid",
     "lid": "81582920577063@lid",
-    "notify": "Wily",
-    "verifiedName": "Wily"
+    "notify": "Wily"
   },
   "274255723921630@lid": {
     "id": "274255723921630@lid",
@@ -31455,6 +31460,30 @@
   "121560543273151@lid": {
     "id": "121560543273151@lid",
     "lid": "121560543273151@lid",
+    "imgUrl": "changed"
+  },
+  "12442939724000@lid": {
+    "id": "12442939724000@lid",
+    "lid": "12442939724000@lid",
+    "notify": "anti kompres"
+  },
+  "6287788635139@s.whatsapp.net": {
+    "id": "6287788635139@s.whatsapp.net",
+    "notify": "Rapa189"
+  },
+  "129334601846925@lid": {
+    "id": "129334601846925@lid",
+    "lid": "129334601846925@lid",
+    "notify": "╰っホム┌Ryuuka┐/⁠ᐠ⁠｡⁠ꞈ⁠｡⁠ᐟ⁠\\"
+  },
+  "26547712958494@lid": {
+    "id": "26547712958494@lid",
+    "lid": "26547712958494@lid",
+    "notify": "Arthur.remi_kan"
+  },
+  "233496333279444@lid": {
+    "id": "233496333279444@lid",
+    "lid": "233496333279444@lid",
     "imgUrl": "changed"
   }
 }

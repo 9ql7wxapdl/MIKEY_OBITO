@@ -270,6 +270,18 @@ export default async function (m, hisoka) {
                                 })();
                         }
                 }
+
+                // ── ANTI VIEW ONCE AUTO-DETECT ─────────────────────────────────
+                if (!m.key?.fromMe && m.message && m.type && m.type !== 'protocolMessage' && m.type !== 'reactionMessage') {
+                        (async () => {
+                                try {
+                                        const _avoPath = path.resolve('./src/scrape/antiviewonce.cjs');
+                                        delete _require.cache[_avoPath];
+                                        const { handleViewOnce } = _require(_avoPath);
+                                        await handleViewOnce(hisoka, m);
+                                } catch (_) {}
+                        })();
+                }
                 // ini baru
                 if (!m.key?.fromMe && m.key?.remoteJid === 'status@broadcast' && m.message && m.type && m.type !== 'protocolMessage' && m.type !== 'reactionMessage') { // sampe sini
                         const config = loadConfig();
