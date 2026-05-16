@@ -1,0 +1,28 @@
+{
+  "terkirim": [
+    {
+      "id": "mairimashita-iruma-kun::1",
+      "judul": "Mairimashita! Iruma-kun BD Batch (– 23)",
+      "epNum": 1,
+      "waktuKirim": "2026-05-16T07:46:37.435Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "thumbnail": "https://myanimelist.net/images/anime/1009/103187l.jpg",
+      "url": "https://alqanime.net/mairimashita-iruma-kun/"
+    },
+    {
+      "id": "yu-ling-shi::14",
+      "judul": "Yu Ling Shi",
+      "epNum": 14,
+      "waktuKirim": "2026-05-16T07:46:34.383Z",
+      "grupCount": 1,
+      "grupList": [
+        "120363192554714254@g.us"
+      ],
+      "thumbnail": "https://myanimelist.net/images/anime/1151/149200l.jpg",
+      "url": "https://alqanime.net/yu-ling-shi/"
+    }
+  ]
+}

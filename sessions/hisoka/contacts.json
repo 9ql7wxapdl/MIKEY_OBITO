@@ -9386,7 +9386,8 @@
     "id": "6285136314199@s.whatsapp.net",
     "name": "! Nurul 🗿",
     "lid": "90916371062907@lid",
-    "jid": "6285136314199@s.whatsapp.net"
+    "jid": "6285136314199@s.whatsapp.net",
+    "notify": "Nursaori_saossoryy"
   },
   "6283831464069@s.whatsapp.net": {
     "isContact": true,
@@ -13971,8 +13972,7 @@
     "id": "6282179339575@s.whatsapp.net",
     "name": "Ptr - putri",
     "lid": "207176471732426@lid",
-    "jid": "6282179339575@s.whatsapp.net",
-    "notify": "Ptr"
+    "jid": "6282179339575@s.whatsapp.net"
   },
   "6288212250669@s.whatsapp.net": {
     "isContact": true,
@@ -29561,8 +29561,7 @@
     "id": "6285778517902@s.whatsapp.net",
     "name": "* Stephanie Floriska",
     "lid": "178701056626923@lid",
-    "jid": "6285778517902@s.whatsapp.net",
-    "notify": "Stephanie Floriska"
+    "jid": "6285778517902@s.whatsapp.net"
   },
   "6285336189966@s.whatsapp.net": {
     "isContact": true,
@@ -31547,25 +31546,5 @@
     "id": "69011719090285@lid",
     "lid": "69011719090285@lid",
     "imgUrl": "changed"
-  },
-  "177305041240287@lid": {
-    "id": "177305041240287@lid",
-    "lid": "177305041240287@lid",
-    "imgUrl": "removed"
-  },
-  "49018612764889@lid": {
-    "id": "49018612764889@lid",
-    "lid": "49018612764889@lid",
-    "imgUrl": "removed"
-  },
-  "250817718255764@lid": {
-    "id": "250817718255764@lid",
-    "lid": "250817718255764@lid",
-    "imgUrl": "removed"
-  },
-  "217467683139783@lid": {
-    "id": "217467683139783@lid",
-    "lid": "217467683139783@lid",
-    "imgUrl": "removed"
   }
 }

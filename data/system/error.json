@@ -1,33 +1,6 @@
 {
   "errors": [
     {
-      "fingerprint": "AlqanimeNotif::[AlqanimeNotif] Error scheduler: ambilThumbnailMAL is not defined",
-      "source": "AlqanimeNotif",
-      "message": "[AlqanimeNotif] Error scheduler: ambilThumbnailMAL is not defined",
-      "stack": "Error: [AlqanimeNotif] Error scheduler: ambilThumbnailMAL is not defined\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at runAlqanime (file:///home/runner/workspace/index.js:922:57)\n    at Timeout._onTimeout (file:///home/runner/workspace/index.js:928:41)\n    at listOnTimeout (node:internal/timers:581:17)\n    at process.processTimers (node:internal/timers:519:7)",
-      "count": 1,
-      "firstSeen": "2026-05-16T08:03:02.686Z",
-      "lastSeen": "2026-05-16T08:03:02.686Z"
-    },
-    {
-      "fingerprint": "command:alqanimenotif::ambilThumbnailMAL is not defined",
-      "source": "command:alqanimenotif",
-      "message": "ambilThumbnailMAL is not defined",
-      "stack": "ReferenceError: ambilThumbnailMAL is not defined\n    at Object.<anonymous> (/home/runner/workspace/src/scrape/alqanime-monitor.cjs:426:5)\n    at Module._compile (node:internal/modules/cjs/loader:1521:14)\n    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)\n    at Module.load (node:internal/modules/cjs/loader:1266:32)\n    at Module._load (node:internal/modules/cjs/loader:1091:12)\n    at Module.require (node:internal/modules/cjs/loader:1289:19)\n    at require (node:internal/modules/helpers:182:18)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778918533969:13894:106)",
-      "count": 1,
-      "firstSeen": "2026-05-16T08:02:45.775Z",
-      "lastSeen": "2026-05-16T08:02:45.775Z"
-    },
-    {
-      "fingerprint": "console.error::\u001b[Nm[Handler] Error on command \"alqanimenotif\":\u001b[Nm ambilThumbnailMAL is not defined",
-      "source": "console.error",
-      "message": "\u001b[31m[Handler] Error on command \"alqanimenotif\":\u001b[39m ambilThumbnailMAL is not defined",
-      "stack": "Error: \u001b[31m[Handler] Error on command \"alqanimenotif\":\u001b[39m ambilThumbnailMAL is not defined\n    at console.error (file:///home/runner/workspace/index.js:352:27)\n    at default (file:///home/runner/workspace/src/handler/message.js?t=1778918533969:14423:25)",
-      "count": 1,
-      "firstSeen": "2026-05-16T08:02:45.764Z",
-      "lastSeen": "2026-05-16T08:02:45.764Z"
-    },
-    {
       "fingerprint": "console.error::\u001b[Nm[HotReload] Tidak bisa watch 'src/handler/antiviewonce.js':\u001b[Nm ENOENT: no such file or directory, watch '/home/runn",
       "source": "console.error",
       "message": "\u001b[31m[HotReload] Tidak bisa watch 'src/handler/antiviewonce.js':\u001b[39m ENOENT: no such file or directory, watch '/home/runner/workspace/src/handler/antiviewonce.js'",

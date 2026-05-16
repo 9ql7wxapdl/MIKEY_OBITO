@@ -6,49 +6,17 @@ const BASE    = 'https://alqanime.net';
 const JINA    = 'https://r.jina.ai';
 
 const HEADERS = {
-    'User-Agent'      : 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    'Accept'          : 'text/plain, */*',
-    'Accept-Language' : 'id-ID,id;q=0.9,en;q=0.8',
-    'X-Return-Format' : 'markdown',
-    // X-No-Cache TIDAK dipakai — biarkan Jina pakai cache-nya sendiri agar mengurangi 403
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'text/plain, */*',
+    'Accept-Language': 'id-ID,id;q=0.9,en;q=0.8',
 };
 
-// Cache markdown per-URL selama 2 menit — pakai global agar bertahan saat modul di-reload scheduler
-if (!global._alqMdCache) global._alqMdCache = new Map();
-const MD_CACHE_TTL = 2 * 60 * 1000; // 2 menit
-
-async function fetchMarkdown(url, { retries = 3, delay = 8000 } = {}) {
-    const cached = global._alqMdCache.get(url);
-    if (cached && Date.now() - cached.at < MD_CACHE_TTL) return cached.data;
-
-    let lastErr;
-    for (let i = 0; i < retries; i++) {
-        try {
-            const res = await axios.get(`${JINA}/${url}`, {
-                headers : HEADERS,
-                timeout : 35000,
-            });
-            const data = res.data;
-            global._alqMdCache.set(url, { data, at: Date.now() });
-            return data;
-        } catch (err) {
-            lastErr = err;
-            const status = err?.response?.status;
-            // Jangan retry kalau bukan error sementara (selain 403/429/5xx)
-            if (status && status < 500 && status !== 429 && status !== 403) throw err;
-            if (i < retries - 1) {
-                const wait = delay * Math.pow(2, i); // 8s, 16s, 32s
-                console.warn(`[AlqMD] ⚠️ ${status || 'err'} — retry ${i + 1}/${retries - 1} dalam ${wait / 1000}s...`);
-                await new Promise(r => setTimeout(r, wait));
-            }
-        }
-    }
-    // Fallback: kembalikan stale cache jika ada daripada lempar error
-    if (cached?.data) {
-        console.warn(`[AlqMD] ⚠️ Semua retry gagal, pakai stale cache untuk ${url}`);
-        return cached.data;
-    }
-    throw lastErr;
+async function fetchMarkdown(url) {
+    const res = await axios.get(`${JINA}/${url}`, {
+        headers: HEADERS,
+        timeout: 30000,
+    });
+    return res.data;
 }
 
 function parseAnimeCards(md) {
@@ -191,14 +159,10 @@ async function getLatestAlqanime() {
 
 async function getRilisanTerbaru() {
     const md = await fetchMarkdown(BASE);
-    // Potong hanya seksi "Rilisan Terbaru" sampai seksi berikutnya (H3)
-    const sectionM = md.match(/###\s*Rilisan Terbaru\s*\n([\s\S]*?)(?=\n###\s|$)/i);
-    if (sectionM) {
-        const cards = parseAnimeCards(sectionM[1]);
-        if (cards.length) return cards;
-    }
-    // Fallback ke semua cards jika section tidak ditemukan atau kosong
-    return parseAnimeCards(md);
+    // Potong hanya seksi "Rilisan Terbaru" sampai seksi berikutnya
+    const sectionM = md.match(/###\s*Rilisan Terbaru\s*\n([\s\S]*?)(?=###\s|\n##\s|$)/i);
+    if (!sectionM) return parseAnimeCards(md); // fallback ke semua cards
+    return parseAnimeCards(sectionM[1]);
 }
 
 module.exports = { searchAlqanime, getDetailAlqanime, getLatestAlqanime, getRilisanTerbaru };
