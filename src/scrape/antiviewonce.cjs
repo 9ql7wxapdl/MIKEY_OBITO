@@ -257,6 +257,7 @@ module.exports = {
     isEnabled,
     setEnabled,
     getEnabledGroups,
+    replayViewOnce,
     handleViewOnce,
     deteksiViewOnce,
     buatCaption,
