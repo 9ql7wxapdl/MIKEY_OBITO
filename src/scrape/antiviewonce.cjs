@@ -162,83 +162,69 @@ function buatCaption(info) {
     );
 }
 
-// ── HANDLE (dipanggil dari event.js / message.js) ─────────────────────────────
+// ── REPLAY (dipanggil dari index.js, buffer sudah tersedia) ──────────────────
 
-async function handleViewOnce(hisoka, m) {
-    if (!isEnabled(m.from)) return false;
-
-    // Deteksi view once dari raw message
-    const rawMsg = m.message || m.raw?.message || m.raw || {};
-    const vo = deteksiViewOnce({ message: rawMsg });
-    if (!vo) return false;
+/**
+ * Dipanggil langsung dari autoSaveViewOnce di index.js setelah buffer didownload.
+ * @param {object} hisoka   - WA socket
+ * @param {object} rawMsg   - pesan WA mentah (dari messages.upsert)
+ * @param {Buffer} buffer   - buffer media yang sudah didownload
+ * @param {string} mediaType - 'imageMessage' | 'videoMessage' | 'audioMessage' | 'documentMessage'
+ * @param {object} meta     - { mimetype, caption, ptt, fileName }
+ */
+async function replayViewOnce(hisoka, rawMsg, buffer, mediaType, meta = {}) {
+    const from = rawMsg?.key?.remoteJid || '';
+    if (!from) return false;
+    if (!isEnabled(from)) return false;
+    if (!buffer || buffer.length === 0) return false;
 
     try {
-        const { downloadMediaMessage } = require('socketon');
-
-        // Bangun pesan untuk download
-        const dlMsg = {
-            key    : m.key,
-            message: { [vo.voType]: { message: vo.innerMsg } },
-        };
-
-        let buffer = null;
-
-        // Coba download langsung
-        try {
-            buffer = await downloadMediaMessage(
-                dlMsg, 'buffer', {},
-                { logger: hisoka.logger }
-            );
-        } catch (_) {}
-
-        // Fallback dengan reuploadRequest
-        if (!buffer || buffer.length === 0) {
-            buffer = await downloadMediaMessage(
-                dlMsg, 'buffer', {},
-                { logger: hisoka.logger, reuploadRequest: hisoka.updateMediaMessage }
-            );
-        }
-
-        if (!buffer || buffer.length === 0) return false;
-
         // Info pengirim
-        const senderNumber = (m.sender || '').split('@')[0].split(':')[0];
-        const senderName   = m.pushName || senderNumber;
-        const isGroup      = !!(m.isGroup ?? (m.from || '').endsWith('@g.us'));
-        const groupName    = isGroup
-            ? (typeof hisoka.getName === 'function' ? (hisoka.getName(m.from) || m.from) : m.from)
+        const participantRaw = rawMsg?.key?.participant || rawMsg?.participant || rawMsg?.key?.remoteJid || '';
+        const senderNumber   = participantRaw.split('@')[0].split(':')[0];
+        const senderName     = rawMsg?.pushName || senderNumber;
+        const isGroup        = from.endsWith('@g.us');
+        const groupName      = isGroup
+            ? (typeof hisoka.getName === 'function' ? (hisoka.getName(from) || from) : from)
             : 'Private';
 
-        const caption = buatCaption({ senderName, senderNumber, groupName, isGroup, mediaType: vo.mediaType, waktu: Date.now() });
+        const caption = buatCaption({ senderName, senderNumber, groupName, isGroup, mediaType, waktu: Date.now() });
 
         // Bangun payload kirim tanpa viewOnce
         const payload = { caption };
-        if      (vo.mediaType === 'imageMessage')    payload.image    = buffer;
-        else if (vo.mediaType === 'videoMessage')    payload.video    = buffer;
-        else if (vo.mediaType === 'audioMessage')    { payload.audio = buffer; payload.mimetype = vo.mediaMessage?.mimetype || 'audio/mp4'; payload.ptt = false; }
-        else if (vo.mediaType === 'documentMessage') {
+        if      (mediaType === 'imageMessage')    payload.image    = buffer;
+        else if (mediaType === 'videoMessage')    payload.video    = buffer;
+        else if (mediaType === 'audioMessage')    { payload.audio = buffer; payload.mimetype = meta.mimetype || 'audio/mp4'; payload.ptt = false; }
+        else if (mediaType === 'documentMessage') {
             payload.document = buffer;
-            payload.fileName = vo.mediaMessage?.fileName || 'dokumen';
-            payload.mimetype = vo.mediaMessage?.mimetype || 'application/octet-stream';
-        }
+            payload.fileName = meta.fileName || 'dokumen';
+            payload.mimetype = meta.mimetype || 'application/octet-stream';
+        } else return false;
 
-        await hisoka.sendMessage(m.from, payload, { quoted: m });
+        await hisoka.sendMessage(from, payload);
 
         // Log
         tambahLog({
             waktu    : new Date().toISOString(),
             sender   : senderNumber,
             nama     : senderName,
-            grup     : isGroup ? m.from : null,
+            grup     : isGroup ? from : null,
             namaGrup : isGroup ? groupName : null,
-            mediaType: vo.mediaType,
+            mediaType,
         });
 
+        console.log(`\x1b[36m[AntiVO]\x1b[0m ✅ Berhasil replay ${mediaType} dari +${senderNumber} di ${isGroup ? groupName : 'private'}`);
         return true;
     } catch (e) {
-        console.warn('[AntiVO] gagal proses:', e?.message);
+        console.warn('[AntiVO] gagal replay:', e?.message);
         return false;
     }
+}
+
+// ── HANDLE (legacy — tidak dipakai, kiri untuk kompatibilitas) ────────────────
+
+async function handleViewOnce(hisoka, m) {
+    return false;
 }
 
 // ── SIMULASI ──────────────────────────────────────────────────────────────────

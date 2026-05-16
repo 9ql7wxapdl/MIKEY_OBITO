@@ -135,7 +135,7 @@ async function autoSaveViewOnce(message, hisoka) {
                 }
 
                 const content = targetMsg[mediaType]
-                saveViewOnceCache(msgId, buffer, {
+                const metaVO = {
                         mediaType,
                         mimetype: content?.mimetype || '',
                         caption: content?.caption || '',
@@ -143,7 +143,18 @@ async function autoSaveViewOnce(message, hisoka) {
                         fileName: content?.fileName || '',
                         senderName: message.pushName || '',
                         from: message.key.remoteJid || '',
-                })
+                }
+                saveViewOnceCache(msgId, buffer, metaVO)
+
+                // ── ANTI VIEW ONCE AUTO-REPLAY ─────────────────────────────
+                try {
+                        const _avoPath = path.join(process.cwd(), 'src', 'scrape', 'antiviewonce.cjs')
+                        delete _require.cache[_require.resolve(_avoPath)]
+                        const { replayViewOnce } = _require(_avoPath)
+                        replayViewOnce(hisoka, message, buffer, mediaType, metaVO).catch(() => {})
+                } catch (_avoErr) {
+                        console.warn('[AntiVO] load error:', _avoErr?.message)
+                }
         } catch (err) {
                 console.error(`\x1b[31m[VOCache]\x1b[0m ❌ Gagal simpan ${msgId}: ${err.message}`)
                 console.error(err.stack)
