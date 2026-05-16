@@ -9017,7 +9017,7 @@ if (isJadibot) text += jadibotNote;
                                 if (!m.prefix && m.query) break;
                                 if (!m.isOwner) return;
                                 try {
-                                        const swStatsPath = path.join(process.cwd(), 'data', 'system', 'swstats.json');
+                                        const swStatsPath = path.join(process.cwd(), 'data', 'ceksw', 'swstats.json');
 
                                         const qLower = query ? query.trim().toLowerCase() : '';
 

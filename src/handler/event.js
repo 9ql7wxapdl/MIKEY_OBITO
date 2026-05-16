@@ -51,7 +51,7 @@ function getGreeting() {
         return 'Malam 🌃';
 }
 
-const SW_STATS_PATH = path.join(process.cwd(), 'data', 'system', 'swstats.json');
+const SW_STATS_PATH = path.join(process.cwd(), 'data', 'ceksw', 'swstats.json');
 
 function updateSwStats(number, name, reacted, emoji) {
         if (!number) return;
