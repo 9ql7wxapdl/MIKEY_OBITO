@@ -29,7 +29,7 @@
 # ─────────────────────────────────────────────────────────────
 
 USER="9ql7wxapdl"
-REPO="ReadSwDika_Version"
+REPO="knkkkkkkk"
 # DEFAULT_BRANCH di-auto-detect realtime dari GitHub (lihat detect_default_branch).
 # Nilai di sini cuma fallback kalau koneksi ke GitHub bermasalah.
 DEFAULT_BRANCH="ReadswDika-V17.9"
@@ -876,7 +876,7 @@ while true; do
 done
 
 # Pilih repo tujuan push dari daftar GitHub (bisa Enter untuk skip)
-REPO="ReadSwDika_Version"
+REPO="knkkkkkkk"
 echo "" >&2
 echo -e "  ${C_BOLD}📁 Repository tujuan: ${C_GREEN}${REPO}${C_RESET}" >&2
 echo "" >&2
