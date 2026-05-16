@@ -13971,7 +13971,8 @@
     "id": "6282179339575@s.whatsapp.net",
     "name": "Ptr - putri",
     "lid": "207176471732426@lid",
-    "jid": "6282179339575@s.whatsapp.net"
+    "jid": "6282179339575@s.whatsapp.net",
+    "notify": "Ptr"
   },
   "6288212250669@s.whatsapp.net": {
     "isContact": true,
@@ -29560,7 +29561,8 @@
     "id": "6285778517902@s.whatsapp.net",
     "name": "* Stephanie Floriska",
     "lid": "178701056626923@lid",
-    "jid": "6285778517902@s.whatsapp.net"
+    "jid": "6285778517902@s.whatsapp.net",
+    "notify": "Stephanie Floriska"
   },
   "6285336189966@s.whatsapp.net": {
     "isContact": true,

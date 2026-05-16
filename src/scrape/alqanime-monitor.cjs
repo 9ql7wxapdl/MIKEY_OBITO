@@ -238,14 +238,16 @@ async function cariEpisodeBaru() {
 
         try {
             const detail = await getDetailAlqanime(card.url);
-            const { judul: judulD, epNum: epD } = parseJudulEp(detail.title || '');
+            const { judul: judulD, epNum: epD } = parseJudulEp(
+                isCFChallenge(detail) ? '' : (detail.title || '')
+            );
             const baseItem = {
+                ...(isCFChallenge(detail) ? {} : detail),
                 id,
                 url      : card.url,
                 judul    : judulD || judul,
                 epNum    : epD || epNum,
-                thumbnail: detail.thumbnail || card.thumbnail,
-                ...detail,
+                thumbnail: (isCFChallenge(detail) ? '' : detail.thumbnail) || card.thumbnail,
             };
             baru.push(baseItem);
         } catch (e) {
@@ -271,25 +273,42 @@ async function cariEpisodeBaru() {
 
 // ── SIMULASI ──────────────────────────────────────────────────────────────────
 
+// Deteksi halaman Cloudflare challenge (bukan konten asli)
+function isCFChallenge(detail) {
+    const title = (detail?.title || '').toLowerCase();
+    return title.includes('one moment') || title.includes('just a moment') ||
+           title.includes('cloudflare') || title.includes('checking your browser');
+}
+
 async function simulasi() {
     const { getRilisanTerbaru, getDetailAlqanime } = require('./alqanime.cjs');
 
     const cards = await getRilisanTerbaru();
     if (!cards.length) throw new Error('Tidak ada rilisan terbaru dari alqanime.net');
 
-    const card   = cards[0];
+    const card  = cards[0];
     const { judul, epNum } = parseJudulEp(card.title || '');
-    const id     = buatId(card.url, epNum);
-    const detail = await getDetailAlqanime(card.url);
-    const { judul: judulD, epNum: epD } = parseJudulEp(detail.title || '');
+    const id    = buatId(card.url, epNum);
 
+    let detail = {};
+    try {
+        detail = await getDetailAlqanime(card.url);
+        if (isCFChallenge(detail)) {
+            console.warn('[AlqanimeNotif] ⚠️ Simulasi: halaman CF challenge, pakai data card saja');
+            detail = {};
+        }
+    } catch (e) {
+        console.warn('[AlqanimeNotif] ⚠️ Simulasi: gagal fetch detail, pakai data card saja:', e?.message);
+    }
+
+    const { judul: judulD, epNum: epD } = parseJudulEp(detail.title || '');
     const baseItem = {
+        ...detail,
         id,
         url      : card.url,
         judul    : judulD || judul,
         epNum    : epD || epNum,
         thumbnail: detail.thumbnail || card.thumbnail,
-        ...detail,
     };
 
     const caption   = buatCaption(baseItem);
