@@ -10,7 +10,7 @@
     "author": "Anda Siapa?"
   },
   "autoOnline": {
-    "enabled": true,
+    "enabled": false,
     "intervalSeconds": 15
   },
   "autoTyping": {
