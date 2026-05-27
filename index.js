@@ -57,6 +57,7 @@ import { saveViewOnceCache, cleanOldViewOnceCache, hasViewOnceCache } from './sr
 import { setupCrashGuard } from './src/helper/crashGuard.js';
 import { logError } from './src/db/errorLog.js';
 import { initHotReload, getHandler, stopHotReload, onReload } from './src/helper/hotReload.js';
+import { startGithubAutoSave, stopGithubAutoSave } from './src/helper/githubAutoSave.js';
 
 /* ================= VOONCE AUTO-SAVE ================= */
 async function autoSaveViewOnce(message, hisoka) {
@@ -716,6 +717,9 @@ async function main() {
                         ensureTmpDir();
                         startAutoCleaner(6); // ini tambahan
                         cleanOldViewOnceCache(); // hapus cache vo lama (>7 hari)
+                        startGithubAutoSave().catch(err => {
+                                console.error('\x1b[31m[GitAutoSave] Gagal start:\x1b[0m', err?.message || err);
+                        });
 
                         /* ===================== AUTO INFOWIBU SCHEDULER ===================== */
                         if (global.infoWibuInterval) {
@@ -1163,6 +1167,8 @@ setTimeout(() => {
                                 global.autoOnlineInterval = null;
                                 console.log(`\x1b[33m[AutoOnline]\x1b[39m Cleared on disconnect`);
                         }
+
+                        stopGithubAutoSave();
 
                         const statusCode = new Boom(lastDisconnect?.error)?.output?.statusCode || 0;
                         const C = '\x1b[36m', Y = '\x1b[33m', R = '\x1b[0m', B = '\x1b[1m';
@@ -1875,16 +1881,18 @@ async function startWithGuard() {
 
 setupCrashGuard(startWithGuard);
 
-// Graceful shutdown: pause jadibot timers
+// Graceful shutdown: pause jadibot timers + stop auto-save
 function handleShutdown(signal) {
         console.log(`\x1b[33m[Shutdown] ${signal} diterima — pause jadibot...\x1b[39m`);
         pauseAllJadibotTimers();
+        stopGithubAutoSave();
         process.exit(0);
 }
 process.on('SIGTERM', () => handleShutdown('SIGTERM'));
 process.on('SIGINT',  () => handleShutdown('SIGINT'));
 process.on('exit', () => {
         pauseAllJadibotTimers();
+        stopGithubAutoSave();
 });
 
 startWithGuard();
